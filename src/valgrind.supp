@@ -1,0 +1,21 @@
+{
+   ld
+   Memcheck:Cond
+   obj:/lib/ld-2.3.5.so
+}
+{
+   getpwuid
+   Memcheck:Cond
+   obj:/lib/ld-2.3.5.so
+   obj:/lib/tls/i686/cmov/libc-2.3.5.so
+   obj:/lib/ld-2.3.5.so
+   fun:_dl_open
+   obj:/lib/tls/i686/cmov/libc-2.3.5.so
+   obj:/lib/ld-2.3.5.so
+   fun:__libc_dlopen_mode
+   fun:__nss_lookup_function
+   obj:/lib/tls/i686/cmov/libc-2.3.5.so
+   fun:__nss_passwd_lookup
+   fun:getpwuid_r
+   fun:getpwuid
+}

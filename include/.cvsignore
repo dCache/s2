@@ -1,0 +1,4 @@
+.cvsignore
+.depend
+config.h
+version.h

@@ -1,0 +1,11 @@
+.cvsignore
+.depend
+.libs
+valgrind.supp
+*.a
+*.exe
+*.dll
+*.la 
+*.lo
+*.o
+*.so

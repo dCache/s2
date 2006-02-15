@@ -2,6 +2,7 @@
 .depend
 .libs
 valgrind.supp
+s2
 *.a
 *.exe
 *.dll

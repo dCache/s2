@@ -1,0 +1,7 @@
+; Parent execution value test
+
+NOP
+   >2||0 eval=1 NOP 1
+      SYSTEM echo ${?}
+         SYSTEM echo $I{0} && exit $I{0}
+&& SYSTEM echo done

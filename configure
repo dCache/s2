@@ -1,0 +1,1617 @@
+#!/bin/bash
+ProgramName=$(basename $0)
+cd $(dirname $0)
+
+######################################################################
+# General functions                                                  #
+######################################################################
+fail() {
+  echo $@ >&2
+}
+
+die() {
+  err=$1
+  shift
+  fail "$ProgramName: $@"
+  exit $err
+}
+
+# Dan Bernstein-style environment configuration
+# (note the convenience of using: . ./configure
+env_bernstein() {
+  for e in env/*
+  do
+    local var=$(basename $e)
+    local var_val=$(eval echo '$'$var)
+    if test -f "$e" && test x"$var_val" = x ; then
+      # do not redefine already defined variables from the environment
+      var_val=$(cat $e)
+      var_val=$(eval echo $var_val)
+
+      eval 'export $var="$var_val"'
+    fi
+  done
+}
+
+contains() {
+  local file="$1"
+  shift
+  cat "$file" 2>/dev/null | grep "$@" >/dev/null 2>&1
+}
+
+run() {
+ if test x${_enable_cross} = x ; then
+   # don't run the binary when cross-compiling
+   return 0
+ else
+   $1
+ fi
+}
+
+cleanup_temp() {
+  rm -f $TMPO $TMPC $TMPE $TMPS $TMPH
+}
+
+######################################################################
+# GUI                                                                #
+######################################################################
+usage() {
+  local _space="                                        "
+
+  cat >&2 << EOF
+Usage: configure [options]
+Options: [defaults in brackets after descriptions]
+
+Standard options:
+  --help                   print this message
+
+EOF
+
+  # other options
+  _index0=0
+  while test $_index0 -lt ${#OPTS[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+    _index2=$(expr $_index0 + 2)
+    _index3=$(expr $_index0 + 3)
+    _spaces=$(expr 17 - ${#OPTS[$_index1]})
+    echo -n "  --${OPTS[$_index1]}=<opt>" >&2
+    echo "${_space:0:$_spaces}${OPTS[$_index2]} [`eval echo '$'${OPTS[$_index0]}`]" >&2
+
+    _index0=`expr $_index0 + 4`
+  done
+
+
+  cat >&2 << EOF
+
+  --prefix=<dir>           install in <dir> [$_prefix]
+  --exec-prefix=<dir>      install executables in <dir> [$_exec_prefix]
+EOF
+
+  # installation directories
+  cat >&2 << EOF
+
+  --<opt>dir=<dir>         installation directories <opt>:
+EOF
+  _index0=0
+  while test $_index0 -lt ${#DIRS[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+    _index2=$(expr $_index0 + 2)
+    _spaces=$(expr 23 - ${#DIRS[$_index0]})
+    echo -n "    ${DIRS[$_index0]}" >&2
+    echo "${_space:0:$_spaces}${DIRS[$_index1]} <dir> [$(eval echo '$'_${DIRS[$_index0]}dir)]" >&2
+
+    _index0=$(expr $_index0 + 3)
+  done
+
+  # compile-time directories
+  cat >&2 << EOF
+
+  --with-<opt>dir=<dir>    compile-time directories <opt>:
+EOF
+  _index0=0
+  while test $_index0 -lt ${#W_DIRS[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+    _index2=$(expr $_index0 + 2)
+    _spaces=$(expr 23 - ${#W_DIRS[$_index0]})
+    echo -n "    ${W_DIRS[$_index0]}" >&2
+    echo "${_space:0:$_spaces}${W_DIRS[$_index1]} DIR [$(eval echo '$'_with_${W_DIRS[$_index0]}dir)]" >&2
+
+    _index0=$(expr $_index0 + 3)
+  done
+
+  # (static|shared) options
+  cat >&2 << EOF
+
+  --(static|shared)-<opt>  static/shared library linking <opt>:
+EOF
+  _index0=0
+  while test $_index0 -lt ${#STATICS[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+    _index2=$(expr $_index0 + 2)
+    _index3=$(expr $_index0 + 3)
+    _spaces=$(expr 23 - ${#STATICS[$_index1]})
+    echo -n "    ${STATICS[$_index1]}" >&2
+    echo "${_space:0:$_spaces}${STATICS[$_index2]} [$(eval echo '$'static_${STATICS[$_index0]})]" >&2
+
+    _index0=$(expr $_index0 + 4)
+  done
+
+  # (en|dis)able options
+  cat >&2 << EOF
+
+  --(en|dis)able-<opt>     enable/disable features <opt>:
+EOF
+  _index0=0
+  while test $_index0 -lt ${#ENABLES[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+    _index2=$(expr $_index0 + 2)
+    _index3=$(expr $_index0 + 3)
+    _spaces=$(expr 23 - ${#ENABLES[$_index1]})
+    echo -n "    ${ENABLES[$_index1]}" >&2
+    echo "${_space:0:$_spaces}${ENABLES[$_index2]} [$(eval echo '$'enable_${ENABLES[$_index0]})]" >&2
+
+    _index0=$(expr $_index0 + 4)
+  done
+}
+
+summary() {
+  cat >&2 <<EOF
+${PACKAGE} ${VERSION} configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+big endian:                  ${have_bigendian:-no}
+
+CC:                          ${CC}
+CXX:                         ${CXX}
+CPPFLAGS:                    ${CPPFLAGS}
+EOF
+
+  if test x"${CFLAGS}" != x ; then
+    echo "\
+CFLAGS:                      ${CFLAGS}"
+  fi
+  if test x"${CXXFLAGS}" != x ; then
+    echo "\
+CXXFLAGS:                    ${CXXFLAGS}"
+  fi
+
+  cat >&2 <<EOF
+cross-compiler:              ${enable_cross:-no}
+ccache:                      ${enable_ccache:-no}
+
+<inttypes.h>:                ${have_inttypes:-no}/${enable_inttypes:-no}
+PCRE lib >=4.4:              ${have_pcre:-no}/${enable_pcre:-no}, static: ${static_pcre:-no}
+pthread lib:                 ${have_pthread:-no}/${enable_pthread:-no}, static: ${static_pthread:-no}
+diagnose lib:                ${enable_dg:-no}, static: ${static_dg:-no}
+EOF
+
+  if test x$enable_dg = xyes ; then
+    cat >&2 <<EOF
+  log:                       ${enable_dg_log:-no}
+  debug:                     ${enable_dg_dbg:-no}
+  warn:                      ${enable_dg_warn:-no}
+  error:                     ${enable_dg_err:-no}
+EOF
+  fi
+
+  cat >&2 <<EOF
+
+shared libraries:            ${enable_shared:-no}
+static executable:           ${enable_static:-no}
+
+release:                     ${enable_release:-no}
+i18 support:                 ${enable_i18:-no}
+wxWindows i18 support:       ${enable_wxintl:-no}
+EOF
+
+}
+
+######################################################################
+# Settings functions                                                 #
+######################################################################
+add_opt() {
+  local _index0=${#OPTS[*]}
+
+  OPTS[${_index0}]="$1"
+  OPTS[$(expr ${_index0} + 1)]="$2"
+  OPTS[$(expr ${_index0} + 2)]="$3"
+  OPTS[$(expr ${_index0} + 3)]="$4"
+}
+
+add_dir() {
+  local _index0=${#DIRS[*]}
+
+  DIRS[${_index0}]="$1"
+  DIRS[$(expr ${_index0} + 1)]="$2"
+  DIRS[$(expr ${_index0} + 2)]="$3"
+}
+
+add_withdir() {
+  local _index0=${#W_DIRS[*]}
+
+  W_DIRS[${_index0}]="$1"
+  W_DIRS[$(expr ${_index0} + 1)]="$2"
+  W_DIRS[$(expr ${_index0} + 2)]="$3"
+}
+
+add_static() {
+  local _index0=${#STATICS[*]}
+
+  STATICS[${_index0}]="$1"
+  STATICS[$(expr ${_index0} + 1)]="$2"
+  STATICS[$(expr ${_index0} + 2)]="$3"
+  STATICS[$(expr ${_index0} + 3)]="$4"
+}
+
+add_enable() {
+  local _index0=${#ENABLES[*]}
+
+  ENABLES[${_index0}]="$1"
+  ENABLES[$(expr ${_index0} + 1)]="$2"
+  ENABLES[$(expr ${_index0} + 2)]="$3"
+  ENABLES[$(expr ${_index0} + 3)]="$4"
+}
+
+option_invalid() {
+  die 2 "invalid option \`$1'"
+}
+
+option_opt() {
+  local option=$1
+  local opt=`echo $option | sed -e 's/^--\(.\+\)=.*$/\1/'`
+  local opt_val=$(echo $option | cut -d '=' -f 2)
+
+  local _found=0
+  local _index0=0
+  while test $_index0 -lt ${#OPTS[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+
+    if test x"${OPTS[$_index1]}" = x"${opt}" ; then
+      _found=1
+      eval ${OPTS[$_index0]}=$opt_val
+    fi
+    _index0=$(expr $_index0 + 4)
+  done
+
+  if test $_found -eq 0 ; then
+    option_invalid $option
+  fi
+}
+
+option_enable() {
+  local option=$1
+  local opt=`echo $option | sed -e 's/^--(enable|disable)-\(.\+\)$/\1/'`
+
+  local _found=0
+  local _index0=0
+  while test $_index0 -lt ${#ENABLES[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+
+    if test x"--enable-${ENABLES[$_index1]}" = x"${opt}" ; then
+      _found=1
+      eval enable_${ENABLES[$_index0]}=yes
+    elif test x"--disable-${ENABLES[$_index1]}" = x"${opt}" ; then
+      _found=1
+      eval enable_${ENABLES[$_index0]}=no
+    fi
+    _index0=$(expr $_index0 + 4)
+  done
+
+  if test $_found -eq 0 ; then
+    option_invalid $option
+  fi
+}
+
+option_static() {
+  local option=$1
+  local opt=`echo $option | sed -e 's/^--(static|shared)-\(.\+\)$/\1/'`
+
+  local _found=0
+  local _index0=0
+  while test $_index0 -lt ${#STATICS[*]}
+  do
+    _index1=$(expr $_index0 + 1)
+
+    if test x"--static-${STATICS[$_index1]}" = x"${opt}" ; then
+      _found=1
+      eval static_${STATICS[$_index0]}=yes
+    elif test x"--shared-${STATICS[$_index1]}" = x"${opt}" ; then
+      _found=1
+      eval static_${STATICS[$_index0]}=no
+    fi
+    _index0=$(expr $_index0 + 4)
+  done
+
+  if test $_found -eq 0 ; then
+    option_invalid $option
+  fi
+}
+
+option_set_withdir() {
+  local option=$1
+  local dir=`echo $option | sed -e 's/^--with-\(.\+\)dir=.*$/\1/'`
+  local dir_val=$(echo $option | cut -d '=' -f 2)
+
+  local _found=0
+  local _index0=0
+  while test $_index0 -lt ${#W_DIRS[*]}
+  do
+    if test x"${W_DIRS[$_index0]}" = x"${dir}" ; then
+      _found=1
+    fi
+    _index0=$(expr $_index0 + 3)
+  done
+
+  if test $_found -eq 0 ; then
+    option_invalid $option
+  fi
+
+  eval _with_${dir}dir=$dir_val
+}
+
+option_set_dir() {
+  local option=$1
+  local dir=`echo $option | sed -e 's/^--\(.\+\)dir=.*$/\1/'`
+  local dir_val=$(echo $option | cut -d '=' -f 2)
+
+  local _found=0
+  local _index0=0
+  while test $_index0 -lt ${#DIRS[*]}
+  do
+    if test x"${DIRS[$_index0]}" = x"${dir}" ; then
+      _found=1
+    fi
+    _index0=$(expr $_index0 + 3)
+  done
+
+  if test $_found -eq 0 ; then
+    option_invalid $option
+  fi
+
+  eval _${dir}dir=$dir_val
+}
+
+
+######################################################################
+# Settings definitions                                               #
+######################################################################
+add_opts() {
+  add_opt package_prefix 'package-prefix' 'package prefix to use' '${package_prefix:-""}'				# "yes" or "no"
+  add_opt package_suffix 'package-suffix' 'package suffix to use' '${package_suffix:-""}'				# "yes" or "no"
+}
+
+add_dirs() {
+  # installation directories
+  add_dir bin "binaries" '${_bindir:-${_exec_prefix}/bin}'
+  add_dir data "read-only data" '${_datadir:-${_prefix}/share}'
+  add_dir doc "documentation" '${_docdir:-${_prefix}/share/doc/${PACKAGE}-${VERSION}}'
+  add_dir include "headers" '${_includedir:-${_prefix}/include}'
+  add_dir info "info pages" '${_infodir:-${_prefix}/info}'
+  add_dir initrd "system init scripts" '${_initrddir:-${_sysconfdir}/rc.d/init.d}'
+  add_dir lib "object files and libraries" '${_libdir:-${_exec_prefix}/lib}'
+  add_dir libexec "small helper programs" '${_execdir:-${_exec_prefix}/libexec}'
+  add_dir localstate "variable data files" '${_localstatedir:-${_prefix}/var}'
+  add_dir man "man documentation" '${_mandir:-${_prefix}/share/man}'
+  add_dir sbin "super user binaries" '${_sbindir:-${_exec_prefix}/sbin}'
+  add_dir sharedstate "read/write date files" '${_sharedstatedir:-${_prefix}/com}'
+  add_dir sysconf "system configuration files" '${_sysconfdir:-${_prefix}/etc}'
+}
+
+add_withdirs() {
+  $_NOP
+}
+
+add_statics() {
+  add_static dg 'diagnose' 'diagnose library' '${static_dg:-yes}'				# "yes" or "no"
+  add_static pcre 'pcre' 'Perl-compatible regular expression library' '${static_pcre:-yes}'	# "yes" or "no"
+  add_static pthread 'pthread' 'POSIX threads library' '${static_pthread:-no}'			# "yes" or "no"
+}
+
+add_enables() {
+  add_enable ccache 'ccache' 'use ccache' '${enable_ccache:-no}'				# "yes" or "no"
+  add_enable cross 'cross' 'use MinGW native/cross windows compile' '${enable_cross:-no}'	# "yes" or "no"
+  add_enable dg 'dg' 'diagnose library' '${enable_dg:-yes}'					# "yes" or "no"
+  add_enable dg_dbg 'dg-dbg' 'diagnose library (debug)' '${enable_dg_dbg:-yes}'			# "yes" or "no"
+  add_enable dg_err 'dg-err' 'diagnose library (errors)' '${enable_dg_err:-yes}'		# "yes" or "no"
+  add_enable dg_log 'dg-log' 'diagnose library (logging)' '${enable_dg_log:-yes}'		# "yes" or "no"
+  add_enable dg_warn 'dg-warn' 'diagnose library (warnings)' '${enable_dg_warn:-yes}'		# "yes" or "no"
+  add_enable inttypes 'inttypes' '(u)int(8|16|32|64)_t types' '${enable_inttypes:-yes}'		# "yes" or "no"
+  add_enable i18 'i18' 'internationalisation' '${enable_i18:-yes}'				# "yes" or "no"
+  add_enable pcre 'pcre' 'Perl-compatible regular expression library' '${enable_pcre:-no}'	# "yes" or "no"
+  add_enable pthread 'pthread' 'pthread library' '${enable_pthread:-yes}'			# "yes" or "no"
+  add_enable release 'release' 'release to the general public' '${enable_release:-no}'		# "yes" or "no"
+  add_enable shared 'shared' 'build shared libraries' '${enable_shared:-no}'			# "yes" or "no"
+  add_enable static 'static' 'static elf binary' '${enable_static:-no}'				# "yes" or "no"
+  add_enable wxintl 'wxintl' 'use wx internal i18 routines' '${enable_wxintl:-yes}'		# "yes" or "no"
+}
+
+set_opt_deps() {
+  # option dependencies
+  if test x$enable_wxintl = xyes ; then
+    enable_i18="yes"
+  fi
+
+  if test x$enable_release = xyes ; then
+    enable_dg_dbg="no"
+    enable_static="yes"
+    enable_ccache="no"
+    enable_i18="yes"
+    enable_wxintl="yes"
+  fi
+
+  if test x$enable_cross = xyes ; then
+    CROSS_TOOLS=${CROSS_TOOLS:-/usr/local/cross-tools}
+    TARGET=${TARGET:-i386-mingw32msvc}
+    WINDRES=${WINDRES:-i386-mingw32msvc-windres}
+    MINGW=$(echo ${WIN_HOME} | sed -e 's/[^\/]\+\/[^\/]\+$/MinGW/')
+    PATH="${CROSS_TOOLS}/bin:${CROSS_TOOLS}/${TARGET}/bin:${PATH}"
+    INCLUDES="${INCLUDES} -I${MINGW}/include -I${MINGW}/usr/include"
+    EXTRALIBS="-L${CROSS_TOOLS}/${TARGET}/lib -L${MINGW}/lib -lmingw32 ${EXTRALIBS}"
+  fi
+
+  if test x$enable_ccache = xyes ; then
+    CC="ccache ${CC}"
+    CXX="ccache ${CXX}"
+  fi
+}
+
+######################################################################
+# ${CONFIG_MAK} Makefile                                             #
+######################################################################
+CONFIG_MAK() {
+  mk_package
+  mk_files
+  mk_vcs
+  mk_OS
+  mk_compiler
+  mk_cross_compile
+  mk_libs
+  mk_opts
+  mk_enables
+  mk_statics
+  mk_dirs
+}
+
+mk_package() {
+  cat >> ${CONFIG_MAK} << EOF
+######################################################################
+# This is an automatically generated Makefile configuration file.    #
+# Do NOT modify unless you know what you are doing.                  #
+######################################################################
+
+# package specifics ##################################################
+PACKAGE		:= ${PACKAGE}
+EOF
+}
+
+mk_files() {
+  cat >> ${CONFIG_MAK} << EOF
+
+# files ##############################################################
+CONFIG_MAK	:= ${CONFIG_MAK}
+CONFIG_H	:= ${CONFIG_H}
+EOF
+}
+
+mk_vcs() {
+  echo '
+# Subversion and CVS #################################################
+ifeq ($(shell svn info >/dev/null 2>&1;echo $$?),0)
+svnroot		:= $(shell svn info | grep ^URL | grep -o '\''[^ ]\+$$'\'' | sed '\''s|/trunk$$||'\'')
+VERSION		:= $(shell svn info | grep ^URL | grep -o '\''[^/]\+/*$$'\'')
+ifeq ($(VERSION),trunk)
+#VERSION	:= $(VERSION)_r$(shell svn info | grep ^Revision: | grep -o '\''[0-9]\+$$'\'')
+VERSION		:= $(shell date '\''+%Y%m%d'\'')
+endif
+else
+# Not in a subversion repository, try CVS
+CVS_REPOSITORY	= $(shell cat CVS/Repository)
+CVS_TAG		:= CVS/Tag
+VERSION		:= $(shell \
+	if test -f "$(CVS_TAG)" ; then  \
+	  cat $(CVS_TAG) | cut -c 2- | sed "s|^v||" | sed "s|_|.|g" ;\
+	else \
+	  echo `date '\''+%Y%m%d'\''` ;\
+	fi)
+endif
+# File containing a tag for tagging the project in CVS/Subversion (make tag)
+tagfile		= env/tag' >> ${CONFIG_MAK}
+}
+
+mk_OS() {
+  if test x$enable_cross = xyes || test x${OS} = xMINGW ; then
+    BINSUF=".exe"
+    SLIBSUF=".dll"
+  fi
+
+  cat >> ${CONFIG_MAK} << EOF
+
+# OS #################################################################
+OS		= ${OS}
+BINSUF		= ${BINSUF}
+LIBPREF		= ${LIBPREF}
+LIBSUF		= ${LIBSUF}
+SLIBPREF	= ${SLIBPREF}
+SLIBSUF		= ${SLIBSUF}
+EOF
+}
+
+mk_compiler() {
+  cat >> ${CONFIG_MAK} << EOF
+
+# compiler ###########################################################
+CC		= ${CC}
+CXX		= ${CXX}
+CPPFLAGS	= ${CPPFLAGS}
+CFLAGS		= ${CFLAGS}
+CXXFLAGS	= ${CXXFLAGS}
+AR		= $ar
+RANLIB		= $ranlib
+SHFLAGS		= ${SHFLAGS}
+EOF
+
+  # Compiling for Windows environment
+  if test x$enable_cross = xyes || test x${OS} = xMINGW ; then
+    echo "\
+CONFIG_WIN32	:= yes" >> ${CONFIG_MAK}
+
+    # -lintl needed on Windows
+    if test x$enable_i18 = xyes ; then
+    echo "\
+I18		:= yes" >> ${CONFIG_MAK}
+    fi
+  fi
+
+  # Native Windows binary
+  if test "${OS}" = "MINGW" ; then
+    echo "\
+WINDRES		:= windres" >> ${CONFIG_MAK}
+  fi
+
+  # Native Linux binary (elf)
+  if test x${OS} = xLinux && test x$enable_cross != xyes ; then
+    if test x$enable_static = xyes ; then
+      echo '
+# static Linux binary ################################################
+STATIC		:= --static
+LDFLAGS		+= -static' >> ${CONFIG_MAK}
+    fi
+  fi
+}
+
+mk_cross_compile() {
+  if test x$enable_cross = xyes ; then
+    echo -n "
+# cross-compilation ##################################################
+CROSS_TOOLS	:= ${CROSS_TOOLS}
+TARGET		:= ${TARGET}
+WINDRES		:= ${WINDRES}" >> ${CONFIG_MAK}
+    echo -n '
+PATH		:= $(CROSS_TOOLS)/bin:$(CROSS_TOOLS)/$(TARGET)/bin:$(PATH)' >> ${CONFIG_MAK}
+    echo "
+MINGW		:= ${MINGW}" >> ${CONFIG_MAK}
+  fi
+}
+
+mk_libs() {
+  echo "
+# includes and libraries #############################################
+INCLUDES	+= ${INCLUDES}
+EXTRALIBS	+= ${EXTRALIBS}" >> ${CONFIG_MAK}
+}
+
+mk_opts() {
+  local _index0=0
+  echo "
+# other options ######################################################" >> ${CONFIG_MAK}
+  while test $_index0 -lt ${#OPTS[*]}
+  do
+    echo "_${OPTS[$_index0]} := $(eval echo '$'${OPTS[$_index0]})" >> ${CONFIG_MAK}
+
+    _index0=$(expr $_index0 + 4)
+  done
+}
+
+mk_enables() {
+  local _index0=0
+  echo "
+# enables ############################################################" >> ${CONFIG_MAK}
+  while test $_index0 -lt ${#ENABLES[*]}
+  do
+    echo "_enable_${ENABLES[$_index0]} := $(eval echo '$'enable_${ENABLES[$_index0]})" >> ${CONFIG_MAK}
+
+    _index0=$(expr $_index0 + 4)
+  done
+}
+
+mk_statics() {
+  local _index0=0
+
+  echo "
+# static/shared libraries ############################################" >> ${CONFIG_MAK}
+  while test $_index0 -lt ${#STATICS[*]}
+  do
+    echo "_static_${STATICS[$_index0]} := $(eval echo '$'static_${STATICS[$_index0]})" >> ${CONFIG_MAK}
+
+    _index0=$(expr $_index0 + 4)
+  done
+}
+
+mk_dirs() {
+  local _index0=0
+
+  # directories setup
+  echo "
+# directories ########################################################
+_prefix		:= ${_prefix}
+_exec_prefix	:= ${_exec_prefix}" >> ${CONFIG_MAK}
+
+  # installation
+  while test $_index0 -lt ${#DIRS[*]}
+  do
+    echo "_${DIRS[$_index0]}dir := $(eval echo '$'_${DIRS[$_index0]}dir)" >> ${CONFIG_MAK}
+
+    _index0=$(expr $_index0 + 3)
+  done
+
+  # compile-time
+  _index0=0
+  while test $_index0 -lt ${#W_DIRS[*]}
+  do
+    echo "_with_${W_DIRS[$_index0]}dir := $(eval echo '$'_with_${W_DIRS[$_index0]}dir)" >> ${CONFIG_MAK}
+
+    _index0=$(expr $_index0 + 3)
+  done
+}
+
+######################################################################
+# ${CONFIG_H} generation functions                                   #
+######################################################################
+CONFIG_H_start() {
+  cat >> ${CONFIG_H} << EOF
+/**********************************************************
+ * This is an automatically generated configuration file. *
+ * Do NOT modify unless you know what you are doing.      *
+ **********************************************************/
+
+#ifndef _CONFIG_H
+#define _CONFIG_H
+
+EOF
+
+  h_defines
+  h_diagnose
+  h_dirs
+
+  echo >> ${CONFIG_H}
+}
+
+CONFIG_H_finish() {
+  cat >> ${CONFIG_H} << EOF
+#endif /* _CONFIG_H */
+EOF
+}
+
+h_def() {
+  if test x"$3" != x ; then
+    echo "/* $3 */" >> ${CONFIG_H}
+  fi
+  if test x"$1" = xyes ; then
+    cat >> ${CONFIG_H} << EOF
+#ifndef $2
+# define $2
+#endif
+EOF
+  else
+    cat >> ${CONFIG_H} << EOF
+#undef $2
+EOF
+  fi
+}
+
+h_def_nl() {
+  h_def "$@"
+  echo >> ${CONFIG_H}
+}
+
+_h_def_val() {
+  if test x"$2" = xyes ; then
+    if test x"$4" != x ; then
+      echo "/* $4 */" >> ${CONFIG_H}
+    fi
+    cat >> ${CONFIG_H} << EOF
+#ifndef $3
+# define $3 $1`eval echo '$'"$3"`$1
+#endif
+EOF
+  fi
+}
+
+# string
+h_def_sval() {
+  _h_def_val \" "$@"
+}
+h_def_sval_nl() {
+  h_def_sval "$@"
+  echo >> ${CONFIG_H}
+}
+
+# numerical value
+h_def_val() {
+  _h_def_val '' "$@"
+}
+h_def_val_nl() {
+  h_def_val "$@"
+  echo >> ${CONFIG_H}
+}
+
+h_defines() {
+  h_def_sval_nl yes PACKAGE
+  h_def_nl "$have_bigendian" HAVE_B1G_ENDIAN "don't rely on BIG/LITTLE_ENDIAN definitions"
+  h_def_nl "$enable_inttypes" HAVE_INTTYPES "(u)int(8|16|32|64)_t type"
+  h_def_nl yes __STDC_FORMAT_MACROS "use PRI* macros from <inttypes.h>"
+  h_def_nl "$enable_pcre" HAVE_PCRE "Perl-compatible regular expression library"
+  h_def_nl "$enable_pthread" HAVE_PTHREAD "Posix threads library"
+  h_def_nl "$enable_release" RELEASE "general public release"
+  h_def_nl "$enable_i18" I18 "internationalisation support"
+  h_def_nl "$enable_wxintl" WXINTL "wxintl internationalisation support"
+}
+
+h_diagnose() {
+  if test x$enable_dg = xyes ; then
+
+    h_def "$enable_dg" DG_DIAGNOSE "diagnose library options"
+    h_def "$enable_dg_log" DG_LOG
+    h_def "$enable_dg_dbg" DG_DBG
+    h_def "$enable_dg_warn" DG_WARN
+    h_def "$enable_dg_err" DG_ERR
+
+  else
+
+    echo '/* diagnose library not supplied => list all the macros here */
+#undef DG_DIAGNOSE
+#undef DG_LOG
+#undef DG_DBG
+#undef DG_WARN
+#undef DG_ERR
+
+/* general constants */
+#define ANSI_BLACK		"\033[0;30m"
+#define ANSI_DARK_GRAY		"\033[1;30m"
+#define ANSI_BLUE		"\033[0;34m"
+#define ANSI_LIGHT_BLUE		"\033[1;34m"
+#define ANSI_GREEN		"\033[0;32m"
+#define ANSI_LIGHT_GREEN	"\033[1;32m"
+#define ANSI_CYAN		"\033[0;36m"
+#define ANSI_LIGHT_CYAN		"\033[1;36m"
+#define ANSI_RED		"\033[0;31m"
+#define ANSI_LIGHT_RED		"\033[1;31m"
+#define ANSI_PURPLE		"\033[0;35m"	/* magenta */
+#define ANSI_LIGHT_PURPLE	"\033[1;35m"	/* light magenta */
+#define ANSI_BROWN		"\033[0;33m"
+#define ANSI_LIGHT_BROWN	"\033[1;33m"	/* yellow */
+#define ANSI_YELLOW		ANSI_LIGHT_BROWN
+#define ANSI_LIGHT_GRAY		"\033[0;37m"
+#define ANSI_WHITE		"\033[1;37m"
+#define ANSI_DEFAULT		"\033[1;0m"
+
+#define DG_ANSI_LOG	ANSI_LIGHT_GRAY
+#define DG_ANSI_DBG	ANSI_DEFAULT
+#define DG_ANSI_WARN	ANSI_YELLOW
+#define DG_ANSI_ERR	ANSI_LIGHT_RED
+#define DG_ANSI_ASSERT	ANSI_LIGHT_PURPLE
+
+/* types of debug messages */
+#define DG_DBG_I	(1U<<29)	/* entry to a function */
+#define DG_DBG_O	(1U<<30)	/* return from a function */
+#define DG_DBG_FIXME	(1U<<31)	/* "fixme" debug messages */
+
+/* errors */
+#define DG_ERR_FUNC	(1U<<28)	/* error level 1 (general function failure) */
+#define DG_ERR_NEXEC	(1U<<29)	/* a program could not be executed for some reason */
+#define DG_ERR_ASSERT	(1U<<30)	/* assertion failed error */
+#define DG_ERR_SYSTEM	(1U<<31)	/* system error */
+
+/* diagnose levels mask (~0: all messages) */
+#ifndef DL_DIAGNOSE
+#define DL_DIAGNOSE ~0U		/* general level (all: logging/debug/warnings/errors) */
+#endif
+#ifndef DL_LOG
+#define DL_LOG ~0U		/* logging */
+#endif
+#ifndef DL_DBG
+#define DL_DBG ~0U		/* debug messages (mask) */
+#endif
+#ifndef DL_WARN
+#define DL_WARN ~0U		/* warning messages */
+#endif
+#ifndef DL_ERR
+#define DL_ERR ~0U		/* errors */
+#endif
+
+/* diagnose streams */
+#ifndef DS_LOG
+#define DS_LOG NULL		/* logging */
+#define DS_LOG_FOUT stderr	/* default output stream (if DS_LOG set to NULL) */
+#endif
+#ifndef DS_DBG
+#define DS_DBG NULL		/* debug messages */
+#define DS_DBG_FOUT stderr	/* default output stream (if DS_DEBUG set to NULL) */
+#endif
+#ifndef DS_WARN
+#define DS_WARN NULL		/* warning messages */
+#define DS_WARN_FOUT stderr	/* default output stream (if DS_WARN set to NULL) */
+#endif
+#ifndef DS_ERR
+#define DS_ERR NULL		/* errors */
+#define DS_ERR_FOUT stderr	/* default output stream (if DS_ERROR set to NULL) */
+#endif
+
+/* environment variables */
+#define DG_ANSI			"DG_ANSI"
+#define DG_DIAGNOSE_ENV		"DG_DIAGNOSE"
+#define DG_DIAGNOSE_ENV_FILE	"DG_DIAGNOSE_FILE"
+#define DG_DIAGNOSE_ENV_FILEv	"DG_DIAGNOSE_FILEv"	/* inVert match */
+#define DG_DIAGNOSE_ENV_FUNC	"DG_DIAGNOSE_FUNC"
+#define DG_DIAGNOSE_ENV_FUNCv	"DG_DIAGNOSE_FUNCv"	/* inVert match */
+#define DG_LOG_ENV		"DG_LOG"
+#define DG_LOG_ENV_FILE		"DG_LOG_FILE"
+#define DG_LOG_ENV_FILEv	"DG_LOG_FILEv"		/* inVert match */
+#define DG_LOG_ENV_FUNC		"DG_LOG_FUNC"
+#define DG_LOG_ENV_FUNCv	"DG_LOG_FUNCv"		/* inVert match */
+#define DG_DBG_ENV		"DG_DBG"
+#define DG_DBG_ENV_FILE		"DG_DBG_FILE"
+#define DG_DBG_ENV_FILEv	"DG_DBG_FILEv"		/* inVert match */
+#define DG_DBG_ENV_FUNC		"DG_DBG_FUNC"
+#define DG_DBG_ENV_FUNCv	"DG_DBG_FUNCv"		/* inVert match */
+#define DG_WARN_ENV		"DG_WARN"
+#define DG_WARN_ENV_FILE	"DG_WARN_FILE"
+#define DG_WARN_ENV_FILEv	"DG_DBG_FILEv"		/* inVert match */
+#define DG_WARN_ENV_FUNC	"DG_WARN_FUNC"
+#define DG_WARN_ENV_FUNCv	"DG_DBG_FUNCv"		/* inVert match */
+#define DG_ERR_ENV		"DG_ERR"
+#define DG_ERR_ENV_FILE		"DG_ERR_FILE"
+#define DG_ERR_ENV_FILEv	"DG_ERR_FILEv"		/* inVert match */
+#define DG_ERR_ENV_FUNC		"DG_ERR_FUNC"
+#define DG_ERR_ENV_FUNCv	"DG_ERR_FUNCv"		/* inVert match */
+
+/* diagnose message types */
+typedef enum DT_ENUM {
+    DT_LOG	= 0U,		/* logging */
+    DT_DBG	= 1U,		/* debug messages */
+    DT_WARN	= 2U,		/* warning messages */
+    DT_ERR	= 3U,		/* errors */
+    DT_ASSERT	= 4U,		/* assertion failures */
+} DT_ENUM;
+
+typedef enum DT_MSG_ORDER {
+    DG_MSG_S = 0U,		/* message Start */
+    DG_MSG_B = 1U,		/* message Body  */
+    DG_MSG_T = 2U,		/* message Tail */
+} DT_MSG_ORDER;
+
+/* structures */
+typedef struct dg_callback {
+    unsigned int level;
+} dg_callback;
+
+/* general aliases */
+#define DM_PGMNAME_GET(...)
+#define DM_PGMNAME_SET(...)
+#define DM_ANSI_GET(...)
+#define DM_ANSI_SET(...)
+#define DM_CLOSE(...)
+#define DM_DIAGNOSE_GET_L(...)
+#define DM_DIAGNOSE_SET_L(...)
+
+/* block macro */
+#define DM_BLOCK(...)
+
+/* nestings */
+#define DM_N(...)
+
+/* no logs */
+#define DM_LOG(...)
+#define DM_LOG_B(...)
+#define DM_LOG_T(...)
+#define DM_LOG_HEXDUMP(...)
+
+#define DM_LOG_GET_L(...) 0
+#define DM_LOG_SET_L(...)
+#define DM_LOG_OPEN(...)
+#define DM_LOG_CLOSE(...)
+#define DM_LOG_CB(...)
+
+/* no debug messages */
+#define DM_DBG(...)
+#define DM_DBG_B(...)
+#define DM_DBG_T(...)
+#define DM_DBG_I
+#define DM_DBG_O
+#define DM_DBG_FIXME(...)
+#define DM_DBG_HEXDUMP(...)
+
+#define DM_DBG_GET_L(...) 0
+#define DM_DBG_SET_L(...)
+#define DM_DBG_OPEN(...)
+#define DM_DBG_CLOSE(...)
+#define DM_DBG_CB(...)
+
+/* no warnings */
+#define DM_WARN(...)
+#define DM_WARN_B(...)
+#define DM_WARN_T(...)
+#define DM_WARN_HEXDUMP(...)
+
+#define DM_WARN_GET_L(...) 0
+#define DM_WARN_SET_L(...)
+#define DM_WARN_OPEN(...)
+#define DM_WARN_CLOSE(...)
+#define DM_WARN_CB(...)
+
+/* no errors */
+#define DM_ERR(...)
+#define DM_ERR_B(...)
+#define DM_ERR_T(...)
+#define DM_ERR_HEXDUMP(...)
+
+#define DM_ERR_ASSERT(...)
+#define DM_ERR_ASSERT_B(...)
+#define DM_ERR_ASSERT_T(...)
+
+#define DM_ERR_GET_L(...) 0
+#define DM_ERR_SET_L(...)
+#define DM_ERR_OPEN(...)
+#define DM_ERR_CLOSE(...)
+#define DM_ERR_CB(...)
+' >> ${CONFIG_H}
+  fi
+}
+
+h_dirs() {
+  local _index0=0
+
+  echo "
+/* directories */" >> ${CONFIG_H}
+
+  # installation
+  while test $_index0 -lt ${#DIRS[*]}
+  do
+    cat >> ${CONFIG_H} << EOF
+#ifndef _${DIRS[$_index0]}dir
+# define _${DIRS[$_index0]}dir `eval echo '$'_${DIRS[$_index0]}dir`
+#endif
+EOF
+
+    _index0=$(expr $_index0 + 3)
+  done
+
+  # compile-time
+  _index0=0
+  while test $_index0 -lt ${#W_DIRS[*]}
+  do
+    cat >> ${CONFIG_H} << EOF
+#ifndef _${W_DIRS[$_index0]}dir
+# define _with_${W_DIRS[$_index0]}dir `eval echo '$'_with_${W_DIRS[$_index0]}dir`
+#endif
+EOF
+
+    _index0=$(expr $_index0 + 3)
+  done
+}
+
+######################################################################
+# rpmbuild-related functions                                         #
+######################################################################
+RPMBUILD() {
+  cat >> ${RPMDEF} << EOF
+######################################################################
+# This is an automatically generated rpmbuild configuration file.    #
+# Do NOT modify unless you know what you are doing.                  #
+######################################################################
+
+# Do not create debug RPMs
+%define debug_package				%{nil}
+
+%define _unpackaged_files_terminate_build	1
+%define _missing_doc_files_terminate_build	1
+
+EOF
+
+#  rpmbuild_opts	# make sure defines are not empty
+  rpmbuild_enables
+  rpmbuild_statics
+  rpmbuild_dirs
+}
+
+rpmbuild_enable() {
+  local var=$1
+  local val=$(eval echo '$'$var)
+  if test x$val = xyes ; then
+    echo "%define _${var} 1" >> ${RPMDEF}
+  else
+    echo "%define _${var} 0" >> ${RPMDEF}
+  fi
+}
+
+rpmbuild_opts() {
+  local _index0=0
+
+  echo "# other options ######################################################" >> ${RPMDEF}
+  while test $_index0 -lt ${#OPTS[*]}
+  do
+    echo "%define _${OPTS[$_index0]} $(eval echo '$'${OPTS[$_index0]})" >> ${RPMDEF}
+    _index0=$(expr $_index0 + 4)
+  done
+  echo >> ${RPMDEF}
+}
+
+rpmbuild_enables() {
+  local _index0=0
+
+  echo "# enables ############################################################" >> ${RPMDEF}
+  while test $_index0 -lt ${#ENABLES[*]}
+  do
+    rpmbuild_enable enable_${ENABLES[$_index0]} >&2
+
+    _index0=$(expr $_index0 + 4)
+  done
+  echo >> ${RPMDEF}
+}
+
+rpmbuild_statics() {
+  local _index0=0
+
+  echo "# static/shared libraries ############################################" >> ${RPMDEF}
+  while test $_index0 -lt ${#STATICS[*]}
+  do
+    rpmbuild_enable static_${STATICS[$_index0]} >&2
+
+    _index0=$(expr $_index0 + 4)
+  done
+  echo >> ${RPMDEF}
+}
+
+rpmbuild_dirs() {
+  echo "\
+# directories ########################################################
+%define _exec_prefix				${_exec_prefix}
+" >> ${RPMDEF}
+
+  # installation
+  local _index0=0
+  while test $_index0 -lt ${#DIRS[*]}
+  do
+    echo "%define _${DIRS[$_index0]}dir $(eval echo '$'_${DIRS[$_index0]}dir)" >> ${RPMDEF}
+    _index0=$(expr $_index0 + 3)
+  done
+}
+
+
+######################################################################
+# AC_* goodies                                                       #
+######################################################################
+AC_OUTPUT() {
+  # @ENV_VAR@ in File.in --> $ENV_VAR in File
+  # Limitations: $ENV_VAR must not contain character with ASCII value 1
+  for f in $AC_OUTPUT
+  do
+    SED=`env | sed 's/^\([^=]\+\)=\(.*\)$/s@\1@\2g/g'`
+    sed "$SED" "$f".in > "$f"
+  done
+}
+
+
+######################################################################
+# have_* checks                                                      #
+######################################################################
+have_bigendian() {
+  cat > $TMPC << EOF
+int main(int argc, char **argv) {
+  /* 0: little endian; 1: big endian */
+  long one = 1;
+  return (*((char *)(&one)));
+}
+EOF
+
+  have_bigendian="yes"
+  if $CC -o $TMPE $TMPC 2>/dev/null ; then
+    run $TMPE || have_bigendian="no"
+  else
+    die 1 "big/little endian diagnostics failed, bailing out"
+  fi
+}
+
+have_inttypes() {
+#  echo "Checking for <inttypes.h>" >&2
+
+  cat > $TMPC << EOF
+#include <inttypes.h>
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+
+  have_inttypes="yes"
+
+  $CC $INCLUDES -o $TMPE $TMPC ${EXTRALIBS} >/dev/null 2>&1
+#>>configure.log 2>&1
+  local err=$?
+  if test $err -eq 0 ; then
+    run $TMPE || have_inttypes="no"
+  else
+    have_inttypes="no"
+  fi
+
+  if test x$enable_inttypes = xyes ; then
+    enable_inttypes=$have_inttypes
+  fi
+
+  contains ${CONFIG_HAVE} inttypes
+  if test "$?" -eq 0 && test x$enable_inttypes = xno; then
+    die 1 "check for <inttypes.h> failed; required by ${CONFIG_HAVE}"
+  fi
+}
+
+have_pcre() {
+#  echo "Checking for Perl-compatible regular expression library." >&2
+
+  cat > $TMPC << EOF
+#include <pcre.h>
+int main(int argc, char **argv) {
+  int p = PCRE_NO_UTF8_CHECK; /* >= 4.4 */
+  return 0;
+}
+EOF
+
+  # add -L../pcre/.libs (EXTRALIBS) -I../pcre (INCLUDES)
+  # for local PCRE installation
+  have_pcre="yes"
+
+  $CC $INCLUDES -o $TMPE $TMPC ${LIB_PCRE} ${EXTRALIBS} >/dev/null 2>&1
+#>>configure.log 2>&1
+  local err=$?
+  if test $err -eq 0 ; then
+    run $TMPE || have_pcre="no"
+  else
+    have_pcre="no"
+  fi
+
+  if test x$enable_pcre = xyes ; then
+    enable_pcre=$have_pcre
+  fi
+  if test x$enable_pcre = xyes ; then
+    if test x$static_pcre = xyes ; then
+      LIB_PCRE="-Wl,-Bstatic ${LIB_PCRE} -Wl,-Bdynamic"
+    fi
+    EXTRALIBS="${LIB_PCRE} ${EXTRALIBS}"
+  fi
+
+  contains ${CONFIG_HAVE} pcre
+  if test "$?" -eq 0 && test x$enable_pcre = xno; then
+    die 1 "PCRE library >=4.4 disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+have_pthread() {
+#  echo "Checking for Posix threads library." >&2
+
+  cat > $TMPC << EOF
+#include <pthread.h>
+int main(int argc, char **argv) {
+  pthread_attr_t thread_attr;
+  pthread_attr_init(&thread_attr);
+  return 0;
+}
+EOF
+
+  have_pthread="yes"
+
+  $CC $INCLUDES -o $TMPE $TMPC ${LIB_PTHREAD} ${EXTRALIBS} >/dev/null 2>&1
+#>>configure.log 2>&1
+  local err=$?
+  if test $err -eq 0 ; then
+    run $TMPE || have_pthread="no"
+  else
+    have_pthread="no"
+  fi
+
+  if test x$enable_pthread = xyes ; then
+    enable_pthread=$have_pthread
+  fi
+  if test x$enable_pthread = xyes ; then
+    EXTRALIBS="${LIB_PTHREAD} ${EXTRALIBS}"
+  fi
+
+  contains ${CONFIG_HAVE} pthread
+  if test "$?" -eq 0 && test x$enable_pthread = xno; then
+    die 1 "Posix thread (pthread) library disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+have_dg() {
+  test x${PACKAGE} = xlibdiagnose && return 0
+
+#  echo "Checking for diagnose library." >&2
+
+  cat > $TMPC << EOF
+#include <diagnose/dg.h>
+int main(int argc, char **argv) {
+  dgPgmNameGet();
+  return 0;
+}
+EOF
+
+  have_dg="yes"
+
+  $CC $INCLUDES -o $TMPE $TMPC -DDG_DIAGNOSE ${LIB_DIAGNOSE} ${EXTRALIBS} >/dev/null 2>&1
+#>>configure.log 2>&1
+  local err=$?
+  if test $err -eq 0 ; then
+    run $TMPE || have_dg="no"
+  else
+    have_dg="no"
+  fi
+
+  if test x$enable_dg = xyes ; then
+    enable_dg=$have_dg
+  fi
+  if test x$enable_dg = xyes ; then
+    if test x$static_dg = xyes ; then
+      LIB_DIAGNOSE="-Wl,-Bstatic ${LIB_DIAGNOSE} -Wl,-Bdynamic"
+    fi
+    EXTRALIBS="${LIB_DIAGNOSE} ${EXTRALIBS}"
+  fi
+
+  contains ${CONFIG_HAVE} diagnose
+  if test "$?" -eq 0 && test x$enable_dg = xno; then
+    die 1 "diagnose library disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+######################################################################
+# main()-closely-related functions                                   #
+######################################################################
+set_vars() {
+  # set the environment ##############################################
+  env_bernstein
+  
+  # input configuration files ########################################
+  CONFIG_HAVE=${CONFIG_HAVE:-"config/have"}
+  CONFIG_DISABLE=${CONFIG_DISABLE:-"config/disable"}
+  CONFIG_ENABLE=${CONFIG_ENABLE:-"config/enable"}
+  CONFIG_SHARED=${CONFIG_SHARED:-"config/shared"}
+  CONFIG_STATIC=${CONFIG_STATIC:-"config/static"}
+  CONFIG_LOCAL=${CONFIG_LOCAL:-"config/local"}
+  
+  # output configuration files #######################################
+  CONFIG_MAK=${CONFIG_MAK:-"config.mak"}
+  CONFIG_H=${CONFIG_H:-"src/config.h"}
+  RPMDEF=${RPMDEF:-".rpmdef"}
+  
+  # libraries ########################################################
+  LIB_DIAGNOSE=${LIB_DIAGNOSE:-"-ldiagnose"}
+  LIB_PCRE=${LIB_PCRE:-"-lpcre"}
+  LIB_PTHREAD=${LIB_PTHREAD:-"-lpthread"}
+  
+  # diagnose library #################################################
+  DG_LOG=${DG_LOG:-65535}			# TODO
+  DG_DBG=${DG_DBG:-65535}			# -''-
+  DG_WARN=${DG_WARN:-65535}			# -''-
+  DG_ERR=${DG_WARN:-65535}			# -''-
+  
+  # compilation ######################################################
+  if test ! -z "${TMPDIR}" ; then
+    TMP_DIR="${TMPDIR}"
+  elif test ! -z "${TEMPDIR}" ; then
+    TMP_DIR="${TEMPDIR}"
+  else
+    TMP_DIR="/tmp"
+  fi
+  
+  TMPC="${TMP_DIR}/${PACKAGE}-${RANDOM}-$$-${RANDOM}.c"
+  TMPO="${TMP_DIR}/${PACKAGE}-${RANDOM}-$$-${RANDOM}.o"
+  TMPE="${TMP_DIR}/${PACKAGE}-${RANDOM}-$$-${RANDOM}"
+  TMPS="${TMP_DIR}/${PACKAGE}-${RANDOM}-$$-${RANDOM}.S"
+  TMPH="${TMP_DIR}/${PACKAGE}-${RANDOM}-$$-${RANDOM}.h"
+  trap "cleanup_temp && exit 1" 1 2 3 13 15
+  
+  # (dis|en)able features ############################################
+  for e in $(cat ${CONFIG_DISABLE} 2>/dev/null)
+  do
+    eval 'export enable_$e=no'
+  done
+  
+  for e in $(cat ${CONFIG_ENABLE} 2>/dev/null)
+  do
+    eval 'export enable_$e=yes'
+  done
+  
+  # static linking of libraries ######################################
+  for e in $(cat ${CONFIG_SHARED} 2>/dev/null)
+  do
+    eval 'export static_$e=no'
+  done
+  
+  for e in $(cat ${CONFIG_STATIC} 2>/dev/null)
+  do
+    eval 'export static_$e=yes'
+  done
+  
+  # package options ##################################################
+  OPTS=()
+  
+  # directories ######################################################
+  DIRS=()
+  W_DIRS=()
+  
+  # shared/static libraries ##########################################
+  STATICS=()
+  
+  # enable/disable options ###########################################
+  ENABLES=()
+}
+
+check_OS() {
+  OS=`( uname -s ) 2>&1`
+  case "${OS}" in
+    Linux|FreeBSD|NetBSD|BSD/OS|OpenBSD|SunOS|QNX|Darwin|GNU)
+      ;;
+    IRIX*)
+      OS=IRIX
+      ;;
+    HP-UX*)
+      OS=HP-UX
+      ;;
+    MINGW*)
+      OS=MINGW
+      ;;
+    *)
+      OS="${OS}-UNKNOWN"
+      ;;
+  esac
+  LIBSUF=".a"
+  SLIBSUF=".so"
+  SHFLAGS="-shared"
+  CC=${CC:-gcc}
+  CXX=${CXX:-c++}
+  CPPFLAGS="-DHAVE_CONFIG_H ${CPPFLAGS}"
+  CFLAGS=${CFLAGS:-}
+  CXXFLAGS=${CXXFLAGS:-}
+  INCLUDES=${INCLUDES:-"-I../include"}
+  ar=${ar:-ar}
+  ranlib=${ranlib:-ranlib}
+}
+
+configure_local() {
+  if ! test -x ${CONFIG_LOCAL} ; then
+    # no local configure script
+    return
+  fi
+  if test x"$1" = x ; then
+    source ${CONFIG_LOCAL}
+  else
+    func=$1
+    shift
+    $func $@
+  fi
+}
+
+have_checks() {
+  have_inttypes
+  have_pcre
+  have_pthread
+  have_dg
+}
+
+have_checks_no_cross() {
+  have_bigendian
+}
+
+set_package() {
+  # package setup
+  if test x"${PACKAGE}" = x ; then
+    die 1 "Please supply PACKAGE name."
+  fi
+
+  # Subversion
+  svn info >/dev/null 2>&1
+  if test $? -eq 0 ; then
+    VERSION=$(svn info | grep ^URL | grep -o '[^/]\+/*$')
+    if test x"${VERSION}" = xtrunk ; then
+#      VERSION=${VERSION}_r$(svn info | grep ^Revision: | grep -o '[0-9]\+$')
+       VERSION=$(date '+%Y%m%d')
+    fi
+  else
+    # Not a subversion repository, try CVS
+    CVS_TAG=CVS/Tag
+    if test -f "${CVS_TAG}" ; then
+      VERSION=$(cat ${CVS_TAG} | cut -c 2- | sed 's|^v||' | sed 's|_|.|g')
+    else
+      VERSION=$(date '+%Y%m%d')
+    fi
+  fi
+
+  # Remove old config files
+  rm -f ${CONFIG_MAK} ${CONFIG_H} ${RPMDEF}
+
+  add_opts
+  add_dirs
+  add_withdirs
+  add_statics
+  add_enables
+}
+
+set_dirs_and_options() {
+  # installation directories
+  _prefix=${_prefix:-/usr}
+  _exec_prefix=${_exec_prefix:-${_prefix}}
+  _sysconfdir=${_sysconfdir:-${_prefix}/etc} # must be before _initrddir
+
+  # option dependencies (some options might (en|dis)able others)
+  set_opt_deps
+
+  # other options
+  _index0=0
+  while test $_index0 -lt ${#OPTS[*]}
+  do
+    _index3=$(expr $_index0 + 3)
+    eval ${OPTS[$_index0]}=$(eval echo ${OPTS[$_index3]})
+    _index0=$(expr $_index0 + 4)
+  done
+
+  _index0=0
+  while test $_index0 -lt ${#DIRS[*]}
+  do
+    _index2=$(expr $_index0 + 2)
+    eval _${DIRS[$_index0]}dir=$(eval echo ${DIRS[$_index2]})
+    _index0=$(expr $_index0 + 3)
+  done
+
+  # compile-time directories
+  _index0=0
+  while test $_index0 -lt ${#W_DIRS[*]}
+  do
+    _index2=$(expr $_index0 + 2)
+    eval _with_${W_DIRS[$_index0]}dir=$(eval echo ${W_DIRS[$_index2]})
+    _index0=$(expr $_index0 + 3)
+  done
+
+  # (static|shared) options
+  _index0=0
+  while test $_index0 -lt ${#STATICS[*]}
+  do
+    _index3=$(expr $_index0 + 3)
+    eval static_${STATICS[$_index0]}=$(eval echo ${STATICS[$_index3]})
+    _index0=$(expr $_index0 + 4)
+  done
+
+  # (en|dis)able options
+  _index0=0
+  while test $_index0 -lt ${#ENABLES[*]}
+  do
+    _index3=$(expr $_index0 + 3)
+    eval enable_${ENABLES[$_index0]}=$(eval echo ${ENABLES[$_index3]})
+    _index0=$(expr $_index0 + 4)
+  done
+}
+
+write_settings_start() {
+  CONFIG_MAK
+  CONFIG_H_start
+  RPMBUILD
+}
+
+write_settings_finish() {
+  CONFIG_H_finish
+}
+
+main() {
+  # Set environment variables
+  set_vars  
+  
+  # Determine which OS we are using
+  check_OS
+
+  # Check if we have a local configure script and source it
+  configure_local
+  
+  # Set package-related values
+  set_package
+  configure_local l_set_package
+
+  # Native checks (no cross-compiler)
+  have_checks_no_cross
+  configure_local l_have_checks_no_cross
+  
+  # Parse command-line options
+  while true
+  do
+    case "$1" in
+    -h|--help)
+      set_dirs_and_options
+      configure_local l_set_dirs_and_options
+      usage
+      exit 1
+    ;;
+
+    # local options separator
+    --) shift; break
+    ;;
+  
+    # installation directories
+    --prefix=*)
+     _prefix=$(echo $1 | cut -d '=' -f 2)
+    ;;
+    --exec-prefix=*)
+     _exec-prefix=$(echo $1 | cut -d '=' -f 2)
+    ;;
+  
+    --*dir=*) option_set_dir $1
+    ;;
+  
+    # compile-time directories
+    --with-*dir=*) option_set_withdir $1
+    ;;
+  
+    # (en|dis)able options
+    --enable-*) option_enable $1
+    ;;
+    --disable-*) option_enable $1
+    ;;
+  
+    # (static|shared) options
+    --static-*) option_static $1
+    ;;
+    --shared-*) option_static $1
+    ;;
+  
+    # other options
+    --*) option_opt $1
+    ;;
+  
+    -*) option_invalid $1
+    ;;
+
+    # break on non-option
+    *) break
+    ;;
+    esac
+    shift
+  done
+  configure_local l_cmdline_opts $@
+
+  # reflect the changes
+  set_dirs_and_options
+  configure_local l_set_dirs_and_options
+  
+  # Checks
+  have_checks
+  configure_local l_have_checks
+  
+  # Write the settings
+  write_settings_start
+  configure_local l_write_settings
+  write_settings_finish
+
+  # Print out a summary
+  summary
+  configure_local l_summary
+
+  # Simulate autoconf-like behaviour
+  AC_OUTPUT
+  
+  # Cleanup temporary files
+  cleanup_temp
+}
+
+######################################################################
+### main()                                                         ###
+######################################################################
+main $@

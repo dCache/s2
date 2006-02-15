@@ -1,0 +1,5 @@
+; Tree evaluation test
+
+>2 0 NOP 0
+   SYSTEM echo RAND && exit $RANDOM
+|| SYSTEM echo done

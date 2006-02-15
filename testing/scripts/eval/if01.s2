@@ -1,0 +1,5 @@
+; #if preprocessor directive test
+
+#if 1
+NOP 0
+#endif

@@ -1,0 +1,37 @@
+Prerequisites
+~~~~~~~~~~~~~
+First of all, make sure you have the vdt_globus_essentials package
+installed, and that your /etc/grid-security/certificates contains
+certificates (ca_* packages).
+
+
+Binary distribution
+~~~~~~~~~~~~~~~~~~~
+# rpm -i s2-<VERSION>.rpm
+
+
+Source distribution
+~~~~~~~~~~~~~~~~~~~
+S2 is not easy to compile.  If you feel adventurous, you'll need:
+
+* gSOAP 2.7.2 (precisely this version) 
+  http://www.cs.fsu.edu/~engelen/soap.html
+  e.g.:
+  http://heanet.dl.sourceforge.net/sourceforge/gsoap2/gsoap_2.7.2.tar.gz
+* CGSI_gSOAP_2.7 plugin (I used CGSI_gSOAP_2.7-1.1.9)
+  http://cern.ch/castor/DIST/CERN/savannah/CGSI_gSOAP.pkg
+* PCRE (Perl Compatible Regular Expressions) library >= 4.4
+  http://www.pcre.org/
+* diagnose library >= 0.3.8 (optional in principal, but 
+  strongly recommended)
+  http://storage.esc.rl.ac.uk/apt/datastore/sl/RPMS.stable/
+
+$ ./configure --help
+$ ./configure [your_options] && make
+$ make install [prefix=your_prefix]
+$ make rpm
+
+Note that if you just want to play with the S2 language and do not
+want SRM2 support, use
+$ ./configure --disable-gsoap
+

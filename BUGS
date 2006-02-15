@@ -1,0 +1,13 @@
+Please send bug reports with S2 scripts causing them to the current
+maintainer.  When reporting BUGs, please verify against the latest
+s2 version.
+
+Known bugs:
+~~~~~~~~~~~
+1) Parallel execution didn't receive as much testing as it
+   deserves.  You don't need to report bugs, the parallel execution model
+   will be redesigned and code rewritten.
+2) Timeouts are disabled, they don't work well with parallel execution.
+
+You don't need to report bugs for the above two points as the parallel
+execution model will be redesigned and code rewritten.

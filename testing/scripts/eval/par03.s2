@@ -1,0 +1,7 @@
+; Parallel execution test
+
+timeout=1000000 SLEEP 2
+   SLEEP 1
+      SYSTEM echo 1
+   SLEEP 2
+      SYSTEM echo 2

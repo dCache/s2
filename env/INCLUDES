@@ -1,0 +1,1 @@
+-I../include -I${HOME}/scratch/usr/local/include -I../pcre -I../../pcre

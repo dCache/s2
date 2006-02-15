@@ -1,0 +1,6 @@
+; ASSIGN test
+
+ASSIGN var "long text"
+   SYSTEM echo "var=|${var}|"
+   && ASSIGN var ${var}\ is\ redefined
+   && SYSTEM echo "var=|${var}|"

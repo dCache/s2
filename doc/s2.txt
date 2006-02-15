@@ -1,0 +1,706 @@
+======================================================================
+Title:		S2 test client documentation
+Version:	2006-02-14
+======================================================================
+
+This document describes the current state of S2, a general-purpose test
+client with SRM2 protocol support.  There are README files in every
+S2 distribution which should be read first.  Last (but not least)
+the PCRE library has very extensive and exhaustive documentation on
+pattern matching.
+
+0) Abbreviations
+~~~~~~~~~~~~~~~~
+LHS     left hand side
+RHS     right hand side
+PCRE	Perl Compatible Regular Expressions
+
+
+1 Syntax
+~~~~~~~~
+The grammar uses some notation from ASF+SDF specification, a
+specification formalism developed at the University of Amsterdam and
+the Centrum voor Wiskunde en Informatica.  The following notational
+conventions apply
+
+- S* defines zero or more repetitions of a symbol (non-terminal or 
+  literal) S;
+- S+ defines one or more repetitions of a symbol S;
+- {S sep}* defines zero or more repetitions of a symbol S separated 
+  by the literal sep;
+- {S sep}+ defines one or more repetitions of a symbol S separated 
+  by the literal sep;
+- (S) defines grouping of two or more symbols `S';
+- [s] represents any one of the literals in the string (a character 
+  class) s;
+- [^s] represents any character not in the string s;
+- \t is the horizontal tabulation character;
+- \n is the newline character.
+
+
+1.1) Branches
+~~~~~~~~~~~~~
+The start symbol of the grammar is <S>.  Comments in the grammar
+start with the ';' character and continue up to the next newline
+('\n') character.
+
+  <S> :: (<BRANCH> '\n' | <PREPROCESSOR> '\n')*
+
+  <BRANCH> :: <OFFSET> <BRANCH_PREFIX>? <ACTION> ('\n' <OFFSET> <BRANCH>)*
+; The RHS <OFFSET> must be at least one space character higher than the LHS <OFFSET>.
+
+  <OFFSET> :: [ ]*
+
+  <BRANCH_PREFIX> :: <COND>? <REPEAT>? <BRANCH_OPT>*
+
+  <COND> :: '||' | '&&'
+
+  <REPEAT> :: '>' <X> <PAR_SEQ> <Y>
+  
+  <PAR_SEQ> :: ' ' | '||' | '&&'
+  
+  <X> :: <I>
+; start value/constant
+
+  <Y> :: <I>
+; end value/constant
+
+  <BRANCH_OPT> :: <EVAL> | <TIMEOUT> | <MATCH_OPTS>
+
+  <EVAL> :: 'eval' '=' <I>
+; default <I> value is 0
+; maximum exit value of <ACTION> to start the evaluation of RHS <BRANCH>
+
+  <TIMEOUT> :: 'timeout' '=' <TIMEOUT_MICROSEC>
+; default <I> value is 0
+
+  <TIMEOUT_MICROSEC> :: <N>
+
+  <MATCH_OPT> :: 'match' '=' <MATCH_OPTS>
+
+  <MATCH_OPTS> :: [01hlicEsxXmNU8?BZN-]+
+
+
+1.2) Preprocessor
+~~~~~~~~~~~~~~~~~
+  <PREPROCESSOR> :: <IF_ELSE_ENDIF>
+
+  <IF_ELSE_ENDIF> :: <IF> '\n' <BRANCH>* (<ELSE> '\n' <BRANCH>*)? <ENDIF>
+
+  <IF> :: '#' 'if' <IF_COND>
+  
+  <ELSE> :: '#' 'else'
+  
+  <ENDIF> :: '#' ( 'endif' | 'fi' )
+  
+  <IF_COND> :: <I>
+
+
+1.3) Actions
+~~~~~~~~~~~~
+  <ACTION> :: <ASSIGN> | <CMP_OP> | <MATCH> | <NOP> | <SLEEP> | <SRM2> | <SYSTEM>
+
+Syntax of the individual actions is described in the Semantics section.
+
+
+1.4 Lexicon
+~~~~~~~~~~~
+1.4.1 Static
+~~~~~~~~~~~~
+  <INTEGER> :: ('-' | '+')? <NATURAL>
+
+  <NATURAL> :: [1-9][0-9]* | '0x'[0-9A-Fa-f]+ | 0[0-7]*
+; a natural number (decimal, hexadecimal and    octal numbers are supported)
+
+  <ENV_VAR> :: '$ENV{' <VAR> '}'
+
+  <DQ_PARAM> :: [^ ]* | '"' [^"]* '"'
+; a parameter optionally enclosed by double-quotes:
+; e.g.:\ this\ is\ a\ DQ_PARAM\ with\ escaped\ spaces
+; "e.g.: this is a DQ_PARAM"
+; Note: <TAG>s in <DQ_PARAM> are evaluated.
+
+  <IND_PARAM> :: [^\]]*
+; any string terminated by ']' character
+
+  <VAR> :: <ID>
+
+  <ID> :: [A-Za-z_][A-Za-z0-9_]*
+
+  <STR> :: ( <CHAR> | <TAG> )*
+
+  <CHAR> :: [\001-\255]
+
+  <HEX_STR> :: [0-9A-F]+
+
+
+1.4.2 Dynamic
+~~~~~~~~~~~~~
+The following non-terminals are always evaluated before the
+values are used.
+
+  <TAG> :: <ENV_VAR>
+
+  <I> :: <INTEGER> | <TAG>
+; <TAG> must evaluate to <INTEGER>
+
+  <N> :: <NATURAL> | <TAG>
+; <TAG> must evaluate to <NATURAL>
+
+  <DQ_I> :: <DQ_PARAM>
+; <DQ_PARAM> must evaluate to <I>
+
+  <DQ_N> :: <DQ_PARAM>
+; <DQ_PARAM> must evaluate to <N>
+
+  <DQ_STR> :: <DQ_PARAM>
+; <DQ_PARAM> always evaluates to <STR>
+
+
+2 Semantics
+~~~~~~~~~~~
+2.1 Definitions
+~~~~~~~~~~~~~~~
+Execution and evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~
+1) (Partial) Execution
+~~~~~~~~~~~~~~~~~~~~~~
+A branch executes as TRUE (success), if execution value of <ACTION>
+of this branch is less or equal to <EVAL>; otherwise it executes as
+FALSE (failure).  It is simple to force execution of a parent's child
+(RHS <BRANCH>) by increasing the value of <EVAL>.  Execution value
+of a branch is the exit value of <ACTION>.
+
+2) (Complete) Evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~
+A branch evaluates to TRUE (success), if all its sub-branches execute
+as TRUE.  If any of its sub-branches executes as FALSE, it evaluates
+to FALSE (failure).  The (complete) evaluation value of a branch
+is the execution value of the last sub-branch.
+
+3) A virtual branch
+~~~~~~~~~~~~~~~~~~~
+Virtual branches are created from other branches by means of connecting
+them to other branches placed on the same level of indentation.
+The connectives can be '||' and '&&' conditions and an empty connective
+meaning parallel execution.  A branch is a virtual branch.
+
+2.2 Basic concept
+~~~~~~~~~~~~~~~~~
+General model
+-------------
+<branch 1a>
+  <branch 2a>
+  <branch 2b>
+    <branch 3>
+<branch 1b>
+<branch 1c>
+
+Indentation of branches is crucial.  <BRANCH>es indented by the same
+amount of whitespace (starting at the identical column) are evaluated
+in parallel unless special '||' or '&&' conditions described in the
+following sections are used.  A branch having a parent is evaluated
+only if execution of this parent succeeded (i.e. a conditional
+sequential execution).  For example, <branch 3> is only executed
+if execution of <branch 2b> succeeded. (Consequently, execution of
+<branch 1a> must have succeeded as well.)  Branches <branch 1a>,
+<branch 1b> and <branch 1c> are evaluated in parallel, and so are
+branches <branch 2a> and <branch 2b>.
+
+Empty lines are ignored.
+
+Conditional sequential execution, the '||' (OR) condition
+---------------------------------------------------------
+<branch 1>
+|| <branch 2>
+
+<branch 2> is evaluated only if evaluation of <branch 1> fails.
+
+The virtual branch created by connecting <branch 1> and <branch 2>
+by the '||' condition evaluates to TRUE if <branch 1> evaluates to
+TRUE, otherwise it evaluates to evaluation of <branch 2>.
+
+The evaluation value of a virtual branch connected by the '||'
+condition is the evaluation value of <branch 1> if it evaluates to
+TRUE, otherwise the evaluation value of <branch 2>.
+
+Conditional sequential execution, the '&&' (AND) condition
+----------------------------------------------------------
+<branch 1>
+&& <branch 2>
+
+<branch 2> is evaluated only if the evaluation of <branch 1>
+succeeds.
+
+There is no semantic difference between the following two trees:
+
+tree 1         | tree 2
+----------------------------------------
+<branch 1>     | <branch 1>
+  <branch 2>   | && <branch 2>
+
+As tree 1 and tree 2 are semantically equivalent, the evaluation
+value of a virtual branch connected by the '&&' condition is equal
+to the evaluation value of <branch 1> of tree 1.
+
+The aim of the '&&' condition is to provide a "join" primitive.  For 
+example, the following trees (1 and 2) are semantically equivalent:
+
+tree 1 (not using '&&')      | tree 2 (using the '&&' primitive)
+----------------------------------------------------------------
+<branch 1>                   | <branch 1>
+  <branch 2a>                |   <branch 2a>
+    <branch 3a>              |     <branch 3a>
+      <branch 2c>            |
+        <branch 3c>          |
+  || <branch 2b>             |   || <branch 2b>
+    <branch 3b>              |     <branch 3b>
+      <branch 2c>            |   && <branch 2c>
+        <branch 3c>          |     <branch 3c>
+  <branch 2d>                |   <branch 2d>
+
+Parallel execution
+------------------
+Branches not connected by any of the above conditions are evaluated in
+parallel.
+
+<branch 1>
+<branch 2>
+
+A virtual branch connected by the parallel (empty) connective evaluates
+to TRUE, if all of the branches evaluate to TRUE.  Otherwise it
+evaluates to FALSE.
+
+The evaluation value of a virtual branch connected by the parallel
+(empty) connective is the the maximum evaluation value of these
+branches.
+
+
+Repeatition
+~~~~~~~~~~~
+There are 3 different repeat operators.  However, they all share the
+following characteristic:
+
+>X Y
+From X (down)to Y inclusive.  For example, >0 0 repeats the branch
+just once.
+
+The sequential '&&' repeat operator
+-----------------------------------
+>X&&Y <branch>
+
+A virtual branch created by the use of the sequential '&&' repeat
+operator evaluates to TRUE, if all of <branch> iterations
+evaluate to TRUE.  The evaluation of the '&&' repeat loop
+ends with its first unsuccessful evaluation and it evaluates 
+to FALSE.
+
+The evaluation value is the value of the last iteration.
+
+The sequential '||' repeat operator
+-----------------------------------
+>X||Y <branch>
+
+A virtual branch created by the use of the sequential '||' repeat
+operator evaluates to FALSE, if all of <branch> iterations evaluate
+to FALSE.  The evaluation of the '||' repeat loop ends with its first
+successful evaluation and it evaluates to TRUE.
+
+The evaluation value is the value of the last iteration.
+
+The parallel repeat operator
+----------------------------
+>X Y <branch>
+
+A virtual branch created by the use of the parallel repeat operator
+evaluates to TRUE, if all of <branch> iterations evaluate to TRUE.
+The evaluation of the parallel repeat loop ends when all its iterations
+complete (successfully or otherwise).  If any of the iterations
+evaluates to FALSE, the virtual branch evaluates to FALSE.
+
+The evaluation value of the branch is the maximum of its completed
+iterations.
+
+
+2.3 Actions
+~~~~~~~~~~~
+There are several kinds of branch actions.
+
+
+2.3.1 ASSIGN
+~~~~~~~~~~~~
+  <ASSIGN> :: 'ASSIGN' <VAR> <VAR_VAL>
+  <VAR_VAL> :: <DQ_STR>
+
+Assign variable <VAR> value <VAR_VAL>.
+
+
+2.3.2 Comparison operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+  <CMP_OP> :: <OPERATOR> <OP1> <OP2>
+  <OPERATOR> :: 'EQ' | 'NE' | 'LT' | 'GT' | 'LE' | 'GE'
+  <OP1> :: <DQ_STR>
+  <OP2> :: <DQ_STR>
+
+The binary comparison operators return TRUE (0) if the result of
+comparison is TRUE, and return FALSE (2) if they evaluate to FALSE.
+
+The operators are shown in the following table.  If one of the 
+operands is a string, they are both compared as strings.
+
+operator  | "op1" meaning "op2"
+----------+-------------------------------------------
+EQ        | equal to (==)
+NE        | not equal to (!=)
+LT        | less than (<)
+GT        | greater than (>)
+LE        | less or equal than (<=)
+GE        | greater or equal than (>=)
+
+Before the actual comparsion, both operands are checked.  If they can
+both be converted to an integer, comparison is numerical, otherwise
+they compare as strings.  If there is a need to compare the two numbers
+as strings put the same non-numerical characters at the beginning of
+both strings.
+
+
+2.3.3 MATCH
+~~~~~~~~~~~
+  <MATCH> :: 'MATCH' <PATTERN> <SUBJECT>
+  <PATTERN> :: <DQ_STR>
+  <SUBJECT> :: <DQ_STR>
+
+PCRE match <SUBJECT> against <PATTERN>.  Return 0 if match succeeded,
+return 2 if matching fails.  Please see the section dedicated to pattern
+matching.
+
+
+2.3.4 NOP
+~~~~~~~~~~
+  <NOP> :: 'NOP' <NOP_VAL>?
+  <NOP_VAL> :: <DQ_I>
+
+The simplest action of all is the <NOP> action which is a "no 
+operation" action.  It has an optional parameter --- execution value.
+If this parameter is omitted, the default value 0 is used.
+
+
+2.3.5 SLEEP
+~~~~~~~~~~~
+  <SLEEP> :: 'SLEEP' <SLEEP_OPT>?
+  <SLEEP_OPT> :: <SLEEP_SEC> <SLEEP_NANOSEC>?
+  <SLEEP_SEC> :: <DQ_N>
+  <SLEEP_NANOSEC> :: <DQ_N>
+
+Sleep for a specified amount of seconds and/or nanoseconds.
+
+
+2.3.6. SRM2 actions
+~~~~~~~~~~~~~~~~~~~
+All SRM2 methods are implemented.  Please see the
+`testing/scripts/srm2/template' directory for syntax.
+
+
+2.3.7 SYSTEM
+~~~~~~~~~~~~
+  <SYSTEM> :: 'SYSTEM' <SYSTEM_OPT>? <SYSTEM_COMMAND>
+  <SYSTEM_OPT> :: 'out' '=' <DQ_STR>
+  <SYSTEM_COMMAND> :: <STR>
+
+System call with an optional argument (out=<regex>) allowing the
+capture and pattern matching of a program's output.
+
+
+2.4 Pattern matching
+~~~~~~~~~~~~~~~~~~~~
+There are various options which affect pattern matching.  The meaning
+column of the following two tables is for the option set to value 1.
+
+option | long name | meaning
+-------+--------------------------------------------------------------
+h      | hbsplit   | compare head and body of a message separately
+l      | linesplit | pattern is matched line-by-line against
+       |           | the subject string; every pattern line has
+       |           | to match against the subject string
+
+hbsplit:
+~~~~~~~~
+head and body are separated by one of the following sequences:
+1) '\n\n'
+2) '\n\r\n'
+In both cases, head contains the first newline '\n' character, and
+body starts with the first character following the second '\n' 
+character.
+
+linesplit:
+~~~~~~~~~~
+This option is particularly useful for line-by-line matching when the
+order of lines in the subject string is not important, but every line
+of the pattern string has to be contained in the subject string.  It is 
+also very useful in combination with the multiline option to assert 
+newlines within the subject string by the ^ and $ characters.
+
+Note that when the `notempty' option (N) is set in this mode and the
+last line of a pattern is terminated by the newline '\n' character,
+this particular pattern can never match as its last line is actually an
+empty string.
+
+option | internal option  | long name       | PCRE name              |
+-------+-------------------------------------------------------------+
+i      | i                | caseless        | PCRE_CASELESS          |
+c      | ---------------- | complete        | PCRE_ANCHORED + \z     |
+E      | ---------------- | dollar_endonly  | PCRE_DOLLAR_END_ONLY   |
+s      | s                | dotall          | PCRE_DOTALL            |
+x      | x                | extended        | PCRE_EXTENDED          |
+X      | X                | extra           | PCRE_EXTRA             |
+m      | m                | multiline       | PCRE_MULTILINE         |
+n      | ---------------- | no_auto_capture | PCRE_NO_AUTO_CAPTURE   |
+U      | U                | ungreedy        | PCRE_UNGREEDY          |
+8      | ---------------- | utf8            | PCRE_UTF8              |
+?      | ---------------- | utf8_no_check   | PCRE_NO_UTF8_CHECK     |
+-------+------------------+-----------------+------------------------+
+B      | ---------------- | notbol          | PCRE_NOTBOL            |
+Z      | ---------------- | noteol          | PCRE_NOTEOL            |
+N      | ---------------- | notempty        | PCRE_NOTEMPTY          |
+
+The option names have been chosen so that they do not collide with the
+options of the pcretest file in the PCRE library distribution (v5.0).
+
+caseless:
+~~~~~~~~~
+Do caseless matching.
+
+complete:
+~~~~~~~~~
+Whole-pattern matching.  Pattern must match the "subject string" from
+its start to the end.  Equivalent to prefixing the pattern by \A and
+appending \z (not just \Z!).
+
+dollar_endonly:
+~~~~~~~~~~~~~~~
+$ not to match newline at end.  If this options is set, a dollar
+metacharacter in the pattern matches only at the end of the subject
+string.  Without this option, a dollar also matches immediately before
+the final character if it is a newline (but not before any other
+newlines).  This option is ignored if `multiline' mode is set.
+
+dotall:
+~~~~~~~
+Dot `.' matches anything including newlines.  Without it, newlines
+are excluded.  A negative class such as [^a] always matches a newline
+character, independent of the setting of this option.
+
+extended:
+~~~~~~~~~
+If this option is set, whitespace data characters in the pattern
+are totally ignored except when escaped or inside a character
+class. Whitespace does not include the VT character (code 11).  In
+addition, characters between an unescaped # outside a character class
+and the next newline character, inclusive, are also ignored.
+
+This option makes it possible to include comments inside
+complicated patterns.  Note, however, that this applies only to data
+characters. Whitespace characters may never appear within special
+character sequences in a pattern, for example within the sequence (?(
+which introduces a conditional subpattern.
+
+extra:
+~~~~~~
+This option was invented in order to turn on additional functionality
+of PCRE that is incompatible with Perl, but it is currently of very
+little use. When set, any backslash in a pattern that is followed by
+a letter that has no special meaning causes an error, thus reserving
+these combinations for future expansion. By default, as in Perl, a
+backslash followed by a letter with no special meaning is treated as
+a literal.
+
+multiline:
+~~~~~~~~~~
+^ and $ match newlines within data.  By default, PCRE treats the
+subject string as consisting of a single line of characters (even if
+it actually contains newlines).  The "start of line" metacharacter
+(^) matches only at the start of the string, while the "end of line"
+metacharacter ($) matches only at the end of the string, or before a
+terminating newline (unless `dollar_endonly' is set).
+
+When `multiline' option is set, the "start of line" and "end of line"
+constructs match immediately following or immediately before any
+newline in the subject string, respectively, as well as at the very
+start and end.  If there are no "\n" characters in a subject string,
+or no occurrences of ^ or $ in a pattern, setting `multiline' has no
+effect.
+
+no_auto_capture:
+~~~~~~~~~~~~~~~~
+If this option is set, it disables the use of numbered capturing
+parentheses in the pattern.  Any opening parenthesis that is
+not followed by ? behaves as if it were followed by ?: but named
+parentheses can still be used for capturing (and they acquire numbers
+in the usual way).
+
+ungreedy:
+~~~~~~~~~
+This option inverts the "greediness" of the quantifiers so that they
+are not greedy by default, but become greedy if followed by "?".
+It can also be set by a (?U) option setting within the pattern.
+
+utf8:
+~~~~~
+This option causes PCRE to regard both the pattern and the subject
+as strings of UTF-8 characters instead of single-byte character
+strings.  However, it is available only when PCRE is built to
+include UTF-8 support.  If not, the use of this option provokes an
+error.  Note that UTF-8 support must also be enabled enabled during 
+PCRE library compilation.
+
+no_utf8_check:
+~~~~~~~~~~~~~~
+When utf8 is set, the validity of the pattern as a UTF-8 string is
+automatically checked. If an invalid UTF-8 sequence of bytes is found,
+pcre_compile() returns an error. If you already know that your pattern
+is valid, and you want to skip this check for performance reasons, you
+can set the `no_utf8_check' option. When it is set, the effect of
+passing an invalid UTF-8 string as a pattern is undefined. It may cause
+the S2 interpreter to crash.
+
+notbol:
+~~~~~~~
+This option specifies that first character of the subject string is not
+the beginning of a line, so the circumflex metacharacter (^) should
+not match before it.  Setting this without `multiline' (at compile
+time) causes circumflex never to match.  This option affects only the
+behaviour of the circumflex metacharacter.  It does not affect \A.
+
+noteol:
+~~~~~~~
+This option specifies that the end of the subject string is not the end
+of a line, so the dollar metacharacter should not match it nor (except
+in multiline mode) a newline immediately before it. Setting this
+without `multiline' (at compile time) causes dollar never to match.
+This option affects only the behaviour of the dollar metacharacter. It
+does not affect \Z or \z.
+
+notempty:
+~~~~~~~~~
+An empty string is not considered to be a valid match if this option is
+set.  If there are alternatives in the pattern, they are tried. If all
+the alternatives match the empty string, the entire match fails.
+
+There are three additional options which can be used to set the required
+behaviour.
+
+option | long name | meaning
+-------+-----------+------------------------------------------------
+0      | none      | all options disabled
+1      | all       | all options enabled
+-      | switch    | invert the meaning of options which follow
+
+Regular expressions
+~~~~~~~~~~~~~~~~~~~
+For detailed information about the syntax of regular expressions
+supported please refer to PCRE library manuals especially to
+pcrepattern.3.  A test script writer should especially go through
+the sections "Simple assertions", "Internal option settings",
+"Subpatterns", "Named subpatterns", "Repetition (making quantifiers not
+greedy)", "Atomic grouping and possessive quantifiers", and "Conditional
+subpatterns" as they are not generally well known features of regular
+expressions.
+
+Atomic grouping is important where performance of test script is an
+issue.
+
+Named regular expressions allow parsing values from received messages 
+into variables for use in all child branches (and subsequent lines of a 
+message to be matched).
+
+e.g.: (?P<named>.)
+      matches one character and stores it into a special variable ${named}
+      for use in all subsequent lines ('TXT' message) and children.
+
+Caution must be taken when defining and using values of named regular
+expressions on the same line.  Consider the following line:
+
+e.g.: 
+char *expected = "ab(?P<named_regex>.*)ef.*(?P=named_regex)"
+char *received = "abcdefghcdef"
+
+Named regular expression "named_regex" contains "cd" and is
+subsequently used on the same line to match the second occurrence of
+the string "cd".  The `expected' string is a valid regular expression
+supported by the PCRE library.
+
+S2 uses ${name_string} syntax to refer to variables instantiated by
+the use of named regular expressions.  These variables are written
+into internal structures during matching.  See the following example:
+
+e.g.: ${named_regex}some_text(?P<named_regex>...)some_text${named_regex} 
+  Provided we have already a variable "named_regex" with value "12345",
+  the line is evaluated before matching as 
+  =>           12345some_text(?P<named_regex>...)some_text12345
+  and the value of the variable ${named_regex} 12345 is overwritten by the
+  value of (?P<named_regex>...) after matching completes.  Provided we 
+  want to use the value of (?<named_regex>) on the same line, the 
+  following regular expression has to be given
+  =>           12345some_text(?P<named_regex>...)some_text(?P=named_regex)
+
+
+2.5 Variables
+~~~~~~~~~~~~~
+2.5.1 Script variables
+~~~~~~~~~~~~~~~~~~~~~~
+Script variables can be defined by the ASSIGN action, or by using
+named regular expressions as described in the previous section.
+All variables are global variables and script variable values are
+accessible by the ${<VAR>} tag.
+
+2.5.2 Environment variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Environment variables are accessible by the $ENV{<VAR>} tag.
+
+2.5.3 Special variables
+~~~~~~~~~~~~~~~~~~~~~~~
+${?} reference to parent's execution value.  If a branch doesn't have
+     a parent, ${?} expands to 0.
+
+${!} reference to evaluation value of a previous branch at the same offset.
+     If such a branch doesn't exist or it did not execute, ${!} expands
+     to 0.
+
+$I{<DQ_I>} refrerence to the internal counter of a sequential repeat operator.
+           The value is always between <X> any <Y>.  <DQ_I> denotes branch
+           nesting.  0 refers to the innermost repeat operator, 1 refers
+           to the second innermost repeat operator...  If <DQ_I> refers to
+           a non-existent repeat operator, 0 is returned and a warning message
+           issued.
+
+
+3 Caveats
+~~~~~~~~~
+3.1 Comment character forms part of a parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Consider the following action:
+
+  NOP 2; return an error value 2
+
+The observant reader can figure out the error by studying S2 grammar as
+semicolons can appear as a part of <NOP_VAL>.  Therefore s2 issues a 
+"trailing garbage" warning and <NOP_VAL> has the value "2;".  The correct
+way of writing the above action is either:
+
+  NOP "2"; return an error value 2
+
+or 
+
+  NOP 2 ; return an error value 2
+
+Also, note that:
+
+  SYSTEM echo "Hello" ; echo " Dolly"
+
+; echo " Dolly" is not a comment, but another system command as SYSTEM
+<ACTION> has the complete line as its argument.
+
+
+4 TODO
+~~~~~~
+Please refer to the TODO file in your S2 distribution.

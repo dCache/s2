@@ -1,0 +1,6 @@
+; Tree evaluation test
+
+ASSIGN val 0
+   >2&&0 NOP 0
+      SYSTEM echo $I{0} && exit $I{0}
+|| SYSTEM echo done

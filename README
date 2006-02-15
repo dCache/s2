@@ -1,0 +1,69 @@
+Overview
+~~~~~~~~
+S2 is a simple general-purpose test client with the SRM2 protocol
+support.  S2 interprets a tree-like language, which was also named S2.
+
+The S2 tree consists of branches.  Every branch is indented by 0
+or more spaces which, together with its row position, defines its
+relationship to the other branches.  This indentation is then followed
+by an optional set of parameters common to all branches, followed
+by a specific <ACTION> with clearly defined syntax and semantics.
+Branches located at the same indentation can be connected by three
+different primitives.  No connection at all (which stands for parallel
+execution), the OR and AND connectives.  The S2 language also supports
+parallel and sequential (OR and AND) repeats.
+
+The evaluation of an S2 tree starts with its root (the first
+branch with no indentation).  If an <ACTION> of a branch executes
+successfully, the evaluation process continues with the execution of
+its child.  Unsuccessful execution results in a search and evaluation
+of the first OR branch indented by the same number of spaces as the
+unsuccessful <ACTION>.  The OR and AND branches are left-associative
+and are evaluated in the short-circuit style.
+
+The following <ACTION>s are currently supported:
+<ASSIGN>: variable assignment
+<CMP_OP>: comparison operators (EQ, NE, LT, GT, LE and GE)
+<MATCH>:  explicit regular expression matching
+<NOP>:    no-operation
+<SLEEP>:  sleep for a specified amount of time
+<SRM2>:   the full SRM2 protocol functionality (31 actions)
+<SYSTEM>: execution of a system command
+
+The parameters common to all branches include the evaluation level
+which decides success or failure of a branch's execution, timeout
+and PCRE library options.
+
+Regular expressions can be used as parameters of <ACTION>s where
+a response is expected.  This is the most powerful feature of the
+S2 language.
+
+S2 also supports simple preprocessor directives; support for macros, 
+expression evaluation and further <ACTION>s is planned.
+
+Please see the s2.txt document for more information about the language.
+
+
+Quick start
+~~~~~~~~~~~
+1) Make sure the s2 binary in PATH.
+2) Copy the testing directory to a directory where you have RW permissions.
+3) cd testing/scripts/eval
+4) Run a couple of test scripts and examine the output and logs.
+   To run all tests contained in the directory, run 
+   make test
+5) Read s2.txt document if you get stuck.
+
+
+SRM2 tests
+~~~~~~~~~~
+The tests are in the testing/scripts/srm2 directory.
+Make sure you change your settings in s2.env or individual .env files.
+
+
+Request for help
+~~~~~~~~~~~~~~~~
+Please help improve this project by:
+ * reporting s2 bugs
+ * creating SRMv2 test scenarios
+ * providing feedback

@@ -1,0 +1,9 @@
+; Note the difference between the following two branches.
+
+#if 1
+SYSTEM echo 2 && exit 2
+|| SYSTEM echo 0 && exit 0
+#else
+eval=2 SYSTEM echo 2 && exit 2
+|| SYSTEM echo 0 && exit 0
+#endif

@@ -1,0 +1,10 @@
+; Tree evaluation test
+
+NOP 0
+&& SYSTEM echo "&& 2a: ${!}/${?}" && exit 2
+|| SYSTEM echo "|| 2b: ${!}/${?}" && exit 2
+&& SYSTEM echo "&& 0a: ${!}/${?}"
+&& SYSTEM echo "&& 0b: ${!}/${?}"
+&& SYSTEM echo "&& 0c: ${!}/${?}"
+|| SYSTEM echo "|| 0d: ${!}/${?}" && exit 0
+&& SYSTEM echo "&& 0e: ${!}/${?}"

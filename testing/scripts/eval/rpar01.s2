@@ -1,0 +1,7 @@
+; Test evaluation value of a branch located at the same offset
+
+NOP 0
+   eval=2 NOP 2
+      SYSTEM echo "1: ${?}/${!}" && exit ${?}
+   && SYSTEM echo "2: ${?}/${!}"
+   && SYSTEM echo "3: ${?}/${!}"

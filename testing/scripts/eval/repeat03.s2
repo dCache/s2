@@ -1,0 +1,7 @@
+; Parallel repeat
+; Note that if the number of parallel repeats is too high
+; program will run out of system resources
+
+>1 3 SYSTEM echo '>1 3 head' && exit 0
+   SYSTEM echo '>1 3 body' && exit 0
+&& SYSTEM echo "I'm not part of the repeat!"

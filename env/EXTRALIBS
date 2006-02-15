@@ -1,0 +1,1 @@
+-L${HOME}/scratch/usr/local/lib -L/opt -L/usr/local/lib -L./ -L../pcre/.libs/libpcre.a -L../../pcre/.libs/libpcre.a

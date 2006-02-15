@@ -1,0 +1,20 @@
+2006-02-15 12:05  Jiri Mencak
+	* all: Sourceforge release.
+
+
+2006-02-10 12:05  Jiri Mencak
+	* all: First public release.
+
+
+2006-01-20 13:51  Jiri Mencak
+	* all: All SRM2 methods implemented.
+
+
+2005-12-15 23:39  Jiri Mencak
+	* all: Basic logic works, 4 SRM2 methods implemented.
+	  No parallel execution, timeouts yet.
+
+
+2005-11-29 15:02  Jiri Mencak
+
+	* AUTHORS, NEWS, README, ...: Project started

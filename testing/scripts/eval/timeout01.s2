@@ -1,0 +1,6 @@
+; Test parallel branches with timeouts
+
+timeout=1000000 SLEEP 4
+   SYSTEM echo 4
+timeout=5000000 SLEEP 2
+   SYSTEM echo 2

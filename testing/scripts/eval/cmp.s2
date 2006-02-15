@@ -1,0 +1,27 @@
+; CMP operations test
+
+NOP 0
+&& EQ 0 0
+   SYSTEM echo EQ1
+&& EQ "abcd" "abcd"
+   SYSTEM echo EQ2
+&& NE 1 0
+   SYSTEM echo NE1
+&& NE abcd dcba
+   SYSTEM echo NE2
+&& LT 0 1
+   SYSTEM echo LT1
+&& LT abcd dcba
+   SYSTEM echo LT2
+&& GT 1 0
+   SYSTEM echo GT1
+&& GT dcba abcd 
+   SYSTEM echo GT2
+&& LE 0 1
+   SYSTEM echo LE1
+&& LE abcd dcba
+   SYSTEM echo LE2
+&& GE 1 0
+   SYSTEM echo GE1
+&& GE dcba abcd 
+   SYSTEM echo GE2

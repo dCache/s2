@@ -1,0 +1,203 @@
+#!/bin/bash
+ProgramName=$(basename $0)
+
+######################################################################
+# CONFIG_MAK, CONFIG_H and RPMBUILD functions                        #
+######################################################################
+l_CONFIG_MAK() {
+  echo "
+# less standard libraries
+GSOAP_VERSION	:= 2.7.2
+LIB_GSOAP	:= ${LIB_GSOAP}" >> ${CONFIG_MAK}
+}
+
+l_CONFIG_H() {
+  h_def_nl "$enable_gsoap" HAVE_GSOAP "gSoap library"
+}
+
+l_RPMBUILD() {
+  l_RPMREQ
+  l_RPMFILES
+}
+
+l_RPMREQ() {
+  cat > .rpmreq << EOF
+Requires:	glibc  libstdc++  libgcc
+EOF
+
+  if test x${enable_gsoap} = xyes && test x${static_globus} != xyes ; then
+  cat >> .rpmreq << EOF
+Requires:	vdt_globus_essentials
+EOF
+  fi
+
+  if test x${static_pcre} != xyes ; then
+  cat >> .rpmreq << EOF
+Requires:	pcre >= 4.4
+EOF
+  fi
+
+  if test x${static_dg} != xyes ; then
+  cat >> .rpmreq << EOF
+Requires:	diagnose >= 0.3.8
+%endif
+EOF
+  fi
+#Requires:	CGSI_gSOAP_2.7  vdt_globus_essentials  globus-initialization  gpt
+#BuildRequires:	diagnose >= 0.3.8  pcre-devel >= 4.4
+#BuildRequires:	CGSI_gSOAP-devel >= 2.7  vdt_globus_essentials >= VDT1.2.2rh9-1  gpt >= VDT1.2.2rh9-1  globus-initialization >= 2.2.4-5  vdt_globus_sdk >= VDT1.2.2rh9-1
+#glibc-2.3.2-95.33
+#libgcc-3.2.3-49
+#libstdc++-3.2.3-49
+#vdt_globus_essentials-VDT1.2.2rh9-1
+}
+
+l_RPMFILES() {
+  cat > .rpmfiles << EOF
+%defattr(-,root,root)
+
+# test
+%{_bindir}/
+EOF
+
+  if test x${enable_gsoap} = xyes ; then
+  cat >> .rpmfiles << EOF
+
+# headers
+%{_includedir}/srm2api.h
+
+# libraries
+%{_libdir}/libsrm2api.a
+EOF
+  fi
+
+  cat >> .rpmfiles << EOF
+
+## documents
+%doc %{_docdir}/AUTHORS
+%doc %{_docdir}/BUGS
+%doc %{_docdir}/COPYING
+%doc %{_docdir}/ChangeLog
+%doc %{_docdir}/INSTALL
+%doc %{_docdir}/README
+%doc %{_docdir}/TODO
+%doc %{_docdir}/s2.txt
+EOF
+
+  if test x${enable_gsoap} = xyes ; then
+  cat >> .rpmfiles << EOF
+%doc %{_docdir}/api/
+EOF
+  fi
+
+  cat >> .rpmfiles << EOF
+%doc %{_docdir}/testing/
+EOF
+}
+
+######################################################################
+# have_* functions                                                   #
+######################################################################
+have_gsoap() {
+#  echo "Checking for gSoap library." >&2
+
+  cat > $TMPC << EOF
+#include <stdsoap2.h>
+int main(int argc, char **argv) {
+  struct soap soap;
+  return 0;
+}
+EOF
+
+  have_gsoap="yes"
+
+  $CC $INCLUDES -I${_with_gsoapdir}/${GSOAP_VERSION}/include \
+      -o $TMPE $TMPC -L${_with_gsoapdir}/${GSOAP_VERSION}/lib \
+      ${LIB_GSOAP} ${EXTRALIBS} >/dev/null 2>&1
+#>>configure.log 2>&1
+  local err=$?
+  if test $err -eq 0 ; then
+    run $TMPE || have_gsoap="no"
+  else
+    have_gsoap="no"
+  fi
+
+  if test x$enable_gsoap = xyes ; then
+    enable_gsoap=$have_gsoap
+  fi
+  if test x$enable_gsoap = xyes ; then
+    if test x$static_gsoap = xyes ; then
+      LIB_GSOAP="-Wl,-Bstatic ${LIB_GSOAP} -Wl,-Bdynamic"
+    fi
+#    INCLUDES="-I${_with_gsoapdir}/${GSOAP_VERSION}/include ${INCLUDES}"
+#    EXTRALIBS="${LIB_GSOAP} ${EXTRALIBS}"
+  fi
+
+  contains ${CONFIG_HAVE} gsoap
+  if test "$?" -eq 0 && test x$enable_gsoap = xno; then
+    die 1 "gSoap library 2.7.2 disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+######################################################################
+# main()-closely-related functions                                   #
+######################################################################
+l_add_opts() {
+  $_NOP
+}
+
+l_add_withdirs() {
+  # compile-time directories
+  add_withdir gsoap 'gSoap' '${_with_gsoapdir:-${_prefix}/gsoap-slc3}'
+  add_withdir globus 'Globus' '${_with_globusdir:-${_prefix}/globus}'
+}
+
+l_add_statics() {
+  add_static gsoap 'gsoap' 'gsoap library' '${static_gsoap:-yes}'				# "yes" or "no"
+  add_static globus 'globus' 'globus library' '${static_globus:-no}'				# "yes" or "no"
+}
+
+l_add_enables() {
+  add_enable gsoap 'gsoap' 'gsoap library' '${enable_gsoap:-yes}'				# "yes" or "no"
+  add_enable srm2 'srm2' 'srm2 support' '${enable_srm2:-yes}'					# "yes" or "no"
+}
+
+l_set_package() {
+  LIB_GSOAP=${LIB_GSOAP:-"-lgsoap"}
+  GSOAP_VERSION=2.7.2
+  l_add_opts
+  l_add_withdirs
+  l_add_statics
+  l_add_enables
+}
+
+l_set_dirs_and_options() {
+  # option dependencies
+  if ! test x${enable_srm2} = xyes ; then
+    enable_gsoap=no
+  fi
+}
+
+l_have_checks() {
+  have_gsoap
+}
+
+l_have_checks_no_cross() {
+  $_NOP
+}
+
+l_cmdline_opts() {
+  $_NOP
+}
+
+l_write_settings() {
+  l_CONFIG_MAK
+  l_CONFIG_H
+  l_RPMBUILD
+}
+
+l_summary() {
+  cat >&2 <<EOF
+SRM2 support:                ${enable_srm2:-no}
+EOF
+}

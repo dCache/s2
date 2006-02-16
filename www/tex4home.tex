@@ -1,0 +1,148 @@
+\ifx\HCode\undefined
+\else
+% We are running TeX4ht
+
+%%% CSS
+\Css{%
+a:hover   { color: \#900000; text-decoration: underline; }
+%h1.sectionHead{text-align: center; color: #ff0000;}
+%h2.subsectionHead{text-align: center; color: #ff0000;}
+%h3.subsubsectionHead{text-align: center; color: #ff0000;}
+}
+
+%%% TOC
+\ConfigureToc{section} {} {\relax} {} {\HCode{<BR>}}
+\ConfigureToc{subsection} {} {$\bullet$~} {} {\HCode{<BR>}}
+\Configure{TocAt} {TocAtB} {TocAtE}
+\Configure{tableofcontents}
+{\HCode{%
+        <!-- Start left navigation bar -->%
+        <td width=8\% bgcolor="\#D6D4E3" align="left">%
+}
+\ifx\Multilang\undefined
+\else
+\HCode{%
+	<A HREF="en_GB.index.html"><IMG SRC="images/uk.png" ALT="UK" BORDER="0"></A>&nbsp;%
+        <A HREF="cs_CZ.index.html"><IMG SRC="images/cz.png" ALT="CZ" BORDER="0"></A>%
+	<BR><BR>%
+}%
+\fi
+}%
+{%
+\ifx\Sflogo\undefined
+\else
+\HCode{%
+        <BR><A HREF="http://www.sourceforge.net/projects/s-2/"><IMG SRC="images/sf_logo.png" ALT="SourceForge" BORDER="0"></A>}
+\fi
+
+\HCode{%
+        </td>
+        <!-- End left navigation bar -->}
+}
+{}{}{}
+
+%%% Sections
+\CutAt{chapter}
+%\Configure{endsection}{subsection,section}
+\Configure{crosslinks}{}{}{}{}{}{}{}{}
+\def\StartPage{%
+\HCode{%
+  <!-- Start page -->
+% <body background="background.jpg" bgcolor="\#FEFEFE"
+%  text="\#000000" link="\#000000" vlink="\#000000" alink="\#000000">
+}
+\HCode{%
+    <!-- Start page table -->
+    <font face="Arial, Helvetica">
+    <table border="0" width="100\%" cellspacing="0" cellspacing="0" cellpadding="0">}
+
+\ifx\Sitelogo\undefined
+\HCode{%
+      <tr valign="top">
+        <td align="center"><h1>\Homepage</h1></td>
+      </tr>}
+\else
+\HCode{%
+      <tr valign="top">
+        <td background="images/bgwafer2.jpg" align="center"><IMG SRC="images/site_logo.png" ALT="Site logo" BORDER="0"></td>
+      </tr>
+}
+\fi
+
+\HCode{%
+      <tr valign="top">
+        <td>
+          <table border="1" width="100\%" cellspacing="0" cellpadding="14">
+            <tr valign="top">}
+\tableofcontents[section,subsection]%
+\HCode{%
+              <td bgcolor="\#FEFEFE" align="left">}}
+
+\def\EndPage{%
+\HCode{%
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>}
+\begin{about}
+{\small \LastUpdate\ \Today}
+\end{about}
+\HCode{%
+    </table>
+    </font>
+    <!-- End page table -->
+  <!-- End page -->}
+}
+
+\Configure{chapter}
+  {\StartPage}
+  {\EndPage}
+  {\HCode{<h1 class="chapterHead">}}
+  {\HCode{</h1>}}
+
+\Configure{section}
+  {\HCode{<div class="section">}}
+  {\HCode{</div>}}
+  {\HCode{<h1 class="sectionHead">}}
+  {\HCode{</h1>}}
+
+\Configure{subsection}
+  {\HCode{<div class="subsection">}}
+  {\HCode{</div>}}
+  {\HCode{<h2 class="subsectionHead">}}
+  {\HCode{</h2>}}
+
+\Configure{subsubsection}
+  {\HCode{<div class="subsubsection">}}
+  {\HCode{</div>}}
+  {\HCode{<h3 class="subsubsectionHead">}}
+  {\HCode{</h3>}}
+
+%%% The ``About'' row
+\NewConfigure{about}[2]{\def\AboutHookI{#1}\def\AboutHookII{#2}}
+\newenvironment{about}{\AboutHookI}{\AboutHookII}
+\Configure{about}%
+{\HCode{%
+    <!-- Start about -->
+    <tr valign="top">
+      <td align="right">
+        <table border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td bgcolor="\#000000">
+              <table border="0" width="100\%" cellspacing="0" cellpadding="6">
+                <tr>
+                  <td bgcolor="\#FEFEFE" align="right">}
+}
+{\HCode{%
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+      <!-- End about -->}
+}
+
+\fi

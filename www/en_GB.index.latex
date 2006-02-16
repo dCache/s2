@@ -1,0 +1,70 @@
+\input index.latex
+
+% Language-specific macros
+\def\LastUpdate{Last modification}
+\def\Today{\uktoday}
+
+\begin{document}
+%\maketitle
+\input tex4home.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\iffalse
+\NewPage
+\section{Home}
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NewPage
+\section{About}
+S2 is a simple general-purpose test client with the
+\htmladdnormallink{SRM2}{http://sdm.lbl.gov/srm-wg/} protocol
+support.  S2 interprets a tree-like language, which was also named S2.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NewPage
+\section{Docs}
+
+The following files are all part of a standard s2 distribution.
+
+\begin{itemize}
+\itemsep 0pt
+\item \htmladdnormallink{s2 language manual}{s2.txt}
+\item \htmladdnormallink{BUGS}{BUGS}
+\item \htmladdnormallink{COPYING}{COPYING}
+\item \htmladdnormallink{ChangeLog}{ChangeLog}
+\item \htmladdnormallink{README}{README}
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NewPage
+\section{Download}
+\begin{itemize}
+\itemsep 0pt
+\item \htmladdnormallink{Official releases}{http://sourceforge.net/project/showfiles.php?group_id=159966},
+      \htmladdnormallink{SHA1 sums}{CHECKSUM.SHA1}
+\item \htmladdnormallink{CVS}{http://sourceforge.net/cvs/?group_id=159966}
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NewPage
+\section{Links}
+
+\begin{itemize}
+\itemsep 0pt
+\item \htmladdnormallink{SRM working group}{http://sdm.lbl.gov/srm-wg/}
+\item \htmladdnormallink{GridPP}{http://www.gridpp.ac.uk/}
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NewPage
+\section{Contact}
+
+Feel free to contact the current developer \JiriMailto.
+
+\end{document}

@@ -1,0 +1,205 @@
+\documentclass[12pt,a4paper]{book}
+%\input tex4ht.inc
+\usepackage{a4wide}
+%\pagestyle{empty}
+
+\ifx\pdfoutput\undefined
+% we are running LaTeX, not pdflatex
+\usepackage{graphicx}
+\else
+% we are running pdflatex, so convert .eps files to .pdf
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\fi
+
+\input dates.tex
+\input dmanmac.tex
+%%% Options for this document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\csname Sitelogo\endcsname % uncomment if you don't want this
+
+%%% Multi-language document (GB/CZ)
+%\csname Multilang\endcsname
+
+%%% SourceForge logo
+\csname Sflogo\endcsname % uncomment if you don't want this
+
+%%% Wide a4
+\csname aFourwidetrue\endcsname
+
+%%% Draft watermark in the background
+%\csname drafttrue\endcsname
+    
+%%% Include the showlabelsLabels in the document
+%\csname showlabelstrue\endcsname
+
+%%% Generate hyperref specials in the dvi file
+\csname hyperreftrue\endcsname % make sure this is off when generating "dvi2up"
+
+%%% Mangle emails
+\csname spamprotecttrue\endcsname
+
+%%% PACKAGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{times}
+%\usepackage{pslatex}
+\usepackage{graphicx,fancyhdr}
+\usepackage{rotating}
+\ifx\aFourwidetrue\relax
+\usepackage{a4wide}
+\fi
+%\usepackage{nameref}
+\ifx\showlabelstrue\relax
+\usepackage{showkeys}
+\fi
+\usepackage[%
+% usenames,
+% dvipsnames%
+]{color}
+
+%%% Bibliography
+\usepackage[numbers,       % numerical style of citations
+            sort&compress, % sort & compress citations (e.g. [3,1,2] -> [1-3]
+           ]{natbib}
+
+%%% Formatting of URL and email addresses
+\usepackage{html} % important for HTML output
+\usepackage[hyphens]{url} % important for correct formating of URL addresses
+
+%%% PDF & the Hyperref package %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\articletitle{Konk Website index page}
+\def\articlekeywords{Concordance, collocations}
+
+\ifx\hyperreftrue\relax
+\usepackage[%
+  dvipdfm, % necessary for http hyperlinks to work with netscape
+  pdfauthor={J. Mencak},%
+  pdftitle={\articletitle},%
+  pdfkeywords={\articlekeywords},%
+  bookmarks,%
+  colorlinks,%
+  linkcolor=blue,%
+  anchorcolor=black,%
+%  citecolor=green,%
+  citecolor=blue,%
+  filecolor=magenta,%
+  menucolor=red,%
+  pagecolor=red,%
+%   urlcolor=cyan,%
+  urlcolor=blue,%
+  ]%
+{hyperref}
+\else
+  \def\hyperlink#1#2{#2}%
+  \def\hypertarget#1#2{#2}
+\fi
+
+%%% Only for pdflatex
+\makeatletter
+\newif\ifpdfoutput
+\@ifundefined{pdfoutput}%
+  {\let\pdfoutput\@undefined}%
+  {\ifcase\pdfoutput
+     \let\pdfoutput\@undefined
+   \else
+     \pdfoutputtrue
+  }%
+\makeatother
+
+%\let\docext=\pdfext
+%\ifpdfoutput
+%  \usepackage{thumbpdf}
+%  \hypersetup{%
+%  \pdfinfo{/CreationDate (D:20010109000000-01'00')}
+%  \begingroup
+%    \def\twodigits#1{\ifnum#1<10 0\fi\the#1}%
+%    \count0=\time \divide\count0 by 60
+%    \edef\x{\twodigits{\count0}}%
+%    \multiply\count0 by 60
+%    \count1=\time \advance\count1 by -\count0
+%    \edef\x{\x\twodigits{\count1}}%
+%    \edef\x{/ModDate (D:\the\year
+%      \twodigits\month \twodigits\day \x 00-01'00')}%
+%  \expandafter\endgroup
+%  \expandafter\pdfinfo\expandafter{\x}%
+%\fi
+
+
+%%% SOME SIMPLE MACROS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Note: use \htmladdnormallink instead of \href; LaTeX2HTML
+% doesn't seem to understand it...
+\def\Homepage{S2}
+\def\NewPage{\chapter{\relax}}
+\def\Http#1{\htmladdnormallink{\tt #1}{#1}}
+\def\Email#1{\htmladdnormallink{{\tt #1}}{mailto:#1}}
+\def\spamprotect{%
+  \catcode`\.=\active%
+  \catcode`\@=\active%
+}
+{%
+  \catcode`\.=\active%
+  \gdef.{-dot-}%
+  \catcode`\@=\active%
+  \gdef@{-at-}%
+}
+
+\def\ts{\thinspace}
+\def\iskip{\hskip.25em\relax}  % \def\enskip{\hskip.5em\relax}
+\def\twodots{\ispace.\kern1.5pt.\ispace}
+\def\ms#1#2{\multispan#1$~\mathtt{#2}$\hfill}% for use in \halign (\upalign)
+%\def\allowhyphens{\nobreak\hskip0pt\relax}
+\def\allowhyph{\hskip0pt\relax}
+\newdimen\itsep\itsep=-3pt
+
+
+%%% LATEX2HTML specifics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{htmlonly}
+\renewcommand{\meti}[1]{%
+\begin{rawhtml}
+<BR>&nbsp;&nbsp;
+\end{rawhtml}
+{#1}}
+\end{htmlonly}
+
+
+%%% TeX4ht %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\ifx\HCode\undefined
+\else
+% We are running TeX4ht
+\renewcommand{\htmlrule}{%
+\HCode{<HR>}}
+\fi
+\def\contentsname{\relax}
+
+%%% DOCUMENT-SPECIFIC MACROS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% People
+\def\JM{Ji\v{r}\'{\i} Menc\'ak}
+\def\JiriMailto{%
+  \htmladdnormallink{\JM}{mailto:\JiriEmail}}
+\def\JiriHttp{%
+  \htmladdnormallink{J.~Menc\'ak}{http://www.e-science.clrc.ac.uk/web/staff/jiri_mencak}}
+
+% Get those bastards off our backs...
+{%
+\ifx\spamprotecttrue\relax
+\spamprotect
+\fi
+\gdef\JiriEmail{j.mencak@rl.ac.uk}
+}
+
+%%% PAGE SPECIFICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\oddsidemargin = 0pt  % !!! don't use when in twoside mode
+%\evensidemargin = 0pt % !!! don't use when in twoside mode
+%\textwidth = 145mm % !!! problems when document in twoside mode
+%\renewcommand{\baselinestretch}{1.2}
+
+%%% TITLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\pagestyle{empty}
+\date{\uktoday}
+\title{\articletitle}
+
+%\author{\JM}
+\author{\JiriHttp \\
+        \RAL\\
+        e-mail: \Email{\JiriEmail}}
+
+% This is really an HTML document, don't indent paragraphs
+\parindent=0pt  

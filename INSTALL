@@ -25,6 +25,7 @@ S2 is not easy to compile.  If you feel adventurous, you'll need:
 * diagnose library >= 0.3.8 (optional in principal, but 
   strongly recommended)
   http://storage.esc.rl.ac.uk/apt/datastore/sl/RPMS.stable/
+  http://sourceforge.net/projects/libdiagnose
 
 $ ./configure --help
 $ ./configure [your_options] && make
@@ -35,3 +36,10 @@ Note that if you just want to play with the S2 language and do not
 want SRM2 support, use
 $ ./configure --disable-gsoap
 
+
+Testing directory
+~~~~~~~~~~~~~~~~~
+A simple test framework was created in the testing directory.
+The framework generates all kinds of diagnostics files, therefore
+it is recommended to copy/move it to a directory when users have
+read-write permissions.

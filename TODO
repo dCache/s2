@@ -1,5 +1,6 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- expand Quick Start section
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Investigate gSoap memory leaks.
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?

@@ -92,9 +92,9 @@ ifeq ($(_enable_gsoap),yes)
 PRJLIBS		+=\
   $(OBJ_GSOAP)\
   $(LIB_GSOAP)\
-  $(LIB_GLOBUS)\
   -lsrm2api\
-  $(LIB_CGSI_PLUGIN)
+  $(LIB_CGSI_PLUGIN)\
+  $(LIB_GLOBUS)
 endif
 
 EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)

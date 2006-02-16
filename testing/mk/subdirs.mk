@@ -6,7 +6,7 @@ help:
 	@echo "make"
 	@echo "~~~~"
 	@echo "ln                    symbolic linking"
-	@echo "test                  tests"
+	@echo "test                  run all tests in the current directory"
 	@echo "clean                 cleanup"
 
 ln:

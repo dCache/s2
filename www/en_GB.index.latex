@@ -31,7 +31,7 @@ The following files are all part of the standard s2 distribution.
 
 \begin{itemize}
 \itemsep 0pt
-\item \htmladdnormallink{s2 language manual}{s2.txt}
+\item \htmladdnormallink{S2 language manual}{s2.txt}
 \item \htmladdnormallink{BUGS}{BUGS}
 \item \htmladdnormallink{COPYING}{COPYING}
 \item \htmladdnormallink{ChangeLog}{ChangeLog}

@@ -111,6 +111,7 @@ rpm_show:
 
 # Versioning #########################################################
 $(VERSION_H):
+	@echo $(VERSION) > VERSION
 	@echo "#define MK_VERSION \"$(VERSION)\"" > $(VERSION_H)
 	@echo "#define BUILD_DATE \"$(TODAY)\"" >> $(VERSION_H)
 
@@ -169,4 +170,4 @@ distclean mclean: clean
 	do \
 	  make -C "$$dir" distclean || exit $$? ;\
 	done
-	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) .rpm*
+	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .rpm*

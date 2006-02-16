@@ -15,7 +15,7 @@ SUBDIRS		:= libcommon libmatch
 ifeq ($(_enable_gsoap),yes)
 SUBDIRS		+= gsoap libsrm2api libsrm2n
 endif
-SUBDIRS		+=  libptree src doc testing
+SUBDIRS		+=  libptree src doc testing www
 
 
 # Documentation ######################################################

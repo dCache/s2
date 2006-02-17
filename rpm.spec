@@ -13,7 +13,7 @@ URL:		http://s-2.sourceforge.net
 Source:		%{name}-%{version}.tar.gz
 Prefix:		%{_prefix}
 BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot
-BuildArch:	i686
+BuildArch:	i386
   
 
 #
@@ -61,6 +61,7 @@ A simple general-purpose test client with the SRM2 protocol support.
 # Build
 #
 %build
+CFLAGS="-mcpu=i386 $CFLAGS"
 make
 
 

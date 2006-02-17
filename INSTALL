@@ -31,7 +31,11 @@ Source distribution
 ~~~~~~~~~~~~~~~~~~~
 S2 is not easy to compile.  If you feel adventurous, you'll need:
 
-* gSOAP 2.7.2 (precisely this version) 
+* vdt_globus_essentials (I used the one that comes with SL 3.0.5,
+  i.e.: VDT1.2.2rh9-1)
+* vdt_globus_sdk (I used the one that comes with SL 3.0.5,
+  i.e.: VDT1.2.2rh9-1)
+* gSOAP 2.7.2 (precisely this version)
   http://www.cs.fsu.edu/~engelen/soap.html
   e.g.:
   http://heanet.dl.sourceforge.net/sourceforge/gsoap2/gsoap_2.7.2.tar.gz

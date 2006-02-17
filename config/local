@@ -7,7 +7,6 @@ ProgramName=$(basename $0)
 l_CONFIG_MAK() {
   echo "
 # less standard libraries
-GSOAP_VERSION	:= 2.7.2
 LIB_GSOAP	:= ${LIB_GSOAP}" >> ${CONFIG_MAK}
 }
 
@@ -43,6 +42,16 @@ Requires:	diagnose >= 0.3.8
 %endif
 EOF
   fi
+
+  cat >> .rpmreq << EOF
+BuildRequires:	vdt_globus_essentials
+BuildRequires:	vdt_globus_sdk
+BuildRequires:	gsoap = 2.7.2
+BuildRequires:	CGSI_gSOAP_2.7-dev
+BuildRequires:	pcre-devel >= 4.4
+BuildRequires:	libdiagnose >= 0.3.8
+EOF
+
 #Requires:	CGSI_gSOAP_2.7  vdt_globus_essentials  globus-initialization  gpt
 #BuildRequires:	diagnose >= 0.3.8  pcre-devel >= 4.4
 #BuildRequires:	CGSI_gSOAP-devel >= 2.7  vdt_globus_essentials >= VDT1.2.2rh9-1  gpt >= VDT1.2.2rh9-1  globus-initialization >= 2.2.4-5  vdt_globus_sdk >= VDT1.2.2rh9-1
@@ -111,8 +120,8 @@ EOF
 
   have_gsoap="yes"
 
-  $CC $INCLUDES -I${_with_gsoapdir}/${GSOAP_VERSION}/include \
-      -o $TMPE $TMPC -L${_with_gsoapdir}/${GSOAP_VERSION}/lib \
+  $CC $INCLUDES -I${_with_gsoapdir}/include \
+      -o $TMPE $TMPC -L${_with_gsoapdir}/lib \
       ${LIB_GSOAP} ${EXTRALIBS} >/dev/null 2>&1
 #>>configure.log 2>&1
   local err=$?
@@ -129,7 +138,7 @@ EOF
     if test x$static_gsoap = xyes ; then
       LIB_GSOAP="-Wl,-Bstatic ${LIB_GSOAP} -Wl,-Bdynamic"
     fi
-#    INCLUDES="-I${_with_gsoapdir}/${GSOAP_VERSION}/include ${INCLUDES}"
+#    INCLUDES="-I${_with_gsoapdir}/include ${INCLUDES}"
 #    EXTRALIBS="${LIB_GSOAP} ${EXTRALIBS}"
   fi
 
@@ -148,7 +157,7 @@ l_add_opts() {
 
 l_add_withdirs() {
   # compile-time directories
-  add_withdir gsoap 'gSoap' '${_with_gsoapdir:-${_prefix}/gsoap-slc3}'
+  add_withdir gsoap 'gSoap' '${_with_gsoapdir:-${_prefix}}'
   add_withdir globus 'Globus' '${_with_globusdir:-${_prefix}/globus}'
 }
 
@@ -164,7 +173,6 @@ l_add_enables() {
 
 l_set_package() {
   LIB_GSOAP=${LIB_GSOAP:-"-lgsoap"}
-  GSOAP_VERSION=2.7.2
   l_add_opts
   l_add_withdirs
   l_add_statics

@@ -36,6 +36,7 @@ The following files are all part of the standard s2 distribution.
 \item \htmladdnormallink{COPYING}{COPYING}
 \item \htmladdnormallink{ChangeLog}{ChangeLog}
 \item \htmladdnormallink{README}{README}
+\item \htmladdnormallink{INSTALL}{INSTALL}
 \end{itemize}
 
 

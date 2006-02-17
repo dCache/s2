@@ -43,12 +43,20 @@ The following files are all part of the standard s2 distribution.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \NewPage
 \section{Download}
+
 \begin{itemize}
 \itemsep 0pt
 \item \htmladdnormallink{Official releases}{http://sourceforge.net/project/showfiles.php?group_id=159966},
       \htmladdnormallink{SHA1 sums}{CHECKSUM.SHA1}
 \item \htmladdnormallink{CVS}{http://sourceforge.net/cvs/?group_id=159966}
 \end{itemize}
+
+Every officially released package has an \verb|SHA1|
+sum and \verb|.asc| detached signature using using
+DSA key ID \verb|0xFDEDEE4B|.  This key belongs to
+the current developer of this project \JiriMailto.
+You can download the \verb|0xFDEDEE4B| public key from
+\htmladdnormallink{http://www.keyserver.net}{http://www.keyserver.net}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -7,6 +7,7 @@ TEX		:= latex
 #LOCALE		:= cs_CZ en_GB
 LOCALE		:= en_GB
 LOCALE_DEF	:= en_GB
+DOC_LOCALES	= $(LOCALE:=.$(DOCUMENT).$(DOCEXT))
 
 ### (La)TeX 2 HTML software to use ###################################
 L2H             = htlatex
@@ -34,6 +35,7 @@ EXTRA_FILES	:=\
   ../doc/s2.txt 
 SRCDEP		= \
   $(DOCUMENT).$(DOCEXT)\
+  $(DOC_LOCALES)\
   tex4home.tex\
   $(STYLES) $(BIBLIOGRAPHY) $(TEX4HT_INC)
 TEX_JUNK	:= *.log *.toc *.out *.aux *.bbl *.blg *.tmp 

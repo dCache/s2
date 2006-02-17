@@ -9,7 +9,7 @@ Version:	%{_version}
 Release:	%{_release}
 Copyright:	BSD License
 Group:		Development/Tools
-URL:		http://storage.esc.rl.ac.uk/apt/datastore/sl/RPMS.testing/
+URL:		http://s-2.sourceforge.net
 Source:		%{name}-%{version}.tar.gz
 Prefix:		%{_prefix}
 BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot

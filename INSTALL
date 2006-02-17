@@ -41,7 +41,7 @@ S2 is not easy to compile.  If you feel adventurous, you'll need:
   http://www.pcre.org/
 * diagnose library >= 0.3.8 (optional in principal, but 
   strongly recommended)
-  http://sourceforge.net/projects/libdiagnose
+  http://libdiagnose.sourceforge.net
 
 $ ./configure --help
 $ ./configure [your_options] && make

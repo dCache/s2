@@ -1,13 +1,30 @@
 Prerequisites
 ~~~~~~~~~~~~~
-First of all, make sure you have the vdt_globus_essentials package
-installed, and that your /etc/grid-security/certificates contains
-certificates (ca_* packages).
+First of all, it is recommended that you install the
+vdt_globus_essentials package if you are planning to use
+globus-url-copy command to do the actual file transfers, and that
+your /etc/grid-security/certificates contains valid certificates
+(ca_* packages).
 
 
 Binary distribution
 ~~~~~~~~~~~~~~~~~~~
-# rpm -i s2-<VERSION>.rpm
+There are two versions of the binary RPM distribution.  The first <RPM>
+gridpp-s2-<VERSION>.rpm is a GridPP-specific package which depends
+on the vdt_globus_essentials package.  The other <RPM> is called
+s2-<VERSION>.rpm and depends only on the standard system libraries.
+Both of these packages were compiled on Scientific Linux 3.0.5.
+
+The <RPM>s is installed by 
+# rpm -ivh <RPM>
+
+If RPM is not your preferred type of a binary package, you can either
+convert it into a gzipped tar-ball
+# alien -t <RPM>
+
+or you can convert it into a CPIO archive and unpack the files by
+# rpm2cpio <RPM> > <RPM>.cpio
+# cpio -id --verbose < <RPM>.cpio
 
 
 Source distribution

@@ -1,5 +1,6 @@
 .cvsignore
 .rpm*
+*.log
 tests
 config.h
 config.mak

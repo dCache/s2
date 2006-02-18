@@ -36,6 +36,12 @@ Requires:	vdt_globus_essentials
 EOF
   fi
 
+  if test x${enable_gsoap} = xyes && test x${static_cgsi_plugin} != xyes ; then
+  cat >> .rpmreq << EOF
+Requires:	CGSI_gSOAP_2.7 >= 1.1.9
+EOF
+  fi
+
   if test x${static_pcre} != xyes ; then
   cat >> .rpmreq << EOF
 Requires:	pcre >= 4.4
@@ -53,7 +59,7 @@ EOF
   cat >> .rpmreq << EOF
 BuildRequires:	vdt_globus_essentials
 BuildRequires:	gsoap = 2.7.2
-BuildRequires:	CGSI_gSOAP_2.7-dev
+BuildRequires:	CGSI_gSOAP_2.7-dev >= 1.1.9
 BuildRequires:	pcre-devel >= 4.4
 BuildRequires:	libdiagnose >= 0.3.8
 EOF

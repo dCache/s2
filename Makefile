@@ -165,7 +165,7 @@ cvsclean:
 svnclean:
 	-find . -name .svn -type d -exec rm -rf {} \;
 
-rpmclean:
+rpmclean: clean
 
 update:
 	cvs update -d

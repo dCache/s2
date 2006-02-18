@@ -12,7 +12,7 @@ DOCS		:= \
 
 
 # Rules ##############################################################
-.PHONY: Makefile clean
+.PHONY: Makefile
 
 ifneq ($(CONFIG_MAK),)
 all: $(VERSION_H) $(SUBDIRS)
@@ -45,6 +45,8 @@ install-docs: $(DOCS)
 
 
 # Cleanup ############################################################
+.PHONY: clean clean-subdirs dependclean cvsclean svnclean rpmclean distclean mclean
+
 clean: clean-subdirs
 	-find locale \( -name *.po[~t] -or -name *.mo \) | xargs rm -f
 
@@ -67,4 +69,4 @@ distclean mclean: clean
 	do \
 	  make -C "$$dir" distclean || exit $$? ;\
 	done
-	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) .rpm*
+	-rm -f `basename $(CONFIG_H)` $(CONFIG_MAK) $(VERSION_H) .depend 

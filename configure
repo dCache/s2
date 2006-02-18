@@ -161,7 +161,7 @@ EOF
 
 summary() {
   cat >&2 <<EOF
-${PACKAGE} ${VERSION} configuration
+${PACKAGE} ${VERSION}-${release} configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 big endian:                  ${have_bigendian:-no}
 
@@ -382,8 +382,9 @@ option_set_dir() {
 # Settings definitions                                               #
 ######################################################################
 add_opts() {
-  add_opt package_prefix 'package-prefix' 'package prefix to use' '${package_prefix:-""}'				# "yes" or "no"
-  add_opt package_suffix 'package-suffix' 'package suffix to use' '${package_suffix:-""}'				# "yes" or "no"
+  add_opt package_prefix 'package-prefix' '(RPM) package prefix' '${package_prefix:-""}'				# "yes" or "no"
+  add_opt package_suffix 'package-suffix' '(RPM) package suffix' '${package_suffix:-""}'				# "yes" or "no"
+  add_opt release 'release' 'release number' '${release:-1}'				# "yes" or "no"
 }
 
 add_dirs() {
@@ -432,7 +433,7 @@ add_enables() {
 }
 
 set_opt_deps() {
-  # option dependencies
+  # option dependencies (some options might (en|dis)able others)
   if test x$enable_wxintl = xyes ; then
     enable_i18="yes"
   fi
@@ -459,6 +460,8 @@ set_opt_deps() {
     CC="ccache ${CC}"
     CXX="ccache ${CXX}"
   fi
+
+  set_dirs_and_options
 }
 
 ######################################################################
@@ -487,6 +490,7 @@ mk_package() {
 
 # package specifics ##################################################
 PACKAGE		:= ${PACKAGE}
+RPM_PACKAGE	:= ${package_prefix}${PACKAGE}${package_suffix}
 EOF
 }
 
@@ -1016,6 +1020,12 @@ RPMBUILD() {
 # Do NOT modify unless you know what you are doing.                  #
 ######################################################################
 
+# Package essentials
+%define _name ${package_prefix}${PACKAGE}${package_suffix}
+%define _version ${VERSION}
+%define _release ${release}
+%define _prefix ${_prefix}
+
 # Do not create debug RPMs
 %define debug_package				%{nil}
 
@@ -1119,32 +1129,32 @@ int main(int argc, char **argv) {
   return (*((char *)(&one)));
 }
 EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
-  have_bigendian="yes"
-  if $CC -o $TMPE $TMPC 2>/dev/null ; then
-    run $TMPE || have_bigendian="no"
+  ${HAVE_SH} \
+    $CC $INCLUDES -o $TMPE $TMPC ${EXTRALIBS} \
+    >>${CONFIGURE_LOG} 2>&1
+  if test $? -eq 0 ; then
+    run $TMPE && have_bigendian="yes" || have_bigendian="no"
   else
     die 1 "big/little endian diagnostics failed, bailing out"
   fi
 }
 
 have_inttypes() {
-#  echo "Checking for <inttypes.h>" >&2
-
   cat > $TMPC << EOF
 #include <inttypes.h>
 int main(int argc, char **argv) {
   return 0;
 }
 EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
-  have_inttypes="yes"
-
-  $CC $INCLUDES -o $TMPE $TMPC ${EXTRALIBS} >/dev/null 2>&1
-#>>configure.log 2>&1
-  local err=$?
-  if test $err -eq 0 ; then
-    run $TMPE || have_inttypes="no"
+  ${HAVE_SH} \
+    $CC $INCLUDES -o $TMPE $TMPC ${EXTRALIBS} \
+    >>${CONFIGURE_LOG} 2>&1
+  if test $? -eq 0 ; then
+    run $TMPE && have_inttypes="yes" || have_inttypes="no"
   else
     have_inttypes="no"
   fi
@@ -1160,8 +1170,6 @@ EOF
 }
 
 have_pcre() {
-#  echo "Checking for Perl-compatible regular expression library." >&2
-
   cat > $TMPC << EOF
 #include <pcre.h>
 int main(int argc, char **argv) {
@@ -1169,16 +1177,16 @@ int main(int argc, char **argv) {
   return 0;
 }
 EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
   # add -L../pcre/.libs (EXTRALIBS) -I../pcre (INCLUDES)
   # for local PCRE installation
-  have_pcre="yes"
 
-  $CC $INCLUDES -o $TMPE $TMPC ${LIB_PCRE} ${EXTRALIBS} >/dev/null 2>&1
-#>>configure.log 2>&1
-  local err=$?
-  if test $err -eq 0 ; then
-    run $TMPE || have_pcre="no"
+  ${HAVE_SH} \
+    $CC $INCLUDES -o $TMPE $TMPC ${LIB_PCRE} ${EXTRALIBS} \
+    >>${CONFIGURE_LOG} 2>&1
+  if test $? -eq 0 ; then
+    run $TMPE && have_pcre="yes" || have_pcre="no"
   else
     have_pcre="no"
   fi
@@ -1210,14 +1218,13 @@ int main(int argc, char **argv) {
   return 0;
 }
 EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
-  have_pthread="yes"
-
-  $CC $INCLUDES -o $TMPE $TMPC ${LIB_PTHREAD} ${EXTRALIBS} >/dev/null 2>&1
-#>>configure.log 2>&1
-  local err=$?
-  if test $err -eq 0 ; then
-    run $TMPE || have_pthread="no"
+  ${HAVE_SH} \
+    $CC $INCLUDES -o $TMPE $TMPC ${LIB_PTHREAD} ${EXTRALIBS} \
+    >>${CONFIGURE_LOG} 2>&1
+  if test $? -eq 0 ; then
+    run $TMPE && have_pthread="yes" || have_pthread="no"
   else
     have_pthread="no"
   fi
@@ -1247,14 +1254,15 @@ int main(int argc, char **argv) {
   return 0;
 }
 EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
   have_dg="yes"
 
-  $CC $INCLUDES -o $TMPE $TMPC -DDG_DIAGNOSE ${LIB_DIAGNOSE} ${EXTRALIBS} >/dev/null 2>&1
-#>>configure.log 2>&1
-  local err=$?
-  if test $err -eq 0 ; then
-    run $TMPE || have_dg="no"
+  ${HAVE_SH} \
+    $CC $INCLUDES -o $TMPE $TMPC -DDG_DIAGNOSE ${LIB_DIAGNOSE} ${EXTRALIBS} \
+    >>${CONFIGURE_LOG} 2>&1
+  if test $? -eq 0 ; then
+    run $TMPE && have_pthread="yes" || have_dg="no"
   else
     have_dg="no"
   fi
@@ -1288,7 +1296,11 @@ set_vars() {
   CONFIG_ENABLE=${CONFIG_ENABLE:-"config/enable"}
   CONFIG_SHARED=${CONFIG_SHARED:-"config/shared"}
   CONFIG_STATIC=${CONFIG_STATIC:-"config/static"}
-  CONFIG_LOCAL=${CONFIG_LOCAL:-"config/local"}
+
+  # scripts and output log files #####################################
+  HAVE_SH=${HAVE_SH:-"config/have.sh"}
+  CONFIG_LOCAL_SH=${CONFIG_LOCAL_SH:-"config/local.sh"}
+  CONFIGURE_LOG=${CONFIGURE_LOG:-"./configure.log"}
   
   # output configuration files #######################################
   CONFIG_MAK=${CONFIG_MAK:-"config.mak"}
@@ -1390,12 +1402,12 @@ check_OS() {
 }
 
 configure_local() {
-  if ! test -x ${CONFIG_LOCAL} ; then
+  if ! test -x ${CONFIG_LOCAL_SH} ; then
     # no local configure script
     return
   fi
   if test x"$1" = x ; then
-    source ${CONFIG_LOCAL}
+    source ${CONFIG_LOCAL_SH}
   else
     func=$1
     shift
@@ -1438,8 +1450,8 @@ set_package() {
     fi
   fi
 
-  # Remove old config files
-  rm -f ${CONFIG_MAK} ${CONFIG_H} ${RPMDEF}
+  # Remove old config and log files
+  rm -f ${CONFIG_MAK} ${CONFIG_H} ${RPMDEF} ${CONFIGURE_LOG}
 
   add_opts
   add_dirs
@@ -1450,12 +1462,9 @@ set_package() {
 
 set_dirs_and_options() {
   # installation directories
-  _prefix=${_prefix:-/usr}
+  _prefix=${_prefix:-/usr/local}
   _exec_prefix=${_exec_prefix:-${_prefix}}
   _sysconfdir=${_sysconfdir:-${_prefix}/etc} # must be before _initrddir
-
-  # option dependencies (some options might (en|dis)able others)
-  set_opt_deps
 
   # other options
   _index0=0
@@ -1587,13 +1596,17 @@ main() {
   done
   configure_local l_cmdline_opts $@
 
-  # reflect the changes
-  set_dirs_and_options
-  configure_local l_set_dirs_and_options
+  # Reflect the changes
+  set_opt_deps
+  configure_local l_set_opt_deps
   
   # Checks
   have_checks
   configure_local l_have_checks
+  
+  # Reflect the changes
+  set_opt_deps
+  configure_local l_set_opt_deps
   
   # Write the settings
   write_settings_start

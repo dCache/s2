@@ -7,11 +7,17 @@ ProgramName=$(basename $0)
 l_CONFIG_MAK() {
   echo "
 # less standard libraries
-LIB_GSOAP	:= ${LIB_GSOAP}" >> ${CONFIG_MAK}
+GLOBUS_FLAVOUR	:= gcc32dbgpthr
+LIB_GLOBUS	:= ${LIB_GLOBUS}
+LIB_GSOAP	:= ${LIB_GSOAP}
+LIB_CGSI_PLUGIN	:= ${LIB_CGSI_PLUGIN}" >> ${CONFIG_MAK}
 }
 
 l_CONFIG_H() {
-  h_def_nl "$enable_gsoap" HAVE_GSOAP "gSoap library"
+#  h_def_nl "$enable_globus_sdk" HAVE_GLOBUS "Globus SDK library"
+  h_def_nl "$enable_gsoap" HAVE_GSOAP "gSOAP library"
+  h_def_nl "$enable_cgsi_plugin" HAVE_CGSI_PLUGIN "CGSI plugin library"
+  h_def_nl "$enable_gfal" HAVE_GFAL "GFAL library"
 }
 
 l_RPMBUILD() {
@@ -43,9 +49,9 @@ Requires:	diagnose >= 0.3.8
 EOF
   fi
 
+#BuildRequires:	vdt_globus_sdk
   cat >> .rpmreq << EOF
 BuildRequires:	vdt_globus_essentials
-BuildRequires:	vdt_globus_sdk
 BuildRequires:	gsoap = 2.7.2
 BuildRequires:	CGSI_gSOAP_2.7-dev
 BuildRequires:	pcre-devel >= 4.4
@@ -107,29 +113,112 @@ EOF
 ######################################################################
 # have_* functions                                                   #
 ######################################################################
-have_gsoap() {
-#  echo "Checking for gSoap library." >&2
+have_globus() {
+  cat > $TMPC << EOF
+int main(int argc, char **argv) {
+  return 0;	/* just try linking against globus libraries */
+}
+EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
+  for try_globusdir in ${_with_globusdir} /opt/globus
+  do
+    ${HAVE_SH} \
+      $CC $INCLUDES -I${try_globusdir}/include \
+      -o $TMPE $TMPC -L${try_globusdir}/lib ${LIB_GLOBUS} ${EXTRALIBS} \
+      >>${CONFIGURE_LOG} 2>&1
+    if test $? -eq 0 ; then
+      run $TMPE && have_globus="yes" && break || have_globus="no"
+    else
+      have_globus="no"
+    fi
+  done
+
+  if test x$enable_globus = xyes ; then
+    enable_globus=$have_globus
+  fi
+  if test x$enable_globus = xyes ; then
+#    if test x$static_globus = xyes ; then
+#      LIB_GLOBUS="-Wl,-Bstatic ${LIB_GLOBUS} -Wl,-Bdynamic"
+#    fi
+    if test x$try_globusdir != x${_with_globusdir} ; then
+      _with_globusdir=$try_globusdir
+    fi
+#    INCLUDES="${INCLUDES} -I${_with_globusdir}/include"
+#    EXTRALIBS="-I${_with_globusdir}/lib ${LIB_GLOBUS}"
+  fi
+
+  contains ${CONFIG_HAVE} globus
+  if test "$?" -eq 0 && test x$enable_globus = xno; then
+    die 1 "Globus library disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+have_globus_sdk() {
+  cat > $TMPC << EOF
+#include <${GLOBUS_FLAVOUR}/defs.h>
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
+
+  for try_globusdir in ${_with_globusdir} /opt/globus
+  do
+    ${HAVE_SH} \
+      $CC $INCLUDES -I${try_globusdir}/include \
+      -o $TMPE $TMPC -L${try_globusdir}/lib ${LIB_GLOBUS_SDK} ${EXTRALIBS} \
+      >>${CONFIGURE_LOG} 2>&1
+    if test $? -eq 0 ; then
+      run $TMPE && have_globus_sdk="yes" && break || have_globus_sdk="no"
+    else
+      have_globus_sdk="no"
+    fi
+  done
+
+  if test x$enable_globus_sdk = xyes ; then
+    enable_globus_sdk=$have_globus_sdk
+  fi
+  if test x$enable_globus_sdk = xyes ; then
+#    if test x$static_globus_sdk = xyes ; then
+#      LIB_GLOBUS_SDK="-Wl,-Bstatic ${LIB_GLOBUS_SDK} -Wl,-Bdynamic"
+#    fi
+    if test x$try_globusdir != x${_with_globusdir} ; then
+      _with_globusdir=$try_globusdir
+    fi
+#    INCLUDES="${INCLUDES} -I${_with_globusdir}/include"
+#    EXTRALIBS="-I${_with_globusdir}/lib ${LIB_GLOBUS}"
+  fi
+
+  contains ${CONFIG_HAVE} globus_sdk
+  if test "$?" -eq 0 && test x$enable_globus = xno; then
+    die 1 "Globus SDK library disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+have_gsoap() {
   cat > $TMPC << EOF
 #include <stdsoap2.h>
+//#import "stlvector.h"		/* srm_211.h needs it */
 int main(int argc, char **argv) {
   struct soap soap;
   return 0;
 }
 EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
 
-  have_gsoap="yes"
-
-  $CC $INCLUDES -I${_with_gsoapdir}/include \
-      -o $TMPE $TMPC -L${_with_gsoapdir}/lib \
-      ${LIB_GSOAP} ${EXTRALIBS} >/dev/null 2>&1
-#>>configure.log 2>&1
-  local err=$?
-  if test $err -eq 0 ; then
-    run $TMPE || have_gsoap="no"
-  else
-    have_gsoap="no"
-  fi
+  for try_gsoapdir in ${_with_gsoapdir} /opt/gsoap /opt/gsoap-slc3/2.7
+  do
+    ${HAVE_SH} \
+      $CC $INCLUDES -I${try_gsoapdir}/include \
+      -o $TMPE $TMPC -L${try_gsoapdir}/lib ${LIB_GSOAP} ${EXTRALIBS} \
+      >>${CONFIGURE_LOG} 2>&1
+    if test $? -eq 0 ; then
+      run $TMPE && have_gsoap="yes" && break || have_gsoap="no"
+    else
+      have_gsoap="no"
+    fi
+  done
 
   if test x$enable_gsoap = xyes ; then
     enable_gsoap=$have_gsoap
@@ -138,13 +227,58 @@ EOF
     if test x$static_gsoap = xyes ; then
       LIB_GSOAP="-Wl,-Bstatic ${LIB_GSOAP} -Wl,-Bdynamic"
     fi
-#    INCLUDES="-I${_with_gsoapdir}/include ${INCLUDES}"
-#    EXTRALIBS="${LIB_GSOAP} ${EXTRALIBS}"
+    if test x$try_gsoapdir != x${_with_gsoapdir} ; then
+      _with_gsoapdir=$try_gsoapdir
+    fi
+#    INCLUDES="${INCLUDES} -I${_with_gsoapdir}/include"
+#    EXTRALIBS="-I${_with_gsoapdir}/lib ${LIB_GSOAP}"
   fi
 
   contains ${CONFIG_HAVE} gsoap
   if test "$?" -eq 0 && test x$enable_gsoap = xno; then
-    die 1 "gSoap library 2.7.2 disabled; required by ${CONFIG_HAVE}"
+    die 1 "gSOAP library 2.7.2 disabled; required by ${CONFIG_HAVE}"
+  fi
+}
+
+have_cgsi_plugin() {
+  cat > $TMPC << EOF
+#include <cgsi_plugin.h>
+int main(int argc, char **argv) {
+  return 0;
+}
+EOF
+  cat $TMPC >> ${CONFIGURE_LOG}
+
+  for try_cgsi_plugindir in ${_with_cgsi_plugindir} ${_with_gsoapdir}
+  do
+    ${HAVE_SH} \
+      $CC $INCLUDES -I${try_cgsi_plugindir}/include \
+      -o $TMPE $TMPC -L${try_cgsi_plugindir}/lib ${LIB_CGSI_PLUGIN} ${EXTRALIBS} \
+      >>${CONFIGURE_LOG} 2>&1
+    if test $? -eq 0 ; then
+      run $TMPE && have_cgsi_plugin="yes" && break || have_cgsi_plugin="no"
+    else
+      have_cgsi_plugin="no"
+    fi
+  done
+
+  if test x$enable_cgsi_plugin = xyes ; then
+    enable_cgsi_plugin=$have_cgsi_plugin
+  fi
+  if test x$enable_cgsi_plugin = xyes ; then
+    if test x$static_cgsi_plugin = xyes ; then
+      LIB_CGSI_PLUGIN="-Wl,-Bstatic ${LIB_CGSI_PLUGIN} -Wl,-Bdynamic"
+    fi
+    if test x$try_cgsi_plugindir != x${_with_gsoapdir} ; then
+      _with_gsoapdir=$try_gsoapdir
+#      INCLUDES="${INCLUDES} -I${try_cgsi_plugindir}/include"
+#      EXTRALIBS="${EXTRALIBS} -L${try_cgsi_plugindir}/lib"
+    fi
+  fi
+
+  contains ${CONFIG_HAVE} cgsi_plugin
+  if test "$?" -eq 0 && test x$enable_cgsi_plugin = xno; then
+    die 1 "CGSI plugin disabled; required by ${CONFIG_HAVE}"
   fi
 }
 
@@ -157,37 +291,52 @@ l_add_opts() {
 
 l_add_withdirs() {
   # compile-time directories
-  add_withdir gsoap 'gSoap' '${_with_gsoapdir:-${_prefix}}'
   add_withdir globus 'Globus' '${_with_globusdir:-${_prefix}/globus}'
+  add_withdir gsoap 'gSOAP' '${_with_gsoapdir:-${_prefix}}'
+  add_withdir cgsi_plugin 'CGSI plugin' '${_with_cgsi_plugin:-${_prefix}}'
 }
 
 l_add_statics() {
-  add_static gsoap 'gsoap' 'gsoap library' '${static_gsoap:-yes}'				# "yes" or "no"
-  add_static globus 'globus' 'globus library' '${static_globus:-no}'				# "yes" or "no"
+  add_static globus 'globus' 'Globus library' '${static_globus:-no}'				# "yes" or "no"
+  add_static gsoap 'gsoap' 'gSOAP library' '${static_gsoap:-yes}'				# "yes" or "no"
+  add_static cgsi_plugin 'cgsi-plugin' 'CGSI plugin' '${static_cgsi_plugin:-yes}'		# "yes" or "no"
+  add_static gfal 'gfal' 'GFAL library' '${static_gfal:-no}'					# "yes" or "no"
 }
 
 l_add_enables() {
-  add_enable gsoap 'gsoap' 'gsoap library' '${enable_gsoap:-yes}'				# "yes" or "no"
-  add_enable srm2 'srm2' 'srm2 support' '${enable_srm2:-yes}'					# "yes" or "no"
+  add_enable srm2 'srm2' 'SRM2 support' '${enable_srm2:-yes}'					# "yes" or "no"
+  add_enable globus 'globus' 'Globus essentials library' '${enable_globus:-yes}'		# "yes" or "no"
+#  add_enable globus_sdk 'globus_sdk' 'Globus SDK library' '${enable_globus_sdk:-yes}'		# "yes" or "no"
+  add_enable gsoap 'gsoap' 'gSOAP library' '${enable_gsoap:-yes}'				# "yes" or "no"
+  add_enable cgsi_plugin 'cgsi-plugin' 'CGSI plugin' '${enable_cgsi_plugin:-yes}'		# "yes" or "no"
+  add_enable gfal 'gfal' 'GFAL library' '${enable_gfal:-no}'					# "yes" or "no"
 }
 
 l_set_package() {
+  GLOBUS_FLAVOUR=${GLOBUS_FLAVOUR:-gcc32dbgpthr}
+  LIB_GLOBUS=${LIB_GLOBUS:-"-lglobus_gssapi_gsi_$GLOBUS_FLAVOUR -lglobus_gss_assist_$GLOBUS_FLAVOUR"}
+  LIB_GLOBUS_SDK=${LIB_GLOBUS}
   LIB_GSOAP=${LIB_GSOAP:-"-lgsoap"}
+  LIB_CGSI_PLUGIN=${LIB_CGSI_PLUGIN:-"-lcgsi_plugin_gsoap_2.7"}
   l_add_opts
   l_add_withdirs
   l_add_statics
   l_add_enables
 }
 
-l_set_dirs_and_options() {
+l_set_opt_deps() {
   # option dependencies
-  if ! test x${enable_srm2} = xyes ; then
+  if ! test x${enable_gsoap} = xyes || ! test x${enable_srm2} = xyes ; then
     enable_gsoap=no
+    enable_srm2=no
   fi
 }
 
 l_have_checks() {
+  have_globus
+#  have_globus_sdk
   have_gsoap
+  have_cgsi_plugin
 }
 
 l_have_checks_no_cross() {
@@ -205,7 +354,13 @@ l_write_settings() {
 }
 
 l_summary() {
+#Globus SDK lib:              ${have_globus_sdk:-no}/${enable_globus_sdk:-no}
   cat >&2 <<EOF
+
 SRM2 support:                ${enable_srm2:-no}
+Globus essentials lib:       ${have_globus:-no}/${enable_globus:-no}, static: ${static_globus:-no}
+gSOAP lib:                   ${have_gsoap:-no}/${enable_gsoap:-no}, static: ${static_gsoap:-no}
+CGSI plugin:                 ${have_cgsi_plugin:-no}/${enable_cgsi_plugin:-no}, static: ${static_cgsi_plugin:-no}
+GFAL lib:                    ${have_gfal:-no}/${enable_gfal:-no}
 EOF
 }

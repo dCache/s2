@@ -1,1 +1,1 @@
--I../include -I${HOME}/scratch/usr/local/include -I../pcre -I../../pcre
+-I${HOME}/usr/local/include -L/usr/local/include -I../include

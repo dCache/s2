@@ -25,7 +25,7 @@ DOCS		:=
 
 
 # Includes ###########################################################
-INCLUDES	+= -I../gsoap -I../libsrm2api -I$(GSOAP)/include
+INCLUDES	+= -I../gsoap -I../libsrm2api -I$(_with_gsoapdir)/include
 CPPFLAGS	+= $(INCLUDES)
 INCS		:=
 
@@ -39,12 +39,10 @@ LIBS		= $(LIB)
 
 
 # Extra libraries ####################################################
-GSOAP_VERSION	:= 2.7
-GSOAP		= $(_with_gsoapdir)/$(GSOAP_VERSION)
 
 
 # Rules ##############################################################
-.PHONY: Makefile clean
+.PHONY: Makefile
 
 ifneq ($(CONFIG_MAK),)
 all: depend $(LIBS) $(BINS)
@@ -105,9 +103,10 @@ install-libs: $(LIBS)
 
 
 # Cleanup ############################################################
+.PHONY: clean distclean mclean
+
 clean: 
 	-rm -f *.o .libs $(LIBS) $(BINS)
 
 distclean mclean: clean
-	-rm -f `basename $(CONFIG_H)` $(CONFIG_MAK) \
-	       $(VERSION_H) .rpm* .depend 
+	-rm -f `basename $(CONFIG_H)` $(CONFIG_MAK) $(VERSION_H) .depend 

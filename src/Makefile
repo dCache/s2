@@ -6,9 +6,6 @@ _CONFIGURE	:= $(_CONFIGURE_DIR)/configure
 _CONFIG_MAK	:= $(_CONFIGURE_DIR)/config.mak
 sinclude $(_CONFIG_MAK)
 
-# Makefile variables #################################################
-TODAY		:= $(shell date '+%Y-%m-%d')
-
 
 # Sources ############################################################
 SRCS		= $(wildcard *.cpp)
@@ -41,7 +38,6 @@ endif
 
 
 # Extra libraries ####################################################
-GLOBUS_FLAVOUR	:= gcc32dbgpthr
 ifeq ($(_static_globus),yes)
 LIB_GLOBUS		= \
   -Wl,-Bstatic\
@@ -60,28 +56,24 @@ LIB_GLOBUS		= \
   -lssl_$(GLOBUS_FLAVOUR)\
   -lcrypto_$(GLOBUS_FLAVOUR)\
   -Wl,-Bdynamic
-else
-LIB_GLOBUS		= \
-  -lglobus_gssapi_gsi_$(GLOBUS_FLAVOUR)\
-  -lglobus_gss_assist_$(GLOBUS_FLAVOUR)
 endif
 GSOAP_LOCAL		= ../gsoap
 OBJ_GSOAP		= $(GSOAP_LOCAL)/soapC.o $(GSOAP_LOCAL)/soapClient.o
-LIB_CGSI_PLUGIN		= -Wl,-Bstatic -lcgsi_plugin_gsoap_2.7 -Wl,-Bdynamic
 
 PRJLIBS		:=\
   -L../libcommon\
   -L../libmatch\
   -L../libptree\
-  -L../libsrm2api\
-  -L../libsrm2n\
-  -L$(_with_globusdir)/lib\
   -lptree\
   -lmatch
 
 ifeq ($(_enable_gsoap),yes)
 PRJLIBS		+=\
-  -L$(_with_gsoapdir)/$(GSOAP_VERSION)/lib\
+  -L../libsrm2api\
+  -L../libsrm2n\
+  -L$(_with_gsoapdir)/lib\
+  -L$(_with_cgsi_plugindir)/lib\
+  -L$(_with_globusdir)/lib\
   -lsrm2n
 endif
 
@@ -105,7 +97,7 @@ LDLIBS		:= $(EXTRALIBS)
 
 
 # Rules ##############################################################
-.PHONY: Makefile clean
+.PHONY: Makefile
 
 ifneq ($(CONFIG_MAK),)
 all: depend $(LIBS) $(BINS)
@@ -166,9 +158,10 @@ install-libs: $(LIBS)
 
 
 # Cleanup ############################################################
+.PHONY: clean distclean mclean
+
 clean: 
 	-rm -f *.o .libs $(LIBS) $(BINS)
 
 distclean mclean: clean
-	-rm -f `basename $(CONFIG_H)` $(CONFIG_MAK)\
-	       .rpm* .depend $(S2_LOGS) 
+	-rm -f `basename $(CONFIG_H)` $(CONFIG_MAK) $(VERSION_H) .depend 

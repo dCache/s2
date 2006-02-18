@@ -15,7 +15,8 @@ SUBDIRS		:= libcommon libmatch
 ifeq ($(_enable_gsoap),yes)
 SUBDIRS		+= gsoap libsrm2api libsrm2n
 endif
-SUBDIRS		+=  libptree src doc testing www
+SUBDIRS		+=  libptree src doc testing
+SUBDIRS_CLEAN	:= $(SUBDIRS) pant www
 
 
 # Documentation ######################################################
@@ -34,7 +35,7 @@ TEST_DIR		:= testing
 
 
 # Rules ##############################################################
-.PHONY: Makefile clean
+.PHONY: Makefile
 
 ifneq ($(CONFIG_MAK),)
 all: $(VERSION_H) $(SUBDIRS)
@@ -72,12 +73,11 @@ install-tests: $(TEST_DIR)
 
 
 # RPM ################################################################
-RPM_PACKAGE	= $(_package_prefix)$(PACKAGE)$(_package_suffix)
-RELEASE		= $(RPM_PACKAGE)-$(VERSION)
-RPMTOPDIR	= $(shell rpm --eval '%_topdir')
-BUILDDIR	= $(shell rpm --eval '%_builddir')
-BUILDROOT	= $(shell rpm --eval '%_tmppath')/$(RELEASE)-buildroot
-RPMBUILD	= rpmbuild --sign
+RPM_SPECIN	:= rpm.spec.in
+RELEASE		:= $(RPM_PACKAGE)-$(VERSION)
+RPMTOPDIR	:= $(shell rpm --eval '%_topdir')
+BUILDDIR	:= $(shell rpm --eval '%_builddir')
+RPMBUILD	:= rpmbuild --sign
 
 rpm: rpm_build rpm_show
 
@@ -86,24 +86,26 @@ rpm_dirs:
 	         $(RPMTOPDIR)/RPMS/{i386,i586,i686,noarch} \
 		 $(RPMTOPDIR)/tmp
 
-tar: rpmclean
-	-rm -rf $(BUILDROOT)
+rpm_include: $(RPM_SPECIN)
+	sed\
+	  -e '/^%include .rpmdef/r .rpmdef'\
+	  -e '/^%include .rpmfiles/r .rpmfiles'\
+	  -e '/^%include .rpmreq/r .rpmreq'\
+	  < $(RPM_SPECIN) | grep -v '^%include' > $(PACKAGE).spec
+
+tar: rpm_include rpmclean
 	-rm -rf $(BUILDDIR)/$(RELEASE)
 	mkdir $(BUILDDIR)/$(RELEASE)
 	cp -r * $(BUILDDIR)/$(RELEASE)
 	cd $(BUILDDIR) ; tar zcvf $(RELEASE).tar.gz\
 	  --exclude=CVS --exclude=.svn --exclude=.cvsignore --exclude=.depend\
-	  --exclude=1gnore\
+	  --exclude=1gnore --exclude=pant --exclude=www\
 	  --exclude='*~' --exclude='#*#' --exclude='20*'\
 	  $(RELEASE)
 	mv $(BUILDDIR)/$(RELEASE).tar.gz $(RPMTOPDIR)/SOURCES
 
-rpm_build: rpm_dirs tar
-	$(RPMBUILD) -ta $(RPMTOPDIR)/SOURCES/$(RELEASE).tar.gz\
-	  --define "_name $(RPM_PACKAGE)" \
-	  --define "_version $(VERSION)"\
-	  --define "_release 1"\
-	  --define "_prefix $(_prefix)"
+rpm_build: rpm_dirs tar rpm_include
+	$(RPMBUILD) -ta $(RPMTOPDIR)/SOURCES/$(RELEASE).tar.gz
 
 rpm_show: 
 	@echo "You have now:" ; ls -l $(RPMTOPDIR)/*RPMS/*/*.rpm
@@ -140,14 +142,18 @@ endif
 
 
 # Cleanup ############################################################
+.PHONY: clean clean-subdirs dependclean cvsclean svnclean rpmclean distclean mclean
+
 clean: clean-subdirs
 	-find locale \( -name *.po[~t] -or -name *.mo \) | xargs rm -f
 	-rm -f *.log
 
 clean-subdirs:
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS_CLEAN) ;\
 	do \
-	  make -C "$$dir" clean || exit $$? ;\
+	  if test -d "$$dir" ; then\
+	    make -C "$$dir" clean || exit $$? ;\
+	  fi\
 	done
 
 dependclean:
@@ -166,8 +172,10 @@ update:
 	rm -rf tests
 
 distclean mclean: clean
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS_CLEAN) ;\
 	do \
-	  make -C "$$dir" distclean || exit $$? ;\
+	  if test -d "$$dir" ; then\
+	    make -C "$$dir" distclean || exit $$? ;\
+	  fi\
 	done
-	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .rpm*
+	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .rpm* *.spec *.log

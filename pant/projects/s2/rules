@@ -1,0 +1,5 @@
+./configure --prefix=/usr
+make
+rm -rf testing/scripts/srm2/dpm
+#make install prefix="`rpm --eval '%_topdir'`/INSTALL/s2-`cat VERSION`"
+make rpm

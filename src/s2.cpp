@@ -60,8 +60,7 @@ option_item optionlist[] = {
   { '-', "e<p>", "eval=<p>",            NULL },
   { '-', "i[#]", "pp-indent[=#]",       NULL },
   { '-', "l<p>", "log-file=<p>",        NULL },
-  { '-', "o<p>", "pp-out-file=<p>",     NULL },
-  { '-', "p[#]", "pretty-print[=#]",    NULL },
+  { '-', "p<p>", "pp-out-file=<p>",     NULL },
   { '-', "r<p>", "err-file=<p>",        NULL },
   { '-', "s[#]", "show-defaults[=#]",   NULL }, /* pretty-print defaults */
   { '-', "T[#]", "threads[=#]",         NULL },
@@ -415,7 +414,7 @@ hlp(int l)
                   DS_LOG_FOUT == stderr? "stderr": "?");
         break;
 
-        case 'o':
+        case 'p':
           /* pretty-printer output filename (<p>: path) */
           fprintf(stderr,_("pretty-printer output filename (%s)\n"), opts.pp_fname? opts.pp_fname : 
                          PP_DEFAULT_OUTPUT == stdout? "stdout":
@@ -703,7 +702,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     return 0;
   }
 
-  if (OPL("-o") || OPL("--pp-out-file"))
+  if (OPL("-p") || OPL("--pp-out-file"))
   { /* pretty-printer output file */
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */

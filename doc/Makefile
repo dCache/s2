@@ -11,6 +11,11 @@ DOCS		:= \
   s2.txt
 
 
+# Manual pages #######################################################
+MANS		:= \
+  s2.1
+
+
 # Rules ##############################################################
 .PHONY: Makefile
 
@@ -26,10 +31,13 @@ $(_CONFIG_MAK):
 	@echo "Please run ./configure to generate $(_CONFIG_MAK)" >&2
 	@exit 1
 
+all: doc man
+
 doc: $(DOCS)
+man: $(MANS)
 
 # Install ############################################################
-install: install-subdirs install-docs
+install: install-subdirs install-docs install-man
 
 install-subdirs: $(SUBDIRS)
 	@for dir in $(SUBDIRS) ;\
@@ -41,6 +49,12 @@ install-docs: $(DOCS)
 	@if test -n "$(DOCS)" ; then\
 	  mkdir -p $(prefix)$(_docdir) ;\
 	  install -m 0644 $(DOCS) $(prefix)$(_docdir) ;\
+	fi
+
+install-man: $(MANS)
+	@if test -n "$(MANS)" ; then\
+	  mkdir -p $(prefix)$(_mandir) ;\
+	  install -m 0644 $(MANS) $(prefix)$(_mandir) ;\
 	fi
 
 

@@ -1,0 +1,86 @@
+.TH S2 1
+
+.SH NAME
+
+s2 \- a simple general-purpose test client
+
+.SH SYNOPSIS
+
+.B s2 [OPTION]... [FILE1 FILE2 ...]
+
+.SH AVAILABILITY
+
+All UNIX flavors
+
+.SH DESCRIPTION
+
+S2 is a simple general-purpose test client with the SRM2 protocol
+support.  S2 interprets a tree-like language, which was also named S2.
+
+Exit status is 0 success, 1 warning(s) and >=2 if false evaluation/trouble.
+
+.SH OPTIONS
+
+.TP
+.B \-h[#], --help[=#]
+display help and exit (#: help level)
+.TP
+.B \-0[#], --e0-file[=#]
+before-evaluation tree output filename (stderr)
+.TP
+.B \-1[#], --e1-file[=#]
+after-execution tree output filename (stderr)
+.TP
+.B \-2[#], --e2-file[=#]
+after-evaluation tree output filename (stderr)
+.TP
+.B \-a[#], --ansi[=#]
+ANSI colors 0/1 (off)
+.TP
+.B \-b[#], --verbose[=#]
+verbose execution -2..3 (0)
+.TP
+.B \-d<p>, --dbg-file=<p>
+debug messages output filename (stderr)
+.TP
+.B \-e<p>, --eval=<p>
+default evaluation threshold for branches (0)
+.TP
+.B \-i[#], --pp-indent[=#]
+pretty-printer indentation value (3)
+.TP
+.B \-l<p>, --log-file=<p>
+log messages output filename (stderr)
+.TP
+.B \-p<p>, --pp-out-file=<p>
+pretty-printer output filename (stdout)
+.TP
+.B \-r<p>, --err-file=<p>
+error messages output filename (stderr)
+.TP
+.B \-s[#], --show-defaults[=#]
+show default values (off)
+.TP
+.B \-T[#], --threads[=#]
+threads in the thread pool 1..128 (64)
+.TP
+.B \-t[#], --timeout[=#]
+default timeout for branches in milliseconds (0)
+.TP
+.B \-V,    --version
+print version information and exit
+.TP
+.B \-w<p>, --warn-file=<p>
+warning messages output filename (stderr)
+
+.SH EXAMPLES
+.TP
+s2 eval01.s2 eval02.s2
+Evaluate files eval01.s2 and eval02.s2
+.TP
+s2 < eval01.s2
+Evaluate files eval01.s2
+
+.SH AUTHOR
+
+Jiri Mencak

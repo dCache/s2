@@ -40,6 +40,14 @@ Source distribution
 ~~~~~~~~~~~~~~~~~~~
 You'll need:
 
+* PCRE (Perl Compatible Regular Expressions) library >= 4.4
+  http://www.pcre.org/
+* diagnose library >= 0.3.8 (optional in principal, but 
+  strongly recommended)
+  http://libdiagnose.sourceforge.net
+
+If you require SRM2 protocol support, you'll also need:
+
 * vdt_globus_essentials (I used the one that comes with SL 3.0.5,
   i.e.: VDT1.2.2rh9-1)
 * vdt_globus_sdk if you want to build globus libraries statically
@@ -50,11 +58,6 @@ You'll need:
   http://heanet.dl.sourceforge.net/sourceforge/gsoap2/gsoap_2.7.2.tar.gz
 * CGSI_gSOAP_2.7 plugin (I used CGSI_gSOAP_2.7-1.1.9)
   http://cern.ch/castor/DIST/CERN/savannah/CGSI_gSOAP.pkg
-* PCRE (Perl Compatible Regular Expressions) library >= 4.4
-  http://www.pcre.org/
-* diagnose library >= 0.3.8 (optional in principal, but 
-  strongly recommended)
-  http://libdiagnose.sourceforge.net
 
 $ ./configure --help
 $ ./configure [your_options] && make

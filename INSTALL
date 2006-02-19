@@ -9,10 +9,9 @@ your /etc/grid-security/certificates contains valid certificates
 
 RPM-haters section
 ~~~~~~~~~~~~~~~~~~
-Due to the pressure from my work colleagues, I've decided to
-distribute both the binary and source distributions as RPM packages.
-As far as I know, there are at least two ways of getting a package
-of your choice from an RPM package:
+Due to the pressure from my work colleagues, I've decided to distribute
+RPM packages.  As far as I know, there are at least two ways of
+getting a package of your choice from an RPM package:
 
 1) You can use `alien' to convert the package between several major
    package formats.  For example, to get a gzipped tar ball:

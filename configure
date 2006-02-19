@@ -678,6 +678,11 @@ _exec_prefix	:= ${_exec_prefix}" >> ${CONFIG_MAK}
 # ${CONFIG_H} generation functions                                   #
 ######################################################################
 CONFIG_H_start() {
+  local d=$(dirname ${CONFIG_H})
+  if ! test -d "${d}" ; then
+    return 0
+  fi
+  
   cat >> ${CONFIG_H} << EOF
 /**********************************************************
  * This is an automatically generated configuration file. *
@@ -697,6 +702,10 @@ EOF
 }
 
 CONFIG_H_finish() {
+  local d=$(dirname ${CONFIG_H})
+  if ! test -d "${d}" ; then
+    return 0
+  fi
   cat >> ${CONFIG_H} << EOF
 #endif /* _CONFIG_H */
 EOF

@@ -77,6 +77,7 @@ RPM_SPECIN	:= rpm.spec.in
 RELEASE		:= $(RPM_PACKAGE)-$(VERSION)
 RPMTOPDIR	:= $(shell rpm --eval '%_topdir')
 BUILDDIR	:= $(shell rpm --eval '%_builddir')
+BUILDROOT	:= $(shell rpm --eval '%_tmppath')/$(RELEASE)-buildroot
 RPMBUILD	:= rpmbuild --sign
 
 rpm: rpm_build rpm_show
@@ -94,6 +95,7 @@ rpm_include: $(RPM_SPECIN)
 	  < $(RPM_SPECIN) | grep -v '^%include' > $(PACKAGE).spec
 
 tar: rpm_include rpmclean
+	-rm -rf $(BUILDROOT)
 	-rm -rf $(BUILDDIR)/$(RELEASE)
 	mkdir $(BUILDDIR)/$(RELEASE)
 	cp -r * $(BUILDDIR)/$(RELEASE)

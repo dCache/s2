@@ -44,19 +44,35 @@ The following files are all part of the standard s2 distribution.
 \NewPage
 \section{Download}
 
-\begin{itemize}
-\itemsep 0pt
-\item \htmladdnormallink{Official releases}{http://sourceforge.net/project/showfiles.php?group_id=159966},
-      \htmladdnormallink{SHA1 sums}{CHECKSUM.SHA1}
-\item \htmladdnormallink{CVS}{http://sourceforge.net/cvs/?group_id=159966}
-\end{itemize}
+\def\sfGID{159966}
+\subsection{Releases}
 
-Every officially released package has an \verb|SHA1|
-sum and \verb|.asc| detached signature using using
-DSA key ID \verb|0xFDEDEE4B|.  This key belongs to
+Official releases
+are \htmladdnormallink{deployed}{http://sourceforge.net/project/showfiles.php?group_id=\sfGID}
+by the SourceForge release infrastructure.
+Every officially released package has an
+\htmladdnormallink{{\tt SHA1} sum}{CHECKSUM.SHA1}
+and {\tt .asc} detached signature using
+DSA key ID {\tt0xFDEDEE4B}.  This key belongs to
 the current developer of this project \JiriMailto.
-You can download the \verb|0xFDEDEE4B| public key from
+You can download the {\tt 0xFDEDEE4B} public key from
 \htmladdnormallink{http://www.keyserver.net}{http://www.keyserver.net}.
+
+\subsection{CVS}
+
+SourceForge 
+\htmladdnormallink{CVS}{http://sourceforge.net/cvs/?group_id=\sfGID}
+server hosts this project.  Please refer to the  
+\htmladdnormallink{SourceForge project's CVS}{http://sourceforge.net/cvs/?group_id=\sfGID}
+page on how to retrieve the files.  The latest tag is
+\\
+\verb:echo:
+{\tt\input{../env/tag}}%
+\verb:| sed -e 's|^|v|' -e 's|\.|_|g':%
+\\
+Note that there is currently a 5 hour syncing delay between developer and
+public CVS servers.  Therefore you may need to wait a few hours for
+the latest tagged revision.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

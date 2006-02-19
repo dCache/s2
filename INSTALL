@@ -29,7 +29,7 @@ or you can convert it into a CPIO archive and unpack the files by
 
 Source distribution
 ~~~~~~~~~~~~~~~~~~~
-S2 is not easy to compile.  If you feel adventurous, you'll need:
+You'll need:
 
 * vdt_globus_essentials (I used the one that comes with SL 3.0.5,
   i.e.: VDT1.2.2rh9-1)

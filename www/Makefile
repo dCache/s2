@@ -37,6 +37,8 @@ SRCDEP		= \
   $(DOCUMENT).$(DOCEXT)\
   $(DOC_LOCALES)\
   tex4home.tex\
+  $(EXTRA_FILES)\
+  ../env/tag\
   $(STYLES) $(BIBLIOGRAPHY) $(TEX4HT_INC)
 TEX_JUNK	:= *.log *.toc *.out *.aux *.bbl *.blg *.tmp 
 TEX4HT_JUNK	:= *.idv *.lg *.xref *.4ct *.4tc *.fls

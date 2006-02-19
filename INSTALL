@@ -7,6 +7,24 @@ your /etc/grid-security/certificates contains valid certificates
 (ca_* packages).
 
 
+RPM-haters section
+~~~~~~~~~~~~~~~~~~
+Due to the pressure from my work colleagues, I've decided to
+distribute both the binary and source distributions as RPM packages.
+As far as I know, there are at least two ways of getting a package
+of your choice from an RPM package:
+
+1) You can use `alien' to convert the package between several major
+   package formats.  For example, to get a gzipped tar ball:
+
+# alien -t <RPM>
+
+2) You can convert the RPM into a CPIO archive and unpack the files:
+
+# rpm2cpio <RPM> > <RPM>.cpio
+# cpio -id --verbose < <RPM>.cpio
+
+
 Binary distribution
 ~~~~~~~~~~~~~~~~~~~
 There are two versions of the binary RPM distribution.  The first <RPM>
@@ -17,14 +35,6 @@ Both of these packages were compiled on Scientific Linux 3.0.5.
 
 The <RPM>s is installed by 
 # rpm -ivh <RPM>
-
-If RPM is not your preferred type of a binary package, you can either
-convert it into a gzipped tar-ball
-# alien -t <RPM>
-
-or you can convert it into a CPIO archive and unpack the files by
-# rpm2cpio <RPM> > <RPM>.cpio
-# cpio -id --verbose < <RPM>.cpio
 
 
 Source distribution

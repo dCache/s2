@@ -378,7 +378,8 @@ gSOAP lib:                   ${have_gsoap:-no}/${enable_gsoap:-no}, static: ${st
 CGSI plugin:                 ${have_cgsi_plugin:-no}/${enable_cgsi_plugin:-no}, static: ${static_cgsi_plugin:-no}
 GFAL lib:                    ${have_gfal:-no}/${enable_gfal:-no}
 
-With globus:                 ${_with_globusdir}
-With gsoap:                  ${_with_gsoapdir}
+With Globus:                 ${_with_globusdir}
+With gSOAP:                  ${_with_gsoapdir}
+With CGSI plugin:            ${_with_cgsi_plugin}
 EOF
 }

@@ -301,7 +301,13 @@ l_add_opts() {
 l_add_withdirs() {
   # compile-time directories
   add_withdir globus 'Globus' '${_with_globusdir:-${_prefix}/globus}'
+
+  if test x${_with_gsoapdir} = x ; then
+    # try to be intelligent and figure out where gSOAP directory is
+    _with_gsoapdir=`which wsdl2h 2>/dev/null | sed 's|/bin/wsdl2h$||'`
+  fi  
   add_withdir gsoap 'gSOAP' '${_with_gsoapdir:-${_prefix}}'
+
   add_withdir cgsi_plugin 'CGSI plugin' '${_with_cgsi_plugin:-${_prefix}}'
 }
 
@@ -371,5 +377,8 @@ Globus essentials lib:       ${have_globus:-no}/${enable_globus:-no}, static: ${
 gSOAP lib:                   ${have_gsoap:-no}/${enable_gsoap:-no}, static: ${static_gsoap:-no}
 CGSI plugin:                 ${have_cgsi_plugin:-no}/${enable_cgsi_plugin:-no}, static: ${static_cgsi_plugin:-no}
 GFAL lib:                    ${have_gfal:-no}/${enable_gfal:-no}
+
+With globus:                 ${_with_globusdir}
+With gsoap:                  ${_with_gsoapdir}
 EOF
 }

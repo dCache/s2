@@ -380,6 +380,6 @@ GFAL lib:                    ${have_gfal:-no}/${enable_gfal:-no}
 
 With Globus:                 ${_with_globusdir}
 With gSOAP:                  ${_with_gsoapdir}
-With CGSI plugin:            ${_with_cgsi_plugin}
+With CGSI plugin:            ${_with_cgsi_plugindir}
 EOF
 }

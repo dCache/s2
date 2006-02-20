@@ -52,10 +52,11 @@ install-docs: $(DOCS)
 	fi
 
 install-man: $(MANS)
-	@if test -n "$(MANS)" ; then\
-	  mkdir -p $(prefix)$(_mandir) ;\
-	  install -m 0644 $(MANS) $(prefix)$(_mandir) ;\
-	fi
+	for m in $(MANS) ;\
+	do \
+	  mkdir -p $(prefix)$(_mandir)/man`echo $$m | grep -o '[0-1]$$'` ;\
+	  install -m 0644 $(MANS) $(prefix)$(_mandir)/man`echo $$m | grep -o '[0-1]$$'` ;\
+	done
 
 
 # Cleanup ############################################################

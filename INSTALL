@@ -56,6 +56,8 @@ If you require SRM2 protocol support, you'll also need:
   http://www.cs.fsu.edu/~engelen/soap.html
   e.g.:
   http://heanet.dl.sourceforge.net/sourceforge/gsoap2/gsoap_2.7.2.tar.gz
+  or use the source RPM which is being released with this project
+  on SourceForge.
 * CGSI_gSOAP_2.7 plugin (I used CGSI_gSOAP_2.7-1.1.9)
   http://cern.ch/castor/DIST/CERN/savannah/CGSI_gSOAP.pkg
 

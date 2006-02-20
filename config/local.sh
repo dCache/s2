@@ -91,7 +91,7 @@ EOF
 %{_libdir}/libsrm2api.a
 
 # manual pages
-%{_mandir}/man1/s2.1
+%{_mandir}/
 EOF
   fi
 

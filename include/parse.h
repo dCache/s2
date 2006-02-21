@@ -15,6 +15,7 @@
 #define CH_INV_UGC      0                       /* invalid unget() character */
 #define MAX_ID          63                      /* maximum length of an identifier */
 #define MAX_IFS         63                      /* maximum number of nested #if directives */
+#define MAX_INCS	63			/* maximum number of files to include */
 
 /* simple macros */
 #define OPT(s)          (((s) == NULL)? FALSE: (strcmp(opt, (s)) == 0))
@@ -24,6 +25,12 @@
 
 #define UPDATE_MAX(m1, m2)      ((m1) < (m2))? (m1) = (m2): (m1) = (m1)
 #define UPDATE_MAXF(m1, m2, f)  if((m1) < (m2 = f)) (m1) = (m2)
+#define STRDUP(target,source)\
+  if(((target) = strdup(source)) == (char *)NULL) {\
+    DM_ERR(ERR_SYSTEM, _("strdup failed\n"));\
+    return ERR_SYSTEM;\
+  }
+
 #define EAT(nonterminal, ...) \
   if((rval = (nonterminal(__VA_ARGS__)))) {\
     /* rval has to be locally defined */\

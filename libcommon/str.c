@@ -118,6 +118,21 @@ remove_trailing_ws(char *s)
 } /* remove_trailing_ws */
 
 /*
+ * Returns
+ *   TRUE:  path is an absolute path
+ *   FALSE: otherwise or path == NULL
+ */
+extern BOOL
+is_absolute_path(const char *path)
+{
+  if(path == NULL)
+    return FALSE;
+  
+  /* TODO: Other than *NIX system compatibility! */
+  return (path[0] == PATH_CHAR);
+}
+
+/*
  * Convert a number in a text to type and return the converted value.
  * A pointer to the last converted character is returned in *endptr.
  */
@@ -210,4 +225,3 @@ out:
 
   return ss.str();
 }
-

@@ -1,6 +1,5 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- expand Quick Start section
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Investigate gSoap memory leaks.
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
@@ -8,6 +7,6 @@ Ordered by priority
 - ASSIGN pairs
 - EVAL, $RANDOM, ...
 - ECHO (vs. SYSTEM echo --- performance considerations)
+- More preprocessor directives (#define) or functions.
 - SEND/RECEIVE (TCP/UDP/...)?
-- More preprocessor directives (#include and #define)?
 - minor POSIX threads related memory leaks (consider using Apache threads).

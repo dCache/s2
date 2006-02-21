@@ -22,6 +22,7 @@ extern char *str_char(const char *s, int c);
 extern char *unescaped_char(const char *s, int c);
 extern int remove_leading_ws(char *s);
 extern int remove_trailing_ws(char *s);
+extern BOOL is_absolute_path(const char *path);
 #define _GET_INT(sign,size)\
 extern sign##int##size##_t get_##sign##int##size(const char *word, char **endptr, BOOL warn);
 _GET_INT(,8);
@@ -33,7 +34,6 @@ _GET_INT(u,32);
 _GET_INT(,64);
 _GET_INT(u,64);
 #undef _GET_INT
-
 
 /* C++ utils */
 #include <iostream>             /* std::string, cout, endl, ... */

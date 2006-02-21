@@ -31,6 +31,7 @@
 #include <stdio.h>              /* stderr */
 #include <errno.h>              /* errno */
 #include <stdarg.h>             /* vprintf() */
+#include <libgen.h>		/* dirname() */
 
 #include <iostream>             /* std::string, cout, endl, ... */
 
@@ -49,9 +50,22 @@ struct Parser
   Node *c0_node;                /* current root node (used for indentation checks) OFFSET=0 */
   Node *new_node;               /* pointer to the current node which is being parsed */
   Node parser_node;             /* node to collect pre-action values in such as offset, ... */
+
+  /* preprocessor directives */
   struct {
-    uint8_t IFs[MAX_IFS+1];	/* nested #if table */
-    int IFp;                    /* "nested" #if pointer (to the current block) */
+    struct {				/* #if */
+      uint8_t b[MAX_IFS+1];		/* nested #if block */
+      int p;				/* "nested" #if pointer (to the current block) */
+    } IF;
+    struct {				/* #include */
+      char *name[MAX_INCS+1];		/* filename table (as seen by #include) */
+      char *fullname[MAX_INCS+1];	/* path/filename table */
+      char *dir[MAX_INCS+1];		/* canonical basename of the S2 script filename ($PWD if stdin) */
+      FILE *fd[MAX_INCS+1];		/* file descriptor table */
+      uint row[MAX_INCS+1];		/* row parser position in the included file */
+      uint offset[MAX_INCS+1];		/* offset/row_indentation of this #include directive */
+      int p;				/* pointer to the currently included file */
+    } INC;				/* a structure for the #include directive */
   } preproc;
 
 public:
@@ -90,6 +104,7 @@ _GET_INT(u,64);
   int dq_param_env(std::string &target);
   int ind_param(std::string &target);
   BOOL is_true_block(void);
+  int set_include_dirname(char *target, const char *filename);
 
   /* The Grammar ******************************************************/
   /* special "symbols" */
@@ -171,7 +186,8 @@ Parser::Parser()
   curr_offset = 0;
 
   /* preprocessor-related init */
-  preproc.IFp = -1;
+  memset(&preproc, 0, sizeof(preproc));
+  preproc.IF.p = -1;
 
   /* initialise the root node */
   root_node = NULL;
@@ -592,11 +608,41 @@ BOOL
 Parser::is_true_block(void)
 {
   int i;
-  for(i = 0; i <= preproc.IFp; i++)
-    if(!preproc.IFs[i]) return FALSE;
+  for(i = 0; i <= preproc.IF.p; i++)
+    if(!preproc.IF.b[i]) return FALSE;
 
   return TRUE;
 } /* is_true_block */
+
+/*
+ * Sets include directory name based on the value of the S2 script file
+ * `filename' to be processed.
+ */
+int
+Parser::set_include_dirname(char *target, const char *filename)
+{
+  if(filename == NULL) {
+    /* standard input */
+    if(getcwd(target, PATH_MAX - 1) != (char *)NULL)
+    {
+      strcat(target, PATH_STR);
+      return ERR_OK;
+    }
+    
+    DM_ERR(ERR_SYSTEM, _("could not get current working directory: `%s'\n"), _(strerror(errno)));
+    return ERR_SYSTEM;
+  }
+
+  /* the S2 script is standard input */ 
+  if(!realpath(filename, target))
+  {
+    DM_ERR(ERR_SYSTEM, _("canonicalised absolute pathname for `%s': `%s'\n"), filename, _(strerror(errno)));
+    return ERR_SYSTEM;
+  }
+
+  dirname(target);
+  return ERR_OK;
+} /* set_include_dirname */
 
 /*
  * The Grammar ******************************************************
@@ -716,16 +762,21 @@ Parser::S(void)
 int
 Parser::PREPROCESSOR()
 {
-//  int rval;
+  int rval;
   char *opt;
   char *end = NULL;
-
+  char dir[PATH_MAX+1];		/* temporary storage for preproc.INC.dir[preproc.INC.p] */
+  char fullname[PATH_MAX+1];	/* temporary storage for preproc.INC.fullname[preproc.INC.p] */
+  std::string _val;
+  uint preproc_offset;
+  
   if((opt = str_char(line, CH_PREPROC)) == NULL) {
     /* no preprocessor character present */
     DM_ERR_ASSERT(_("missing preprocessor character\n"));
     return ERR_ERR;
   }
   col = opt - line + 1; /* move 1 behind CH_PREPROC */
+  preproc_offset = col - 1;
 
   /* we have a preprocessor character */
   WHITESPACE();                         /* allow whitespace after CH_PREPROC ('#') */
@@ -733,27 +784,73 @@ Parser::PREPROCESSOR()
 
   if(POPL("if")) {
     WHITESPACE();       /* allow whitespace after 'if' */
-    if(++preproc.IFp >= MAX_IFS) {
+    if(++preproc.IF.p >= MAX_IFS) {
       DM_PERR(_("too many nested #if directives (max %u)\n"), MAX_IFS);
-      preproc.IFp--;
+      preproc.IF.p--;
       return ERR_OK;
     }
-    UINT8(_("#if directive"),preproc.IFs[preproc.IFp]);
+    UINT8(_("#if directive"),preproc.IF.b[preproc.IF.p]);
   } else if(POPL("else")) {
     WHITESPACE();       /* allow whitespace after 'else' */
-    if(preproc.IFp < 0) {
+    if(preproc.IF.p < 0) {
       DM_PWARN(_("unexpected #else directive (no matching #if)\n"));
       /* be lenient, just ignore it */
-      return ERR_OK;    /* don't return ERR_PERR, try to ignore it */
+      return ERR_OK;    /* don't return ERR_ERR, try to ignore it */
     }
-    preproc.IFs[preproc.IFp] = !preproc.IFs[preproc.IFp];
+    preproc.IF.b[preproc.IF.p] = !preproc.IF.b[preproc.IF.p];
   } else if(POPL("endif")) {
     WHITESPACE();       /* allow whitespace after 'endif' */
-    if(--preproc.IFp < -1) {
+    if(--preproc.IF.p < -1) {
       DM_PWARN(_("unexpected #endif preprocessor directive (no matching #if)\n"));
       /* be lenient, just ignore it */
-      return ERR_OK;    /* don't return ERR_PERR, try to ignore it */
+      return ERR_OK;    /* don't return ERR_ERR, try to ignore it */
     }
+  } else if(POPL("include")) {
+    if(!is_true_block()) 
+      /* #if 0 or #else branch of #if 1 */
+      return ERR_OK;
+
+    WHITESPACE();	/* allow whitespace after 'include' */
+    if(++preproc.INC.p >= MAX_INCS) {
+      DM_PERR(_("too many nested #include(s) (max %u); #include directive ignored\n"), MAX_INCS);
+      preproc.INC.p--;
+      return ERR_OK;	/* don't return ERR_ERR, try to ignore it */
+    }
+    preproc.INC.offset[preproc.INC.p] = preproc.INC.offset[preproc.INC.p-1] + preproc_offset;
+    DM_DBG(DM_N(5),"INC.offset[preproc.INC.p]/INC.offset[preproc.INC.p-1]/preproc_offset=%d/%d/%d\n", preproc.INC.offset[preproc.INC.p], preproc.INC.offset[preproc.INC.p-1], preproc_offset);
+    PARSE(dq_param,_val,"include directive filename\n");	/* parse include filename into _val */
+    if(is_absolute_path(_val.c_str())) {
+      /* we have an absolute pathname */
+      DM_DBG(DM_N(3),"absolute include directive filename=|%s|\n", _val.c_str());
+      strncpy(dir, _val.c_str(), PATH_MAX);
+    } else {
+      /* a relative pathname */
+      DM_DBG(DM_N(3),"relative include directive filename=|%s|\n", _val.c_str());
+      strncpy(dir, preproc.INC.dir[preproc.INC.p-1], PATH_MAX);
+      strncat(dir, PATH_STR, PATH_MAX-strlen(dir));
+      strncat(dir, _val.c_str(), PATH_MAX-strlen(dir));
+    }
+    if(!realpath(dir, fullname))
+    { /* canonicalisation failed */
+      DM_ERR(ERR_SYSTEM, _("canonicalisation of #include filename `%s' failed: `%s'\n"), dir, _(strerror(errno)));
+      return ERR_SYSTEM;
+    }
+    STRDUP(preproc.INC.name[preproc.INC.p], _val.c_str());
+    DM_DBG(DM_N(3),"INC.name[preproc.INC.p]=|%s|\n", preproc.INC.name[preproc.INC.p]);
+    STRDUP(preproc.INC.fullname[preproc.INC.p], fullname);
+    DM_DBG(DM_N(3),"INC.fullname[preproc.INC.p]=|%s|\n", preproc.INC.fullname[preproc.INC.p]);
+    dirname(fullname);
+    STRDUP(preproc.INC.dir[preproc.INC.p], fullname);
+    DM_DBG(DM_N(3),"INC.dir[preproc.INC.p]=|%s|\n", preproc.INC.dir[preproc.INC.p]);
+    rval = file_ropen(preproc.INC.fullname[preproc.INC.p], &(preproc.INC.fd[preproc.INC.p]));
+    if(rval) {
+      /* open failed */
+      FREE(preproc.INC.name[preproc.INC.p]);
+      FREE(preproc.INC.fullname[preproc.INC.p]);
+      FREE(preproc.INC.dir[preproc.INC.p]);
+      return rval;
+    }
+    /* open succeeded */
   } else {
     if(*opt)
       DM_PERR(_("unknown preprocessor directive `%.*s'; use: #(if|else|endif)\n"), end - opt, opt);
@@ -795,6 +892,8 @@ Parser::OFFSET(void)
   for(o = 0; ((c = gc()) == ' ') && (c != CH_EOL); o++)
     ;
   if(c != CH_EOL) ugc();
+  DM_DBG(DM_N(3), "OFFSET()=%d/o=%d\n", preproc.INC.offset[preproc.INC.p], o);
+  o += preproc.INC.offset[preproc.INC.p];
 
   if(c == '\t') {
     DM_PERR(_("horizontal tab character is not allowed to indent a branch\n"));
@@ -949,7 +1048,7 @@ Parser::COND(void)
         return ERR_ERR;
       }
       if(Node::get_node_with_offset(c0_node, parser_node.OFFSET) == NULL) {
-        DM_PERR(_("no previous branch with the same offset to join || condition to\n"), c);
+        DM_PERR(_("no previous branch with the same offset (%u) to join || condition to\n"), parser_node.OFFSET);
         return ERR_ERR;
       }
 
@@ -964,7 +1063,7 @@ Parser::COND(void)
         return ERR_ERR;
       }
       if(Node::get_node_with_offset(c0_node, parser_node.OFFSET) == NULL) {
-        DM_PERR(_("no previous branch with the same offset to join && condition to\n"), c);
+        DM_PERR(_("no previous branch with the same offset (%u) to join && condition to\n"), parser_node.OFFSET);
         return ERR_ERR;
       }
 
@@ -2466,17 +2565,25 @@ Parser::srmUpdateSpaceR(void)
 int
 Parser::start(const char *filename, Node **root)
 {
+  char dir[PATH_MAX+1];		/* temporary storage for preproc.INC.dir[preproc.INC.p] */
   int rval = 0;                 /* return value */
-  FILE *fin = NULL;
-  *root = NULL;                 /* init in case there's no tree */
-
-  rval = file_ropen(filename, &fin);
-  if(rval) return rval;         /* open failed */
 
   if(root == NULL)
     DM_ERR_ASSERT(_("root == NULL\n"));
 
-  while(dfreads(&line, &line_end, fin, (uint32_t *)&llen)) {
+  if(filename != NULL)
+    /* we don't have a standard input as the input file */
+    STRDUP(preproc.INC.fullname[preproc.INC.p], filename);	/* copy the original filename to the INC structure */
+    
+  rval = file_ropen(filename, &(preproc.INC.fd[0]));
+  if(rval) return rval;         /* open failed */
+
+  *dir = '\0';				/* first S2 script file, no directory prefix */
+  set_include_dirname(dir, filename);	/* initialise #include directive directory name */
+  STRDUP(preproc.INC.dir[0], dir);
+  
+loop:
+  while(dfreads(&line, &line_end, preproc.INC.fd[preproc.INC.p], (uint32_t *)&llen)) {
     int lval;
     rows++; row++;
     parser_node.init();
@@ -2491,9 +2598,21 @@ Parser::start(const char *filename, Node **root)
     llen = strlen(line);        /* line length might have changed (trailing whitespace removed) */
 
     if(is_preprocessor_line(line, CH_PREPROC)) {
+      int INCp = preproc.INC.p;
       lval = PREPROCESSOR();
       UPDATE_MAX(rval, lval);
 
+      if(INCp != preproc.INC.p) {
+        /* we have a new #include */
+        if(lval) {
+          /* there were errors; decrease INCp and continue where we left off */
+          --preproc.INC.p;
+          continue;
+        }
+        /* we have a legal #include directive */
+        preproc.INC.row[preproc.INC.p - 1] = row;	/* save the row number */
+        row = 0;					/* we're about to start parsing a new file */
+      }
       /* any directive has done its job now, continue */
       continue;
     }
@@ -2523,7 +2642,9 @@ Parser::start(const char *filename, Node **root)
             continue;
           }
           /* update the current offset variable */
+          DM_DBG(DM_N(3), "curr_offset=%d\n", curr_offset);
           curr_offset = new_node->OFFSET;
+          DM_DBG(DM_N(3), "updating curr_offset=%d\n", curr_offset);
         }
       }
 
@@ -2537,7 +2658,15 @@ Parser::start(const char *filename, Node **root)
     }
   }
   
-  file_close(filename, &fin);
+  /* free included filename and close its file descriptor */
+  file_close(preproc.INC.fullname[preproc.INC.p], &preproc.INC.fd[preproc.INC.p]);
+  FREE(preproc.INC.name[preproc.INC.p]);
+  FREE(preproc.INC.fullname[preproc.INC.p]);
+  FREE(preproc.INC.dir[preproc.INC.p]);
+  if(preproc.INC.p-- > 0) {
+    row = preproc.INC.row[preproc.INC.p];	/* retrieve the row number */
+    goto loop;
+  }
 
   if(line) {
     FREE(line);

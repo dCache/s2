@@ -877,6 +877,11 @@ evaluate:
       lval = parse(argv[i], &root);
       DM_DBG(DM_N(1), "parser return value=%d\n", lval);
       UPDATE_MAX(rval, lval);
+      if(lval >= ERR_ERR) {
+        /* parser found an error => do not evaluate */
+        UPDATE_MAX(rval, ERR_NEXEC);
+        goto cleanup;
+      }
 
       /* create thread pool */
       if(!tp_created) tp_init(opts.tp_size);
@@ -900,6 +905,7 @@ evaluate:
       DM_DBG(DM_N(1), "evaluation print return value=%d\n", lval);
       UPDATE_MAX(rval, lval);
 
+cleanup:
       /* Cleanup */
       DELETE(root);
     }

@@ -1,0 +1,4 @@
+; #include parser test
+
+SYSTEM echo "looping..."
+#include include-loop.s2

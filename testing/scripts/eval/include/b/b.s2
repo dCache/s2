@@ -1,0 +1,5 @@
+; #include parser test
+
+SYSTEM echo "<B>, C follows at the same indentation as <B>"
+#include "../c.s2"
+&& SYSTEM echo "</B>"

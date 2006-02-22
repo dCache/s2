@@ -2589,7 +2589,6 @@ loop:
   while(dfreads(&line, &line_end, preproc.INC.fd[preproc.INC.p], (uint32_t *)&llen)) {
     int lval;
     rows++; row++;
-    DM_DBG(DM_N(3), "*****%s******>row=%d\n", preproc.INC.name[preproc.INC.p], row);
     parser_node.init();
     parser_node.row = row;
 

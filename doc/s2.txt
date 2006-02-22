@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 test client documentation
-Version:	2006-02-14
+Version:	2006-02-22
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -83,7 +83,7 @@ start with the ';' character and continue up to the next newline
 
 1.2) Preprocessor
 ~~~~~~~~~~~~~~~~~
-  <PREPROCESSOR> :: <IF_ELSE_ENDIF>
+  <PREPROCESSOR> :: <IF_ELSE_ENDIF> | <INCLUDE>
 
   <IF_ELSE_ENDIF> :: <IF> '\n' <BRANCH>* (<ELSE> '\n' <BRANCH>*)? <ENDIF>
 
@@ -95,6 +95,10 @@ start with the ';' character and continue up to the next newline
   
   <IF_COND> :: <I>
 
+  <INCLUDE> :: '#' 'include' <INCLUDE_FILE>
+  
+  <INCLUDE_FILE> :: <DQ_PARAM>
+  
 
 1.3) Actions
 ~~~~~~~~~~~~

@@ -877,8 +877,8 @@ evaluate:
       lval = parse(argv[i], &root);
       DM_DBG(DM_N(1), "parser return value=%d\n", lval);
       UPDATE_MAX(rval, lval);
-      if(lval >= ERR_ERR) {
-        /* parser found an error => do not evaluate */
+      if(rval > opts.s2_eval) {
+        /* stop evaluation */
         UPDATE_MAX(rval, ERR_NEXEC);
         goto cleanup;
       }

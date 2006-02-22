@@ -174,15 +174,25 @@
 
 /* Extending diagnose library macros */
 #define dgPERR(t, level, ...)\
-  dgMsg##t(DG_MSG_S, DT_ERR, level),\
-  dgERR_Msg(DG_MSG_B, level, "perror: " dgLOC##t),\
-  dgERR_Msg(DG_MSG_B, level, "[%u/%d]: ", row, col+1),\
-  dgERR_Msg(DG_MSG_T, level, __VA_ARGS__)
+  do {\
+    dgMsg##t(DG_MSG_S, DT_ERR, level);\
+    dgERR_Msg(DG_MSG_B, level, "perror: " dgLOC##t);\
+    if(preproc.INC.p > 0 && preproc.INC.fullname[preproc.INC.p]) {\
+      /* nested includes */\
+      dgERR_Msg(DG_MSG_B, level, "[%u/%d]: %s ", preproc.INC.row[0], preproc.INC.offset[preproc.INC.p], preproc.INC.name[preproc.INC.p]);\
+    }\
+    dgERR_Msg(DG_MSG_B, level, "[%u/%d]: ", row, col+1);\
+    dgERR_Msg(DG_MSG_T, level, __VA_ARGS__);} while(0)
 #define dgPWARN(t, level, ...)\
-  dgMsg##t(DG_MSG_S, DT_WARN, level),\
-  dgWARN_Msg(DG_MSG_B, level, "pwarning: " dgLOC##t),\
-  dgWARN_Msg(DG_MSG_B, level, "[%u/%d]: ", row, col+1),\
-  dgWARN_Msg(DG_MSG_T, level, __VA_ARGS__)
+  do {\
+    dgMsg##t(DG_MSG_S, DT_WARN, level);\
+    dgWARN_Msg(DG_MSG_B, level, "pwarning: " dgLOC##t);\
+    if(preproc.INC.p > 0 && preproc.INC.fullname[preproc.INC.p]) {\
+      /* nested includes */\
+      dgWARN_Msg(DG_MSG_B, level, "[%u/%d]: %s ", preproc.INC.row[0], preproc.INC.offset[preproc.INC.p], preproc.INC.name[preproc.INC.p]);\
+    }\
+    dgWARN_Msg(DG_MSG_B, level, "[%u/%d]: ", row, col+1);\
+    dgWARN_Msg(DG_MSG_T, level, __VA_ARGS__);} while(0)
 
 #define DM_PERR(...)    DM_BLOCK(ERR, ERR_ERR, dgPERR(P, ERR_ERR, __VA_ARGS__))
 #define DM_PWARN(...)   DM_BLOCK(WARN, ERR_WARN, dgPWARN(P, ERR_WARN, __VA_ARGS__))

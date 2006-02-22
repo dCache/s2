@@ -63,9 +63,9 @@ struct Parser
       char *dir[MAX_INCS+1];		/* canonical basename of the S2 script filename ($PWD if stdin) */
       FILE *fd[MAX_INCS+1];		/* file descriptor table */
       uint row[MAX_INCS+1];		/* row parser position in the included file */
-      uint offset[MAX_INCS+1];		/* offset/row_indentation of this #include directive */
+      uint offset[MAX_INCS+1];		/* offset/row_indentation in this #included file */
       int p;				/* pointer to the currently included file */
-    } INC;				/* a structure for the #include directive */
+    } INC;
   } preproc;
 
 public:
@@ -811,13 +811,14 @@ Parser::PREPROCESSOR()
       return ERR_OK;
 
     WHITESPACE();	/* allow whitespace after 'include' */
+
     if(++preproc.INC.p >= MAX_INCS) {
       DM_PERR(_("too many nested #include(s) (max %u); #include directive ignored\n"), MAX_INCS);
       preproc.INC.p--;
-      return ERR_OK;	/* don't return ERR_ERR, try to ignore it */
+      return ERR_OK;	/* don't return ERR_ERR, try to ignore this error */
     }
     preproc.INC.offset[preproc.INC.p] = preproc.INC.offset[preproc.INC.p-1] + preproc_offset;
-    DM_DBG(DM_N(5),"INC.offset[preproc.INC.p]/INC.offset[preproc.INC.p-1]/preproc_offset=%d/%d/%d\n", preproc.INC.offset[preproc.INC.p], preproc.INC.offset[preproc.INC.p-1], preproc_offset);
+    DM_DBG(DM_N(5),"INC.offset[%d]=%u, INC.offset[%d]=%u, preproc_offset=%u\n", preproc.INC.p, preproc.INC.offset[preproc.INC.p], preproc.INC.p-1, preproc.INC.offset[preproc.INC.p-1], preproc_offset);
     PARSE(dq_param,_val,"include directive filename\n");	/* parse include filename into _val */
     if(is_absolute_path(_val.c_str())) {
       /* we have an absolute pathname */
@@ -892,8 +893,8 @@ Parser::OFFSET(void)
   for(o = 0; ((c = gc()) == ' ') && (c != CH_EOL); o++)
     ;
   if(c != CH_EOL) ugc();
+  if(preproc.INC.p != 0) o += preproc.INC.offset[preproc.INC.p];
   DM_DBG(DM_N(3), "OFFSET()=%d/o=%d\n", preproc.INC.offset[preproc.INC.p], o);
-  o += preproc.INC.offset[preproc.INC.p];
 
   if(c == '\t') {
     DM_PERR(_("horizontal tab character is not allowed to indent a branch\n"));
@@ -2571,9 +2572,11 @@ Parser::start(const char *filename, Node **root)
   if(root == NULL)
     DM_ERR_ASSERT(_("root == NULL\n"));
 
-  if(filename != NULL)
+  if(filename != NULL) {
     /* we don't have a standard input as the input file */
+    STRDUP(preproc.INC.name[preproc.INC.p], filename);		/* copy the original filename to the INC structure */
     STRDUP(preproc.INC.fullname[preproc.INC.p], filename);	/* copy the original filename to the INC structure */
+  }
     
   rval = file_ropen(filename, &(preproc.INC.fd[0]));
   if(rval) return rval;         /* open failed */
@@ -2586,6 +2589,7 @@ loop:
   while(dfreads(&line, &line_end, preproc.INC.fd[preproc.INC.p], (uint32_t *)&llen)) {
     int lval;
     rows++; row++;
+    DM_DBG(DM_N(3), "*****%s******>row=%d\n", preproc.INC.name[preproc.INC.p], row);
     parser_node.init();
     parser_node.row = row;
 

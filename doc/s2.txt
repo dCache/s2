@@ -1,4 +1,4 @@
-
+======================================================================
 Title:		S2 test client documentation
 Version:	2006-02-23
 ======================================================================
@@ -333,7 +333,7 @@ There are several kinds of branch actions.
 
 2.3.1 ASSIGN
 ~~~~~~~~~~~~
-  <ASSIGN> :: 'ASSIGN' <OVERWRITE>? <VAR> <VAR_VAL>
+  <ASSIGN> :: 'ASSIGN' <OVERWRITE>? ( <VAR> <VAR_VAL> )+
   <OVERWRITE> :: 'overwrite' '=' <DQ_I>
   <VAR_VAL> :: <DQ_STR>
 
@@ -394,7 +394,7 @@ If this parameter is omitted, the default value 0 is used.
 
 2.3.5 SETENV
 ~~~~~~~~~~~~
-  <SETENV> :: 'SETENV' <OVERWRITE>? <VAR> <VAR_VAL>
+  <SETENV> :: 'SETENV' <OVERWRITE>? ( <VAR> <VAR_VAL> )+
   <OVERWRITE> :: 'overwrite' '=' <DQ_I>
   <VAR_VAL> :: <DQ_STR>
 

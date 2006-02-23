@@ -1,5 +1,6 @@
 ./configure --prefix=/usr
 make
 rm -rf testing/scripts/srm2/dpm
+sed 's/^ENDPOINT=.*/ENDPOINT=999/' < testing/scripts/srm2/s2.env >testing/scrits/srm2/s2.new && mv -f testing/scripts/srm2/s2.new testing/scrits/srm2/s2.env
 #make install prefix="`rpm --eval '%_topdir'`/INSTALL/s2-`cat VERSION`"
 make rpm

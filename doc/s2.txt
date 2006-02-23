@@ -1,6 +1,6 @@
-======================================================================
+
 Title:		S2 test client documentation
-Version:	2006-02-22
+Version:	2006-02-23
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -102,7 +102,7 @@ start with the ';' character and continue up to the next newline
 
 1.3) Actions
 ~~~~~~~~~~~~
-  <ACTION> :: <ASSIGN> | <CMP_OP> | <MATCH> | <NOP> | <SLEEP> | <SRM2> | <SYSTEM>
+  <ACTION> :: <ASSIGN> | <CMP_OP> | <MATCH> | <NOP> | <SETENV> | <SLEEP> | <SRM2> | <SYSTEM>
 
 Syntax of the individual actions is described in the Semantics section.
 
@@ -333,10 +333,13 @@ There are several kinds of branch actions.
 
 2.3.1 ASSIGN
 ~~~~~~~~~~~~
-  <ASSIGN> :: 'ASSIGN' <VAR> <VAR_VAL>
+  <ASSIGN> :: 'ASSIGN' <OVERWRITE>? <VAR> <VAR_VAL>
+  <OVERWRITE> :: 'overwrite' '=' <DQ_I>
   <VAR_VAL> :: <DQ_STR>
 
-Assign variable <VAR> value <VAR_VAL>.
+If <VAR> is not set, assign variable <VAR> value <VAR_VAL>.  If <VAR>
+is set, assign variable <VAR> value <VAR_VAL> only if <OVERWRITE>
+is unspecified or it evaluates to non-zero.
 
 
 2.3.2 Comparison operators
@@ -389,7 +392,18 @@ operation" action.  It has an optional parameter --- execution value.
 If this parameter is omitted, the default value 0 is used.
 
 
-2.3.5 SLEEP
+2.3.5 SETENV
+~~~~~~~~~~~~
+  <SETENV> :: 'SETENV' <OVERWRITE>? <VAR> <VAR_VAL>
+  <OVERWRITE> :: 'overwrite' '=' <DQ_I>
+  <VAR_VAL> :: <DQ_STR>
+
+If <VAR> is not set, assign environment variable <VAR> value <VAR_VAL>.
+If <VAR> is set, assign environment variable <VAR> value <VAR_VAL>
+only if <OVERWRITE> is unspecified or it evaluates to non-zero.
+
+
+2.3.6 SLEEP
 ~~~~~~~~~~~
   <SLEEP> :: 'SLEEP' <SLEEP_OPT>?
   <SLEEP_OPT> :: <SLEEP_SEC> <SLEEP_NANOSEC>?
@@ -399,13 +413,13 @@ If this parameter is omitted, the default value 0 is used.
 Sleep for a specified amount of seconds and/or nanoseconds.
 
 
-2.3.6. SRM2 actions
+2.3.7. SRM2 actions
 ~~~~~~~~~~~~~~~~~~~
 All SRM2 methods are implemented.  Please see the
 `testing/scripts/srm2/template' directory for syntax.
 
 
-2.3.7 SYSTEM
+2.3.8 SYSTEM
 ~~~~~~~~~~~~
   <SYSTEM> :: 'SYSTEM' <SYSTEM_OPT>? <SYSTEM_COMMAND>
   <SYSTEM_OPT> :: 'out' '=' <DQ_STR>

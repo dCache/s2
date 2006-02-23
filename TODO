@@ -4,9 +4,8 @@ Ordered by priority
 - Investigate gSoap memory leaks.
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
 - Refactor parallel execution model and timeouts ("process notion")
-- ASSIGN pairs
 - EVAL, $RANDOM, ...
 - ECHO (vs. SYSTEM echo --- performance considerations)
-- More preprocessor directives (#define) or functions.
 - SEND/RECEIVE (TCP/UDP/...)?
+- More preprocessor directives (#define) or functions?
 - minor POSIX threads related memory leaks (consider using Apache threads).

@@ -1,3 +1,7 @@
+2006-02-23 15:20  Jiri Mencak
+	* all: added support for SETENV action, improved ASSIGN and SRM2 scenarios.
+
+
 2006-02-22 13:05  Jiri Mencak
 	* all: added #include preprocessor directive support.
 

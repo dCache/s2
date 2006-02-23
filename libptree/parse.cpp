@@ -108,7 +108,7 @@ _GET_INT(u,64);
 
   /* The Grammar ******************************************************/
   /* special "symbols" */
-  void WHITESPACE(void);
+  void WS(void);
   int WcW(int ch);              /* skips whitespace* `ch' whitespace* */
   inline int WEQW(void);        /* skips whitespace* '=' whitespace* */
   inline int LIND(void);        /* skips whitespace* '[' whitespace* */
@@ -130,6 +130,7 @@ _GET_INT(u,64);
   int CMP(CMP_t cmp);
   int MATCH(void);
   int NOP(void);
+  int SETENV(void);
   int SLEEP(void);
   int SYSTEM(void);
 
@@ -648,7 +649,7 @@ Parser::set_include_dirname(char *target, const char *filename)
  * The Grammar ******************************************************
  */
 void
-Parser::WHITESPACE(void)
+Parser::WS(void)
 {
   int c;
 
@@ -656,7 +657,7 @@ Parser::WHITESPACE(void)
     c = gc();
   } while (isspace(c) && c != CH_EOL);
   if(c != CH_EOL) ugc();
-} /* WHITESPACE */
+} /* WS */
 
 /*
  * Skips whitespace* `ch' whitespace*
@@ -666,14 +667,14 @@ Parser::WcW(int ch)
 {
   int c;
 
-  WHITESPACE();                 /* skip whitespace (if any) */
+  WS();                 /* skip whitespace (if any) */
   if((c = gc()) != ch) {
     ugc();
     if(c != CH_EOL) DM_PERR("expected '%c', found '%c'\n", ch, c);
     else DM_PERR("found EOL while expecting '%c'\n", ch);
     return ERR_ERR;
   }
-  WHITESPACE();                 /* skip whitespace (if any) */
+  WS();                 /* skip whitespace (if any) */
   
   return ERR_OK;
 } /* WcW */
@@ -711,17 +712,17 @@ Parser::ENV_VAR(void)
   AZaz_(opt = line + col, &end);        /* try to get ENV, move col */
 
   if(POPL("ENV")) {
-    WHITESPACE();       /* allow whitespace after $ENV */
+    WS();       /* allow whitespace after $ENV */
     if((c = gc()) != '{') {
       DM_PERR(_("$ENV with missing '{'\n"));
       return NULL;
     }
-    WHITESPACE();       /* allow whitespace after $ENV{ */
+    WS();       /* allow whitespace after $ENV{ */
   
     /* get variable name */
     AZaz_09(opt = line + col, &end);
 
-    WHITESPACE();       /* allow whitespace after $ENV{<VAR> */
+    WS();       /* allow whitespace after $ENV{<VAR> */
     if((c = gc()) != '}') {
       ugc();
       DM_PERR(_("$ENV{<VAR> with missing '}'\n"));
@@ -779,11 +780,11 @@ Parser::PREPROCESSOR()
   preproc_offset = col - 1;
 
   /* we have a preprocessor character */
-  WHITESPACE();                         /* allow whitespace after CH_PREPROC ('#') */
+  WS();                         /* allow whitespace after CH_PREPROC ('#') */
   AZaz_(opt = line + col, &end);        /* get preprocessor directive name */
 
   if(POPL("if")) {
-    WHITESPACE();       /* allow whitespace after 'if' */
+    WS();       /* allow whitespace after 'if' */
     if(++preproc.IF.p >= MAX_IFS) {
       DM_PERR(_("too many nested #if directives (max %u)\n"), MAX_IFS);
       preproc.IF.p--;
@@ -791,7 +792,7 @@ Parser::PREPROCESSOR()
     }
     UINT8(_("#if directive"),preproc.IF.b[preproc.IF.p]);
   } else if(POPL("else")) {
-    WHITESPACE();       /* allow whitespace after 'else' */
+    WS();       /* allow whitespace after 'else' */
     if(preproc.IF.p < 0) {
       DM_PWARN(_("unexpected #else directive (no matching #if)\n"));
       /* be lenient, just ignore it */
@@ -799,7 +800,7 @@ Parser::PREPROCESSOR()
     }
     preproc.IF.b[preproc.IF.p] = !preproc.IF.b[preproc.IF.p];
   } else if(POPL("endif")) {
-    WHITESPACE();       /* allow whitespace after 'endif' */
+    WS();       /* allow whitespace after 'endif' */
     if(--preproc.IF.p < -1) {
       DM_PWARN(_("unexpected #endif preprocessor directive (no matching #if)\n"));
       /* be lenient, just ignore it */
@@ -810,7 +811,7 @@ Parser::PREPROCESSOR()
       /* #if 0 or #else branch of #if 1 */
       return ERR_OK;
 
-    WHITESPACE();	/* allow whitespace after 'include' */
+    WS();	/* allow whitespace after 'include' */
 
     if(++preproc.INC.p >= MAX_INCS) {
       DM_PERR(_("too many nested #include(s) (max %u); #include directive ignored\n"), MAX_INCS);
@@ -950,7 +951,7 @@ Parser::BRANCH_OPT(void)
   while(col < llen) {
 //  eval                                /* evaluation level */
 
-    WHITESPACE();
+    WS();
     AZaz_(opt = line + col, &end);      /* get options (or <ACTION>) */
 
     POPL_INT32("eval",parser_node.EVAL) else
@@ -1096,12 +1097,12 @@ Parser::REPEAT(void)
   }
 
   /* we have a repeat operator */
-  WHITESPACE();         /* allow whitespace after '>' */
+  WS();         /* allow whitespace after '>' */
 
   INT64(_("start value of the repeat operator"),parser_node.REPEAT.X);
 
   start_col = col;
-  WHITESPACE();         /* allow whitespace after X */
+  WS();         /* allow whitespace after X */
 
   if(start_col != col) {
     /* it can be a parallel ' ' repeat operator (we had some whitespace) */
@@ -1147,7 +1148,7 @@ Parser::REPEAT(void)
       return ERR_ERR;
   }
   
-  WHITESPACE();         /* allow whitespace '||' or '&&' */
+  WS();         /* allow whitespace '||' or '&&' */
 
   INT64(_("end value of the repeat operator"), parser_node.REPEAT.Y);
   
@@ -1162,7 +1163,7 @@ Parser::ACTION(void)
   char *opt;
   char *end = NULL;
 
-  WHITESPACE();
+  WS();
   AZaz_(opt = line + col, &end);        /* get a ACTION method name */
 
 #define POPL_EAT(s,r,...)\
@@ -1177,6 +1178,7 @@ Parser::ACTION(void)
   POPL_EAT(ASSIGN,,) else
   POPL_EAT(MATCH,,) else
   POPL_EAT(NOP,,) else
+  POPL_EAT(SETENV,,) else
   POPL_EAT(SLEEP,,) else
   POPL_EAT(SYSTEM,,) else
 
@@ -1232,17 +1234,34 @@ Parser::ACTION(void)
 int
 Parser::ASSIGN(void)
 {
+  int rval;
+  char *opt;
+  char *end = NULL;
   std::string _val;
   
   nAssign *r = new nAssign(parser_node);
   new_node = r;
 
-  WHITESPACE(); /* allow whitespace before the ASSIGN variable */
-  DQ_PARAM(dq_param,_val,r->var,"ASSIGN variable\n");
+  WS(); /* allow whitespace before an option or ASSIGN variable (or comment char) */
+  AZaz_dot(opt = line + col, &end);   /* get options */
+  POPL_EQ_PARAM("overwrite",r->overwrite) else
+  {
+    col -= end - opt;
+  }
 
-  _val.clear();
-  WHITESPACE(); /* allow whitespace before the ASSIGN value */
-  DQ_PARAM(dq_param,_val,r->val,"ASSIGN value\n");
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace before the ASSIGN variable, leave if comment char hit */
+
+    DQ_PARAMv(dq_param,_val,r->var,"ASSIGN variable\n");
+    DM_DBG(DM_N(3), "var=|%s|\n", _val.c_str());
+  
+    _val.clear();
+    WS(); /* allow whitespace before the ASSIGN value */
+    DQ_PARAMv(dq_param,_val,r->val,"ASSIGN value\n");
+    DM_DBG(DM_N(3), "val=|%s|\n", _val.c_str());
+  }
 
   /* parsing succeeded */
   return ERR_OK;
@@ -1258,11 +1277,11 @@ Parser::CMP(CMP_t cmp)
 
   r->cmp = cmp;
 
-  WHITESPACE(); /* allow whitespace before LOP */
+  WS(); /* allow whitespace before LOP */
   DQ_PARAM(dq_param,_val,r->lop,"LOP variable\n");
 
   _val.clear();
-  WHITESPACE(); /* allow whitespace before ROP */
+  WS(); /* allow whitespace before ROP */
   DQ_PARAM(dq_param,_val,r->rop,"ROP value\n");
 
   return ERR_OK;
@@ -1276,11 +1295,11 @@ Parser::MATCH(void)
   nMatch *r = new nMatch(parser_node);
   new_node = r;
 
-  WHITESPACE(); /* allow whitespace before the MATCH pattern/expected string */
+  WS(); /* allow whitespace before the MATCH pattern/expected string */
   DQ_PARAM(dq_param,_val,r->expected,"MATCH pattern\n");
 
   _val.clear();
-  WHITESPACE(); /* allow whitespace before the MATCH received/subject string */
+  WS(); /* allow whitespace before the MATCH received/subject string */
   DQ_PARAM(dq_param,_val,r->received,"MATCH subject\n");
 
   /* parsing succeeded */
@@ -1296,7 +1315,7 @@ Parser::NOP(void)
   nNop *r = new nNop(parser_node);
   new_node = r;
 
-  WHITESPACE(); /* allow whitespace before the NOP value */
+  WS(); /* allow whitespace before the NOP value */
   
   c = gc();
   if(c == CH_COMMENT) {
@@ -1323,6 +1342,42 @@ zero:
 } /* NOP */
 
 int
+Parser::SETENV(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  nSetenv *r = new nSetenv(parser_node);
+  new_node = r;
+
+  WS(); /* allow whitespace before an option or SETENV variable (or comment char) */
+  AZaz_dot(opt = line + col, &end);   /* get options */
+  POPL_EQ_PARAM("overwrite",r->overwrite) else
+  {
+    col -= end - opt;
+  }
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace before the ASSIGN variable, leave if comment char hit */
+
+    DQ_PARAMv(dq_param,_val,r->var,"SETENV variable\n");
+    DM_DBG(DM_N(3), "var=|%s|\n", _val.c_str());
+  
+    _val.clear();
+    WS(); /* allow whitespace before the SETENV value */
+    DQ_PARAMv(dq_param,_val,r->val,"SETENV value\n");
+    DM_DBG(DM_N(3), "val=|%s|\n", _val.c_str());
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* SETENV */
+
+int
 Parser::SLEEP(void)
 {
   char c;
@@ -1333,7 +1388,7 @@ Parser::SLEEP(void)
 
 #define SLEEP_VAL(label,store,err_text)\
   _val.clear();\
-  WHITESPACE(); /* allow whitespace before the DELAY value */\
+  WS(); /* allow whitespace before the DELAY value */\
   c = gc();\
   if(c == CH_COMMENT) {\
     /* we have a comment character (no DELAY parameter, use the default value) */\
@@ -1379,23 +1434,20 @@ Parser::SYSTEM(void)
   nSystem *r = new nSystem(parser_node);
   new_node = r;
 
-  while(col < llen) {
-    _val.clear();
+  WS(); /* allow whitespace before an option or ASSIGN variable (or comment char) */
+  AZaz_dot(opt = line + col, &end);   /* get options */
+  POPL_EQ_PARAM("out",r->out) else
+  { 
+    col -= end - opt;
+  };
 
-    WHITESPACE();
-    AZaz_dot(opt = line + col, &end);   /* get options */
+  /* the actual system call */
+  _val.clear();
 
-    POPL_EQ_PARAM("out",r->out) else
-    { /* the actual system call */
-      col -= end - opt;
-      WHITESPACE();
-      NEW_STR(r->cmd, line + col, llen - col);
-      col = llen;       /* make parser happy */
-      DM_DBG(DM_N(0), "system=|%s|\n", r->cmd->c_str());
-
-      return ERR_OK;
-    }
-  }
+  WS(); /* don't do WS_COMMENT, CH_COMMENT can be part of the system call */
+  NEW_STR(r->cmd, line + col, llen - col);
+  col = llen;       /* make parser happy */
+  DM_DBG(DM_N(3), "system=|%s|\n", r->cmd->c_str());
 
   /* parsing succeeded */
   return ERR_OK;
@@ -1407,7 +1459,7 @@ Parser::ENDPOINT(std::string **target)
 {
   std::string _val;
 
-  WHITESPACE();
+  WS();
   DQ_PARAM(dq_param,_val,*target,"endpoint\n");
   
   /* parsing succeeded */
@@ -1430,7 +1482,7 @@ Parser::srmAbortFilesR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1465,7 +1517,7 @@ Parser::srmAbortRequestR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1498,7 +1550,7 @@ Parser::srmChangeFileStorageTypeR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1534,7 +1586,7 @@ Parser::srmCheckPermissionR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1570,7 +1622,7 @@ Parser::srmCompactSpaceR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1606,7 +1658,7 @@ Parser::srmCopyR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1656,7 +1708,7 @@ Parser::srmExtendFileLifeTimeR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1692,7 +1744,7 @@ Parser::srmGetRequestIDR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1726,7 +1778,7 @@ Parser::srmGetRequestSummaryR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1760,7 +1812,7 @@ Parser::srmGetSpaceMetaDataR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1794,7 +1846,7 @@ Parser::srmGetSpaceTokenR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1828,7 +1880,7 @@ Parser::srmLsR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1869,7 +1921,7 @@ Parser::srmMkdirR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1903,7 +1955,7 @@ Parser::srmMvR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1939,7 +1991,7 @@ Parser::srmPrepareToGetR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -1985,7 +2037,7 @@ Parser::srmPrepareToPutR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2030,7 +2082,7 @@ Parser::srmPutDoneR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2065,7 +2117,7 @@ Parser::srmReassignToUserR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2101,7 +2153,7 @@ Parser::srmReleaseFilesR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2137,7 +2189,7 @@ Parser::srmReleaseSpaceR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2172,7 +2224,7 @@ Parser::srmRemoveFilesR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2207,7 +2259,7 @@ Parser::srmReserveSpaceR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2250,7 +2302,7 @@ Parser::srmResumeRequestR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2283,7 +2335,7 @@ Parser::srmRmR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2318,7 +2370,7 @@ Parser::srmRmdirR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2353,7 +2405,7 @@ Parser::srmSetPermissionR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2394,7 +2446,7 @@ Parser::srmStatusOfCopyRequestR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2430,7 +2482,7 @@ Parser::srmStatusOfGetRequestR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2465,7 +2517,7 @@ Parser::srmStatusOfPutRequestR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2500,7 +2552,7 @@ Parser::srmSuspendRequestR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
@@ -2533,7 +2585,7 @@ Parser::srmUpdateSpaceR(void)
   while(col < llen) {
     _val.clear();
 
-    WHITESPACE();
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */

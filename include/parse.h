@@ -41,7 +41,10 @@
   if((rval = (nonterminal(__VA_ARGS__))))\
     /* rval has be locally defined */\
     return rval;        /* not good enough => throw up */\
-  WHITESPACE();         /* eat up remaining whitespace */
+  WS();         /* eat up remaining whitespace */
+
+#define WS_COMMENT\
+  do { WS(); if(line[col] == CH_COMMENT) { return ERR_OK; }; } while(0)
 
 #define NEW_STR(target,...)\
   if(((target) = new std::string(__VA_ARGS__)) == (std::string *)NULL) {\
@@ -168,7 +171,7 @@
     while(col < llen && line[col] == '[') {\
       _val.clear();\
       IND_PARAM(_val,r,s);\
-      WHITESPACE();\
+      WS();\
     }\
   }
 

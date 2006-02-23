@@ -41,8 +41,7 @@ nAssign::nAssign()
 void
 nAssign::init()
 {
-  var = NULL;
-  val = NULL;
+  overwrite = NULL;
 }
 
 /*
@@ -59,22 +58,42 @@ nAssign::nAssign(Node &node)
  */
 nAssign::~nAssign()
 {
-  DELETE(var);
-  DELETE(val);
+  DELETE(overwrite);
+  DELETE_VEC(var);
+  DELETE_VEC(val);
 }
 
 int
 nAssign::exec()
 {
   DM_DBG_I;
+  uint var_size = var.size();
+  uint val_size = val.size();
 
-  if(var == NULL || val == NULL) {
-    /* var/val is never NULL (see parser.cpp) */
-    DM_ERR_ASSERT(_("var == NULL || val == NULL\n"));
+  if(var_size == 0 || val_size == 0) {
+    /* ASSIGN ; (no operands, NOP) */
+    RETURN(ERR_OK);
+  }
+
+  if(var_size != val_size) {
+    DM_ERR_ASSERT(_("var.size(%u) != val.size(%u)\n"), var_size, val_size);
     RETURN(ERR_ASSERT);
   }
 
-  WriteVariable(EVAL2CSTR(var), EVAL2CSTR(val));
+  for(uint u = 0; u < var_size; u++) {
+    std::string s_var, s_val;
+    s_var = eval_str(var[u], TRUE);
+    s_val = eval_str(val[u], TRUE);
+
+    BOOL write = overwrite == NULL ||			/* overwrite by default */
+                 eval2int32(overwrite) ||		/* evaluate the overwrite parameter */
+                 ReadVariable(s_var.c_str()) == NULL;	/* write if variable not defined */
+
+    DM_DBG(DM_N(3), "ASSIGN write=%u |%s| |%s|\n", write, s_var.c_str(), s_val.c_str());
+
+    if(write)
+      WriteVariable(s_var.c_str(), s_val.c_str());
+  }
 
   RETURN(ERR_OK);
 }
@@ -83,11 +102,15 @@ std::string
 nAssign::toString(BOOL eval)
 {
   BOOL quote = TRUE;
+  uint var_size = var.size();
   std::stringstream ss;
 
   ss << "ASSIGN";
-  SS_DQ(" ", var);
-  SS_DQ(" ", val);
+  SS_P_DQ(overwrite);
+  for(uint u = 0; u < var_size; u++) {
+    SS_DQ(" ", var[u]);
+    SS_DQ(" ", val[u]);
+  }
 
   return ss.str();
 }

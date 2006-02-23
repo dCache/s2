@@ -194,63 +194,11 @@ protected:
 };
 
 /* derived classes */
-struct nNop : public Node
-{
-  std::string *val;
-
-public:
-  nNop();
-  nNop(Node &node);
-  ~nNop();
-
-  virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
-
-private:
-
-};
-
-struct nDelay : public Node
-{
-  std::string *sec;
-  std::string *nsec;
-
-public:
-  nDelay();
-  nDelay(Node &node);
-  ~nDelay();
-
-  virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
-
-private:
-
-};
-
-struct nSystem : public Node
-{
-  std::string *out;
-  std::string *cmd;
-
-public:
-  nSystem();
-  nSystem(Node &node);
-  ~nSystem();
-
-  virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
-
-private:
-
-};
-
 struct nAssign : public Node
 {
-  std::string *var;
-  std::string *val;
+  std::string *overwrite;
+  std::vector <std::string *> var;
+  std::vector <std::string *> val;
 
 public:
   nAssign();
@@ -284,6 +232,24 @@ private:
 
 };
 
+struct nDelay : public Node
+{
+  std::string *sec;
+  std::string *nsec;
+
+public:
+  nDelay();
+  nDelay(Node &node);
+  ~nDelay();
+
+  virtual void init();
+  int exec();
+  std::string toString(BOOL eval);
+
+private:
+
+};
+
 struct nMatch : public Node
 {
   std::string *expected;
@@ -293,6 +259,60 @@ public:
   nMatch();
   nMatch(Node &node);
   ~nMatch();
+
+  virtual void init();
+  int exec();
+  std::string toString(BOOL eval);
+
+private:
+
+};
+
+struct nNop : public Node
+{
+  std::string *val;
+
+public:
+  nNop();
+  nNop(Node &node);
+  ~nNop();
+
+  virtual void init();
+  int exec();
+  std::string toString(BOOL eval);
+
+private:
+
+};
+
+struct nSetenv : public Node
+{
+  std::string *overwrite;
+  std::vector <std::string *> var;
+  std::vector <std::string *> val;
+
+public:
+  nSetenv();
+  nSetenv(Node &node);
+  ~nSetenv();
+
+  virtual void init();
+  int exec();
+  std::string toString(BOOL eval);
+
+private:
+
+};
+
+struct nSystem : public Node
+{
+  std::string *out;
+  std::string *cmd;
+
+public:
+  nSystem();
+  nSystem(Node &node);
+  ~nSystem();
 
   virtual void init();
   int exec();

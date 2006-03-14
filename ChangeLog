@@ -1,3 +1,7 @@
+2006-03-14 12:31  Jiri Mencak
+	* all: Logging all values going out to an SRM2 server instead of debugging
+
+
 2006-02-23 15:20  Jiri Mencak
 	* all: added support for SETENV action, improved ASSIGN and SRM2 scenarios.
 

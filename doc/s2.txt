@@ -698,9 +698,36 @@ $I{<DQ_I>} refrerence to the internal counter of a sequential repeat operator.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $EXPR{<EXPR>}
 
-  <EXPR> :: <I> '+' <EXPR>  | <I> '-' <EXPR>  | <I> '*' <EXPR> | <I> '/' <EXPR> |
-            <I> '%' <EXPR>  | <I> '&' <EXPR>  | <I> '|' <EXPR> | <I> '^' <EXPR> |
-            <I> '<<' <EXPR> | <I> '>>' <EXPR> | <I> | '(' <EXPR> ')'
+  <EXPR> :: <EXPR> '||' <EXPR> | <EXPR> '&&' <EXPR> |
+            <EXPR> '|'  <EXPR> | <EXPR> '^'  <EXPR> | <EXPR> '&' <EXPR> |
+            <EXPR> '==' <EXPR> | <EXPR> '!=' <EXPR> |
+            <EXPR> '<'  <EXPR> | <EXPR> '<=' <EXPR> | <EXPR> '>'  <EXPR> | <EXPR> '>=' <EXPR> |
+            <EXPR> '<<' <EXPR> | <EXPR> '>>' <EXPR> |
+            <EXPR> '+'  <EXPR> | <EXPR> '-'  <EXPR> |
+            <EXPR> '*'  <EXPR> | <EXPR> '/'  <EXPR> | <EXPR> '%'  <EXPR> |
+            <EXPR> '*'  <EXPR> | <EXPR> '/'  <EXPR> | <EXPR> '%'  <EXPR> |
+            '+' <EXPR> | '-' <EXPR> | '!' <EXPR> | '~' <EXPR> |
+            '(' <EXPR> ')' | <I>
+
+
+  LOWEST
+  ==============================
+  ||
+  &&
+  |
+  ^
+  &
+  == !=
+  < <= > >=
+  << >>
+  + -
+  * / %
+  + - ! ~                (unary)
+  ()
+  ==============================
+  HIGHEST
+
+  C-like operator priority table 
 
 
 3 Caveats

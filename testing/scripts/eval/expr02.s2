@@ -1,0 +1,5 @@
+; Expression evaluation test
+
+NOP
+&& SYSTEM echo "$EXPR{ 1 << 2 }"
+&& SYSTEM echo "$EXPR{ 32 >> 2 }"

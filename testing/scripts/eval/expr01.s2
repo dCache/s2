@@ -1,0 +1,13 @@
+; Expression evaluation test
+
+NOP 
+&& SYSTEM out=9 echo -n "$EXPR{ (1 + 2) * 3 }"
+&& SYSTEM out=4 echo -n "$EXPR{ 1 << 2 }"
+&& SYSTEM out=8 echo -n "$EXPR{ 32 >> 2 }"
+&& SYSTEM out=1 echo -n "$EXPR{ 0 || 1 }"
+&& SYSTEM out=0 echo -n "$EXPR{ 0 && 1 }"
+&& SYSTEM out=1 echo -n "$EXPR{ !0 }"
+&& SYSTEM out=0 echo -n "$EXPR{ !1 }"
+&& SYSTEM out=0 echo -n "$EXPR{ !-1 }"
+&& SYSTEM echo OK
+|| SYSTEM echo KO

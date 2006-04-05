@@ -692,6 +692,17 @@ $I{<DQ_I>} refrerence to the internal counter of a sequential repeat operator.
            issued.
 
 
+2.5 Tags
+~~~~~~~~
+2.5.1 Expression evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$EXPR{<EXPR>}
+
+  <EXPR> :: <I> '+' <EXPR>  | <I> '-' <EXPR>  | <I> '*' <EXPR> | <I> '/' <EXPR> |
+            <I> '%' <EXPR>  | <I> '&' <EXPR>  | <I> '|' <EXPR> | <I> '^' <EXPR> |
+            <I> '<<' <EXPR> | <I> '>>' <EXPR> | <I> | '(' <EXPR> ')'
+
+
 3 Caveats
 ~~~~~~~~~
 3.1 Comment character forms part of a parameter

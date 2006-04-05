@@ -178,7 +178,7 @@ _GET_INT(u,U,u,64);
 #undef _GET_INT
 
 extern std::string
-i2str(int value)
+i2str(int64_t value)
 {
   std::stringstream ss;
   ss << value << std::flush;

@@ -19,6 +19,7 @@
 #include "timeout.h"
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
 
+#include "expr.h"
 #include "s2.h"			/* opts (s2 options) */
 #include "str.h"
 #include "io.h"                 /* file_ropen(), ... */
@@ -1113,6 +1114,77 @@ Node::e_match(const char *expected, const char *received)
 
 /*** Private functions **********************************************/
 
+#if 1
+extern int
+str_expr2i(const char *cstr, int64_t *e)
+{
+  Expr expr(cstr);
+  return expr.parse(e);
+}
+
+#else
+/*
+ * Try to evaluate an expression to a 64-bit integer.
+ * 
+ * Returns: 0 on success
+ *          1 on failure and e is not modified
+ */
+extern int
+str_expr2i(const char *cstr, int64_t *e)
+{
+#define WHITESPACE while((*nptr) == ' ' || (*nptr) == '\t') nptr++
+
+  int r;
+  int64_t v;
+  char *endptr;
+  const char *nptr = cstr;
+
+  if(e == NULL) {
+    DM_ERR_ASSERT("e == NULL\n");
+    return ERR_ASSERT;
+  }
+  
+  while(1) {
+    WHITESPACE;
+    v = get_int64(nptr, &endptr, FALSE);
+    DM_DBG(DM_N(5), "+++++++++>|%lld|%s|%s|\n", v, nptr, endptr);
+    if(endptr != nptr) {
+      /* got an integer */
+      *e = v;
+      nptr = endptr;
+    }
+
+    /* (endptr == nptr) not an integer, investigate */
+    WHITESPACE;
+    switch(*nptr) {
+      case '+':
+        r = str_expr2i(nptr + 1, &v);
+        *e += v;
+
+        return r;
+      break;
+
+      case '-':
+        r = str_expr2i(nptr + 1, &v);
+        *e -= v;
+
+        return r;
+      break;
+
+      case '\0':
+        return 0;
+      break;
+      
+      default:
+        return 1;
+    }
+  }
+
+  return 0;
+#undef WHITESPACE
+}
+#endif
+
 /*
  * Evaluate cstr and return evaluated std::string.
  */
@@ -1124,7 +1196,7 @@ Node::eval_str(const char *cstr, BOOL eval)
   BOOL bslash = FALSE;  /* we had the '\\' character */
   std::string s;
   std::string var;
-  enum s_eval { sInit, sDollar, sVar, sEvar, sCounter } state = sInit;
+  enum s_eval { sInit, sDollar, sVar, sEvar, sCounter, sEval } state = sInit;
   const char *opt;
   int opt_off;
 
@@ -1168,6 +1240,12 @@ Node::eval_str(const char *cstr, BOOL eval)
           /* we have a reference to a repeat loop counter */
           var.clear();
           state = sCounter;
+          i += opt_off - 1;
+          continue;
+        } else if(OPL("EXPR{")) {
+          /* expression evaluation */
+          var.clear();
+          state = sEval;
           i += opt_off - 1;
           continue;
         }
@@ -1280,6 +1358,20 @@ Node::eval_str(const char *cstr, BOOL eval)
           var.push_back(c);
         }
       continue;
+
+      case sEval:
+        if(c == '}') {
+          /* we have a complete expression to evaluate */
+          int64_t e = 0;
+          DM_DBG(DM_N(4), "expr=|%s|\n", var.c_str());
+          if(str_expr2i(eval_str(var.c_str(), TRUE).c_str(), &e)) { /* make sure we evaluate things like ${v1}+${v2} */
+            DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), row, executed, evaluated, var.c_str());
+          } else s.append(i2str(e));
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      continue;
     }
 
     s.push_back(c);
@@ -1293,12 +1385,26 @@ Node::eval_str(const char *cstr, BOOL eval)
       }
     }
   }
+
+  /* sanity checks */
   if(state == sDollar) {
     s.push_back('$');
   }
   if(state == sVar) {
     DM_WARN(ERR_WARN, _("unterminated variable\n"));
     s.append("${" + var);
+  }
+  if(state == sEvar) {
+    DM_WARN(ERR_WARN, _("unterminated environment variable\n"));
+    s.append("$ENV{" + var);
+  }
+  if(state == sCounter) {
+    DM_WARN(ERR_WARN, _("unterminated reference to repeat loop counter\n"));
+    s.append("$I{" + var);
+  }
+  if(state == sEval) {
+    DM_WARN(ERR_WARN, _("unterminated expression\n"));
+    s.append("$EXPR{" + var);
   }
 
   return s;

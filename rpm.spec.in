@@ -72,6 +72,7 @@ make
 make install prefix=%{buildroot}/
 
 %clean
+rm -rf %{buildroot}
 
 #
 # Script sections

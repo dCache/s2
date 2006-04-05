@@ -38,7 +38,7 @@ _GET_INT(u,64);
 /* C++ utils */
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* std::stringstream, ... */
-extern std::string i2str(int value);
+extern std::string i2str(int64_t value);
 extern std::string escape_chars(const char* s, const char c, BOOL q);
 
 /* free vector of types (e.g. ints) */

@@ -88,6 +88,7 @@ Lex::lex(Attr& attr)
           case '%': return ModSym;
           case '(': return LprSym;
           case ')': return RprSym;
+          case '^': return BitXorSym;
           case '~': return BitNotSym;
           case '<': state = sLt; break;
           case '>': state = sGt; break;
@@ -280,6 +281,7 @@ Lex::SymbolName(Symbol s)
     "<<", ">>",
     "(", ")",
     "<", "<=", ">", ">=", "=", "==", "!", "!=",
+    "^",
     "~",
     "|", "||",
     "&", "&&",

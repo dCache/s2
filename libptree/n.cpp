@@ -1114,15 +1114,6 @@ Node::e_match(const char *expected, const char *received)
 
 /*** Private functions **********************************************/
 
-#if 1
-extern int
-str_expr2i(const char *cstr, int64_t *e)
-{
-  Expr expr(cstr);
-  return expr.parse(e);
-}
-
-#else
 /*
  * Try to evaluate an expression to a 64-bit integer.
  * 
@@ -1132,58 +1123,9 @@ str_expr2i(const char *cstr, int64_t *e)
 extern int
 str_expr2i(const char *cstr, int64_t *e)
 {
-#define WHITESPACE while((*nptr) == ' ' || (*nptr) == '\t') nptr++
-
-  int r;
-  int64_t v;
-  char *endptr;
-  const char *nptr = cstr;
-
-  if(e == NULL) {
-    DM_ERR_ASSERT("e == NULL\n");
-    return ERR_ASSERT;
-  }
-  
-  while(1) {
-    WHITESPACE;
-    v = get_int64(nptr, &endptr, FALSE);
-    DM_DBG(DM_N(5), "+++++++++>|%lld|%s|%s|\n", v, nptr, endptr);
-    if(endptr != nptr) {
-      /* got an integer */
-      *e = v;
-      nptr = endptr;
-    }
-
-    /* (endptr == nptr) not an integer, investigate */
-    WHITESPACE;
-    switch(*nptr) {
-      case '+':
-        r = str_expr2i(nptr + 1, &v);
-        *e += v;
-
-        return r;
-      break;
-
-      case '-':
-        r = str_expr2i(nptr + 1, &v);
-        *e -= v;
-
-        return r;
-      break;
-
-      case '\0':
-        return 0;
-      break;
-      
-      default:
-        return 1;
-    }
-  }
-
-  return 0;
-#undef WHITESPACE
+  Expr expr(cstr);
+  return expr.parse(e);
 }
-#endif
 
 /*
  * Evaluate cstr and return evaluated std::string.

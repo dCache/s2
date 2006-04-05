@@ -10,6 +10,8 @@ enum Symbol {
   ShlSym, ShrSym,
 // <      <=      >     >=    =,        ==,     !       !=
   LtSym, LeSym, GtSym, GeSym, AsgnSym, EqSym, NotSym, NeSym,
+// ^
+  BitXorSym,
 // ~
   BitNotSym,
 // |         ||

@@ -12,12 +12,12 @@ SRCS		= $(wildcard *.cpp)
 
 
 # Objects ############################################################
-OBJS		+= s2.o
+OBJS		+= $(SRCS:.cpp=.o)
 
 
 # Executables ########################################################
-TEST		= s2
-BINS		= $(TEST)$(BINSUF)
+TEST		= 
+#BINS		= $(TEST)$(BINSUF)
 
 
 # Documentation ######################################################
@@ -25,77 +25,16 @@ DOCS		:=
 
 
 # Includes ###########################################################
-CPPFLAGS        += $(INCLUDES)
-INCS		:= 
+CPPFLAGS	+= $(INCLUDES)
+INCS		:=
 
 
 # Libraries ##########################################################
-LIB		= lib$(PACKAGE)$(LIBSUF)
+LIB		= libexpr$(LIBSUF)
 ifeq ($(_enable_shared),yes)
-SLIB		= lib$(PACKAGE)$(SLIBSUF)
+SLIB		= libexpr$(SLIBSUF)
 endif
-#LIBS		= $(LIB) $(SLIB)
-
-
-# Extra libraries ####################################################
-ifeq ($(_static_globus),yes)
-LIB_GLOBUS		= \
-  -Wl,-Bstatic\
-  -lglobus_gssapi_gsi_$(GLOBUS_FLAVOUR)\
-  -lglobus_gss_assist_$(GLOBUS_FLAVOUR)\
-  -lglobus_common_$(GLOBUS_FLAVOUR)\
-  -lglobus_gsi_callback_$(GLOBUS_FLAVOUR)\
-  -lglobus_gsi_cert_utils_$(GLOBUS_FLAVOUR)\
-  -lglobus_gsi_credential_$(GLOBUS_FLAVOUR)\
-  -lglobus_gsi_proxy_core_$(GLOBUS_FLAVOUR)\
-  -lglobus_gsi_sysconfig_$(GLOBUS_FLAVOUR)\
-  -lglobus_oldgaa_$(GLOBUS_FLAVOUR)\
-  -lglobus_openssl_error_$(GLOBUS_FLAVOUR)\
-  -lglobus_openssl_$(GLOBUS_FLAVOUR)\
-  -lglobus_proxy_ssl_$(GLOBUS_FLAVOUR)\
-  -lssl_$(GLOBUS_FLAVOUR)\
-  -lcrypto_$(GLOBUS_FLAVOUR)\
-  -Wl,-Bdynamic
-endif
-GSOAP_LOCAL		= ../gsoap
-OBJ_GSOAP		= $(GSOAP_LOCAL)/soapC.o $(GSOAP_LOCAL)/soapClient.o
-
-PRJLIBS		:=\
-  -L../libcommon\
-  -L../libexpr\
-  -L../libmatch\
-  -L../libptree\
-  -lptree\
-  -lexpr\
-  -lmatch
-
-ifeq ($(_enable_gsoap),yes)
-PRJLIBS		+=\
-  -L../libsrm2api\
-  -L../libsrm2n\
-  -L$(_with_gsoapdir)/lib\
-  -L$(_with_cgsi_plugindir)/lib\
-  -L$(_with_globusdir)/lib\
-  -lsrm2n
-endif
-
-PRJLIBS		+=\
-  -lcommon
-
-ifeq ($(_enable_gsoap),yes)
-PRJLIBS		+=\
-  $(OBJ_GSOAP)\
-  $(LIB_GSOAP)\
-  -lsrm2api\
-  $(LIB_CGSI_PLUGIN)\
-  $(LIB_GLOBUS)
-endif
-
-EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)
-
-
-# Extra libraries ####################################################
-LDLIBS		:= $(EXTRALIBS)
+LIBS		= $(LIB)
 
 
 # Rules ##############################################################
@@ -115,15 +54,14 @@ $(LIB): $(OBJS)
 	$(RANLIB) $@
 
 $(SLIB): $(OBJS)
-	$(CC) $(SHFLAGS)\
-	  -o $@ $(OBJS)
+	$(CC) $(SHFLAGS) -o $@ $(OBJS)
 
 
 # Generate dependencies ##############################################
 dep depend: .depend
 
 .depend: $(SRCS)
-	$(CC) -MM $(CPPFLAGS) $^ 1>.depend
+	$(CC) -MM $(CPPFLAGS) $(INCLUDES) $^ 1>.depend
 
 ifneq ($(wildcard .depend),)
 include .depend
@@ -131,7 +69,8 @@ endif
 
 
 # Install ############################################################
-install: install-bins install-docs install-libs install-incs
+#install: all install-bins install-docs install-libs install-incs
+install: all
 
 install-bins: $(BINS)
 	@if test -n "$(BINS)" ; then\

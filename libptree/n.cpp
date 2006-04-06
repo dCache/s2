@@ -128,6 +128,7 @@ Node::init()
   REPEAT.type = S2_REPEAT_NONE;
   REPEAT.X = 0;
   REPEAT.Y = 0;
+  REPEAT.I = 0;
   EVAL = opts.s2_eval;
   TIMEOUT = opts.s2_timeout;
 
@@ -159,6 +160,7 @@ Node::init(Node &node)
   REPEAT.type = node.REPEAT.type;
   REPEAT.X = node.REPEAT.X;
   REPEAT.Y = node.REPEAT.Y;
+  REPEAT.I = node.REPEAT.X;
   EVAL = node.EVAL;
   TIMEOUT = node.TIMEOUT;
 
@@ -1138,9 +1140,10 @@ Node::eval_str(const char *cstr, BOOL eval)
   BOOL bslash = FALSE;  /* we had the '\\' character */
   std::string s;
   std::string var;
-  enum s_eval { sInit, sDollar, sVar, sEvar, sCounter, sEval } state = sInit;
+  enum s_eval { sInit, sDollar, sVar, sEvar, sCounter, sExpr } state = sInit;
   const char *opt;
   int opt_off;
+  int brackets = 0;
 
   if(cstr == NULL) {
     DM_ERR_ASSERT(_("c_str == NULL\n"));
@@ -1155,6 +1158,9 @@ Node::eval_str(const char *cstr, BOOL eval)
 //    DM_DBG(DM_N(0), "------>%d\n", i);
     c = cstr[i];
     opt = cstr + i;
+    if(c == '{') brackets++;
+    if(c == '}') brackets--;
+//    DM_DBG(DM_N(5), "brackets=%d\n", brackets);
 
     switch (state) {
       case sInit:
@@ -1177,28 +1183,27 @@ Node::eval_str(const char *cstr, BOOL eval)
           var.clear();
           state = sEvar;
           i += opt_off - 1;
-          continue;
         } else if(OPL("I{")) {
           /* we have a reference to a repeat loop counter */
           var.clear();
           state = sCounter;
           i += opt_off - 1;
-          continue;
         } else if(OPL("EXPR{")) {
           /* expression evaluation */
           var.clear();
-          state = sEval;
+          state = sExpr;
           i += opt_off - 1;
-          continue;
+        } else {
+          /* return the borrowed dollar */
+          s.push_back('$');
+          state = sInit;
+          break;
         }
-
-        /* return the borrowed dollar */
-        s.push_back('$');
-        state = sInit;
-      break;
+      brackets++;
+      continue;
 
       case sVar:
-        if(c == '}') {
+        if(c == '}' && !brackets) {
           /* we have a complete variable */
           if(var == "?") {	/* ${?} */
             /* return parent's execution value */
@@ -1218,6 +1223,9 @@ Node::eval_str(const char *cstr, BOOL eval)
             continue;
           }
 	  
+          /* classic variable ${var} */
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: ${...${var}...} */
+
           const char *new_var;
           const char *read_var;
           if(var[0] == '-')
@@ -1225,7 +1233,7 @@ Node::eval_str(const char *cstr, BOOL eval)
 	    read_var = var.substr(1).c_str();
           else read_var = var.c_str();
 
-          DM_DBG(4, "read_var=|%s|\n", read_var);
+          DM_DBG(DM_N(4), "read_var=|%s|\n", read_var);
           if((new_var = ReadVariable(read_var)) != NULL) {
             DM_DBG(DM_N(4), "var %s=|%s|\n", var.c_str(), new_var);
             s.append(new_var);
@@ -1243,9 +1251,12 @@ Node::eval_str(const char *cstr, BOOL eval)
       continue;
 
       case sEvar:
-        if(c == '}') {
+        if(c == '}' && !brackets) {
           /* we have a complete environment variable */
-          const char *env_var = getenv(var.c_str());
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $ENV{...${var}...} */
+
+          const char *env_var;
+          env_var = getenv(var.c_str());
           
           if(env_var) {
             DM_DBG(DM_N(4), "env var %s=|%s|\n", var.c_str(), env_var);
@@ -1262,9 +1273,12 @@ Node::eval_str(const char *cstr, BOOL eval)
       continue;
 
       case sCounter:
-        if(c == '}') {
+        if(c == '}' && !brackets) {
           /* we have a reference to a repeat loop counter */
-          const char *word = var.c_str();
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $I{...${var}...} */
+
+          const char *word;
+          word = var.c_str();
           char *endptr;
           int16_t i16;
 
@@ -1301,12 +1315,14 @@ Node::eval_str(const char *cstr, BOOL eval)
         }
       continue;
 
-      case sEval:
-        if(c == '}') {
+      case sExpr:
+        if(c == '}' && !brackets) {
           /* we have a complete expression to evaluate */
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $EXPR{...${var}...} */
+
           int64_t e = 0;
-          DM_DBG(DM_N(4), "expr=|%s|\n", var.c_str());
-          if(str_expr2i(eval_str(var.c_str(), TRUE).c_str(), &e)) { /* make sure we evaluate things like ${v1}+${v2} */
+          DM_DBG(DM_N(4), "expr=|%s|\n", brackets, var.c_str());
+          if(str_expr2i(var.c_str(), &e)) {
             DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), row, executed, evaluated, var.c_str());
           } else s.append(i2str(e));
           state = sInit;
@@ -1316,6 +1332,7 @@ Node::eval_str(const char *cstr, BOOL eval)
       continue;
     }
 
+    /* no TAGs found, simply copy the characters */
     s.push_back(c);
 
     if(c == '\\') {
@@ -1344,7 +1361,7 @@ Node::eval_str(const char *cstr, BOOL eval)
     DM_WARN(ERR_WARN, _("unterminated reference to repeat loop counter\n"));
     s.append("$I{" + var);
   }
-  if(state == sEval) {
+  if(state == sExpr) {
     DM_WARN(ERR_WARN, _("unterminated expression\n"));
     s.append("$EXPR{" + var);
   }

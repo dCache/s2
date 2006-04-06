@@ -1,14 +1,11 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Expression evaluation testing (64-bit integers):
-  * error reporting (passing error from non-terminal to non-terminal)
-  * location of errors in expressions
+- $RANDOM, $TIME, $PRINTF, ...
+- Refactor parallel execution model and timeouts ("process notion")
 - SRM2 test scenarios and testing (storage system info/description as testing)!
+- ECHO (vs. SYSTEM echo --- performance considerations)
 - Investigate gSoap memory leaks.
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
-- Refactor parallel execution model and timeouts ("process notion")
-- $RANDOM, ...
-- ECHO (vs. SYSTEM echo --- performance considerations)
 - SEND/RECEIVE (TCP/UDP/...)?
 - More preprocessor directives (#define) or functions?
 - minor POSIX threads related memory leaks (consider using Apache threads).

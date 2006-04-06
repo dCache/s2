@@ -29,7 +29,7 @@ Lex::Lex()
 Lex::Lex(const char *s)
 {
   expr = s;
-  i_expr = 0;
+  expr_col = 0;
 }
 
 
@@ -42,14 +42,14 @@ Lex::~Lex()
 char
 Lex::gc(void)
 {
-  return expr[i_expr++];
+  return expr[expr_col++];
 }
 
 
 void
 Lex::ugc(void)
 {
-  i_expr--;
+  expr_col--;
 }
 
 
@@ -62,11 +62,11 @@ Lex::lex(Attr& attr)
   int c;
   enum { sInit, sNum, sReal01, sReal02, sReal03, sReal04, 
          sLt, sGt, sEq, sNe, sOr, sAnd } state = sInit;
-  long double power10;
-  long inum = 0;
+  int64_t inum = 0;
+  double power10;
   int expon, sign;
 
-  attr.type = NONE;
+  attr.type = INV;
   do {
     c = gc();
  
@@ -97,18 +97,20 @@ Lex::lex(Attr& attr)
           case '|': state = sOr; break;
           case '&': state = sAnd; break;
 
-          default: DM_ERR(ERR_ERR, _("Invalid character '%c'\n"), c);
+          default:
+            DM_ERR(ERR_ERR, _("Invalid character '%c'\n"), c);
+            return InvalidSym;
         }
       break;
 
       case sNum:
         if (isdigit(c)) {
           attr.v.i = inum * 10 + (c - '0');
-          if (inum > (LONG_MAX - (c - '0'))/10) {
-            /* pøeteèení attr.v.i => konverze na real */
-            printf("%li", LONG_MAX);
+          if (inum > (INT64_MAX - (c - '0'))/10) {
+            /* attr.v.i overflow => use real */
             attr.v.r = (double) inum * 10 + (c - '0');
             state = sReal01;
+            DM_DBG(DM_N(3), "integer too large, using real (%d)\n", attr.v.r);
           } else inum = attr.v.i;
         }
         else if (c == '.') {
@@ -187,9 +189,9 @@ Lex::lex(Attr& attr)
           expon = expon * 10 + (c - '0');
         else {
           power10 = pow(sign > 0 ? expon : -expon, 10);
-          if (attr.v.r * power10 >= HUGE_VAL || power10 == 0.0) {
-            if (sign > 0) DM_ERR(ERR_ERR, _("Real number too big"));
-            else DM_ERR(ERR_ERR, _("Real number too small"));
+          if (attr.v.r * power10 > HUGE_VAL) {
+            if (sign > 0) DM_ERR(ERR_ERR, _("Real number too big\n"));
+            else DM_ERR(ERR_ERR, _("Real number too small\n"));
             attr.v.r = 0;
           }
           else
@@ -277,7 +279,8 @@ const char*
 Lex::SymbolName(Symbol s)
 {
   static const char* symbs[] = {
-    "EOF", "+", "-", "*", "/", "%",
+    "EOF", "INV_SYM",
+    "+", "-", "*", "/", "%",
     "<<", ">>",
     "(", ")",
     "<", "<=", ">", ">=", "=", "==", "!", "!=",

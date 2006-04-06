@@ -91,7 +91,7 @@ struct Node
     S2_repeat type;             /* Repeat type (S2_REPEAT_NONE if normal branch). */
     int64_t X;                  /* Repeat from value when !S2_REPEAT_NONE, 0 otherwise. */
     int64_t Y;                  /* Repeat to value when !S2_REPEAT_NONE, 0 otherwise. */
-    int64_t I;			/* Counter value when !(S2_REPEAT_NONE && S2_REPEAT_PAR), 0 otherwise. */
+    int64_t I;			/* Counter value when !(S2_REPEAT_NONE && S2_REPEAT_PAR), X otherwise. */
   } REPEAT;
 
   /* EVAL */

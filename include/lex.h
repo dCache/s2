@@ -2,8 +2,10 @@
 #define _LEX_H
 
 enum Symbol {
-// EOF     +        -         *        /       %
-  EofSym, PlusSym, MinusSym, MultSym, DivSym, ModSym,
+// EOF     INV_SYM
+  EofSym, InvalidSym,
+// +        -         *        /       %
+  PlusSym, MinusSym, MultSym, DivSym, ModSym,
 // (       )
   LprSym, RprSym,
 // <<      >>
@@ -23,7 +25,7 @@ enum Symbol {
 };
 
 enum types {
-  NONE, INT, REAL,
+  INV, INT, REAL,
   COUNT /* number of types */
 };
 
@@ -48,7 +50,7 @@ public:
 
 private:
   const char *expr;
-  int i_expr;
+  int expr_col;
 
 };
 

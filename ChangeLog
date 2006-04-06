@@ -1,3 +1,7 @@
+2006-04-05 15:00  Jiri Mencak
+	* all: Added support for expression evaluation ($EXPR{<EXPR>})
+
+
 2006-03-14 12:31  Jiri Mencak
 	* all: Logging all values going out to an SRM2 server instead of debugging
 

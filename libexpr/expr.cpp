@@ -18,6 +18,16 @@
 #include "constants.h"
 #include "sysdep.h"
 
+/* simple macros */
+#define EXPECT(s)\
+  if (s == sym)\
+    LEX();\
+  else {\
+    DM_ERR(ERR_ERR, _("Expected: %s; found: %s\n"), Lex::SymbolName(s), Lex::SymbolName(sym));\
+  }
+
+#define LEX()	do { if((sym = l.lex(lex_attr)) == InvalidSym) return attr; } while(0)
+
 /* constructor */
 Expr::Expr()
 {
@@ -51,12 +61,12 @@ Expr::parse(int64_t *e)
     case REAL:
       *e = (int64_t)attr.v.r;
       if(*e != attr.v.r) {
-        DM_WARN(ERR_WARN, "Truncating %f to %" PRIi64 "\n", attr.v.r, *e);
+        DM_WARN(ERR_WARN, "Truncating %f to %lld\n", attr.v.r, *e);
       }
     break;
 
     default:
-      DM_ERR(ERR_ERR, _("Expression evaluation did not return a number."));
+      DM_ERR(ERR_ERR, _("Expression evaluation did not return a number.\n"));
       return ERR_ERR;
   }
 
@@ -64,33 +74,14 @@ Expr::parse(int64_t *e)
 }
 
 
-Symbol
-Expr::lex()
-{
-  sym = l.lex(lex_attr);
-  return sym;
-}
-
-
-void
-Expr::expect(Symbol s)
-{
-  if (s == sym)
-    lex();
-  else {
-    DM_ERR(ERR_ERR, _("Expected %s, found %s\n"), Lex::SymbolName(s), Lex::SymbolName(sym));
-  }
-}
-
-
 types Expr::ConvTypes(Attr& a1, Attr& a2)
 {
   static types table[COUNT][COUNT] = {
-    /*            a2:  NONE,    INT,   REAL */
-    /* a1:                                  */
-    /* NONE   */      {NONE,   NONE,   NONE},
-    /* INT    */      {NONE,    INT,   REAL},
-    /* REAL   */      {NONE,   REAL,   REAL},
+    /*            a2:  INV,    INT,   REAL */
+    /* a1:                                 */
+    /* INV   */       {INV,   INV,    INV},
+    /* INT    */      {INV,   INT,    REAL},
+    /* REAL   */      {INV,   REAL,   REAL},
   };
   types type;
 
@@ -123,7 +114,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
         case LeSym: return a1.v.i <= a2.v.i;
         case GeSym: return a1.v.i >= a2.v.i;
         default:
-          DM_ERR_ASSERT(_("switch: default\n"));
+          DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(o));
       }
     break;
 
@@ -136,7 +127,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
         case LeSym: return a1.v.r <= a2.v.r;
         case GeSym: return a1.v.r >= a2.v.r;
         default:
-          DM_ERR_ASSERT(_("switch: default\n"));
+          DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(o));
       }
     break;
 
@@ -170,7 +161,7 @@ Expr::S()
   DM_DBG_I;
   Attr attr;
 
-  lex();
+  LEX();
   attr = X();
   RETURN(attr);
 }
@@ -187,7 +178,7 @@ Expr::A1(Attr iattr)
   Attr attr;
 
   if (sym == OrSym) {			/* A1 -> || B A1 */
-    lex();
+    LEX();
     attr = B();
     switch (ConvTypes(iattr, attr)) {
       case INT: iattr.v.i = iattr.v.i || attr.v.i;
@@ -198,7 +189,7 @@ Expr::A1(Attr iattr)
     attr = A1(iattr);
   }
   else {				/* A1 -> e */
-    DM_DBG(DM_N(3), "A1 -> e\n");
+    DM_DBG(DM_N(5), "A1 -> e\n");
     RETURN(iattr);
   }
 
@@ -217,7 +208,7 @@ Expr::B1(Attr iattr)
   Attr attr;
 
   if (sym == AndSym) {			/* B1 -> '&&' C B1 */
-    lex();
+    LEX();
     attr = C();
     switch (ConvTypes(iattr, attr)) {
       case INT: iattr.v.i = iattr.v.i && attr.v.i;
@@ -228,7 +219,7 @@ Expr::B1(Attr iattr)
     attr = B1(iattr);
   }
   else {				/* B1 -> e */
-    DM_DBG(DM_N(3), "B1 -> e\n");
+    DM_DBG(DM_N(5), "B1 -> e\n");
     RETURN(iattr);
   }
 
@@ -247,7 +238,7 @@ Expr::C1(Attr iattr)
   Attr attr;
 
   if (sym == BitOrSym) {		/* C1 -> '|' D C1 */
-    lex();
+    LEX();
     attr = D();
     switch (ConvTypes(iattr, attr)) {
       case INT: iattr.v.i |= attr.v.i;
@@ -258,7 +249,7 @@ Expr::C1(Attr iattr)
     attr = C1(iattr);
   }
   else {				/* C1 -> e */
-    DM_DBG(DM_N(3), "C1 -> e\n");
+    DM_DBG(DM_N(5), "C1 -> e\n");
     RETURN(iattr);
   }
 
@@ -277,7 +268,7 @@ Expr::D1(Attr iattr)
   Attr attr;
 
   if (sym == BitXorSym) {		/* D1 -> ^ E D1 */
-    lex();
+    LEX();
     attr = E();
     switch (ConvTypes(iattr, attr)) {
       case INT: iattr.v.i ^= attr.v.i;
@@ -288,7 +279,7 @@ Expr::D1(Attr iattr)
     attr = D1(iattr);
   }
   else {				/* D1 -> e */
-    DM_DBG(DM_N(3), "D1 -> e\n");
+    DM_DBG(DM_N(5), "D1 -> e\n");
     RETURN(iattr);
   }
 
@@ -306,8 +297,8 @@ Expr::E1(Attr iattr)
   DM_DBG_I;
   Attr attr;
 
-  if (sym == BitXorSym) {		/* E1 -> ^ F E1 */
-    lex();
+  if (sym == BitAndSym) {		/* E1 -> & F E1 */
+    LEX();
     attr = F();
     switch (ConvTypes(iattr, attr)) {
       case INT: iattr.v.i &= attr.v.i;
@@ -318,7 +309,7 @@ Expr::E1(Attr iattr)
     attr = E1(iattr);
   }
   else {				/* E1 -> e */
-    DM_DBG(DM_N(3), "E1 -> e\n");
+    DM_DBG(DM_N(5), "E1 -> e\n");
     RETURN(iattr);
   }
 
@@ -339,7 +330,7 @@ Expr::F1(Attr iattr)
 
   if (IS_CMPSYM(sym)) {			/* F1 -> == G F1 | != G F1 */
     Symbol PomSym = sym;
-    lex();
+    LEX();
     attr = G();
     iattr.v.i = compare(iattr, attr, PomSym);
     iattr.type = INT;
@@ -367,7 +358,7 @@ Expr::G1(Attr iattr)
 
   if (IS_CMPSYM(sym)) {			/* G1 -> < H G1 | <= H G1 | > H G1 | >= H G1 */
     Symbol PomSym = sym;
-    lex();
+    LEX();
     attr = H();
     iattr.v.i = compare(iattr, attr, PomSym);
     iattr.type = INT;
@@ -392,32 +383,37 @@ Expr::H1(Attr iattr)
   DM_DBG_I;
   Attr attr;
 
-  if (sym == ShlSym) {			/* H1 -> << I H1 */
-    lex();
-    attr = I();
-    switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i <<= attr.v.i;
-      break;
+  switch(sym) {
+    /* H1 -> << I H1 */
+    case ShlSym:
+      LEX();
+      attr = I();
+      switch (ConvTypes(iattr, attr)) {
+        case INT: iattr.v.i <<= attr.v.i;
+        break;
+  
+        default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      }
+      attr = H1(iattr);
+    break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
-    }
-    attr = H1(iattr);
-  }
-  else
-  if (sym == ShrSym) {		/* H1 -> >> I H1 */
-    lex();
-    attr = I();
-    switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i >>= attr.v.i;
-      break;
+    /* H1 -> >> I H1 */
+    case ShrSym:
+      LEX();
+      attr = I();
+      switch (ConvTypes(iattr, attr)) {
+        case INT: iattr.v.i >>= attr.v.i;
+        break;
+  
+        default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      }
+      attr = H1(iattr);
+    break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
-    }
-    attr = H1(iattr);
-  }
-  else {				/* H1 -> e */
-    DM_DBG(DM_N(3), "H1 -> e\n");
-    RETURN(iattr);
+    /* H1 -> e */
+    default:
+      DM_DBG(DM_N(5), "H1 -> e\n");
+      RETURN(iattr);
   }
 
   RETURN(attr);
@@ -433,31 +429,37 @@ Expr::I1(Attr iattr)
   DM_DBG_I;
   Attr attr;
 
-  if (sym == PlusSym) {			/* I1 -> + J I1 */
-    lex();
-    attr = J();
-    switch (ConvTypes(iattr, attr)) {
-      case INT:     iattr.v.i += attr.v.i; break;
-      case REAL:    iattr.v.r += attr.v.r; break;
+  switch(sym) {
+    /* I1 -> + J I1 */
+    case PlusSym:
+      LEX();
+      attr = J();
+      switch (ConvTypes(iattr, attr)) {
+        case INT:     iattr.v.i += attr.v.i; break;
+        case REAL:    iattr.v.r += attr.v.r; break;
+  
+        default: DM_ERR(ERR_ERR, _("Addition is not supported for these types\n"));
+      }
+      attr = I1(iattr);
+    break;
 
-      default: DM_ERR(ERR_ERR, _("Addition is not supported for these types\n"));
-    }
-    attr = I1(iattr);
-  }
-  else if (sym == MinusSym) {		/* I1 -> - J I1 */
-    lex();
-    attr = J();
-    switch (ConvTypes(iattr, attr)) {
-      case INT:     iattr.v.i -= attr.v.i; break;
-      case REAL:    iattr.v.r -= attr.v.r; break;
+    /* I1 -> - J I1 */
+    case MinusSym:
+      LEX();
+      attr = J();
+      switch (ConvTypes(iattr, attr)) {
+        case INT:     iattr.v.i -= attr.v.i; break;
+        case REAL:    iattr.v.r -= attr.v.r; break;
+  
+        default: DM_ERR(ERR_ERR, _("Subtraction is not supported for these types\n"));
+      }
+      attr = I1(iattr);
+    break;
 
-      default: DM_ERR(ERR_ERR, _("Subtraction is not supported for these types\n"));
-    }
-    attr = I1(iattr);
-  }
-  else {				/* I1 -> e */
-    DM_DBG(DM_N(3), "I1 -> e\n");
-    RETURN(iattr);
+    /* I1 -> e */
+    default:
+      DM_DBG(DM_N(5), "I1 -> e\n");
+      RETURN(iattr);
   }
 
   RETURN(attr);
@@ -473,65 +475,72 @@ Expr::J1(Attr iattr)
   DM_DBG_I;
   Attr attr;
 
-  if (sym == MultSym) {			/* J1 -> * K J1 */
-    lex();
-    attr = K();
-    switch (ConvTypes(iattr, attr)) {
-      case INT:     iattr.v.i *= attr.v.i; break;
-      case REAL:    iattr.v.r *= attr.v.r; break;
+  switch(sym) {
+    /* J1 -> * K J1 */
+    case MultSym:
+      LEX();
+      attr = K();
+      switch (ConvTypes(iattr, attr)) {
+        case INT:     iattr.v.i *= attr.v.i; break;
+        case REAL:    iattr.v.r *= attr.v.r; break;
+  
+        default: DM_ERR(ERR_ERR, _("Multiplication is not supported for these types\n"));
+      }
+      attr = J1(iattr);
+    break;
 
-      default: DM_ERR(ERR_ERR, _("Multiplication is not supported for these types\n"));
-    }
-    attr = J1(iattr);
-  }
-  else
-  if (sym == DivSym) {			/* J1 -> / K J1 */
-    lex();
-    attr = K();
-    switch (ConvTypes(iattr, attr)) {
-      case INT:
-        if (attr.v.i) {			/* division INT/INT => REAL */
-          iattr.v.r = iattr.v.i;
-          iattr.type = REAL;
-          iattr.v.r /= attr.v.i;
-        }
-        else {
-          iattr.v.i = 0;
-          DM_ERR(ERR_ERR, _("Division by zero\n"));
-        };
-      break;
+    /* J1 -> / K J1 */
+    case DivSym:
+      LEX();
+      attr = K();
+      switch (ConvTypes(iattr, attr)) {
+        case INT:
+          if (attr.v.i) {		/* division INT/INT => REAL */
+            iattr.v.r = iattr.v.i;
+            iattr.type = REAL;
+            iattr.v.r /= attr.v.i;
+          }
+          else {
+            iattr.v.i = 0;
+            DM_ERR(ERR_ERR, _("Division by zero\n"));
+          };
+        break;
+  
+        case REAL:
+          if (attr.v.r) iattr.v.r /= attr.v.r;
+          else {
+            iattr.v.r = 0.0;
+            DM_ERR(ERR_ERR, _("Division by zero\n"));
+          };
+        break;
+  
+        default: DM_ERR(ERR_ERR, _("Division is not supported for these types\n"));
+      }
+      attr = J1(iattr);
+    break;
 
-      case REAL:
-        if (attr.v.r) iattr.v.r /= attr.v.r;
-        else {
-          iattr.v.r = 0.0;
-          DM_ERR(ERR_ERR, _("Division by zero\n"));
-        };
-      break;
+    /* J1 -> % K J1 */
+    case ModSym:
+      LEX();
+      attr = K();
+      switch (ConvTypes(iattr, attr)) {
+        case INT: 
+          if (attr.v.i) iattr.v.i %= attr.v.i;
+          else {
+            iattr.v.i = 0;
+            DM_ERR(ERR_ERR, _("Modulo division by zero\n"));
+          };
+        break;
+  
+        default: DM_ERR(ERR_ERR, _("Modulo division is not supported for these types\n"));
+      }
+      attr = J1(iattr);
+    break;
 
-      default: DM_ERR(ERR_ERR, _("Division is not supported for these types\n"));
-    }
-    attr = J1(iattr);
-  }
-  if (sym == ModSym) {			/* J1 -> % K J1 */
-    lex();
-    attr = K();
-    switch (ConvTypes(iattr, attr)) {
-      case INT: 
-        if (attr.v.i) iattr.v.i %= attr.v.i;
-        else {
-          iattr.v.i = 0;
-          DM_ERR(ERR_ERR, _("Modulo division by zero\n"));
-        };
-      break;
-
-      default: DM_ERR(ERR_ERR, _("Modulo division is not supported for these types\n"));
-    }
-    attr = J1(iattr);
-  }
-  else {				/* J1 -> e */
-    DM_DBG(DM_N(3), "J1 -> e\n");
-    RETURN(iattr);
+    /* J1 -> e */
+    default:
+      DM_DBG(DM_N(5), "J1 -> e\n");
+      RETURN(iattr);
   }
 
   RETURN(attr);
@@ -557,10 +566,11 @@ Expr::K1()
   DM_DBG_I;
   Attr attr;
 
-  attr.type = NONE;
+  attr.type = INV;
   switch(sym) {
-    case PlusSym:			/* K1 -> + K1 */
-      lex();				/* unary plus */
+    /* K1 -> + K1 */
+    case PlusSym:
+      LEX();				/* unary plus */
       attr = K1();
       switch (attr.type) {
         case INT:
@@ -570,8 +580,9 @@ Expr::K1()
       }
     break;
 
-    case MinusSym:			/* K1 -> - K1 */
-      lex();				/* unary minus */
+    /* K1 -> - K1 */
+    case MinusSym:
+      LEX();				/* unary minus */
       attr = K1();
       switch (attr.type) {
         case INT:  attr.v.i = -attr.v.i; break;
@@ -580,10 +591,10 @@ Expr::K1()
         default: DM_ERR(ERR_ERR, _("Illegal use of unary minus\n"));
       }
     break;
-    
-    case NotSym:			/* K1 -> ! K1 */
-      DM_DBG(DM_N(3), "NotSym\n", attr.type);
-      lex();
+
+    /* K1 -> ! K1 */
+    case NotSym:
+      LEX();
       attr = K1();
       switch (attr.type) {
         case INT: attr.v.i = attr.v.i ? FALSE : TRUE;
@@ -593,8 +604,9 @@ Expr::K1()
       }
     break;
 
-    case BitNotSym:			/* K1 -> ~ K1 */
-      lex();
+    /* K1 -> ~ K1 */
+    case BitNotSym:
+      LEX();
       attr = K1();
       switch (attr.type) {
         case INT: attr.v.i = ~attr.v.i;
@@ -604,26 +616,29 @@ Expr::K1()
       }
     break;
 
-    case LprSym:			/* K1 -> ( X ) */
-      lex();
+    /* K1 -> ( X ) */
+    case LprSym:
+      LEX();
       attr = X();
-      expect(RprSym);
-    break;
-    
-    case IntSym:			/* K1 -> INT */
-      attr.type = INT;
-      attr.v.i = lex_attr.v.i;		/* get the value from lex */
-      lex();
+      EXPECT(RprSym);
     break;
 
-    case RealSym:			/* K1 -> REAL */
+    /* K1 -> INT */
+    case IntSym:
+      attr.type = INT;
+      attr.v.i = lex_attr.v.i;		/* get the value from lex */
+      LEX();
+    break;
+
+    /* K1 -> REAL */
+    case RealSym:
       attr.type = REAL;
       attr.v.r = lex_attr.v.r;		/* get the value from lex */
-      lex();
+      LEX();
     break;
-    
+
     default:
-      DM_ERR_ASSERT(_("switch: default\n"));
+      DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(sym));
   }
 
   RETURN(attr);

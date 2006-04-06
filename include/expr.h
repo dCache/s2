@@ -21,7 +21,6 @@ private:
 
   types ConvTypes(Attr &a1, Attr &a2);
   int compare(Attr a1, Attr a2, Symbol o);
-  Symbol lex();
 
   /* grammar */
   Attr S();

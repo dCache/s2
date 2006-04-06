@@ -2,3 +2,4 @@
 
 ASSIGN fifty 50
 && SYSTEM echo $EXPR{ ${fifty}/25 }
+&& SYSTEM echo $RANDOM{10*10}

@@ -23,7 +23,7 @@
   if (s == sym)\
     LEX();\
   else {\
-    DM_ERR(ERR_ERR, _("Expected: %s; found: %s\n"), Lex::SymbolName(s), Lex::SymbolName(sym));\
+    DM_ERR(ERR_ERR, _("expected: %s; found: %s\n"), Lex::SymbolName(s), Lex::SymbolName(sym));\
   }
 
 #define LEX()	do { if((sym = l.lex(lex_attr)) == InvalidSym) return attr; } while(0)
@@ -61,12 +61,12 @@ Expr::parse(int64_t *e)
     case REAL:
       *e = (int64_t)attr.v.r;
       if(*e != attr.v.r) {
-        DM_WARN(ERR_WARN, "Truncating %f to %lld\n", attr.v.r, *e);
+        DM_WARN(ERR_WARN, "truncating %f to %lld\n", attr.v.r, *e);
       }
     break;
 
     default:
-      DM_ERR(ERR_ERR, _("Expression evaluation did not return a number.\n"));
+      DM_ERR(ERR_ERR, _("expression evaluation did not return a number\n"));
       return ERR_ERR;
   }
 
@@ -132,7 +132,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
     break;
 
     default:
-      DM_ERR(ERR_ERR, _("Cannot compare values of incompatible types\n"));
+      DM_ERR(ERR_ERR, _("cannot compare values of incompatible types\n"));
   }
 
   return 0; /* unable to compare */
@@ -184,7 +184,7 @@ Expr::A1(Attr iattr)
       case INT: iattr.v.i = iattr.v.i || attr.v.i;
       break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = A1(iattr);
   }
@@ -214,7 +214,7 @@ Expr::B1(Attr iattr)
       case INT: iattr.v.i = iattr.v.i && attr.v.i;
       break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = B1(iattr);
   }
@@ -244,7 +244,7 @@ Expr::C1(Attr iattr)
       case INT: iattr.v.i |= attr.v.i;
       break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = C1(iattr);
   }
@@ -274,7 +274,7 @@ Expr::D1(Attr iattr)
       case INT: iattr.v.i ^= attr.v.i;
       break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      default: DM_ERR(ERR_ERR, _("the %s operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = D1(iattr);
   }
@@ -304,7 +304,7 @@ Expr::E1(Attr iattr)
       case INT: iattr.v.i &= attr.v.i;
       break;
 
-      default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = E1(iattr);
   }
@@ -392,7 +392,7 @@ Expr::H1(Attr iattr)
         case INT: iattr.v.i <<= attr.v.i;
         break;
   
-        default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+        default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
       attr = H1(iattr);
     break;
@@ -405,7 +405,7 @@ Expr::H1(Attr iattr)
         case INT: iattr.v.i >>= attr.v.i;
         break;
   
-        default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+        default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
       attr = H1(iattr);
     break;
@@ -438,7 +438,7 @@ Expr::I1(Attr iattr)
         case INT:     iattr.v.i += attr.v.i; break;
         case REAL:    iattr.v.r += attr.v.r; break;
   
-        default: DM_ERR(ERR_ERR, _("Addition is not supported for these types\n"));
+        default: DM_ERR(ERR_ERR, _("addition is not supported for these types\n"));
       }
       attr = I1(iattr);
     break;
@@ -451,7 +451,7 @@ Expr::I1(Attr iattr)
         case INT:     iattr.v.i -= attr.v.i; break;
         case REAL:    iattr.v.r -= attr.v.r; break;
   
-        default: DM_ERR(ERR_ERR, _("Subtraction is not supported for these types\n"));
+        default: DM_ERR(ERR_ERR, _("subtraction is not supported for these types\n"));
       }
       attr = I1(iattr);
     break;
@@ -484,7 +484,7 @@ Expr::J1(Attr iattr)
         case INT:     iattr.v.i *= attr.v.i; break;
         case REAL:    iattr.v.r *= attr.v.r; break;
   
-        default: DM_ERR(ERR_ERR, _("Multiplication is not supported for these types\n"));
+        default: DM_ERR(ERR_ERR, _("multiplication is not supported for these types\n"));
       }
       attr = J1(iattr);
     break;
@@ -502,7 +502,7 @@ Expr::J1(Attr iattr)
           }
           else {
             iattr.v.i = 0;
-            DM_ERR(ERR_ERR, _("Division by zero\n"));
+            DM_ERR(ERR_ERR, _("division by zero\n"));
           };
         break;
   
@@ -510,11 +510,11 @@ Expr::J1(Attr iattr)
           if (attr.v.r) iattr.v.r /= attr.v.r;
           else {
             iattr.v.r = 0.0;
-            DM_ERR(ERR_ERR, _("Division by zero\n"));
+            DM_ERR(ERR_ERR, _("division by zero\n"));
           };
         break;
   
-        default: DM_ERR(ERR_ERR, _("Division is not supported for these types\n"));
+        default: DM_ERR(ERR_ERR, _("division is not supported for these types\n"));
       }
       attr = J1(iattr);
     break;
@@ -528,11 +528,11 @@ Expr::J1(Attr iattr)
           if (attr.v.i) iattr.v.i %= attr.v.i;
           else {
             iattr.v.i = 0;
-            DM_ERR(ERR_ERR, _("Modulo division by zero\n"));
+            DM_ERR(ERR_ERR, _("modulo division by zero\n"));
           };
         break;
   
-        default: DM_ERR(ERR_ERR, _("Modulo division is not supported for these types\n"));
+        default: DM_ERR(ERR_ERR, _("modulo division is not supported for these types\n"));
       }
       attr = J1(iattr);
     break;
@@ -576,7 +576,7 @@ Expr::K1()
         case INT:
         case REAL: break;
 
-        default: DM_ERR(ERR_ERR, _("Illegal use of unary minus\n"));
+        default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
       }
     break;
 
@@ -588,7 +588,7 @@ Expr::K1()
         case INT:  attr.v.i = -attr.v.i; break;
         case REAL: attr.v.r = -attr.v.r; break;
   
-        default: DM_ERR(ERR_ERR, _("Illegal use of unary minus\n"));
+        default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
       }
     break;
 
@@ -600,7 +600,7 @@ Expr::K1()
         case INT: attr.v.i = attr.v.i ? FALSE : TRUE;
         break;
   
-        default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+        default: DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
     break;
 
@@ -612,7 +612,7 @@ Expr::K1()
         case INT: attr.v.i = ~attr.v.i;
         break;
   
-        default: DM_ERR(ERR_ERR, _("The %s operator requires INT type values\n"), Lex::SymbolName(sym));
+        default: DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
     break;
 

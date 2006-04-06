@@ -1140,7 +1140,12 @@ Node::eval_str(const char *cstr, BOOL eval)
   BOOL bslash = FALSE;  /* we had the '\\' character */
   std::string s;
   std::string var;
-  enum s_eval { sInit, sDollar, sVar, sEvar, sCounter, sExpr } state = sInit;
+  enum s_eval { 
+    sInit, sDollar, sVar, sEvar, sCounter, sExpr, sRandom,
+  } state = sInit;
+  static const char* state_name[] = {
+    "0",   "",      "",   "ENV", "I",      "EXPR", "RANDOM",  
+  };
   const char *opt;
   int opt_off;
   int brackets = 0;
@@ -1192,6 +1197,11 @@ Node::eval_str(const char *cstr, BOOL eval)
           /* expression evaluation */
           var.clear();
           state = sExpr;
+          i += opt_off - 1;
+        } else if(OPL("RANDOM{")) {
+          /* random values */
+          var.clear();
+          state = sRandom;
           i += opt_off - 1;
         } else {
           /* return the borrowed dollar */
@@ -1321,10 +1331,28 @@ Node::eval_str(const char *cstr, BOOL eval)
           var = eval_str(var.c_str(), eval);	/* evaluate things like: $EXPR{...${var}...} */
 
           int64_t e = 0;
-          DM_DBG(DM_N(4), "expr=|%s|\n", brackets, var.c_str());
+          DM_DBG(DM_N(4), "expr=|%s|\n", var.c_str());
           if(str_expr2i(var.c_str(), &e)) {
             DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), row, executed, evaluated, var.c_str());
           } else s.append(i2str(e));
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      continue;
+
+      case sRandom:
+        if(c == '}' && !brackets) {
+          /* we have a maximum+1 random number */
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $RANDOM{...${var}...} */
+
+          int64_t e = 0;
+          if(str_expr2i(var.c_str(), &e)) {
+            DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), row, executed, evaluated, var.c_str());
+          } else {
+            srandom(time(NULL));
+            s.append(i2str(random() % e));
+          }
           state = sInit;
         } else {
           var.push_back(c);
@@ -1349,23 +1377,12 @@ Node::eval_str(const char *cstr, BOOL eval)
   if(state == sDollar) {
     s.push_back('$');
   }
-  if(state == sVar) {
-    DM_WARN(ERR_WARN, _("unterminated variable\n"));
-    s.append("${" + var);
+  
+  if(state != sInit) {
+    DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);
+    s.append("$" + std::string(state_name[state]) + "{" + var);
   }
-  if(state == sEvar) {
-    DM_WARN(ERR_WARN, _("unterminated environment variable\n"));
-    s.append("$ENV{" + var);
-  }
-  if(state == sCounter) {
-    DM_WARN(ERR_WARN, _("unterminated reference to repeat loop counter\n"));
-    s.append("$I{" + var);
-  }
-  if(state == sExpr) {
-    DM_WARN(ERR_WARN, _("unterminated expression\n"));
-    s.append("$EXPR{" + var);
-  }
-
+  
   return s;
 } /* eval_str */
 

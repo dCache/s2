@@ -1,5 +1,30 @@
-; Tags test
+; Tags ($DATE) test
 
 NOP
-&& SYSTEM echo $RANDOM{100}
-&& SYSTEM echo $DATE{}
+&& SYSTEM echo "$DATE{}"
+&& SYSTEM echo "$DATE{%Y-%m-%d@%H:%M:%S.%N}"
+&& SYSTEM echo "$DATE{%%    a literal %%}"
+&& SYSTEM echo "$DATE{%C    century (year divided by 100 and truncated to an integer) [00-99]}"
+&& SYSTEM echo "$DATE{%d    day of month (01..31)}"
+&& SYSTEM echo "$DATE{%D    date (mm/dd/yy)}"
+&& SYSTEM echo "$DATE{%e    day of month, blank padded ( 1..31)}"
+&& SYSTEM echo "$DATE{%F    same as %%Y-%%m-%%d}"
+&& SYSTEM echo "$DATE{%H    hour (00..23)}"
+&& SYSTEM echo "$DATE{%I    hour (01..12)}"
+&& SYSTEM echo "$DATE{%j    day of year (001..366)}"
+&& SYSTEM echo "$DATE{%k    hour ( 0..23)}"
+&& SYSTEM echo "$DATE{%l    hour ( 1..12)}"
+&& SYSTEM echo "$DATE{%m    month (01..12)}"
+&& SYSTEM echo "$DATE{%M    minute (00..59)}"
+&& SYSTEM echo "$DATE{%n    a newline}"
+&& SYSTEM echo "$DATE{%N    nanoseconds (000000000..999999999)}"
+&& SYSTEM echo "$DATE{%R    time, 24-hour (hh:mm)}"
+&& SYSTEM echo "$DATE{%s    seconds since 00:00:00 1970-01-01 UTC}"
+&& SYSTEM echo "$DATE{%S    second (00..60); the 60 is necessary to accommodate a leap second}"
+&& SYSTEM echo "$DATE{%t    a horizontal tab}"
+&& SYSTEM echo "$DATE{%T    time, 24-hour (hh:mm:ss)}"
+&& SYSTEM echo "$DATE{%u    day of week (1..7); 1 represents Monday}"
+&& SYSTEM echo "$DATE{%V    week number of year with Monday as first day of week (01..53)}"
+&& SYSTEM echo "$DATE{%w    day of week (0..6); 0 represents Sunday}"
+&& SYSTEM echo "$DATE{%y    last two digits of year (00..99)}"
+&& SYSTEM echo "$DATE{%Y    year (1970...)}"

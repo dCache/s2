@@ -1389,7 +1389,7 @@ Node::eval_str(const char *cstr, BOOL eval)
 
           if(var == "") {
             /* use the default format */
-            date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu ",
+            date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu",
                      now->tm_year+1900, now->tm_mon+1, now->tm_mday,
                      now->tm_hour, now->tm_min, now->tm_sec, timestamp.tv_usec);
           } else {

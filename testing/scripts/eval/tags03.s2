@@ -1,4 +1,4 @@
 ; Tags (printf) test
 
 NOP
-&& SYSTEM echo "$PRINTF{"%0x03_%0x05" 300 500}"
+&& SYSTEM echo "$PRINTF{"%03x %05x" 300 500}"

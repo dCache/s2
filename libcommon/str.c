@@ -269,15 +269,13 @@ out:
  * - \\ is left unchanged: '\\"' => '\\"'
  * - ad 1) the meaning of \" and " is equivalent
  * 
- * Returns
- *   ERR_OK:  found a parameter (even an empty one "")
- *   ERR_ERR: errors
+ * Returns the number of characters parsed.
  */
 extern int
 get_dq_param(std::string &target, const char *source)
 {
 #define TERM_CHAR(c)    (q? (c == '"'): IS_WHITE(c))
-#define gc(c)		(col++ < source_len) ? source[col] : '\0'
+#define gc(c)		(col < source_len) ? source[col++] : '\0'
 #define ugc()		col--
 
   int i, c;
@@ -289,15 +287,17 @@ get_dq_param(std::string &target, const char *source)
   
   if(source == NULL) {
     DM_ERR_ASSERT(_("source == NULL\n"));\
-    return ERR_ASSERT;
+    return 0;
   }
 
   /* initialisation */
   target.clear();
   source_len = strlen(source);
 
+  fprintf(stderr, "entire string=|%s|\n", source);
   do { c = gc(); } while(IS_WHITE(c));
-  q = (c = gc()) == '"';
+  q = (c == '"');
+  fprintf(stderr, "|%c|\n", c);
   if(!q) ugc();
   
   for(i = 0; (c = gc()) != '\0'; i++) {
@@ -311,7 +311,7 @@ get_dq_param(std::string &target, const char *source)
     if(TERM_CHAR(c) && !bslash) {
       if(c != '"') ugc();
 
-      return ERR_OK;	/* found a string terminator */
+      return col;	/* found a string terminator */
     }
 
     if(!q) {
@@ -333,7 +333,7 @@ out:
   if(q && c == '\n')
     DM_WARN(ERR_WARN, "'\\0' terminated double-quoted parameter\n");
 
-  return ERR_OK;
+  return col - (c == '\0');
 
 #undef TERM_CHAR
 } /* get_dq_param */

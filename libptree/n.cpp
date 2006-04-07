@@ -1443,41 +1443,45 @@ Node::eval_str(const char *cstr, BOOL eval)
       continue;
 
       case sPrintf:{
-        if(c == '}' && !brackets) { // TODO:
-          char *argv;
-          char **arg;
+        if(c == '}' && !brackets) {
+          char **argv;
           int spaces = 0;
           int j, plen;
-          const char *var_cstr;
+          const char *var_cstr = NULL;
+
           var = eval_str(var.c_str(), eval);	/* evaluate things like: $PRINTF{...${var}...} */
           var_cstr = var.c_str();
-
-          plen = strlen(var_cstr);
+          plen = var.length();
           for(j = 0; j < plen; j++) {
-            if(IS_WHITE(argv[j])) spaces++;
+            /* count the number of spaces to guess the maximum number of $PRINTF parameters (-2) */
+            if(IS_WHITE(var_cstr[j])) spaces++;
           }
-          if((arg = (char **)malloc(sizeof(char *) * (spaces + 2))) == (char **)NULL) {
+          if((argv = (char **)malloc(sizeof(char **) * (spaces + 2))) == (char **)NULL) {
             DM_ERR(ERR_SYSTEM, _("malloc failed\n"));
             return s;
           }
-          std::string target = " ";
+          std::string target;
           int l = 0;
-          for(j = 0; target.length() != 0; j++) {
-            get_dq_param(target, var_cstr + l);
-            if((arg[j] = (char *)strndup(var_cstr, l + target.length()))) {
+          for(j = 0;; j++) {
+            int chars;
+            chars = get_dq_param(target, var_cstr + l);
+            fprintf(stderr, "chars=%d|%s|\n", chars, target.c_str());
+            if(chars == 0) break;
+            if((argv[j] = (char *)strdup(target.c_str())) == (char *)NULL) {
               DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
               return s;
             }
-            l += target.length();
-            fprintf(stderr, "%s\n", arg[0]);
-            fprintf(stderr, "%s\n", arg[1]);
-            fprintf(stderr, "%s\n", arg[2]);
+            fprintf(stderr, "[%d]|%s|\n", j, argv[j]);
+            l += chars;
           }
-          arg[++j] = 0;
+          argv[j] = 0;
+          fprintf(stderr, "[%d]|%s|\n", j, argv[j]);
 
-          var = eval_str(var.c_str(), eval);	/* evaluate things like: $RANDOM{...${var}...} */
-          s.append(ssprintf_chk(arg));
-          FREE(arg);
+          s.append(ssprintf_chk(argv));
+          for(;j >= 0; j--) {
+            FREE(argv[j]);
+          }
+          FREE(argv);
           state = sInit;
         } else {
           var.push_back(c);

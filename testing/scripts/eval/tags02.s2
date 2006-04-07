@@ -1,0 +1,4 @@
+; Tags test
+
+NOP
+&& SYSTEM echo "$RANDOM{100}"

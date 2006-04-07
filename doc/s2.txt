@@ -98,7 +98,8 @@ start with the ';' character and continue up to the next newline
   <INCLUDE> :: '#' 'include' <INCLUDE_FILE>
   
   <INCLUDE_FILE> :: <DQ_PARAM>
-  
+; Note <INCLUDE_FILE> is <DQ_PARAM>
+; (with the exception of $ENV{<VAR>} it is not dynamically evaluated)
 
 1.3) Actions
 ~~~~~~~~~~~~
@@ -115,8 +116,6 @@ Syntax of the individual actions is described in the Semantics section.
 
   <NATURAL> :: [1-9][0-9]* | '0x'[0-9A-Fa-f]+ | 0[0-7]*
 ; a natural number (decimal, hexadecimal and    octal numbers are supported)
-
-  <ENV_VAR> :: '$ENV{' <VAR> '}'
 
   <DQ_PARAM> :: [^ ]* | '"' [^"]* '"'
 ; a parameter optionally enclosed by double-quotes:
@@ -143,7 +142,9 @@ Syntax of the individual actions is described in the Semantics section.
 The following non-terminals are always evaluated before the
 values are used.
 
-  <TAG> :: <ENV_VAR>
+  <TAG> :: '${' <VAR> '}' | '$ENV{' <VAR> '}' | 
+           '$EXPR{' <EXPR> '}' | '$RAND{' <EXPR> '}' |
+           '$DATE{' <STR> '}'
 
   <I> :: <INTEGER> | <TAG>
 ; <TAG> must evaluate to <INTEGER>
@@ -684,12 +685,12 @@ ${!} reference to evaluation value of a previous branch at the same offset.
      If such a branch doesn't exist or it did not execute, ${!} expands
      to 0.
 
-$I{<DQ_I>} refrerence to the internal counter of a sequential repeat operator.
-           The value is always between <X> any <Y>.  <DQ_I> denotes branch
-           nesting.  0 refers to the innermost repeat operator, 1 refers
-           to the second innermost repeat operator...  If <DQ_I> refers to
-           a non-existent repeat operator, 0 is returned and a warning message
-           issued.
+$I{<I>} refrerence to the internal counter of a sequential repeat operator.
+        The value is always between <X> any <Y>.  <I> denotes branch
+        nesting.  0 refers to the innermost repeat operator, 1 refers
+        to the second innermost repeat operator...  If <I> refers to
+        a non-existent repeat operator, 0 is returned and a warning message
+        issued.
 
 
 2.5 Tags
@@ -701,11 +702,10 @@ $EXPR{<EXPR>}
   <EXPR> :: <EXPR> '||' <EXPR> | <EXPR> '&&' <EXPR> |
             <EXPR> '|'  <EXPR> | <EXPR> '^'  <EXPR> | <EXPR> '&' <EXPR> |
             <EXPR> '==' <EXPR> | <EXPR> '!=' <EXPR> |
-            <EXPR> '<'  <EXPR> | <EXPR> '<=' <EXPR> | <EXPR> '>'  <EXPR> | <EXPR> '>=' <EXPR> |
+            <EXPR> '<'  <EXPR> | <EXPR> '<=' <EXPR> | <EXPR> '>' <EXPR> | <EXPR> '>=' <EXPR> |
             <EXPR> '<<' <EXPR> | <EXPR> '>>' <EXPR> |
             <EXPR> '+'  <EXPR> | <EXPR> '-'  <EXPR> |
-            <EXPR> '*'  <EXPR> | <EXPR> '/'  <EXPR> | <EXPR> '%'  <EXPR> |
-            <EXPR> '*'  <EXPR> | <EXPR> '/'  <EXPR> | <EXPR> '%'  <EXPR> |
+            <EXPR> '*'  <EXPR> | <EXPR> '/'  <EXPR> | <EXPR> '%' <EXPR> |
             '+' <EXPR> | '-' <EXPR> | '!' <EXPR> | '~' <EXPR> |
             '(' <EXPR> ')' | <I>
 
@@ -728,6 +728,47 @@ $EXPR{<EXPR>}
   HIGHEST
 
   C-like operator priority table 
+
+2.5.2 Random number
+~~~~~~~~~~~~~~~~~~~
+$RAND{<EXPR>}
+
+  Returns a random number between 0 and <EXPR>-1.
+
+2.5.3 Date
+~~~~~~~~~~
+$DATE{<STR>}
+
+  Interpreted sequences in <STR> are:
+
+  %%     a literal %
+  %C     century  (year  divided  by  100  and  truncated  to an integer)
+         [00-99]
+  %d     day of month (01..31)
+  %D     date (mm/dd/yy)
+  %e     day of month, blank padded ( 1..31)
+  %F     same as %Y-%m-%d
+  %H     hour (00..23)
+  %I     hour (01..12)
+  %j     day of year (001..366)
+  %k     hour ( 0..23)
+  %l     hour ( 1..12)
+  %m     month (01..12)
+  %M     minute (00..59)
+  %n     a newline
+  %N     nanoseconds (000000000..999999999)
+  %R     time, 24-hour (hh:mm)
+  %s     seconds since 00:00:00 1970-01-01 UTC
+  %S     second (00..60); the 60 is necessary to accommodate a leap second
+  %t     a horizontal tab
+  %T     time, 24-hour (hh:mm:ss)
+  %u     day of week (1..7);  1 represents Monday
+  %V     week number of year with Monday as first day of week (01..53)
+  %w     day of week (0..6);  0 represents Sunday
+  %y     last two digits of year (00..99)
+  %Y     year (1970...)
+
+If <STR> is empty, the output is +%Y-%m-%d@%H:%M:%S.%N, where %N is cut to 6 digits.
 
 
 3 Caveats

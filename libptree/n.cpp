@@ -14,12 +14,14 @@
 #include "n.h"
 
 #include "free.h"
+#include "date.h"
 #include "constants.h"
 #include "i18.h"
 #include "timeout.h"
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
 
 #include "expr.h"
+#include "printf.h"
 #include "s2.h"			/* opts (s2 options) */
 #include "str.h"
 #include "io.h"                 /* file_ropen(), ... */
@@ -1141,10 +1143,10 @@ Node::eval_str(const char *cstr, BOOL eval)
   std::string s;
   std::string var;
   enum s_eval { 
-    sInit, sDollar, sVar, sEvar, sCounter, sExpr, sRandom,
+    sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRandom,  sDate,  sPrintf,
   } state = sInit;
   static const char* state_name[] = {
-    "0",   "",      "",   "ENV", "I",      "EXPR", "RANDOM",  
+    "0",   "",      "",   "ENV", "I",      "EXPR", "RANDOM", "DATE", "PRINTF",
   };
   const char *opt;
   int opt_off;
@@ -1168,16 +1170,17 @@ Node::eval_str(const char *cstr, BOOL eval)
 //    DM_DBG(DM_N(5), "brackets=%d\n", brackets);
 
     switch (state) {
-      case sInit:
+      case sInit:{
         if(c == '$') {
           if(!bslash) {
             state = sDollar;
             continue;
           }
         }
+      }
       break;
 
-      case sDollar:
+      case sDollar:{
         if(c == '{') {
           /* we have a reference to a variable */
           var.clear();
@@ -1203,16 +1206,27 @@ Node::eval_str(const char *cstr, BOOL eval)
           var.clear();
           state = sRandom;
           i += opt_off - 1;
+        } else if(OPL("DATE{")) {
+          /* date/time */
+          var.clear();
+          state = sDate;
+          i += opt_off - 1;
+        } else if(OPL("PRINTF{")) {
+          /* date/time */
+          var.clear();
+          state = sPrintf;
+          i += opt_off - 1;
         } else {
           /* return the borrowed dollar */
           s.push_back('$');
           state = sInit;
           break;
         }
-      brackets++;
+        brackets++;
+      }
       continue;
 
-      case sVar:
+      case sVar:{
         if(c == '}' && !brackets) {
           /* we have a complete variable */
           if(var == "?") {	/* ${?} */
@@ -1258,9 +1272,10 @@ Node::eval_str(const char *cstr, BOOL eval)
         } else {
           var.push_back(c);
         }
+      }
       continue;
 
-      case sEvar:
+      case sEvar:{
         if(c == '}' && !brackets) {
           /* we have a complete environment variable */
           var = eval_str(var.c_str(), eval);	/* evaluate things like: $ENV{...${var}...} */
@@ -1280,9 +1295,10 @@ Node::eval_str(const char *cstr, BOOL eval)
         } else {
           var.push_back(c);
         }
+      }
       continue;
 
-      case sCounter:
+      case sCounter:{
         if(c == '}' && !brackets) {
           /* we have a reference to a repeat loop counter */
           var = eval_str(var.c_str(), eval);	/* evaluate things like: $I{...${var}...} */
@@ -1323,9 +1339,10 @@ Node::eval_str(const char *cstr, BOOL eval)
         } else {
           var.push_back(c);
         }
+      }
       continue;
 
-      case sExpr:
+      case sExpr:{
         if(c == '}' && !brackets) {
           /* we have a complete expression to evaluate */
           var = eval_str(var.c_str(), eval);	/* evaluate things like: $EXPR{...${var}...} */
@@ -1339,9 +1356,10 @@ Node::eval_str(const char *cstr, BOOL eval)
         } else {
           var.push_back(c);
         }
+      }
       continue;
 
-      case sRandom:
+      case sRandom:{
         if(c == '}' && !brackets) {
           /* we have a maximum+1 random number */
           var = eval_str(var.c_str(), eval);	/* evaluate things like: $RANDOM{...${var}...} */
@@ -1357,7 +1375,116 @@ Node::eval_str(const char *cstr, BOOL eval)
         } else {
           var.push_back(c);
         }
+      }
       continue;
+
+      case sDate:{
+        if(c == '}' && !brackets) {
+          struct timeval timestamp;
+          struct tm *now;
+          std::string date;
+        
+          gettimeofday(&timestamp, NULL);
+          now = localtime(&(timestamp.tv_sec));
+
+          if(var == "") {
+            /* use the default format */
+            date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu ",
+                     now->tm_year+1900, now->tm_mon+1, now->tm_mday,
+                     now->tm_hour, now->tm_min, now->tm_sec, timestamp.tv_usec);
+          } else {
+            int j, esc = 0, len = var.length();
+            for(j = 0; j < len; j++) {
+              if(!esc) {
+                if(var[j] == '%') esc = 1;
+                else s.push_back(var[j]);
+                continue;
+              }
+
+              /* escape */
+              esc = 0;
+              switch(var[j]) {
+                case 'C': s.append(ssprintf("%02d", (now->tm_year+1900)/100)); break;
+                case 'D': s.append(ssprintf("%02d/%02d/%02d", now->tm_mon+1, now->tm_mday, now->tm_year % 100)); break;
+                case 'd': s.append(ssprintf("%02d", now->tm_mday)); break;
+                case 'e': s.append(ssprintf("%2d", now->tm_mday)); break;
+                case 'F': s.append(ssprintf("%04d-%02d-%02d", now->tm_year+1900, now->tm_mon+1, now->tm_mday)); break;
+                case 'H': s.append(ssprintf("%02d", now->tm_hour)); break;
+                case 'k': s.append(ssprintf("%2d", now->tm_hour)); break;
+                case 'I': s.append(ssprintf("%02d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
+                case 'l': s.append(ssprintf("%2d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
+                case 'j': s.append(ssprintf("%02d", now->tm_yday+1)); break;
+                case 'M': s.append(ssprintf("%02d", now->tm_min)); break;
+                case 'm': s.append(ssprintf("%02d", now->tm_mon+1)); break;
+                case 'n': s.push_back('\n'); break;
+                case 'N': s.append(ssprintf("%06d", timestamp.tv_usec)); break; /* cut to 6 digits */
+                case 'R': s.append(ssprintf("%02d:%02d", now->tm_hour, now->tm_min)); break;
+                case 's': s.append(ssprintf("%d", timestamp.tv_sec)); break;
+                case 'S': s.append(ssprintf("%02d", now->tm_sec)); break;
+                case 't': s.push_back('\t'); break;
+                case 'u': s.append(ssprintf("%d", now->tm_wday)); break;
+                case 'V': s.append(ssprintf("%d", week(now))); break;
+                case 'T': s.append(ssprintf("%02d:%02d:%02d", now->tm_hour, now->tm_min, now->tm_sec)); break;
+                case 'Y': s.append(ssprintf("%04d", now->tm_year+1900)); break;
+                case 'y': s.append(ssprintf("%02d", now->tm_year%100)); break;
+                case 'w': s.append(ssprintf("%d", now->tm_wday-1)); break;
+                default:
+                  s.push_back(var[j]);
+              }
+            }
+            if(esc) s.push_back('%');
+          }
+          s.append(date);
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      }
+      continue;
+
+      case sPrintf:{
+        if(c == '}' && !brackets) { // TODO:
+          char *argv;
+          char **arg;
+          int spaces = 0;
+          int j, plen;
+          const char *var_cstr;
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $PRINTF{...${var}...} */
+          var_cstr = var.c_str();
+
+          plen = strlen(var_cstr);
+          for(j = 0; j < plen; j++) {
+            if(IS_WHITE(argv[j])) spaces++;
+          }
+          if((arg = (char **)malloc(sizeof(char *) * (spaces + 2))) == (char **)NULL) {
+            DM_ERR(ERR_SYSTEM, _("malloc failed\n"));
+            return s;
+          }
+          std::string target = " ";
+          int l = 0;
+          for(j = 0; target.length() != 0; j++) {
+            get_dq_param(target, var_cstr + l);
+            if((arg[j] = (char *)strndup(var_cstr, l + target.length()))) {
+              DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
+              return s;
+            }
+            l += target.length();
+            fprintf(stderr, "%s\n", arg[0]);
+            fprintf(stderr, "%s\n", arg[1]);
+            fprintf(stderr, "%s\n", arg[2]);
+          }
+          arg[++j] = 0;
+
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $RANDOM{...${var}...} */
+          s.append(ssprintf_chk(arg));
+          FREE(arg);
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      }
+      continue;
+
     }
 
     /* no TAGs found, simply copy the characters */

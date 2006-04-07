@@ -39,7 +39,9 @@ _GET_INT(u,64);
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* std::stringstream, ... */
 extern std::string i2str(int64_t value);
+extern std::string ssprintf(const char *fmt...);
 extern std::string escape_chars(const char* s, const char c, BOOL q);
+extern int get_dq_param(std::string &target, const char *source);
 
 /* free vector of types (e.g. ints) */
 #define FREE_VEC(vec)\

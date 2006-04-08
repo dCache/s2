@@ -731,7 +731,7 @@ $EXPR{<EXPR>}
 
 2.5.2 Random number
 ~~~~~~~~~~~~~~~~~~~
-$RAND{<EXPR>}
+$RND{<EXPR>}
 
   Returns a random number between 0 and <EXPR>-1.
 

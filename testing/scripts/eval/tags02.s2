@@ -1,4 +1,4 @@
 ; Tags test
 
 NOP
-&& SYSTEM echo "$RANDOM{100}"
+&& SYSTEM echo "$RND{100}"

@@ -1143,10 +1143,10 @@ Node::eval_str(const char *cstr, BOOL eval)
   std::string s;
   std::string var;
   enum s_eval { 
-    sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRandom,  sDate,  sPrintf,
+    sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
   } state = sInit;
   static const char* state_name[] = {
-    "0",   "",      "",   "ENV", "I",      "EXPR", "RANDOM", "DATE", "PRINTF",
+    "0",   "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
   };
   const char *opt;
   int opt_off;
@@ -1201,10 +1201,10 @@ Node::eval_str(const char *cstr, BOOL eval)
           var.clear();
           state = sExpr;
           i += opt_off - 1;
-        } else if(OPL("RANDOM{")) {
+        } else if(OPL("RND{")) {
           /* random values */
           var.clear();
-          state = sRandom;
+          state = sRnd;
           i += opt_off - 1;
         } else if(OPL("DATE{")) {
           /* date/time */
@@ -1359,10 +1359,10 @@ Node::eval_str(const char *cstr, BOOL eval)
       }
       continue;
 
-      case sRandom:{
+      case sRnd:{
         if(c == '}' && !brackets) {
           /* we have a maximum+1 random number */
-          var = eval_str(var.c_str(), eval);	/* evaluate things like: $RANDOM{...${var}...} */
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $RND{...${var}...} */
 
           int64_t e = 0;
           if(str_expr2i(var.c_str(), &e)) {
@@ -1465,17 +1465,14 @@ Node::eval_str(const char *cstr, BOOL eval)
           for(j = 0;; j++) {
             int chars;
             chars = get_dq_param(target, var_cstr + l);
-            fprintf(stderr, "chars=%d|%s|\n", chars, target.c_str());
             if(chars == 0) break;
             if((argv[j] = (char *)strdup(target.c_str())) == (char *)NULL) {
               DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
               return s;
             }
-            fprintf(stderr, "[%d]|%s|\n", j, argv[j]);
             l += chars;
           }
           argv[j] = 0;
-          fprintf(stderr, "[%d]|%s|\n", j, argv[j]);
 
           s.append(ssprintf_chk(argv));
           for(;j >= 0; j--) {

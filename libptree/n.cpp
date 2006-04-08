@@ -13,6 +13,7 @@
 #include "parse.h"
 #include "n.h"
 
+#include "md5f.h"
 #include "free.h"
 #include "date.h"
 #include "constants.h"
@@ -1144,9 +1145,11 @@ Node::eval_str(const char *cstr, BOOL eval)
   std::string var;
   enum s_eval { 
     sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
+    sMd5,
   } state = sInit;
   static const char* state_name[] = {
     "0",   "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
+    "MD5", 
   };
   const char *opt;
   int opt_off;
@@ -1215,6 +1218,11 @@ Node::eval_str(const char *cstr, BOOL eval)
           /* date/time */
           var.clear();
           state = sPrintf;
+          i += opt_off - 1;
+        } else if(OPL("MD5{")) {
+          /* MD5 sum of a string */
+          var.clear();
+          state = sMd5;
           i += opt_off - 1;
         } else {
           /* return the borrowed dollar */
@@ -1479,6 +1487,20 @@ Node::eval_str(const char *cstr, BOOL eval)
             FREE(argv[j]);
           }
           FREE(argv);
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      }
+      continue;
+
+      case sMd5:{
+        if(c == '}' && !brackets) {
+          /* we have a maximum+1 random number */
+          var = eval_str(var.c_str(), eval);	/* evaluate things like: $MD5{...${var}...} */
+          char md5str[33];
+          gen_md5(md5str, var.c_str());
+          s.append(md5str);
           state = sInit;
         } else {
           var.push_back(c);

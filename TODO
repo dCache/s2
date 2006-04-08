@@ -1,5 +1,7 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- Add a version to *.s2 sources
+- Support for other tags like $MD5{}
 - Refactor parallel execution model and timeouts ("process notion")
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - ECHO (vs. SYSTEM echo --- performance considerations)

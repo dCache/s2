@@ -1,0 +1,4 @@
+; Tags (md5sum) test
+
+NOP
+&& SYSTEM out=ed076287532e86365e841e92bfc50d8c echo -n "$MD5{Hello World!}"

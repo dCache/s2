@@ -116,8 +116,13 @@ rpm_show:
 # Versioning #########################################################
 $(VERSION_H):
 	@echo $(VERSION) > VERSION
-	@echo "#define MK_VERSION \"$(VERSION)\"" > $(VERSION_H)
+	@echo "#ifndef MK_VERSION" > $(VERSION_H)
+	@echo "#define MK_VERSION \"$(VERSION)\"" >> $(VERSION_H)
+	@echo "#endif /* MK_VERSION */" >> $(VERSION_H)
+	@echo >> $(VERSION_H)
+	@echo "#ifndef BUILD_DATE" >> $(VERSION_H)
 	@echo "#define BUILD_DATE \"$(TODAY)\"" >> $(VERSION_H)
+	@echo "#endif /* BUILD_DATE */" >> $(VERSION_H)
 
 
 # CVS/Subversion #####################################################

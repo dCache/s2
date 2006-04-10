@@ -1,0 +1,6 @@
+; #require directive test
+
+#require 0.1.6
+
+; $DATE is supported since 0.1.6
+SYSTEM echo "$DATE{}: OK"

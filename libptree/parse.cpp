@@ -17,6 +17,7 @@
 #include "soapH.h"              /* soap_codes_srm__TSpaceType, ... */
 #endif
 
+#include "version.h"		/* for #require directive */
 #include "constants.h"
 #include "i18.h"
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
@@ -805,6 +806,14 @@ Parser::PREPROCESSOR()
       DM_PWARN(_("unexpected #endif preprocessor directive (no matching #if)\n"));
       /* be lenient, just ignore it */
       return ERR_OK;    /* don't return ERR_ERR, try to ignore it */
+    }
+  } else if(POPL("require")) {		/* require a specific s2 version */
+    WS();		/* allow whitespace after 'require' */
+    PARSE(dq_param,_val,"require directive parameter\n");	/* parse require version into _val */
+    if(strcmp(MK_VERSION, _val.c_str()) < 0) {
+      /* TODO (major/minor versions) */
+      DM_ERR(ERR_ERR, _("S2 script requires S2 client version `%s' or higher\n"), _val.c_str());
+      return ERR_ERR;
     }
   } else if(POPL("include")) {
     if(!is_true_block()) 

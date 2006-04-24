@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 test client documentation
-Version:	2006-02-23
+Version:	2006-04-08
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test

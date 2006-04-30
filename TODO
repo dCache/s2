@@ -1,5 +1,6 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- > true/false cond (repeat forever)
 - Refactor parallel execution model and timeouts ("process notion")
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - ECHO (vs. SYSTEM echo --- performance considerations)

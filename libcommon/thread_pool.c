@@ -115,6 +115,75 @@ request_add(void *data,
 }
 
 /*
+ * function request_del(): delete a request from the requests list
+ */
+static int
+request_del(void *data)
+{
+  DM_DBG_I;
+
+  int rc;				/* return code of pthreads functions */
+  tp_request *request = requests;	/* pointer to a request */
+  
+  if(requests == NULL) {
+    DM_DBG(DM_N(3), "couldn't dequeue a request %p, list of requests is empty\n", data);
+    RETURN(ERR_ERR);
+  }
+
+  /* lock the mutex, to assure exclusive access to the list */
+  rc = S_P(&request_mtx);
+
+  /* check the special case (head) */
+  if(requests->data == data) {
+    /* found a matching request */
+    request = requests->next;
+    FREE(requests);
+    requests = request;
+    num_requests--;			/* number of pending requests */
+    DM_DBG(DM_N(3), "dequeued a request %p, total requests %d\n", data, num_requests);
+    goto ok;
+  }
+
+  /* go through the requests list */
+  while(request->next) {
+    if(request->next->data == data) {
+      /* found a matching request */
+      tp_request *tmp_request = request->next->next;
+      FREE(request->next);
+      request->next = tmp_request;
+      num_requests--;			/* number of pending requests */
+      DM_DBG(DM_N(3), "dequeued a request %p, total requests %d\n", data, num_requests);
+      goto ok;
+    }
+    request = request->next;
+  }
+  /* couldn't dequeue a request */
+  DM_DBG(DM_N(3), "couldn't dequeue a request %p, total requests %d\n", data, num_requests);
+
+  /* unlock mutex */
+  rc = S_V(&request_mtx);
+
+  if(rc) {
+    DM_ERR(ERR_SYSTEM, _("pthread_mutex_unlock failed: %s\n"), strerror(errno));
+    RETURN(ERR_ERR);
+  }
+
+  /* couldn't dequeue a request */
+  RETURN(ERR_ERR);
+
+ok:
+  /* unlock mutex */
+  rc = S_V(&request_mtx);
+
+  if(rc) {
+    DM_ERR(ERR_SYSTEM, _("pthread_mutex_unlock failed: %s\n"), strerror(errno));
+    RETURN(ERR_ERR);
+  }
+
+  RETURN(ERR_OK);
+}
+
+/*
  * function request_get(): gets the first pending request from the requests list
  *                         removing it from the list.
  * algorithm: creates a request structure, adds to the list, and
@@ -330,6 +399,16 @@ tp_enqueue(void *data, int *sreqs, pthread_cond_t *p_sreqs_cv)
   else DM_DBG(DM_N(4), "data=%p\n", data);
 
   int rc = request_add(data, sreqs, p_sreqs_cv);
+
+  RETURN(rc);
+}
+
+extern int
+tp_dequeue(void *data)
+{
+  DM_DBG_I;
+
+  int rc = request_del(data);
 
   RETURN(rc);
 }

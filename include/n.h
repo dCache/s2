@@ -15,12 +15,13 @@
 #include <fstream>              /* ifstream */
 #include <map>                  /* std::map */
 #include <vector>               /* std::vector */
-#include <pthread.h>            /* `parallel' execution of branches */
 
 /* constants */
 #define THREAD_STACK_SIZE	32768		/* Minimum stack for threads */
 
 /* simple macros */
+#define FBRANCH "branch %u (%d/%d): "
+
 #define SS_DQ(space,str)\
   if(str) ss << space << dq_param(eval_str(str, eval), quote)
 
@@ -122,8 +123,6 @@ public:
 
   virtual void init();
   virtual void init(Node &node);
-  static int threads_init(void);
-  static int threads_destroy(void);
 
   static Node *get_node_with_offset(Node *ptr_node, const uint offset);
   static int append_node(Node *root_node, Node *n);
@@ -135,15 +134,11 @@ public:
   static std::string ind_param(const std::string *s);
   static std::string ind_param(const std::string &s);
   static std::string ind_param(const char *s);
-  std::string nodeToString(uint indent, BOOL eval);
+  static std::string nodeToString(Node *n, uint indent, BOOL eval);
+  static int print_node(Node *n, uint indent, FILE *file, BOOL eval, BOOL show_executed, BOOL show_evaluated);
+
   int print_node(uint indent, FILE *file, BOOL eval, BOOL show_executed, BOOL show_evaluated);
   int print_tree(uint indent, FILE *file, BOOL pp_indent, BOOL eval, BOOL exec_eval);
-  int eval();
-  int eval_repeats();
-  int eval_sequential_repeats();
-  int eval_with_timeout();
-  int eval_without_timeout();
-  int eval_subtree(const int root_exec, int &root_eval);
   BOOL e_match(const std::string *expected, const char *received);
   BOOL e_match(const char *expected, const char *received);
 

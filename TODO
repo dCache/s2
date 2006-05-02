@@ -1,7 +1,8 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- > true/false cond (repeat forever)
 - Refactor parallel execution model and timeouts ("process notion")
+- MATCH/LT/GT/... (make them tags + add TEST)
+- > true/false cond (repeat forever)
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Investigate gSoap memory leaks.

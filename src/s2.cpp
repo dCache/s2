@@ -15,20 +15,25 @@
 #include "constants.h"
 #include "version.h"
 #include "i18.h"
-#include "sysdep.h"             /* BOOL, STD_BUF, ... */
+#include "sysdep.h"		/* BOOL, STD_BUF, ... */
 
-#include "free.h"               /* FREE(), DELETE() */
+#include "free.h"		/* FREE(), DELETE() */
 #include "match.h"
-#include "n.h"                  /* Node */
+#include "n.h"			/* Node */
+#include "process.h"		/* Process */
 #include "parse.h"
 #include "thread_pool.h"
 
-#include <errno.h>              /* errno */
-#include <signal.h>             /* signal() */
-#include <stdio.h>              /* stderr */
-#include <stdlib.h>             /* exit() */
+#include <errno.h>		/* errno */
+#include <signal.h>		/* signal() */
+#include <stdio.h>		/* stderr */
+#include <stdlib.h>		/* exit() */
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
-#include <iostream>             /* std::string, cout, endl, ... */
+#include <iostream>		/* std::string, cout, endl, ... */
 
 using namespace std;
 
@@ -86,6 +91,18 @@ PNAME(void)
 /********************************************************************
  * Private C functions
  ********************************************************************/
+/*
+ * Get time in miliseconds.
+ */
+static long
+gettime_ms(void)
+{
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+  return (long long)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
+}
+
 /*
  * Open a file.
  *
@@ -202,6 +219,9 @@ init_s2(void)
   f_open(opts.e0_fname, &opts.e0_file);
   f_open(opts.e1_fname, &opts.e1_file);
   f_open(opts.e2_fname, &opts.e2_file);
+
+  /* initialise random number generation */
+  srandom(gettime_ms() + (getpid() << 16));
 }
 
 #if defined(DG_WARN) && defined(DG_DIAGNOSE)
@@ -864,6 +884,7 @@ s2_run(int argc, char **argv, int i)
 {
   int rval = ERR_OK, lval;
   Node *root = NULL;
+  Process *proc = NULL;
   BOOL tp_created = FALSE;
 
   if(i >= argc) {
@@ -893,9 +914,10 @@ evaluate:
       UPDATE_MAX(rval, lval);
     
       if (root) {
-        Node::threads_init();
-        lval = root->eval();
-        Node::threads_destroy();
+        Process::threads_init();
+        proc = new Process(root);
+        lval = proc->eval();
+        Process::threads_destroy();
         DM_DBG(DM_N(1), "evaluation return value=%d\n", lval);
         UPDATE_MAX(rval, lval);
       }
@@ -966,8 +988,8 @@ tp_handle_request(void *request)
 
   if (p_request) {
     sleep(*((int *)p_request->data));
-    DM_DBG(DM_N(3), "thread (%d): handled request '%d', timeout=%llu\n",
-	   p_request->tp_tid, *((int *)p_request->data), p_request->timeout_usec);
+    DM_DBG(DM_N(3), "thread (%d): handled request '%d'\n",
+	   p_request->tp_tid, *((int *)p_request->data));
   }
   
   RETURN(NULL);
@@ -992,23 +1014,24 @@ main(int argc, char *argv[])
 
   tp_init(opts.tp_size);
 
+#if 0
 #define MAX_REQUESTS	5
   int data[MAX_REQUESTS];
-#if 1
   /* run a loop that generates requests */
   for (i = 0; i < MAX_REQUESTS; i++) {
     data[i] = i;
     tp_enqueue(&data[i], NULL, NULL);
   }
-#endif
-//  int a = 1, b = 2, c = 3;
+#else
+  int a = 1, b = 2, c = 3, d = 4;
   
-//  sleep(1);
-//  tp_enqueue(&a, NULL, NULL);
-//  sleep(2);
-//  tp_enqueue(&b, NULL, NULL);
-//  sleep(2);
-//  tp_enqueue(&c, NULL, NULL);
+  sleep(1);
+  tp_enqueue(&a, NULL, NULL);
+  tp_enqueue(&b, NULL, NULL);
+  tp_enqueue(&c, NULL, NULL);
+  tp_enqueue(&d, NULL, NULL);
+  tp_dequeue(&c);
+#endif
 
 //  sleep(10);
 

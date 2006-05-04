@@ -17,7 +17,7 @@
     DM_ERR_ASSERT(_("srm_endpoint == NULL\n"));\
     return ss.str();\
   }\
-  ss << method << " " << eval_str(srm_endpoint, eval)
+  ss << method << " " << Process::eval_str(srm_endpoint,proc)
 
 #define SS_P_SPACETYPE(r,param)\
   if(r->param) ss << " "#param << "=" << getTSpaceType(*(r->param))
@@ -48,7 +48,7 @@
 
 #define EAT_MATCH(p,q,recv)\
   if(p->q) {\
-    match = e_match(q, recv);\
+    match = proc->e_match(q, recv);\
     if(!match) {\
       DM_DBG(DM_N(1), "no match\n");\
       return ERR_ERR;\
@@ -120,9 +120,9 @@ public:
   SRM2();
   ~SRM2();
 
-  int matchReturnStatus(srm__TReturnStatus *returnStatus);
-  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, BOOL eval);
-  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, BOOL eval);
+  int matchReturnStatus(srm__TReturnStatus *returnStatus, Process *proc);
+  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc);
+  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc);
 
 };
 
@@ -147,8 +147,8 @@ public:
   ~srmAbortFiles();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfAbortFilesResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -173,8 +173,8 @@ public:
   ~srmAbortRequest();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -201,8 +201,8 @@ public:
   ~srmCompactSpace();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -234,8 +234,8 @@ public:
   ~srmCopy();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
 
 private:
@@ -263,8 +263,8 @@ public:
   ~srmExtendFileLifeTime();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -289,8 +289,8 @@ public:
   ~srmGetRequestID();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfRequestDetailsToString(BOOL space, BOOL quote) const;
 
 private:
@@ -316,8 +316,8 @@ public:
   ~srmGetRequestSummary();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfRequestDetailsToString(BOOL space, BOOL quote) const;
 
 private:
@@ -343,8 +343,8 @@ public:
   ~srmGetSpaceMetaData();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfSpaceDetailsToString(BOOL space, BOOL quote) const;
 
 private:
@@ -370,8 +370,8 @@ public:
   ~srmGetSpaceToken();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -397,8 +397,8 @@ public:
   ~srmChangeFileStorageType();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
 
 private:
@@ -425,8 +425,8 @@ public:
   ~srmCheckPermission();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
 
 private:
@@ -458,8 +458,8 @@ public:
   ~srmLs();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
   std::string srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote, std::vector<srm__TMetaDataPathDetail *> details) const;
 
@@ -486,8 +486,8 @@ public:
   ~srmMkdir();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -514,8 +514,8 @@ public:
   ~srmMv();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -546,8 +546,8 @@ public:
   ~srmPrepareToGet();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
 
 private:
@@ -580,8 +580,8 @@ public:
   ~srmPrepareToPut();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
 
 private:
@@ -608,8 +608,8 @@ public:
   ~srmPutDone();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfPutDoneResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -637,8 +637,8 @@ public:
   ~srmReassignToUser();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -665,8 +665,8 @@ public:
   ~srmReleaseFiles();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfReleaseFilesResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -693,8 +693,8 @@ public:
   ~srmReleaseSpace();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -720,8 +720,8 @@ public:
   ~srmRemoveFiles();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfRemoveFilesResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -756,8 +756,8 @@ public:
   ~srmReserveSpace();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -781,8 +781,8 @@ public:
   ~srmResumeRequest();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -807,8 +807,8 @@ public:
   ~srmRm();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
 
 private:
@@ -835,8 +835,8 @@ public:
   ~srmRmdir();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -866,8 +866,8 @@ public:
   ~srmSetPermission();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -894,8 +894,8 @@ public:
   ~srmStatusOfCopyRequest();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfStatusOfCopyRequestResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -922,8 +922,8 @@ public:
   ~srmStatusOfGetRequest();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfStatusOfGetRequestResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -950,8 +950,8 @@ public:
   ~srmStatusOfPutRequest();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
   std::string arrayOfStatusOfPutRequestResponseToString(BOOL space, BOOL quote) const;
 
 private:
@@ -976,8 +976,8 @@ public:
   ~srmSuspendRequest();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };
@@ -1008,8 +1008,8 @@ public:
   ~srmUpdateSpace();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };

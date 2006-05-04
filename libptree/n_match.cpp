@@ -64,7 +64,7 @@ nMatch::~nMatch()
 }
 
 int
-nMatch::exec()
+nMatch::exec(Process *proc)
 {
   DM_DBG_I;
 
@@ -76,13 +76,13 @@ nMatch::exec()
     RETURN(!(match_opt.pcre & PCRE_NOTEMPTY));
   }
 
-  rval = e_match(EVAL2CSTR(expected), EVAL2CSTR(received))? ERR_OK: ERR_ERR;
+  rval = proc->e_match(EVAL2CSTR(expected), EVAL2CSTR(received))? ERR_OK: ERR_ERR;
 
   RETURN(rval);
 }
 
 std::string
-nMatch::toString(BOOL eval)
+nMatch::toString(Process *proc)
 {
   BOOL quote = TRUE;
   std::stringstream ss;

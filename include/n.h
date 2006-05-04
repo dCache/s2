@@ -23,10 +23,10 @@
 #define FBRANCH "branch %u (%d/%d): "
 
 #define SS_DQ(space,str)\
-  if(str) ss << space << dq_param(eval_str(str, eval), quote)
+  if(str) ss << space << dq_param(Process::eval_str(str,proc), quote)
 
 #define SS_P_DQ(param)\
-  if(param) ss << " "#param << "=" << dq_param(eval_str(param, eval), quote)
+  if(param) ss << " "#param << "=" << dq_param(Process::eval_str(param,proc), quote)
 
 #define SS_P_VALUE(r,param)\
   if(r->param) ss << " "#param << "=" << r->param->value;
@@ -42,7 +42,7 @@
   }
 
 #define SS_VEC_DEL(vec)\
-  do {SS_VEC(vec); if(eval) DELETE_VEC(vec)} while(0)
+  do {SS_VEC(vec); if(proc) DELETE_VEC(vec)} while(0)
 
 #define SS_VEC_SPACE\
   do { if(space || print_space) ss << ' ' ; print_space = TRUE;} while(0)
@@ -92,7 +92,6 @@ struct Node
     S2_repeat type;             /* Repeat type (S2_REPEAT_NONE if normal branch). */
     int64_t X;                  /* Repeat from value when !S2_REPEAT_NONE, 0 otherwise. */
     int64_t Y;                  /* Repeat to value when !S2_REPEAT_NONE, 0 otherwise. */
-    int64_t I;			/* Counter value when !(S2_REPEAT_NONE && S2_REPEAT_PAR), X otherwise. */
   } REPEAT;
 
   /* EVAL */
@@ -107,9 +106,6 @@ struct Node
 
   /* debugging information */
   uint row;			/* parser row (node ID) */
-  BOOL has_executed;		/* has this node been executed at all? */
-  int executed;			/* execution value of the node (children exclusive) */
-  int evaluated;		/* ``complete'' evaluation value of the node (children inclusive) */
 
   /* tree overhead */
   Node *parent;			/* the parent of this node; NULL if root */
@@ -134,59 +130,18 @@ public:
   static std::string ind_param(const std::string *s);
   static std::string ind_param(const std::string &s);
   static std::string ind_param(const char *s);
-  static std::string nodeToString(Node *n, uint indent, BOOL eval);
-  static int print_node(Node *n, uint indent, FILE *file, BOOL eval, BOOL show_executed, BOOL show_evaluated);
+  static std::string nodeToString(Node *n, uint indent, struct Process *proc);
+  static int print_node(Node *n, uint indent, FILE *file, struct Process *proc, BOOL show_executed, BOOL show_evaluated);
 
-  int print_node(uint indent, FILE *file, BOOL eval, BOOL show_executed, BOOL show_evaluated);
-  int print_tree(uint indent, FILE *file, BOOL pp_indent, BOOL eval, BOOL exec_eval);
-  BOOL e_match(const std::string *expected, const char *received);
-  BOOL e_match(const char *expected, const char *received);
+  int print_node(uint indent, FILE *file, struct Process *proc, BOOL show_executed, BOOL show_evaluated);
+  int print_tree(uint indent, FILE *file, BOOL pp_indent, BOOL exec_eval);
 
-  virtual int exec() { return ERR_OK; };
-  virtual std::string toString(BOOL eval) { return "Node"; };
-
-protected:
-  /* evaluation functions (basic) */
-  std::string eval_str(const char *cstr, BOOL eval);
-  std::string eval_str(const std::string *s, BOOL eval);
-#define EVAL2CSTR(str) (str)? eval_str(str, TRUE).c_str(): (const char *)NULL
-
-#define _EVAL2INT(u,s) u##int##s##_t eval2##u##int##s(const std::string *str)
-  _EVAL2INT(,32);
-  _EVAL2INT(,64);
-  _EVAL2INT(u,32);
-  _EVAL2INT(u,64);
-#undef _EVAL2INT
-#define _EVAL2PINT(u,s) p##u##int##s##_t eval2p##u##int##s(const std::string *str)
-  _EVAL2PINT(,32);
-  _EVAL2PINT(,64);
-  _EVAL2PINT(u,32);
-  _EVAL2PINT(u,64);
-#undef _EVAL2PINT
-
-  /* evaluation functions (vectors) */
-  std::vector <std::string *> eval_vec_str(const std::vector <std::string *> &v, BOOL eval);
-#define EVAL_VEC_STR(r,vec) vec = eval? eval_vec_str((r::vec), TRUE): (r::vec)
-
-#define _EVAL_VEC_INT(u,s)\
-  std::vector <u##int##s##_t> \
-  Node::eval_vec_##u##int##s(const std::vector <std::string *> &v, BOOL eval)
-  _EVAL_VEC_INT(,32);
-  _EVAL_VEC_INT(,64);
-  _EVAL_VEC_INT(u,32);
-  _EVAL_VEC_INT(u,64);
-#undef _EVAL_VEC_INT
-
-#define _EVAL_VEC_PINT(u,s)\
-  std::vector <u##int##s##_t *> \
-  Node::eval_vec_p##u##int##s(const std::vector <std::string *> &v, BOOL eval)
-  _EVAL_VEC_PINT(,32);
-  _EVAL_VEC_PINT(,64);
-  _EVAL_VEC_PINT(u,32);
-  _EVAL_VEC_PINT(u,64);
-#undef _EVAL_VEC_PINT
+  virtual int exec(struct Process *proc) { return ERR_OK; };
+  virtual std::string toString(struct Process *proc) { return "Node"; };
 
 };
+
+#include "process.h"	/* don't move to the top! */
 
 /* derived classes */
 struct nAssign : public Node
@@ -201,8 +156,8 @@ public:
   ~nAssign();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 
@@ -220,8 +175,8 @@ public:
   ~nCmp();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 
@@ -238,8 +193,8 @@ public:
   ~nDelay();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 
@@ -256,8 +211,8 @@ public:
   ~nMatch();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 
@@ -273,8 +228,8 @@ public:
   ~nNop();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 
@@ -292,8 +247,8 @@ public:
   ~nSetenv();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 
@@ -310,8 +265,8 @@ public:
   ~nSystem();
 
   virtual void init();
-  int exec();
-  std::string toString(BOOL eval);
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
 
 private:
 

@@ -62,7 +62,7 @@ nNop::~nNop()
 }
 
 int
-nNop::exec()
+nNop::exec(Process *proc)
 {
   DM_DBG_I;
 
@@ -71,7 +71,7 @@ nNop::exec()
   const char *word;
   char *endptr;
 
-  s_val = eval_str(val, TRUE);
+  s_val = Process::eval_str(val, proc);
   word = s_val.c_str();
 
   DM_DBG(DM_N(3), "NOP val=|%s|\n", word);
@@ -85,7 +85,7 @@ nNop::exec()
 }
 
 std::string
-nNop::toString(BOOL eval)
+nNop::toString(Process *proc)
 {
   BOOL quote = TRUE;
   std::stringstream ss;

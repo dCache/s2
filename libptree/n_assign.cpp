@@ -64,7 +64,7 @@ nAssign::~nAssign()
 }
 
 int
-nAssign::exec()
+nAssign::exec(Process *proc)
 {
   DM_DBG_I;
   uint var_size = var.size();
@@ -82,11 +82,11 @@ nAssign::exec()
 
   for(uint u = 0; u < var_size; u++) {
     std::string s_var, s_val;
-    s_var = eval_str(var[u], TRUE);
-    s_val = eval_str(val[u], TRUE);
+    s_var = Process::eval_str(var[u], proc);
+    s_val = Process::eval_str(val[u], proc);
 
     BOOL write = overwrite == NULL ||			/* overwrite by default */
-                 eval2int32(overwrite) ||		/* evaluate the overwrite parameter */
+                 proc->eval2int32(overwrite) ||		/* evaluate the overwrite parameter */
                  ReadVariable(s_var.c_str()) == NULL;	/* write if variable not defined */
 
     DM_DBG(DM_N(3), "ASSIGN write=%u |%s| |%s|\n", write, s_var.c_str(), s_val.c_str());
@@ -99,7 +99,7 @@ nAssign::exec()
 }
 
 std::string
-nAssign::toString(BOOL eval)
+nAssign::toString(Process *proc)
 {
   BOOL quote = TRUE;
   uint var_size = var.size();

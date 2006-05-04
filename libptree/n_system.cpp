@@ -64,7 +64,7 @@ nSystem::~nSystem()
 }
 
 int
-nSystem::exec()
+nSystem::exec(Process *proc)
 {
   DM_DBG_I;
 
@@ -75,7 +75,7 @@ nSystem::exec()
   std::string s_cmd;
   char c;
 
-  s_cmd = eval_str(cmd, TRUE);
+  s_cmd = Process::eval_str(cmd, proc);
 
   if((fpin = popen(s_cmd.c_str(), "r")) == NULL) {
     DM_ERR(ERR_SYSTEM, _("popen failed: %s\n"), _(strerror(errno)));
@@ -102,7 +102,7 @@ nSystem::exec()
 
   /* matching */
   if(out) {
-    match = e_match(out, recv.c_str());
+    match = proc->e_match(out, recv.c_str());
     if(!match) RETURN(ERR_ERR);
   }
 
@@ -110,7 +110,7 @@ nSystem::exec()
 }
 
 std::string
-nSystem::toString(BOOL eval)
+nSystem::toString(Process *proc)
 {
   BOOL quote = TRUE;
   std::stringstream ss;

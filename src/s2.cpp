@@ -168,7 +168,7 @@ set_signals(void)
 static void
 exit_handler(void)
 {
-  /* open output files */
+  /* close output files */
   f_close(opts.e0_fname, &opts.e0_file);
   f_close(opts.e1_fname, &opts.e1_file);
   f_close(opts.e2_fname, &opts.e2_file);
@@ -268,35 +268,12 @@ pp_print(Node *node)
 
   f_open(opts.pp_fname, &opts.pp_file);
 
-  if(node) rval = node->print_tree(0, opts.pp_file, TRUE, FALSE, FALSE);
+  if(node) rval = node->print_tree(0, opts.pp_file, NULL, FALSE);
 
   f_close(opts.pp_fname, &opts.pp_file);
 
   return rval;
 } /* pp_print */
-
-/*
- * Execution/Evaluation values print of the tree.  Node which were not
- * evaluated are not printed.
- * If `e2_fname' is NULL, prints to E2_DEFAULT_OUTPUT.
- *
- * Returns
- *   0:  success
- *   >0: errors
- */
-static int
-e2_print(Node *node)
-{
-  int rval = ERR_OK;
-
-  f_open(opts.e2_fname, &opts.e2_file);
-
-  if(node) rval = node->print_tree(0, opts.e2_file, FALSE, TRUE, TRUE);
-
-  f_close(opts.e2_fname, &opts.e2_file);
-
-  return rval;
-} /* e2_print */
 
 /********************************************************************
  * Usage function
@@ -915,18 +892,13 @@ evaluate:
     
       if (root) {
         Process::threads_init();
-        proc = new Process(root);
+        proc = new Process(root, NULL);
         lval = proc->eval();
         Process::threads_destroy();
         DM_DBG(DM_N(1), "evaluation return value=%d\n", lval);
         UPDATE_MAX(rval, lval);
       }
     
-      /* Execution/Evaluation print of the S2 tree */
-      if(opts.e2_fname) lval = e2_print(root);
-      DM_DBG(DM_N(1), "evaluation print return value=%d\n", lval);
-      UPDATE_MAX(rval, lval);
-
 cleanup:
       /* Cleanup */
       DELETE(root);

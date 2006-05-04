@@ -65,7 +65,7 @@ nCmp::~nCmp()
 }
 
 int
-nCmp::exec()
+nCmp::exec(Process *proc)
 {
   DM_DBG_I;
 
@@ -80,8 +80,8 @@ nCmp::exec()
   if(lop == NULL && rop == NULL) RETURN(ERR_OK);
   if(lop == NULL || rop == NULL) RETURN(ERR_ERR);
 
-  s_lop = eval_str(lop, TRUE);
-  s_rop = eval_str(rop, TRUE);
+  s_lop = Process::eval_str(lop, proc);
+  s_rop = Process::eval_str(rop, proc);
 
   word = s_lop.c_str();
   i_lop = get_int64(word, &endptr, FALSE);
@@ -117,7 +117,7 @@ eval_as_strings:
 }
 
 std::string
-nCmp::toString(BOOL eval)
+nCmp::toString(Process *proc)
 {
   BOOL quote = TRUE;
   std::stringstream ss;

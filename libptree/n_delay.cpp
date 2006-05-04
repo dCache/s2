@@ -65,7 +65,7 @@ nDelay::~nDelay()
 }
 
 int
-nDelay::exec()
+nDelay::exec(Process *proc)
 {
   DM_DBG_I;
 
@@ -77,7 +77,7 @@ nDelay::exec()
   uint64_t sec_add;
 
   /* seconds */
-  s_sec = eval_str(nDelay::sec, TRUE);
+  s_sec = Process::eval_str(nDelay::sec, proc);
   word = s_sec.c_str();
 
   req.tv_sec = get_uint64(s_sec.c_str(), &endptr, FALSE);
@@ -87,7 +87,7 @@ nDelay::exec()
   }
 
   /* nanoseconds */
-  s_nsec = eval_str(nDelay::nsec, TRUE);
+  s_nsec = Process::eval_str(nDelay::nsec, proc);
   word = s_nsec.c_str();
 
   req.tv_nsec = get_uint64(s_nsec.c_str(), &endptr, FALSE);
@@ -116,16 +116,16 @@ nDelay::exec()
 }
 
 std::string
-nDelay::toString(BOOL eval)
+nDelay::toString(Process *proc)
 {
   BOOL quote = TRUE;
   std::stringstream ss;
 
   ss << "SLEEP";
-  if(sec) ss << " " << dq_param(eval_str(sec, eval), quote);
+  if(sec) ss << " " << dq_param(Process::eval_str(sec, proc), quote);
   else ss << " 0";
-  if(nsec && strncmp(eval_str(nsec,eval).c_str(),"0",1))
-    ss << " " << dq_param(eval_str(nsec, eval), quote);
+  if(nsec && strncmp(Process::eval_str(nsec, proc).c_str(),"0",1))
+    ss << " " << dq_param(Process::eval_str(nsec, proc), quote);
 
   return ss.str();
 }

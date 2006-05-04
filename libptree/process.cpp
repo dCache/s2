@@ -185,6 +185,7 @@ Process::init(Node *node, Process *p)
   /* TODO! */
   parent = p;
   rpar = NULL;
+  I = 0;
 }
 
 /*
@@ -291,7 +292,8 @@ Process::eval()
             S_V(&thread.total_mtx);
 
             if(can_enqueue) {
-              Process *proc = new Process(ptr_node, this);
+              Process *proc = new Process(ptr_node, parent);
+              /* TODO: rpar linking */
               proc->I = i;
               vProc.push_back(proc);
               DM_DBG(DM_N(1), "parallel repeat branch %u: enqueing a request\n", ptr_node->row);
@@ -305,10 +307,10 @@ Process::eval()
             } else {
               /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
                  => evaluate sequentially */
-              Process proc = Process(ptr_node, this);
+              Process proc = Process(ptr_node, parent);
               proc.I = i;
               DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", ptr_node->row, thread.total, proc.executed, proc.evaluated, opts.tp_size);
-              repeats_eval = proc.eval_with_timeout();
+              repeats_eval = eval_with_timeout();
               UPDATE_MAX_MUTEX(&thread.evaluated_mtx, proc.evaluated, repeats_eval);
             }
           } while(i != n->REPEAT.Y);
@@ -324,7 +326,8 @@ Process::eval()
         S_V(&thread.total_mtx);
         
         if(can_enqueue) {
-          Process *proc = new Process(ptr_node, this);
+          Process *proc = new Process(ptr_node, parent);
+          /* TODO: rpar linking */
           vProc.push_back(proc);
           DM_DBG(DM_N(1), FBRANCH"enqueing a request\n", n->row, executed, evaluated);
           if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
@@ -337,7 +340,7 @@ Process::eval()
         } else {
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
-          Process proc = Process(ptr_node, this);
+          Process proc = Process(ptr_node, parent);
           DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, thread.total, opts.tp_size);
           root_eval = proc.eval_repeats();
           UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, root_eval);
@@ -428,7 +431,8 @@ seq:
 
         if(can_enqueue) {
           DM_DBG(DM_N(1), "parallel repeat "FBRANCH"enqueing a request\n", n->row, executed, evaluated);
-          Process *proc = new Process(n, this);
+          Process *proc = new Process(n, parent);
+          /* TODO: rpar linking */
           proc->I = i;
           vProc.push_back(proc);
           if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
@@ -733,7 +737,8 @@ Process::eval_subtree(const int root_exec, int &root_eval)
       case S2_COND_OR:
         if(root_eval > n->EVAL) {
           DM_DBG(DM_N(5), FBRANCH"OR: root_eval=%d > EVAL=%d\n", n->row, executed, evaluated, root_eval, n->EVAL);
-          Process proc = Process(n->par, this);
+          Process proc = Process(n->par, parent);
+          /* TODO: rpar linking */
           par_eval = proc.eval();
           S_P(&thread.evaluated_mtx);
           evaluated = par_eval;
@@ -752,7 +757,8 @@ Process::eval_subtree(const int root_exec, int &root_eval)
 
 eval_and:
           DM_DBG(DM_N(5), FBRANCH"found a par AND, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
-          Process proc = Process(ptr_node, this);
+          Process proc = Process(ptr_node, parent);
+          /* TODO: rpar linking */
           par_eval = proc.eval();
           S_P(&thread.evaluated_mtx);
           evaluated = par_eval;
@@ -764,7 +770,8 @@ eval_and:
       case S2_COND_AND:
         if(root_eval <= n->EVAL) {
           DM_DBG(DM_N(5), FBRANCH"AND: root_eval(%d) <= EVAL(%d)\n", n->row, executed, evaluated, root_eval, n->EVAL);
-          Process proc = Process(n->par, this);
+          Process proc = Process(n->par, parent);
+          /* TODO: rpar linking */
           par_eval = proc.eval();
           S_P(&thread.evaluated_mtx);
           evaluated = par_eval;
@@ -783,7 +790,8 @@ eval_and:
 
 eval_or:
           DM_DBG(DM_N(5), FBRANCH"found a par OR, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
-          Process proc = Process(ptr_node, this);
+          Process proc = Process(ptr_node, parent);
+          /* TODO: rpar linking */
           par_eval = proc.eval();
           S_P(&thread.evaluated_mtx);
           evaluated = par_eval;
@@ -1044,7 +1052,8 @@ Process::eval_str(const char *cstr, Process *proc)
             Process *ptr_proc = proc;
             while(ptr_proc && i16 >= 0) {
               if(ptr_proc->n->REPEAT.type == S2_REPEAT_OR || 
-                 ptr_proc->n->REPEAT.type == S2_REPEAT_AND)
+                 ptr_proc->n->REPEAT.type == S2_REPEAT_AND ||
+                 ptr_proc->n->REPEAT.type == S2_REPEAT_PAR)
               {
                 DM_DBG(DM_N(4), "found OR or AND repeat; i16=%d\n", i16);
                 if(!i16) {

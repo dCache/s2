@@ -268,7 +268,7 @@ pp_print(Node *node)
 
   f_open(opts.pp_fname, &opts.pp_file);
 
-  if(node) rval = node->print_tree(0, opts.pp_file, NULL, FALSE);
+  if(node) rval = node->print_tree(0, opts.pp_file, FALSE, FALSE);
 
   f_close(opts.pp_fname, &opts.pp_file);
 

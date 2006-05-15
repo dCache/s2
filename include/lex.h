@@ -34,6 +34,7 @@ struct Attr {
   union {
     int64_t i;		/* integer */
     double  r;		/* real    */
+//    char   *s;		/* string  */
   } v;			/* value   */
 };
 

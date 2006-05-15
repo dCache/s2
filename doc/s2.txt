@@ -672,8 +672,10 @@ e.g.: ${named_regex}some_text(?P<named_regex>...)some_text${named_regex}
 ~~~~~~~~~~~~~~~~~~~~~~
 Script variables can be defined by the ASSIGN action, or by using
 named regular expressions as described in the previous section.
-All variables are global variables and script variable values are
-accessible by the ${<VAR>} tag.
+All variables are global variables apart from variables defined in
+parallel processes.  These are local to a branch which created the
+parallel process.  Script variable values are accessible by the
+${<VAR>} tag.
 
 2.5.2 Environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -684,9 +686,18 @@ Environment variables are accessible by the $ENV{<VAR>} tag.
 ${?} reference to parent's execution value.  If a branch doesn't have
      a parent, ${?} expands to 0.
 
-${!} reference to evaluation value of a previous branch at the same offset.
-     If such a branch doesn't exist or it did not execute, ${!} expands
-     to 0.
+${!} reference to evaluation value of a branch that was evaluated immediately
+     before the current branch and is indented by the same number 
+     of spaces as the current branch.  If such a branch doesn't exist ${!}
+     expands to 0.
+
+For example:
+
+NOP 2
+&& SYSTEM echo "Not evaluated."
+|| SYSTEM echo ${!}
+
+shall print the number 2.
 
 $I{<I>} refrerence to the internal counter of a sequential repeat operator.
         The value is always between <X> any <Y>.  <I> denotes branch

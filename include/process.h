@@ -11,6 +11,14 @@
 #include <sys/time.h>		/* timespec */
 #include <time.h>		/* timespec */
 
+#include <map>                  /* std::map */
+
+/* typedefs */
+typedef std::map<std::string, std::string> TVariables;
+
+/* global variables */
+static TVariables gl_var_tab;
+
 struct Process
 {
   Node *n;			/* pointer to the Node that's being evaluated */
@@ -27,29 +35,41 @@ struct Process
 
   /* tree overhead (${?}, ${!}) */
   Process *parent;		/* the parent of this process; NULL if root */
-  Process *rpar;		/* a previous process in parallel to this one; NULL if none */
-//  Process *child;		/* a child of this process; NULL if none */
-//  Process *par;			/* a following process in parallel to this one; NULL if none */
+  Process *rpar;		/* a process which finished execution before this one (same indentation); NULL if none */
+
+  TVariables *var_tab;		/* local variables (if it is a process running in parallel) */
 
 public:
   Process();
-  Process(Node *node, Process *p);
+  Process(Node *node, Process *p, Process *rpar);
   virtual ~Process();
   static int threads_init(void);
   static int threads_destroy(void);
 
   virtual void init();
-  virtual void init(Node *node, Process *p);
+  virtual void init(Node *node, Process *p, Process *rpar);
 
   int eval();
+  int eval_par();
   int eval_repeats();
   int eval_sequential_repeats();
   int exec_with_timeout();
   int eval_with_timeout();
   int eval_subtree(const int root_exec, int &root_eval);
 
+  BOOL is_parallel();
+
   BOOL e_match(const std::string *expected, const char *received);
   BOOL e_match(const char *expected, const char *received);
+
+  /* operations on variables */
+  void WriteVariable(TVariables *var_tab, const char *name, const char *value, int vlen);
+  void WriteVariable(Process *proc, const char *name, const char *value, int vlen);
+  void WriteVariable(const char *name, const char *value);
+  void WriteVariable(const char *name, const char *value, int vlen);
+  const char *ReadVariable(TVariables *var_tab, const char *name);
+  const char *ReadVariable(Process *proc, const char *name);
+  const char *ReadVariable(const char *name);
 
   std::string toString();
 

@@ -85,14 +85,14 @@ nAssign::exec(Process *proc)
     s_var = Process::eval_str(var[u], proc);
     s_val = Process::eval_str(val[u], proc);
 
-    BOOL write = overwrite == NULL ||			/* overwrite by default */
-                 proc->eval2int32(overwrite) ||		/* evaluate the overwrite parameter */
-                 ReadVariable(s_var.c_str()) == NULL;	/* write if variable not defined */
+    BOOL write = overwrite == NULL ||				/* overwrite by default */
+                 proc->eval2int32(overwrite) ||			/* evaluate the overwrite parameter */
+                 proc->ReadVariable(s_var.c_str()) == NULL;	/* write if variable not defined */
 
     DM_DBG(DM_N(3), "ASSIGN write=%u |%s| |%s|\n", write, s_var.c_str(), s_val.c_str());
 
     if(write)
-      WriteVariable(s_var.c_str(), s_val.c_str());
+      proc->WriteVariable(s_var.c_str(), s_val.c_str());
   }
 
   RETURN(ERR_OK);

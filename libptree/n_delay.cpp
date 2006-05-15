@@ -73,7 +73,8 @@ nDelay::exec(Process *proc)
   std::string s_nsec;
   const char *word;
   char *endptr;
-  timespec req, rem;
+  struct timeval now;			/* timeval uses micro-seconds */
+  timespec req, rem;			/* timespec uses nano-seconds */
   uint64_t sec_add;
 
   /* seconds */
@@ -100,7 +101,12 @@ nDelay::exec(Process *proc)
   req.tv_sec += sec_add;
   req.tv_nsec %= 1000000000U;
 
-  DM_DBG(DM_N(2), _("sleeping %d seconds, %d nanoseconds\n"), req.tv_sec, req.tv_nsec);
+  if(gettimeofday(&now, NULL)) {
+    DM_ERR(ERR_SYSTEM, _("gettimeofday: %s\n"), strerror(errno));
+    RETURN(ERR_SYSTEM);
+  }
+
+  DM_DBG(DM_N(2), _("sleeping sec=%ld seconds, nsec=%ld [now: sec=%ld, usec=%ld]\n"), req.tv_sec, req.tv_nsec, now.tv_sec, now.tv_usec);
 
   while(nanosleep(&req, &rem) != 0) {
     if(errno == EINTR) {

@@ -1,12 +1,15 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Refactor parallel execution model and timeouts ("process notion")
-- MATCH/LT/GT/... (make them tags + add TEST)
-- > true/false cond (repeat forever)
+- Improve logging, do some additional testing.
+- TEST
+- MATCH => $MATCH{a,b}
+- LT/GT/... (<, >, ...)
+- WHILE loop
+- Implement functions
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - ECHO (vs. SYSTEM echo --- performance considerations)
+- Consider using '' for expressions which will not be evaluated (q_param).
 - Investigate gSoap memory leaks.
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
 - SEND/RECEIVE (TCP/UDP/...)?
-- More preprocessor directives (#define) or functions?
 - minor POSIX threads related memory leaks (consider using Apache threads).

@@ -97,11 +97,11 @@ extern int parse_match_opts(const char *options, match_opts *match_opt);
 extern int print_match_opts(FILE *fout, const match_opts match_opt);
 extern char *get_match_opts(const match_opts match_opt);
 extern BOOL pcre_matches(const char *expected, const char *received, const uint32_t pcre_opt,
-                         void WriteVariable(const char *, const char *, int));
+                         struct Process *proc);
 extern BOOL pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_opt,
-                               void WriteVariable(const char *, const char *, int));
+                                 struct Process *proc);
 extern BOOL pcre_match_hbsplit(char *pattern, char *subject, const match_opts match_opt,
-                               void WriteVariable(const char *, const char *, int));
+                               struct Process *proc);
 
 /* extern(al) variable declarations (provided for other modules) */
 extern MATCH_opt PX_mopts[];    /* PX match options, defined in match.cpp */

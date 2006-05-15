@@ -37,11 +37,13 @@
 
 #include <iostream>		/* std::string, cout, endl, ... */
 #include <sstream>		/* ostringstream */
+#include <fstream>              /* ifstream */
 
 //#define USE_PTHREAD_ATTR	/* SEGVs! */
 
 using namespace std;
 
+/* simple macros */
 #define UPDATE_MAX_MUTEX(mtx,m1,m2)\
   do {S_P(mtx); UPDATE_MAX(m1,m2); S_V(mtx);} while(0)
 
@@ -49,7 +51,6 @@ using namespace std;
 typedef struct threads {
   int total;
   pthread_mutex_t total_mtx;
-  pthread_mutex_t evaluated_mtx;
   pthread_mutex_t print_mtx;
   pthread_cond_t timeout_cv;
   pthread_mutex_t timeout_mtx;
@@ -110,7 +111,7 @@ eval_in_parallel(void *proc)
   DM_DBG(DM_N(3), "%s\n", p->n->toString(NULL).c_str());
 
   root_eval = p->eval_sequential_repeats();
-  UPDATE_MAX_MUTEX(&thread.evaluated_mtx, p->evaluated, root_eval);
+  UPDATE_MAX(p->evaluated, root_eval);
   MUTEX(&thread.total_mtx, thread.total--);
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", p->n->row, p->executed, p->evaluated, pthread_self());
@@ -178,22 +179,29 @@ Process::init()
  * Initialise Process
  */
 void
-Process::init(Node *node, Process *p)
+Process::init(Node *node, Process *p, Process *rpar)
 {
   n = node;
 
-  /* TODO! */
   parent = p;
-  rpar = NULL;
+  Process::rpar = rpar;
   I = 0;
+
+  if(is_parallel()) {
+    /* it is a parallel process, keep variables in the local variable space */
+    var_tab = new TVariables();
+    DM_DBG(DM_N(0), FBRANCH"creating local variable table %p\n", n->row, executed, evaluated, var_tab);
+  } else {
+    var_tab = NULL;	/* use paren't scope */
+  }
 }
 
 /*
  * Process constuctor
  */
-Process::Process(Node *node, Process *p)
+Process::Process(Node *node, Process *p, Process *rpar)
 {
-  Process::init(node, p);
+  Process::init(node, p, rpar);
   init();
 }
 
@@ -202,7 +210,13 @@ Process::Process(Node *node, Process *p)
  */
 Process::~Process()
 {
-  DELETE_VEC(vProc);		/* terminate finished processes */
+  /* delete finished processes spawned by this process */
+  DELETE_VEC(vProc);
+
+  /* delete table of local variables */
+  if(var_tab != &gl_var_tab) {
+    DELETE(var_tab);
+  }
 }
 
 int
@@ -219,7 +233,6 @@ Process::threads_init(void)
 #endif
 
   pthread_mutex_init(&thread.total_mtx, NULL);
-  pthread_mutex_init(&thread.evaluated_mtx, NULL);
   pthread_mutex_init(&thread.print_mtx, NULL);
   pthread_cond_init(&thread.timeout_cv, NULL);
   pthread_mutex_init(&thread.timeout_mtx, NULL);
@@ -235,7 +248,6 @@ Process::threads_destroy(void)
 #endif
 
   pthread_mutex_destroy(&thread.total_mtx);
-  pthread_mutex_destroy(&thread.evaluated_mtx);
   pthread_mutex_destroy(&thread.print_mtx);
   pthread_cond_destroy(&thread.timeout_cv);
   pthread_mutex_destroy(&thread.timeout_mtx);
@@ -244,17 +256,12 @@ Process::threads_destroy(void)
 }
 
 /* 
- * Evaluate nodes of the tree by recursive preorder traversal.
- * 
  * Take care of parallel branches.
  */
 int
 Process::eval()
 {
   DM_DBG_I;
-  std::string str_node = Node::nodeToString(n, n->OFFSET, this);
-  DM_DBG_B(DM_N(1), "%s\n", str_node.c_str());
-  DM_LOG_B(DM_N(1), "%s\n", str_node.c_str());
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
   int root_eval;
@@ -279,11 +286,12 @@ Process::eval()
         if(ptr_node->REPEAT.type == S2_REPEAT_PAR) {
           /* repeats execution */
           int repeats_eval;
-          int8_t step = n->REPEAT.X < n->REPEAT.Y? 1 : -1;
-          int64_t i = n->REPEAT.X - step;
+          int8_t step = ptr_node->REPEAT.X < ptr_node->REPEAT.Y? 1 : -1;
+          int64_t i = ptr_node->REPEAT.X - step;
 
           do {
             i += step;
+            DM_DBG(DM_N(1), "parallel repeat branch %u; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", ptr_node->row, ptr_node->REPEAT.X, ptr_node->REPEAT.Y, i);
             S_P(&thread.total_mtx);
             if(thread.total < opts.tp_size) {
               thread.total++;
@@ -292,8 +300,7 @@ Process::eval()
             S_V(&thread.total_mtx);
 
             if(can_enqueue) {
-              Process *proc = new Process(ptr_node, parent);
-              /* TODO: rpar linking */
+              Process *proc = new Process(ptr_node, parent, NULL);
               proc->I = i;
               vProc.push_back(proc);
               DM_DBG(DM_N(1), "parallel repeat branch %u: enqueing a request\n", ptr_node->row);
@@ -307,16 +314,16 @@ Process::eval()
             } else {
               /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
                  => evaluate sequentially */
-              Process proc = Process(ptr_node, parent);
+              Process proc = Process(ptr_node, parent, NULL);
               proc.I = i;
               DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", ptr_node->row, thread.total, proc.executed, proc.evaluated, opts.tp_size);
-              repeats_eval = eval_with_timeout();
-              UPDATE_MAX_MUTEX(&thread.evaluated_mtx, proc.evaluated, repeats_eval);
+              repeats_eval = proc.eval_with_timeout();
+              UPDATE_MAX(evaluated, repeats_eval);
             }
-          } while(i != n->REPEAT.Y);
+          } while(i != ptr_node->REPEAT.Y);
 
           continue;
-        }
+        } /* end repeats */
         
         S_P(&thread.total_mtx);
         if(thread.total < opts.tp_size) {
@@ -326,8 +333,7 @@ Process::eval()
         S_V(&thread.total_mtx);
         
         if(can_enqueue) {
-          Process *proc = new Process(ptr_node, parent);
-          /* TODO: rpar linking */
+          Process *proc = new Process(ptr_node, parent, NULL);
           vProc.push_back(proc);
           DM_DBG(DM_N(1), FBRANCH"enqueing a request\n", n->row, executed, evaluated);
           if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
@@ -340,10 +346,10 @@ Process::eval()
         } else {
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
-          Process proc = Process(ptr_node, parent);
+          Process proc = Process(ptr_node, parent, NULL);
           DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, thread.total, opts.tp_size);
           root_eval = proc.eval_repeats();
-          UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, root_eval);
+          UPDATE_MAX(evaluated, root_eval);
         }
       } /* if */
     } /* for */
@@ -352,7 +358,7 @@ Process::eval()
   }
 
   root_eval = eval_repeats();
-  UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, root_eval);
+  UPDATE_MAX(evaluated, root_eval);
   DM_DBG(DM_N(3), FBRANCH"root_eval=%d\n", n->row, executed, evaluated, root_eval);
 
   S_P(&sreqs_mtx);
@@ -368,23 +374,21 @@ Process::eval()
 
   /* Parallel execution finished, we have one thread of execution. *
    * Go through the parallel branches and set the return value.    */
-  if(n->par) {
-    std::vector<Process *>::const_iterator it;
-    for (it = vProc.begin(); it != vProc.end(); it++) {
-      UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, (*it)->evaluated);
-    }
+  std::vector<Process *>::const_iterator it;
+  for (it = vProc.begin(); it != vProc.end(); it++) {
+    UPDATE_MAX(evaluated, (*it)->evaluated);
   }
-
+  
   DM_DBG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
   DM_LOG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
 
   if(opts.e2_fname) Node::print_node(n, n->OFFSET, opts.e2_file, this, TRUE, TRUE);
 
-  RETURN(evaluated);
+  RETURN(evaluated);	/* ${!} */
 }
 
 /* 
- * Evaluate nodes of the tree by recursive preorder traversal.
+ * This function specifically takes care of evaluating parallel repeats.
  */
 int
 Process::eval_repeats()
@@ -401,7 +405,7 @@ Process::eval_repeats()
 seq:
       I = n->REPEAT.X;		/* necessary for S2_REPEAT_NONE only */
       repeats_eval = eval_sequential_repeats();
-      UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, repeats_eval);
+      UPDATE_MAX(evaluated, repeats_eval);
       DM_DBG(DM_N(5), FBRANCH"repeats_eval=%d\n", n->row, executed, evaluated, repeats_eval);
     break;
 
@@ -416,9 +420,10 @@ seq:
       int sreqs = 0;		/* number of parallel subrequests created */
       pthread_cond_t sreqs_cv = PTHREAD_COND_INITIALIZER;
       pthread_mutex_t sreqs_mtx = PTHREAD_MUTEX_INITIALIZER;
-      DM_DBG(DM_N(1), _("parallel repeat "FBRANCH"total number of threads=%d\n"), n->row, executed, evaluated, threads_total);
+      DM_DBG(DM_N(1), FBRANCH"parallel repeat; total number of threads=%d\n", n->row, executed, evaluated, threads_total);
       do {
         i += step;
+        DM_DBG(DM_N(1), FBRANCH"parallel repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
         BOOL can_enqueue;
         can_enqueue = FALSE;
         
@@ -431,8 +436,7 @@ seq:
 
         if(can_enqueue) {
           DM_DBG(DM_N(1), "parallel repeat "FBRANCH"enqueing a request\n", n->row, executed, evaluated);
-          Process *proc = new Process(n, parent);
-          /* TODO: rpar linking */
+          Process *proc = new Process(n, parent, NULL);
           proc->I = i;
           vProc.push_back(proc);
           if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
@@ -448,7 +452,7 @@ seq:
           I = i;
           DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, thread.total, opts.tp_size);
           repeats_eval = eval_with_timeout();
-          UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, repeats_eval);
+          UPDATE_MAX(evaluated, repeats_eval);
         }
       } while(i != n->REPEAT.Y);
 
@@ -463,12 +467,101 @@ seq:
       pthread_cond_destroy(&sreqs_cv);
       pthread_mutex_destroy(&sreqs_mtx);
 
+      /* Parallel execution finished, we have one thread of execution. *
+       * Go through the parallel branches and set the return value.    */
+      std::vector<Process *>::const_iterator it;
+      for (it = vProc.begin(); it != vProc.end(); it++) {
+        UPDATE_MAX(evaluated, (*it)->evaluated);
+      }
+
+      /* Investigate branches at the same offset */
+      if(n->par)
+        evaluated = eval_par();
+        
     break;
   }
 
   DM_DBG(DM_N(5), FBRANCH"eval_repeats returns\n", n->row, executed, evaluated);
   RETURN(evaluated);
 } /* eval_repeats */
+
+/* 
+ * Evaluate branches of the tree joined at the same offset.
+ */
+int
+Process::eval_par()
+{
+  DM_DBG_I;
+  int par_eval;
+
+  /* Investigate branches at the same offset */
+  if(n->par) {
+    Node *ptr_node = n->par;
+    DM_DBG(DM_N(5), FBRANCH"investigating branches located at the same offset\n", n->row, executed, evaluated);
+    switch(n->par->COND) {
+      case S2_COND_OR:
+        if(evaluated > n->EVAL) {
+          DM_DBG(DM_N(5), FBRANCH"OR: evaluated=%d > EVAL=%d\n", n->row, executed, evaluated, evaluated, n->EVAL);
+          Process proc = Process(n->par, parent, this);
+          par_eval = proc.eval();
+          evaluated = par_eval;
+          DM_DBG(DM_N(5), FBRANCH"OR: par_eval=%d\n", n->row, executed, evaluated, par_eval);
+        } else {
+          /* see if we have an AND node that we need to evaluate */
+          DM_DBG(DM_N(5), FBRANCH"OR: evaluated(%d) <= EVAL(%d)\n", n->row, executed, evaluated, evaluated, n->EVAL);
+
+          ptr_node = n->par->par;
+          while(ptr_node) {
+            if(ptr_node->COND == S2_COND_AND) goto eval_and;
+            ptr_node = ptr_node->par;
+          }
+          break;
+
+eval_and: /* only used by the goto above */
+          DM_DBG(DM_N(5), FBRANCH"found a par AND, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
+          Process proc = Process(ptr_node, parent, this);
+          par_eval = proc.eval();
+          evaluated = par_eval;
+          DM_DBG(DM_N(5), FBRANCH"OR: par_eval=%d\n", n->row, executed, evaluated, par_eval);
+        }
+      break;
+
+      case S2_COND_AND:
+        if(evaluated <= n->EVAL) {
+          DM_DBG(DM_N(5), FBRANCH"AND: evaluated(%d) <= EVAL(%d)\n", n->row, executed, evaluated, evaluated, n->EVAL);
+          Process proc = Process(n->par, parent, this);
+          par_eval = proc.eval();
+          evaluated = par_eval;
+          DM_DBG(DM_N(5), FBRANCH"AND: par_eval=%d\n", n->row, executed, evaluated, par_eval);
+        } else {
+          /* see if we have an OR node that can save us (return TRUE evaluation) */
+          DM_DBG(DM_N(5), FBRANCH"AND: evaluated(%d) > EVAL(%d)\n", n->row, executed, evaluated, evaluated, n->EVAL);
+
+          ptr_node = n->par->par;
+          while(ptr_node) {
+            if(ptr_node->COND == S2_COND_OR) goto eval_or;
+            ptr_node = ptr_node->par;
+          }
+          break;
+
+eval_or: /* only used by the goto above */
+          DM_DBG(DM_N(5), FBRANCH"found a par OR, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
+          Process proc = Process(ptr_node, parent, this);
+          par_eval = proc.eval();
+          evaluated = par_eval;
+          DM_DBG(DM_N(5), FBRANCH"AND: par_eval=%d\n", n->row, executed, evaluated, par_eval);
+        }
+      break;
+      
+      case S2_COND_NONE:
+        /* parallel execution, already taken care of */
+        DM_DBG(DM_N(5), FBRANCH"found a parallel branch, execution already scheduled\n", n->row, evaluated, executed);
+      break;
+    }
+  }
+
+  RETURN(evaluated);
+}
 
 /* 
  * Evaluate nodes of the tree by recursive preorder traversal.
@@ -488,7 +581,7 @@ Process::eval_sequential_repeats()
     case S2_REPEAT_PAR:		/* fall through: parallelism already handled in eval_repeats() */
       DM_DBG(DM_N(5), "NO/PAR repeat "FBRANCH"\n", n->row, executed, evaluated);
       iter_eval = eval_with_timeout();
-      UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, iter_eval);
+      UPDATE_MAX(evaluated, iter_eval);
       DM_DBG(DM_N(5), "NO/PAR repeat "FBRANCH"iter_eval=%d\n", n->row, executed, evaluated, iter_eval);
     break;
 
@@ -496,10 +589,10 @@ Process::eval_sequential_repeats()
       I = i;
       do {
         I += step;
-        DM_DBG(DM_N(5), "OR repeat "FBRANCH"I=%"PRIi64" != REPEAT.Y=%"PRIi64"\n", n->row, evaluated, executed, I, n->REPEAT.Y);
+        DM_DBG(DM_N(5), FBRANCH"OR repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
 
         iter_eval = eval_with_timeout();
-        UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, iter_eval);
+        UPDATE_MAX(evaluated, iter_eval);
         DM_DBG(DM_N(5), "OR repeat "FBRANCH"iter_eval=%d\n", n->row, evaluated, executed, iter_eval);
         if(evaluated <= n->EVAL) {
           DM_DBG(DM_N(5), "OR repeat "FBRANCH"successfully evaluated; evaluated=%d <= EVAL=%d\n", n->row, executed, evaluated, evaluated, n->EVAL);
@@ -513,10 +606,10 @@ Process::eval_sequential_repeats()
       I = i;
       do {
         I += step;
-        DM_DBG(DM_N(5), "AND repeat "FBRANCH"I=%"PRIi64" != REPEAT.Y=%"PRIi64"\n", n->row, executed, evaluated, I, n->REPEAT.Y);
+        DM_DBG(DM_N(5), FBRANCH"AND repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
 
         iter_eval = eval_with_timeout();
-        UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, iter_eval);
+        UPDATE_MAX(evaluated, iter_eval);
         DM_DBG(DM_N(5), "AND repeat "FBRANCH"iter_eval=%d\n", n->row, executed, evaluated, iter_eval);
         if(evaluated > n->EVAL) {
           DM_DBG(DM_N(5), "AND repeat "FBRANCH"unsuccessfully evaluated; evaluated=%d > EVAL=%d\n", n->row, executed, evaluated, evaluated, n->EVAL);
@@ -529,6 +622,12 @@ Process::eval_sequential_repeats()
   }
 
   DM_DBG(DM_N(5), FBRANCH"eval_sequential_repeats returns\n", n->row, executed, evaluated);
+
+  /* Investigate branches at the same offset */
+  if(n->par && n->REPEAT.type != S2_REPEAT_PAR)
+    /* evaluation of parallel repeats already taken care of in eval_repeats() */
+    evaluated = eval_par();
+
   RETURN(evaluated);
 } /* eval_sequential_repeats */
 
@@ -547,7 +646,6 @@ pthread_timeout_handler(void *proc)
   DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
 
   S_V(&thread.total_mtx);
-  S_V(&thread.evaluated_mtx);
   S_V(&thread.print_mtx);
 
   DM_DBG_O;
@@ -568,7 +666,7 @@ exec_in_parallel_without_timeout(void *timeout_info)
   DM_DBG(DM_N(3), "%s\n", ti->p->n->toString(FALSE).c_str());
 
   root_eval = ti->p->n->exec(ti->p);
-  UPDATE_MAX_MUTEX(&thread.evaluated_mtx, ti->p->evaluated, root_eval);
+  UPDATE_MAX(ti->p->evaluated, root_eval);
   ti->terminated = TRUE;
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, pthread_self());
@@ -625,12 +723,14 @@ Process::exec_with_timeout()
       DM_ERR(ERR_SYSTEM, _("gettimeofday: %s\n"), strerror(errno));
       RETURN(ERR_SYSTEM);
     }
-    unsigned long timeout_add_sec = n->TIMEOUT / 1000000;
-    unsigned long timeout_add_usec = n->TIMEOUT - ((n->TIMEOUT / 1000000) * 1000000);
-
+    unsigned long timeout_add_sec = n->TIMEOUT / 1000000;	/* TIMEOUT is in microseconds */
+    unsigned long timeout_add_usec = n->TIMEOUT % 1000000;
+    timeout_add_sec += (now.tv_usec + timeout_add_usec) / 1000000;
+    DM_DBG_T(DM_N(2), FBRANCH"now.tv_sec=%ld; timeout_add_sec=%ld, timeout_add_usec=%ld\n", n->row, executed, evaluated, now.tv_sec, timeout_add_sec, timeout_add_usec);
     timeout.tv_sec = now.tv_sec + timeout_add_sec;
-    timeout.tv_nsec = (now.tv_usec + timeout_add_usec) * 1000;
+    timeout.tv_nsec = ((now.tv_usec + timeout_add_usec) % 1000) * 1000;
 
+    DM_DBG_T(DM_N(2), FBRANCH"seting timeout to wait till sec=%ld; nsec=%ld [now: sec=%ld, usec=%ld]\n", n->row, executed, evaluated, timeout.tv_sec, timeout.tv_nsec, now.tv_sec, now.tv_usec);
     S_P(&thread.timeout_mtx);
     DM_DBG_T(DM_N(2), FBRANCH"waiting for timeout_cv\n", n->row, executed, evaluated);
     int rc;
@@ -668,7 +768,7 @@ Process::exec_with_timeout()
     DM_DBG(DM_N(2), FBRANCH"timeout reached\n", n->row, executed, evaluated);
     DM_LOG(DM_N(2), FBRANCH"timeout reached\n", n->row, executed, evaluated);
     root_eval = ERR_NEXEC;
-    UPDATE_MAX_MUTEX(&thread.evaluated_mtx, evaluated, ERR_NEXEC);
+    UPDATE_MAX(evaluated, ERR_NEXEC);
   }
 
   /* Remove thread cleanup handler. */
@@ -678,35 +778,40 @@ Process::exec_with_timeout()
 } /* exec_with_timeout */
 
 /* 
- * Evaluate subtree of a node.
+ * Evaluate subtree of a node with a timeout.
  */
 int
 Process::eval_with_timeout()
 {
-  int timeout_exec, timeout_eval;
+  DM_DBG_I;
+  int timeout_exec, subtree_eval;
 
+  /* print the node with variables evaluated just before its execution */
   if(opts.e0_fname) Node::print_node(n, n->OFFSET, opts.e0_file, this, FALSE, FALSE);
 
   DM_DBG_T(DM_N(4), FBRANCH"starting execution of proc=%p\n", n->row, executed, evaluated, this);
-//  DM_LOG_B(DM_N(1), "%s\n", nodeToString(this, OFFSET, this).c_str());
+
+  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, n->OFFSET, this).c_str());
   timeout_exec = exec_with_timeout();
-//  DM_LOG_B(DM_N(1), "%s\n", nodeToString(this, OFFSET, this).c_str());
-  S_P(&thread.evaluated_mtx);
-  executed = evaluated = timeout_exec;	/* for ${?} */
-  S_V(&thread.evaluated_mtx);
+  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, n->OFFSET, this).c_str());
+
+  /* there might have been warnings (unset variables) during tag expansions */
+  UPDATE_MAX(executed, timeout_exec);
+  evaluated = executed;				/* for ${?} */
+
+  /* print the node with variables evaluated just after its execution */
   if(opts.e1_fname) Node::print_node(n, n->OFFSET, opts.e1_file, this, TRUE, FALSE);
+
   DM_DBG_T(DM_N(4), FBRANCH"finished execution (of proc=%p)\n", n->row, executed, evaluated, this);
   DM_LOG(DM_N(2), FBRANCH"executed=%d\n", n->row, executed, evaluated, timeout_exec);
 
-  timeout_eval = eval_subtree(timeout_exec, timeout_exec);
-  DM_DBG(DM_N(4), FBRANCH"proc=%p; timeout_eval=%d\n", n->row, executed, evaluated, this, timeout_eval);
+  subtree_eval = eval_subtree(timeout_exec, timeout_exec);
+  DM_DBG(DM_N(4), FBRANCH"proc=%p; subtree_eval=%d\n", n->row, executed, evaluated, this, subtree_eval);
 
-  S_P(&thread.evaluated_mtx);
-  evaluated = timeout_eval;
-  S_V(&thread.evaluated_mtx);
+  UPDATE_MAX(evaluated, subtree_eval);
 
-  return timeout_eval;
-}
+  RETURN(evaluated);
+} /* eval_with_timeout */
 
 /* 
  * Evaluate subtree of a node.
@@ -714,14 +819,15 @@ Process::eval_with_timeout()
 int
 Process::eval_subtree(const int root_exec, int &root_eval)
 {
-  int child_eval, par_eval; 
+  DM_DBG_I;
+  int child_eval;
 
   /* investigate CHILDREN */
   if(root_exec <= n->EVAL) { 
     /* evaluate the children (only if root executed fine) */
     if(n->child) {
       DM_DBG(DM_N(3), FBRANCH"evaluating child branch %u\n", n->row, executed, evaluated, n->child->row);
-      Process proc = Process(n->child, this);
+      Process proc = Process(n->child, this, NULL);
       child_eval = proc.eval();
       root_eval = child_eval;
     }
@@ -729,96 +835,56 @@ Process::eval_subtree(const int root_exec, int &root_eval)
 
   DM_DBG(DM_N(5), FBRANCH"subtree_eval=%d\n", n->row, executed, evaluated, root_eval);
 
-  /* Investigate branches at the same offset */
-  if(n->par) {
-    Node *ptr_node = n->par;
-    DM_DBG(DM_N(5), FBRANCH"investigating branches located at the same offset\n", n->row, executed, evaluated);
-    switch(n->par->COND) {
-      case S2_COND_OR:
-        if(root_eval > n->EVAL) {
-          DM_DBG(DM_N(5), FBRANCH"OR: root_eval=%d > EVAL=%d\n", n->row, executed, evaluated, root_eval, n->EVAL);
-          Process proc = Process(n->par, parent);
-          /* TODO: rpar linking */
-          par_eval = proc.eval();
-          S_P(&thread.evaluated_mtx);
-          evaluated = par_eval;
-          S_V(&thread.evaluated_mtx);
-          DM_DBG(DM_N(5), FBRANCH"OR: par_eval=%d\n", n->row, executed, evaluated, par_eval);
-        } else {
-          /* see if we have an AND node that we need to evaluate */
-          DM_DBG(DM_N(5), FBRANCH"OR: evaluated(%d) <= EVAL(%d)\n", n->row, executed, evaluated, evaluated, n->EVAL);
-
-          ptr_node = n->par->par;
-          while(ptr_node) {
-            if(ptr_node->COND == S2_COND_AND) goto eval_and;
-            ptr_node = ptr_node->par;
-          }
-          break;
-
-eval_and:
-          DM_DBG(DM_N(5), FBRANCH"found a par AND, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
-          Process proc = Process(ptr_node, parent);
-          /* TODO: rpar linking */
-          par_eval = proc.eval();
-          S_P(&thread.evaluated_mtx);
-          evaluated = par_eval;
-          S_V(&thread.evaluated_mtx);
-          DM_DBG(DM_N(5), FBRANCH"OR: par_eval=%d\n", n->row, executed, evaluated, par_eval);
-        }
-      break;
-
-      case S2_COND_AND:
-        if(root_eval <= n->EVAL) {
-          DM_DBG(DM_N(5), FBRANCH"AND: root_eval(%d) <= EVAL(%d)\n", n->row, executed, evaluated, root_eval, n->EVAL);
-          Process proc = Process(n->par, parent);
-          /* TODO: rpar linking */
-          par_eval = proc.eval();
-          S_P(&thread.evaluated_mtx);
-          evaluated = par_eval;
-          S_V(&thread.evaluated_mtx);
-          DM_DBG(DM_N(5), FBRANCH"AND: par_eval=%d\n", n->row, executed, evaluated, par_eval);
-        } else {
-          /* see if we have an OR node that can save us (return TRUE evaluation) */
-          DM_DBG(DM_N(5), FBRANCH"AND: root_eval(%d) > EVAL(%d)\n", n->row, executed, evaluated, root_eval, n->EVAL);
-
-          ptr_node = n->par->par;
-          while(ptr_node) {
-            if(ptr_node->COND == S2_COND_OR) goto eval_or;
-            ptr_node = ptr_node->par;
-          }
-          break;
-
-eval_or:
-          DM_DBG(DM_N(5), FBRANCH"found a par OR, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
-          Process proc = Process(ptr_node, parent);
-          /* TODO: rpar linking */
-          par_eval = proc.eval();
-          S_P(&thread.evaluated_mtx);
-          evaluated = par_eval;
-          S_V(&thread.evaluated_mtx);
-          DM_DBG(DM_N(5), FBRANCH"AND: par_eval=%d\n", n->row, executed, evaluated, par_eval);
-        }
-      break;
-      
-      case S2_COND_NONE:
-        /* parallel execution, taken care of by a new thread scheduled at the top */
-        DM_DBG(DM_N(5), FBRANCH"found a parallel branch, execution already scheduled\n", n->row, evaluated, executed);
-      break;
-    }
-  }
-
-  return root_eval;
+  RETURN(root_eval);
 }
 /* eval_subtree */
 
 std::string
 Process::toString()
 {
+  DM_DBG_I;
   std::stringstream ss;
 
   ss << "Process";
 
-  return ss.str();
+  RETURN(ss.str());
+}
+
+/*
+ * Is this a root of a parallel process?
+ * I.e. does it have a separate namespace for local vars?
+ */
+BOOL
+Process::is_parallel()
+{
+#define PAR_SEARCH(p)\
+  node_ptr = n->p;\
+  while(node_ptr) {\
+    if(node_ptr->COND == S2_COND_NONE) {\
+      DM_DBG(DM_N(1), "branch %u is parallel\n", n->row);\
+      return TRUE;\
+    }\
+    node_ptr = node_ptr->p;\
+  }
+
+  if(n->REPEAT.type == S2_REPEAT_PAR) {
+    DM_DBG(DM_N(1), "branch %u is parallel\n", n->row);
+    return TRUE;
+  }
+  if(n->COND != S2_COND_NONE) {
+    DM_DBG(DM_N(1), "branch %u is NOT parallel\n", n->row);
+    return FALSE;
+  }
+
+  /* check if it has any branches connected to it in parallel */
+  Node *node_ptr;
+
+  PAR_SEARCH(rpar);	/* up */
+  PAR_SEARCH(par);	/* down */
+  
+  DM_DBG(DM_N(1), "branch %u is NOT parallel\n", n->row);\
+  return FALSE;
+#undef PAR_SEARCH
 }
 
 /*
@@ -836,7 +902,7 @@ Process::e_match(const std::string *expected, const char *received)
   }
 
   s_expected = eval_str(expected, this);
-  match = pcre_matches(s_expected.c_str(), received, n->match_opt.pcre, WriteVariable);
+  match = pcre_matches(s_expected.c_str(), received, n->match_opt.pcre, this);
   
   return match;
 } /* e_match */
@@ -846,10 +912,141 @@ Process::e_match(const char *expected, const char *received)
 {
   BOOL match;
   std::string s_expected = eval_str(expected, this);
-  match = pcre_matches(s_expected.c_str(), received, n->match_opt.pcre, WriteVariable);
+  match = pcre_matches(s_expected.c_str(), received, n->match_opt.pcre, this);
 
   return match;
 } /* e_match */
+
+/*
+ * Manipulation with variables.
+ */
+void
+Process::WriteVariable(TVariables *var_tab, const char *name, const char *value, int vlen)
+{
+  TVariables::iterator varIter;
+
+  if(!var_tab) {
+    DM_ERR_ASSERT(_("var_tab == NULL\n"));
+    return;
+  }
+
+  if(!name) {
+    DM_ERR_ASSERT(_("name == NULL\n"));
+    return;
+  }
+
+  if ((varIter = var_tab->find(name)) != var_tab->end()) {
+    /* variable `name' exists, change its value */
+    varIter->second = (vlen < 0)? value : std::string(value, vlen);
+  } else {
+    /* we have a new variable */
+    if(vlen < 0) var_tab->insert(std::pair<std::string, std::string>(name, value));
+    else var_tab->insert(std::pair<std::string, std::string>(name, std::string(value, vlen)));
+  }
+  
+  if(vlen < 0) DM_DBG(DM_N(0), _("wrote variable `%s' with value `%s' (to %p)\n"), name, value, var_tab);
+  else DM_DBG(DM_N(0), _("wrote variable `%s' with value `%.*s' (to %p)\n"), name, vlen, value, var_tab);
+} /* WriteVariable */
+
+void
+Process::WriteVariable(Process *proc, const char *name, const char *value, int vlen)
+{
+  if(!proc) {
+    DM_ERR_ASSERT(_("proc == NULL\n"));
+    return;
+  }
+  
+  if(proc->var_tab == NULL) {
+    /* we don't have a table of local variables */
+    if(proc->parent == NULL) {
+      /* we don't even have a parent (we've hit [single---var_tab == NULL] root) *
+       * => use table of global variables                                        */
+      WriteVariable(&gl_var_tab, name, value, vlen);
+    } else {
+      /* try parent's scope */
+      WriteVariable(proc->parent, name, value, vlen);
+    }
+  } else {
+    /* good, we have a table of local variables */
+    WriteVariable(proc->var_tab, name, value, vlen);
+  }
+} /* WriteVariable */
+
+void
+Process::WriteVariable(const char *name, const char *value, int vlen)
+{
+  WriteVariable(this, name, value, vlen);
+} /* WriteVariable */
+
+void
+Process::WriteVariable(const char *name, const char *value)
+{
+  WriteVariable(this, name, value, -1);
+} /* WriteVariable */
+
+const char *
+Process::ReadVariable(TVariables *var_tab, const char *name)
+{
+  TVariables::iterator varIter;
+
+  if(!var_tab) {
+    DM_ERR_ASSERT(_("var_tab == NULL\n"));
+    return NULL;
+  }
+
+  if(!name) {
+    DM_ERR_ASSERT(_("name == NULL\n"));
+    return NULL;
+  }
+
+  if ((varIter = var_tab->find(name)) != var_tab->end()) {
+    /* variable exists */
+    DM_DBG(DM_N(0), _("read variable `%s' with value `%s' (from %p)\n"), name, varIter->second.c_str(), var_tab);
+    return varIter->second.c_str();
+  } else {
+    /* variable doesn't exist */
+    DM_DBG(DM_N(0), _("failed to read variable `%s' from %p\n"), name, var_tab);
+    return (const char *)NULL;
+  }
+} /* ReadVariable */
+
+const char*
+Process::ReadVariable(Process *proc, const char *name)
+{
+  if(!proc) {
+    DM_ERR_ASSERT(_("proc == NULL\n"));
+    return NULL;
+  }
+  
+  if(proc->var_tab == NULL) {
+    /* we don't have a table of local variables */
+    if(proc->parent == NULL) {
+      /* we don't even have a parent (we've hit [single---var_tab == NULL] root) *
+       * => use table of global variables                                        */
+      return ReadVariable(&gl_var_tab, name);
+    } else {
+      /* try parent's scope */
+      return ReadVariable(proc->parent, name);
+    }
+  } else {
+    /* good, we have a table of local variables for this process *
+     * (it is a process running in parallel to others)           */
+    const char *val = ReadVariable(proc->var_tab, name);
+    if(val != NULL) return val;
+      
+    /* search for a local variable failed (not set in this scope), *
+     * try local variable scope of the parent                      */
+    if(proc->parent != NULL) return ReadVariable(proc->parent, name);
+    else /* time to use global variable space (no parent process) */
+      return ReadVariable(&gl_var_tab, name);
+  }
+} /* ReadVariable */
+
+const char *
+Process::ReadVariable(const char *name)
+{
+  return ReadVariable(this, name);
+} /* ReadVariable */
 
 /*
  * Try to evaluate an expression to a 64-bit integer.
@@ -870,9 +1067,10 @@ str_expr2i(const char *cstr, int64_t *e)
 std::string
 Process::eval_str(const char *cstr, Process *proc)
 {
+  DM_DBG_I;
+
   int i, c;
   int slen;
-  BOOL bslash = FALSE;  /* we had the '\\' character */
   std::string s;
   std::string var;
   enum s_eval { 
@@ -880,11 +1078,12 @@ Process::eval_str(const char *cstr, Process *proc)
     sMd5,
   } state = sInit;
   static const char* state_name[] = {
-    "0",   "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
+    "",    "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
     "MD5", 
   };
   const char *opt;
   int opt_off;
+  int bslash = 0;  	/* we had the '\\' character */
   int brackets = 0;
 
   if(cstr == NULL) {
@@ -903,6 +1102,17 @@ Process::eval_str(const char *cstr, Process *proc)
     if(c == '{') brackets++;
     if(c == '}') brackets--;
 //    DM_DBG(DM_N(5), "brackets=%d\n", brackets);
+
+    /* take care of escaped characters */
+    if(bslash != 0) --bslash;
+    if(c == '\\') {
+      if(bslash) {
+        /* two backslashes => no quoting */
+        bslash = 0;
+      } else {
+        bslash = 2;
+      }
+    }
 
     switch (state) {
       case sInit:{
@@ -996,13 +1206,14 @@ Process::eval_str(const char *cstr, Process *proc)
           else read_var = var.c_str();
 
           DM_DBG(DM_N(4), "read_var=|%s|\n", read_var);
-          if((new_var = ReadVariable(read_var)) != NULL) {
+          if((new_var = proc->ReadVariable(read_var)) != NULL) {
             DM_DBG(DM_N(4), "var %s=|%s|\n", var.c_str(), new_var);
             s.append(new_var);
           } else {
-            /* the variable is not defined, output its name */
+            /* the variable is not defined, output its name and increase the evaluation value */
             if(var[0] != '-') {
               DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), var.c_str());
+              UPDATE_MAX(proc->executed, ERR_WARN);
             }
             s.append("${" + std::string(read_var) + "}");
           }
@@ -1055,7 +1266,7 @@ Process::eval_str(const char *cstr, Process *proc)
                  ptr_proc->n->REPEAT.type == S2_REPEAT_AND ||
                  ptr_proc->n->REPEAT.type == S2_REPEAT_PAR)
               {
-                DM_DBG(DM_N(4), "found OR or AND repeat; i16=%d\n", i16);
+                DM_DBG(DM_N(4), "found a repeat branch; i16=%d\n", i16);
                 if(!i16) {
                   i64 = ptr_proc->I;
                   DM_DBG(DM_N(4), "$I{%d}=%"PRIi64"\n", i16, i64);
@@ -1244,27 +1455,21 @@ Process::eval_str(const char *cstr, Process *proc)
     /* no TAGs found, simply copy the characters */
     s.push_back(c);
 
-    if(c == '\\') {
-      if(bslash) {
-        /* two backslashes => no quoting */
-        bslash = FALSE;
-      } else {
-        bslash = TRUE;
-      }
-    }
   }
+
+  DM_DBG(DM_N(4), "state=%d\n", state);
 
   /* sanity checks */
   if(state == sDollar) {
     s.push_back('$');
+  } else {
+    if(state != sInit) {
+      DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);
+      s.append("$" + std::string(state_name[state]) + "{" + var);
+    }
   }
   
-  if(state != sInit) {
-    DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);
-    s.append("$" + std::string(state_name[state]) + "{" + var);
-  }
-  
-  return s;
+  RETURN(s);
 } /* eval_str */
 
 std::string

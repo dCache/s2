@@ -15,6 +15,8 @@
 #include "string.h"
 #include "ctype.h"
 
+#include "process.h"		/* Process (interface for writing variables) */
+
 #include <signal.h>             /* signal() */
 #include <stdlib.h>             /* exit() */
 #include <stdio.h>              /* stderr */
@@ -161,7 +163,7 @@ free_pattern(M_pcre *mp)
 static inline void
 pcre_get_named
 (pcre *re, pcre_extra *studied_pcre, const char *received, int *ovector,
- void WriteVariable(const char *, const char *, int))
+ Process *proc)
 {
   int i;
   int namecount;
@@ -201,7 +203,7 @@ pcre_get_named
     int vlen = ovector[2*n+1] - ovector[2*n];
 
 #if 1
-      WriteVariable(tabptr + 2, received + ovector[2*n], vlen);
+      proc->WriteVariable(tabptr + 2, received + ovector[2*n], vlen);
 #else
       write_variable(tabptr + 2, received + ovector[2*n], vlen);
 #endif
@@ -417,7 +419,7 @@ enable_all:
  */
 extern BOOL
 pcre_matches(const char *pattern, const char *subject, const uint32_t pcre_opt,
-             void WriteVariable(const char *, const char *, int))
+             Process *proc)
 {
   BOOL match;
   M_pcre mp;
@@ -522,7 +524,7 @@ pcre_matches(const char *pattern, const char *subject, const uint32_t pcre_opt,
   
   /* See if there are any named substrings, and if so, show them by name.      *
    * First we have to extract the count of named parentheses from the pattern. */
-  pcre_get_named(mp.compiled_pcre, mp.studied_pcre, subject, ovector, WriteVariable);
+  pcre_get_named(mp.compiled_pcre, mp.studied_pcre, subject, ovector, proc);
 
   DM_LOG(DM_N(0), "Match\n");
 
@@ -546,7 +548,7 @@ not_found:
  */
 extern BOOL
 pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_opt,
-                     void WriteVariable(const char *, const char *, int))
+                     Process *proc)
 { 
   BOOL match;
   char *pattern_ptr = NULL;     /* pattern offset */
@@ -572,7 +574,7 @@ pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_
 
   if(!(match_opt.px & PX_MATCH_LINESPLIT))
     /* linesplit option not set => perform a simple PCRE match */
-    return pcre_matches((const char *)pattern, subject, match_opt.pcre, WriteVariable);
+    return pcre_matches((const char *)pattern, subject, match_opt.pcre, proc);
 
   DM_WARN(ERR_WARN, _("not fully implemented (no instantiation of variables and evaluation of expressions)\n"));
   
@@ -583,7 +585,7 @@ pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_
       null_char = *pattern_ptr;
       *pattern_ptr = '\0';
 
-      if(!pcre_matches((const char *)pattern, subject, match_opt.pcre, WriteVariable)) {
+      if(!pcre_matches((const char *)pattern, subject, match_opt.pcre, proc)) {
         *pattern_ptr = null_char;
         return FALSE;
       }
@@ -593,7 +595,7 @@ pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_
       *pattern_ptr = null_char;
     } else {
       /* we didn't find the newline character => the last match */
-      if(!pcre_matches((const char *)pattern, subject, match_opt.pcre, WriteVariable)) {
+      if(!pcre_matches((const char *)pattern, subject, match_opt.pcre, proc)) {
         return FALSE;
       }
     }
@@ -613,7 +615,7 @@ pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_
  */
 extern BOOL
 pcre_match_hbsplit(char *pattern, char *subject, const match_opts match_opt,
-                   void WriteVariable(const char *, const char *, int))
+                   Process *proc)
 {
   BOOL match;
   char *ptr;
@@ -680,7 +682,7 @@ pcre_match_hbsplit(char *pattern, char *subject, const match_opts match_opt,
   *pattern_head_end = '\0';
   
   DM_LOG(DM_N(1), "pattern=\n|%s|\nsubject=\n|%s|\n", pattern, subject);
-  if(!pcre_match_linesplit(pattern, (const char *)subject, match_opt, WriteVariable)) {
+  if(!pcre_match_linesplit(pattern, (const char *)subject, match_opt, proc)) {
     DM_LOG(DM_N(0), "headers don't match\n");
     return FALSE;
   }
@@ -697,5 +699,5 @@ compare_not_split:
   DM_LOG(DM_N(1), "matching bodies\n");
   DM_LOG(DM_N(1), "pattern=\n|%s|\nsubject=\n|%s|\n", pattern, subject);
 
-  return pcre_match_linesplit(pattern, (const char *)subject, match_opt, WriteVariable);
+  return pcre_match_linesplit(pattern, (const char *)subject, match_opt, proc);
 } /* pcre_match_hbsplit */

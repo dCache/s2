@@ -892,7 +892,7 @@ evaluate:
     
       if (root) {
         Process::threads_init();
-        proc = new Process(root, NULL);
+        proc = new Process(root, NULL, NULL);
         lval = proc->eval();
         Process::threads_destroy();
         DM_DBG(DM_N(1), "evaluation return value=%d\n", lval);

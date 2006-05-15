@@ -1,0 +1,8 @@
+; ASSIGN test
+
+ASSIGN var1 "val1" var2 "val2" ; comment
+   SYSTEM echo "var1=${var1}; var2=${var2}"
+&& ASSIGN overwrite=0 var1 "x" ; this doesn't set var1 unless var1 is unset
+&& ASSIGN one 1
+&& ASSIGN overwrite=${one} var2 "y" ; comment
+   SYSTEM echo "var1=${var1} (not overwritten, val1); var2=${var2} (overwritten to y)"

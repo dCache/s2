@@ -1,0 +1,5 @@
+; Test sequential repeats with timeouts
+
+>1&&3 eval=3 NOP
+   eval=3 timeout=100000 SLEEP 1
+      SYSTEM echo "this is reached (forced eval=3) the SLEEP timed out (${?}) though..."

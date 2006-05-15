@@ -1,0 +1,5 @@
+; Sequential AND repeat
+
+>0&&2 SYSTEM echo '>0&&2 head'
+   SYSTEM echo ">0&&2 body \$I{0}=$I{0}" && exit $I{0}
+|| SYSTEM echo "I'm not part of the repeat!"

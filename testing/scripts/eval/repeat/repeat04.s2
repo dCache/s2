@@ -1,0 +1,4 @@
+; Parallel repeat connected in parallel
+
+SYSTEM echo root
+>0 2 SYSTEM echo "\$I{0}=$I{0}"

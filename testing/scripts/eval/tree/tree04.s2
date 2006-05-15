@@ -1,0 +1,10 @@
+; Note the difference between the following two branches.
+
+#if 1
+eval=2 SYSTEM echo 2 && exit 2
+; this OR is not evaluated, as the previous evaluation forcibly succeeds
+|| SYSTEM echo "never reached" && exit 0
+#else
+SYSTEM echo 2 && exit 2
+|| SYSTEM echo 0 && exit 0
+#endif

@@ -1,6 +1,0 @@
-; NoOPeration demo
-
-NOP 0
-   NOP 2
-   || NOP 1
-   && NOP 3

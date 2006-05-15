@@ -1,3 +1,0 @@
-; NoOPeration demo
-
-NOP $ENV{nop}

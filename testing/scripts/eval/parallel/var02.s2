@@ -1,0 +1,5 @@
+; Parallel execution test (variables in local scope)
+
+>1 3 ASSIGN v $I{0}
+   SLEEP 1
+   && SYSTEM echo "$I{0}: v=${v} (3 different vars)"

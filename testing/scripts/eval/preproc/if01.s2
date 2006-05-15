@@ -1,0 +1,7 @@
+; #if #else #endif preprocessor directive test
+
+#if 1 ; $ENV{<var>} can be used
+NOP 1
+#else
+NOP 0
+#endif

@@ -1,8 +1,0 @@
-; Test the lex for expressions
-
-NOP
-&& SYSTEM out=10000000000 echo -n $EXPR{ 1e10 }
-&& SYSTEM out=8 echo -n $EXPR{ 010 }
-&& SYSTEM out=532 echo -n $EXPR{ 01024 }
-&& SYSTEM out=10 echo -n $EXPR{ 0xA }
-&& SYSTEM out=51966 echo -n $EXPR{ 0xCAFE }

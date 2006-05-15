@@ -1,4 +1,0 @@
-; Parallel execution test
-
-NOP 0
->0 2 SYSTEM echo three

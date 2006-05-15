@@ -1,0 +1,9 @@
+; Parallel execution test (variables in local scope)
+
+ASSIGN one 1
+   >1 2 ASSIGN v $I{0}
+      SLEEP 1
+      && SYSTEM echo "v=$I{0}=${v}"
+      && >0 1 ASSIGN v "$EXPR{$I{1}*2+$I{0}+${one}}"
+         SLEEP 1
+         && SYSTEM echo "v=$I{1}*2+$I{0}+${one}=${v}"

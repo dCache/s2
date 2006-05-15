@@ -1,0 +1,11 @@
+.cvsignore
+*.d
+*.e0
+*.e1
+*.e2
+*.err
+*.l
+*.log
+*.out
+*.p
+*.sh

@@ -1,6 +1,0 @@
-; Parallel execution test
-
->1 5 SYSTEM echo 1
-   >1 5 SYSTEM echo 2
-      >1 5 SYSTEM echo 3
-         >1 5 SYSTEM echo 4

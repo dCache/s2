@@ -1,0 +1,19 @@
+; MATCH options parser test
+
+; show default options (if -d was used)
+SYSTEM out=(?P<system_out>.*) echo -n 'Hello' && exit 0
+
+; show all options but s
+match=1-s SYSTEM out=(?P<system_out>.*) echo -n 'Hello' && exit 0
+
+; only XxN
+match=XxNl-hil SYSTEM out=(?P<system_out>.*) echo -n 'Hello' && exit 0
+
+; show no options (0)
+match=s-1 SYSTEM out=(?P<system_out>.*) echo -n 'Hello' && exit 0
+
+; all options set (1)
+match=s-0 SYSTEM out=(?P<system_out>.*) echo -n 'Hello' && exit 0
+
+; illegal match option
+match=Y SYSTEM out=((?i)hello) echo -n 'Hello' && exit 0

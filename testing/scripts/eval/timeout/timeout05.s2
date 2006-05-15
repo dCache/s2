@@ -1,0 +1,8 @@
+; Test parallel branches with timeouts
+
+timeout=1000000 SLEEP 2
+   SYSTEM echo "never reached"
+|| SYSTEM echo "timed out"
+
+timeout=5000000 SLEEP 1
+   SYSTEM echo "didn't timeout"

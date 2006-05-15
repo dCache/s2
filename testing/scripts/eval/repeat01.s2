@@ -1,5 +1,0 @@
-; Sequential OR repeat
-
->2||0 SYSTEM echo '>2||0' head && exit 0
-   SYSTEM echo '>2||0' body && exit $I{0}
-&& SYSTEM echo "I'm not part of the repeat!"

@@ -1,0 +1,5 @@
+; System call action demo
+
+SYSTEM out=^/home/(?P<user>.*)$ echo -n $ENV{HOME}
+   SYSTEM echo "Hello ${user}!"
+|| SYSTEM echo "HOME=$ENV{HOME}"

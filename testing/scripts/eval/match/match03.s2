@@ -1,0 +1,5 @@
+; MATCH action test (substring matching)
+
+match=-c MATCH "^gsiftp://" "gsiftp://host.domain"	; substring matching (-c)
+   SYSTEM echo "GridFTP"
+|| SYSTEM echo "unknown protocol"

@@ -1,0 +1,5 @@
+; Regular expression matching test
+
+SYSTEM out=(?P<system_out>.*) echo -n 'Hello' && exit 0
+   SYSTEM out="${system_out} Dolly" echo -n 'Hello Dolly' && exit 0
+&& SYSTEM echo OK

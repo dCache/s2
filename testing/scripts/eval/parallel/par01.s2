@@ -1,0 +1,10 @@
+; Parallel execution test
+
+SLEEP 2
+   SYSTEM echo 2 && exit 0
+
+SLEEP 0
+   SYSTEM echo 0 && exit 1
+
+SLEEP 1
+   SYSTEM echo 1 && exit 2

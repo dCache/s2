@@ -1,0 +1,6 @@
+; Parallel repeat with two loops connected in parallel
+
+SYSTEM echo "-:-"
+>1 2 SLEEP 0
+   >1 2 SLEEP 0
+      SYSTEM echo "$I{1}:$I{0}"

@@ -1,0 +1,4 @@
+; Test parallel execution
+
+>1 5 timeout=900000 SLEEP 1
+   SYSTEM echo "never reached"

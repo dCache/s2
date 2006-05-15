@@ -1,4 +1,0 @@
-; MATCH action test
-
-;match=0 MATCH requestToken0=d0f55245-8029-499a-b651-f3a65594fe88 d0f55245-8029-499a-b651-f3a65594fe88
-match=-c MATCH d0f55245-8029-499a-b651-f3a65594fe88 requestToken0=d0f55245-8029-499a-b651-f3a65594fe8

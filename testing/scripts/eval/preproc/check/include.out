@@ -1,0 +1,6 @@
+Demontrating some legal includes, indentation is important!  <A> is my child.
+<A>, <B> follows as a child of <A>
+<B>, <C> follows at the same indentation as <B>
+<C/>
+</B>
+</A>

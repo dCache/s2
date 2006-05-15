@@ -1,0 +1,6 @@
+; Parallel repeat connected in parallel
+
+>1 5 SYSTEM echo "$I{0}:-:-:-"
+   >1 5 SYSTEM echo "$I{0}:$I{1}:-:-"
+      >1 5 SYSTEM echo "$I{0}:$I{1}:$I{2}:-"
+         >1 5 SYSTEM echo "$I{0}:$I{1}:$I{2}:$I{3}"

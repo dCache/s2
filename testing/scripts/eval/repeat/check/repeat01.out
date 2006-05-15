@@ -1,0 +1,7 @@
+>2||0 head
+>2||0 body $I{0}=2
+>2||0 head
+>2||0 body $I{0}=1
+>2||0 head
+>2||0 body $I{0}=0
+I'm not part of the repeat!

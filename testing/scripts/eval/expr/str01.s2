@@ -1,0 +1,4 @@
+; Evaluation of strings
+
+>1||1 NOP
+   SYSTEM echo "\$I{0}=$I{0}; \$ENV{HOME}=$ENV{HOME}"

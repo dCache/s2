@@ -134,6 +134,7 @@ _GET_INT(u,64);
   int SETENV(void);
   int SLEEP(void);
   int SYSTEM(void);
+  int TEST(void);
 
 #ifdef HAVE_GSOAP
   /* SRM2 related stuff */
@@ -1190,6 +1191,7 @@ Parser::ACTION(void)
   POPL_EAT(SETENV,,) else
   POPL_EAT(SLEEP,,) else
   POPL_EAT(SYSTEM,,) else
+  POPL_EAT(TEST,,) else
 
   POPL_CMP(EQ) else
   POPL_CMP(NE) else
@@ -1461,6 +1463,42 @@ Parser::SYSTEM(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* SYSTEM */
+
+int
+Parser::TEST(void)
+{
+  std::string _val;
+  
+  nTest *r = new nTest(parser_node);
+  new_node = r;
+  int c;
+
+  WS(); /* allow whitespace before the TEST expression */
+  
+  c = gc();
+  if(c == CH_COMMENT) {
+    /* we have a comment character (no TEST parameter, use the default value -- empty string) */
+    ugc();
+    goto empty;
+  }
+  if(c == CH_EOL)
+    /* we have an EOL (no TEST parameter, use the default value -- empty string) */
+    goto empty;
+
+  ugc();
+
+  DQ_PARAM(dq_param,_val,r->expr,"TEST expression\n");
+
+  /* parsing succeeded */
+  return ERR_OK;
+
+empty:
+  /* default TEST expression */
+  NEW_STR(r->expr, "");
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* MATCH */
 
 #ifdef HAVE_GSOAP
 int

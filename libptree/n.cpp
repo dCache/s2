@@ -19,7 +19,6 @@
 #include "date.h"
 #include "constants.h"
 #include "i18.h"
-#include "timeout.h"
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
 
 #include "s2.h"			/* opts (s2 options) */

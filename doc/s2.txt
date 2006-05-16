@@ -433,6 +433,15 @@ System call with an optional argument (out=<regex>) allowing the
 capture and pattern matching of a program's output.
 
 
+2.3.9 TEST
+~~~~~~~~~~
+  <TEST> :: 'TEST' <EXPR>
+  <EXPR> :: <DQ_STR>
+
+Exit with the status determined by <EXPR>.  TEST <EXPR> executes
+as TRUE unless it is an empty string or 0.
+
+
 2.4 Pattern matching
 ~~~~~~~~~~~~~~~~~~~~
 There are various options which affect pattern matching.  The meaning

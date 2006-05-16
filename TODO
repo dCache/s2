@@ -1,7 +1,5 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Improve logging, do some additional testing.
-- TEST
 - MATCH => $MATCH{a,b}
 - LT/GT/... (<, >, ...)
 - WHILE loop

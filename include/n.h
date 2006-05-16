@@ -9,7 +9,6 @@
 #include "match.h"              /* match_opts */
 
 #include "constants.h"
-#include "var_table.h"
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <fstream>              /* ifstream */
@@ -263,6 +262,23 @@ public:
   nSystem();
   nSystem(Node &node);
   ~nSystem();
+
+  virtual void init();
+  int exec(struct Process *proc);
+  std::string toString(struct Process *proc);
+
+private:
+
+};
+
+struct nTest : public Node
+{
+  std::string *expr;
+
+public:
+  nTest();
+  nTest(Node &node);
+  ~nTest();
 
   virtual void init();
   int exec(struct Process *proc);

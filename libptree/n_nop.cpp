@@ -91,7 +91,12 @@ nNop::toString(Process *proc)
   std::stringstream ss;
 
   ss << "NOP";
-  SS_DQ(" ", val);
+  if(!val)
+    /* shouldn't ever happen, don't bother with ASSERT */
+    return ss.str();
+
+  if(!(val->length() == 0 || (val->length() == 1) && (*val)[0] == '0'))
+    SS_DQ(" ", val);
 
   return ss.str();
 }

@@ -66,11 +66,9 @@ nTest::exec(Process *proc)
 {
   DM_DBG_I;
 
-  int rval = 0;
-
   std::string s = Process::eval_str(expr, proc);
 
-  if(s.length() == 0 || (s.length() == 1 && s[0] == 0)) return ERR_ERR;
+  if(s.length() == 0 || (s.length() == 1 && s[0] == '0')) return ERR_ERR;
 
   RETURN(ERR_OK);
 }
@@ -82,7 +80,12 @@ nTest::toString(Process *proc)
   std::stringstream ss;
 
   ss << "TEST";
-  SS_DQ(" ", expr);
+  if(!expr)
+    /* shouldn't ever happen, don't bother with ASSERT */
+    return ss.str();
+  
+  if(!(expr->length() == 0 || (expr->length() == 1) && (*expr)[0] == '0'))
+    SS_DQ(" ", expr);
 
   return ss.str();
 }

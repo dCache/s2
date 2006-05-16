@@ -2,12 +2,12 @@
 #define _CONSTANTS_H
 
 /* return values (error codes) */
-#define ERR_OK          0                       /* a success */
-#define ERR_WARN        1                       /* a non-fatal error (warning) */
-#define ERR_ERR         2                       /* a general function failure value */
-#define ERR_NEXEC       3                       /* a program could not be executed for some reason value */
-#define ERR_ASSERT      4                       /* assertion failed error value */
-#define ERR_SYSTEM      5                       /* system error */
+#define ERR_OK          0                       /* success */
+#define ERR_WARN        1                       /* warning(s) */
+#define ERR_ERR         2                       /* general function failure */
+#define ERR_NEXEC       3                       /* program could not be executed for some reason */
+#define ERR_ASSERT      4                       /* assertion failed error */
+#define ERR_SYSTEM      5                       /* system error (malloc failed, etc.) */
 
 /* limits */
 #define INT8_MAX        127

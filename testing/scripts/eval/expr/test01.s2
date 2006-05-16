@@ -1,0 +1,12 @@
+; Testing test ;)
+
+TEST 1
+   SYSTEM echo 1
+      TEST 0
+         SYSTEM echo never reached
+      || TEST "some string"
+         SYSTEM echo "some string"
+      && TEST -1
+         SYSTEM echo "-1"
+      && eval=2 TEST
+         SYSTEM echo "empty string"

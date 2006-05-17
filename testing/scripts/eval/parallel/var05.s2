@@ -1,0 +1,14 @@
+; Parallel execution test (references to local/global variables)
+
+ASSIGN v "v0"
+   SYSTEM echo "${v} == v0 && ${::v} == v0"
+      ASSIGN v "v1"
+         SLEEP 1
+            SYSTEM echo "${v} == v1 && ${::v} == v3"
+            && ASSIGN ::v "v4"
+
+   SLEEP 0 500000
+      ASSIGN v "v2" ::v "v3"
+         SYSTEM echo "${v} == v2 && ${::v} == v3"
+
+&& SYSTEM echo "${v} == v4 && ${::v} == v4"

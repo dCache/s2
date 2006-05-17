@@ -341,7 +341,7 @@ l_set_package() {
 
 l_set_opt_deps() {
   # option dependencies
-  if ! test x${enable_gsoap} = xyes || ! test x${enable_srm2} = xyes ; then
+  if ! test x${enable_globus} = xyes || ! test x${enable_gsoap} = xyes  || ! test x${enable_srm2} = xyes ; then
     enable_globus=no
     enable_gsoap=no
     enable_srm2=no

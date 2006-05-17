@@ -186,13 +186,25 @@ Process::init(Node *node, Process *p, Process *rpar)
   parent = p;
   Process::rpar = rpar;
   I = 0;
+  var_tab = NULL;		/* use paren't scope (by default) */
 
-  if(is_parallel()) {
-    /* it is a parallel process, keep variables in the local variable space */
+  if(n->REPEAT.type == S2_REPEAT_PAR || is_parallel()) {
+    /* it is a parallel process, keep variables in the local variable space of this process */
     var_tab = new TVariables();
     DM_DBG(DM_N(0), FBRANCH"creating local variable table %p\n", n->row, executed, evaluated, var_tab);
   } else {
-    var_tab = NULL;	/* use paren't scope */
+    /* Try to find the first rpar process which is also a parallel processes and *
+     * use its variable scope (not a parallel repeat as they have several local  *
+     * variable scopes.                                                          */
+    Process *proc_ptr = rpar;
+    while(proc_ptr) {
+      if(proc_ptr->is_parallel()) {
+        DM_DBG(DM_N(3), "branch %u is parallel\n", proc_ptr->n->row);
+        var_tab = proc_ptr->var_tab;
+        break;
+      }
+      proc_ptr = proc_ptr->rpar;
+    }
   }
 }
 
@@ -201,8 +213,8 @@ Process::init(Node *node, Process *p, Process *rpar)
  */
 Process::Process(Node *node, Process *p, Process *rpar)
 {
-  Process::init(node, p, rpar);
   init();
+  Process::init(node, p, rpar);
 }
 
 /*
@@ -214,7 +226,8 @@ Process::~Process()
   DELETE_VEC(vProc);
 
   /* delete table of local variables */
-  if(var_tab != &gl_var_tab) {
+  if(var_tab != &gl_var_tab
+     && (is_parallel() || n->REPEAT.type == S2_REPEAT_PAR)) {
     DELETE(var_tab);
   }
 }
@@ -861,28 +874,31 @@ Process::is_parallel()
   node_ptr = n->p;\
   while(node_ptr) {\
     if(node_ptr->COND == S2_COND_NONE) {\
-      DM_DBG(DM_N(1), "branch %u is parallel\n", n->row);\
+      DM_DBG(DM_N(3), "branch %u is parallel\n", n->row);\
       return TRUE;\
     }\
     node_ptr = node_ptr->p;\
   }
 
+#if 0
   if(n->REPEAT.type == S2_REPEAT_PAR) {
-    DM_DBG(DM_N(1), "branch %u is parallel\n", n->row);
+    DM_DBG(DM_N(3), "branch %u is parallel\n", n->row);
     return TRUE;
   }
-  if(n->COND != S2_COND_NONE) {
-    DM_DBG(DM_N(1), "branch %u is NOT parallel\n", n->row);
-    return FALSE;
-  }
+#endif
+
+  if(n->COND != S2_COND_NONE) 
+     goto not_parallel;
 
   /* check if it has any branches connected to it in parallel */
   Node *node_ptr;
 
   PAR_SEARCH(rpar);	/* up */
   PAR_SEARCH(par);	/* down */
-  
-  DM_DBG(DM_N(1), "branch %u is NOT parallel\n", n->row);\
+
+not_parallel:
+  DM_DBG(DM_N(3), "branch %u is NOT parallel%s\n", 
+         n->row, (n->REPEAT.type == S2_REPEAT_PAR)? " (is parallel repeat though)": "");
   return FALSE;
 #undef PAR_SEARCH
 }
@@ -975,13 +991,26 @@ Process::WriteVariable(Process *proc, const char *name, const char *value, int v
 void
 Process::WriteVariable(const char *name, const char *value, int vlen)
 {
-  WriteVariable(this, name, value, vlen);
+  unsigned name_len, no_warn;
+  
+  if(!name) {
+    DM_ERR_ASSERT(_("name == NULL\n"));
+    return;
+  }
+  
+  name_len = strlen(name);
+  no_warn = *name == '-';	/* shouldn't be necessary (not used, but be consistent with ReadVariable) */
+  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn] == ':')
+    /* ${::<name>} or ${-::<name>} */
+    return WriteVariable(&gl_var_tab, name + no_warn + 2, value, vlen);
+
+  WriteVariable(this, name + no_warn, value, vlen);
 } /* WriteVariable */
 
 void
 Process::WriteVariable(const char *name, const char *value)
 {
-  WriteVariable(this, name, value, -1);
+  WriteVariable(name, value, -1);
 } /* WriteVariable */
 
 const char *
@@ -1017,7 +1046,7 @@ Process::ReadVariable(Process *proc, const char *name)
     DM_ERR_ASSERT(_("proc == NULL\n"));
     return NULL;
   }
-  
+
   if(proc->var_tab == NULL) {
     /* we don't have a table of local variables */
     if(proc->parent == NULL) {
@@ -1045,7 +1074,20 @@ Process::ReadVariable(Process *proc, const char *name)
 const char *
 Process::ReadVariable(const char *name)
 {
-  return ReadVariable(this, name);
+  unsigned name_len, no_warn;
+  
+  if(!name) {
+    DM_ERR_ASSERT(_("name == NULL\n"));
+    return NULL;
+  }
+  
+  name_len = strlen(name);
+  no_warn = *name == '-';
+  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn] == ':')
+    /* ${::<name>} or ${-::<name>} */
+    return ReadVariable(&gl_var_tab, name + no_warn + 2);
+
+  return ReadVariable(this, name + no_warn);
 } /* ReadVariable */
 
 /*
@@ -1199,23 +1241,22 @@ Process::eval_str(const char *cstr, Process *proc)
           var = eval_str(var.c_str(), proc);	/* evaluate things like: ${...${var}...} */
 
           const char *new_var;
-          const char *read_var;
-          if(var[0] == '-')
-            /* issue no warnings when a variable is undefined */
-	    read_var = var.substr(1).c_str();
-          else read_var = var.c_str();
+          const char *read_var = var.c_str();
+          unsigned no_warn = *read_var == '-';
 
+          DM_DBG(DM_N(4), FBRANCH"++++++++++++++++++++|%s|++++++++++++++++++++++\n", proc->n->row, proc->executed, proc->evaluated, read_var);
           DM_DBG(DM_N(4), "read_var=|%s|\n", read_var);
           if((new_var = proc->ReadVariable(read_var)) != NULL) {
             DM_DBG(DM_N(4), "var %s=|%s|\n", var.c_str(), new_var);
             s.append(new_var);
           } else {
             /* the variable is not defined, output its name and increase the evaluation value */
-            if(var[0] != '-') {
+            if(!no_warn) {
               DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), var.c_str());
               UPDATE_MAX(proc->executed, ERR_WARN);
             }
-            s.append("${" + std::string(read_var) + "}");
+            s.append("${" + std::string(read_var + no_warn) + "}");
+            DM_DBG(DM_N(4), FBRANCH"--------------------|%s|----------------------\n", proc->n->row, proc->executed, proc->evaluated, read_var);
           }
           state = sInit;
         } else {

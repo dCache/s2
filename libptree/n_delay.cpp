@@ -51,8 +51,8 @@ nDelay::init()
  */
 nDelay::nDelay(Node &node)
 {
-  Node::init(node);
   init();
+  Node::init(node);
 }
 
 /*

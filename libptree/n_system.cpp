@@ -50,8 +50,8 @@ nSystem::init()
  */
 nSystem::nSystem(Node &node)
 {
-  Node::init(node);
   init();
+  Node::init(node);
 }
 
 /*

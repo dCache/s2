@@ -51,8 +51,8 @@ nCmp::init()
  */
 nCmp::nCmp(Node &node)
 {
-  Node::init(node);
   init();
+  Node::init(node);
 }
 
 /*

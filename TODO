@@ -3,6 +3,8 @@ Ordered by priority
 - MATCH => $MATCH{a,b}
 - LT/GT/... (<, >, ...)
 - WHILE loop
+- Save to global variable space: (?P<::CT_LEN>\S+) 
+- $EXIST{[::]<var>}, $ASSIGN{[::]<var>}
 - Implement functions
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - ECHO (vs. SYSTEM echo --- performance considerations)

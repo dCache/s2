@@ -1,15 +1,16 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- MATCH => $MATCH{a,b}
+- $RAND{} and similar that cause problems
+- Think about more effective implementation of evaluation/logging of strings
+- MATCH => $MATCH{"a" "b"}
 - LT/GT/... (<, >, ...)
 - WHILE loop
-- Save to global variable space: (?P<::CT_LEN>\S+) 
-- $EXIST{[::]<var>}, $ASSIGN{[::]<var>}
-- Implement functions
+- $EXIST/DEFINED{[::]<var>}
+- Saving to global vars (?P<::Hello>.*)
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Consider using '' for expressions which will not be evaluated (q_param).
 - Investigate gSoap memory leaks.
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
 - SEND/RECEIVE (TCP/UDP/...)?
-- minor POSIX threads related memory leaks (consider using Apache threads).
+- minor (possible) pthreads POSIX threads related memory leaks (consider using Apache threads).

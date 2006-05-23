@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 test client documentation
-Version:	2006-04-30
+Version:	2006-05-23
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -103,7 +103,8 @@ start with the ';' character and continue up to the next newline
 
 1.3) Actions
 ~~~~~~~~~~~~
-  <ACTION> :: <ASSIGN> | <CMP_OP> | <MATCH> | <NOP> | <SETENV> | <SLEEP> | <SRM2> | <SYSTEM>
+  <ACTION> :: <ASSIGN> | <CMP_OP> | <DEFUN> | <FUN> |
+              <MATCH> | <NOP> | <SETENV> | <SLEEP> | <SRM2> | <SYSTEM>
 
 Syntax of the individual actions is described in the Semantics section.
 
@@ -192,6 +193,15 @@ Virtual branches are created from other branches by means of connecting
 them to other branches placed on the same level of indentation.
 The connectives can be '||' and '&&' conditions and an empty connective
 meaning parallel execution.  A branch is a virtual branch.
+
+Branch execution/evaluation values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+0: success
+1: warning(s)
+2: function/branch evaluation failure(s)
+3: script could not be executed/timeout
+4: assertion failed error (internal error)
+5: system error (malloc failed, etc.)
 
 2.2 Basic concept
 ~~~~~~~~~~~~~~~~~
@@ -375,7 +385,23 @@ as strings put the same non-numerical characters at the beginning of
 both strings.
 
 
-2.3.3 MATCH
+2.3.3 Function definition
+~~~~~~~~~~~~~~~~~~~~~~~~~
+<DEFUN> :: 'DEFUN' ({<FUN_PARAM> ' '}* ':'? | {<FUN_PARAM_REF> ' '}*)?
+<FUN_PARAM> :: <DQ_STR>
+<FUN_PARAM_REF> :: <DQ_STR>
+
+
+2.3.4 Function call
+~~~~~~~~~~~~~~~~~~~
+<DEFUN> :: 'FUN' ({<FUN_ARG> ' '}* ':'? | {<FUN_ARG_REF> ' '}*)?
+<FUN_ARG> :: <DQ_STR>
+<FUN_ARG_REF> :: <DQ_STR>
+
+<FUN_ARG> are passed by value, <FUN_ARG_REF> are passed by reference.
+
+
+2.3.5 MATCH
 ~~~~~~~~~~~
   <MATCH> :: 'MATCH' <PATTERN> <SUBJECT>
   <PATTERN> :: <DQ_STR>
@@ -386,7 +412,7 @@ return 2 if matching fails.  Please see the section dedicated to pattern
 matching.
 
 
-2.3.4 NOP
+2.3.6 NOP
 ~~~~~~~~~~
   <NOP> :: 'NOP' <NOP_VAL>?
   <NOP_VAL> :: <DQ_I>
@@ -396,7 +422,7 @@ operation" action.  It has an optional parameter --- execution value.
 If this parameter is omitted, the default value 0 is used.
 
 
-2.3.5 SETENV
+2.3.7 SETENV
 ~~~~~~~~~~~~
   <SETENV> :: 'SETENV' <OVERWRITE>? ( <VAR> <VAR_VAL> )+
   <OVERWRITE> :: 'overwrite' '=' <DQ_I>
@@ -407,7 +433,7 @@ If <VAR> is set, assign environment variable <VAR> value <VAR_VAL>
 only if <OVERWRITE> is unspecified or it evaluates to non-zero.
 
 
-2.3.6 SLEEP
+2.3.8 SLEEP
 ~~~~~~~~~~~
   <SLEEP> :: 'SLEEP' <SLEEP_OPT>?
   <SLEEP_OPT> :: <SLEEP_SEC> <SLEEP_NANOSEC>?
@@ -417,14 +443,14 @@ only if <OVERWRITE> is unspecified or it evaluates to non-zero.
 Sleep for a specified amount of seconds and/or nanoseconds.
 
 
-2.3.7. SRM2 actions
+2.3.9 SRM2 actions
 ~~~~~~~~~~~~~~~~~~~
 All SRM2 methods are implemented.  Please see the
 `testing/scripts/srm2/template' directory for syntax.
 
 
-2.3.8 SYSTEM
-~~~~~~~~~~~~
+2.3.10 SYSTEM
+~~~~~~~~~~~~~
   <SYSTEM> :: 'SYSTEM' <SYSTEM_OPT>? <SYSTEM_COMMAND>
   <SYSTEM_OPT> :: 'out' '=' <DQ_STR>
   <SYSTEM_COMMAND> :: <STR>
@@ -433,8 +459,8 @@ System call with an optional argument (out=<regex>) allowing the
 capture and pattern matching of a program's output.
 
 
-2.3.9 TEST
-~~~~~~~~~~
+2.3.11 TEST
+~~~~~~~~~~~
   <TEST> :: 'TEST' <EXPR>
   <EXPR> :: <DQ_STR>
 
@@ -679,12 +705,29 @@ e.g.: ${named_regex}some_text(?P<named_regex>...)some_text${named_regex}
 ~~~~~~~~~~~~~
 2.5.1 Script variables
 ~~~~~~~~~~~~~~~~~~~~~~
-Script variables can be defined by the ASSIGN action, or by using
+Script variables are defined by the ASSIGN action, or by using
 named regular expressions as described in the previous section.
 All variables are global variables apart from variables defined in
-parallel processes.  These are local to a branch which created the
-parallel process.  Script variable values are accessible by the
-${<VAR>} tag.
+parallel processes and functions.
+
+Script variable values are accessed by a number of ways:
+
+1) The ${::<VAR>} tag refers to a global variable <VAR>.  If this
+   variable does not exist, the tag expands as an empty string, a
+   warning message is issued and the branch executes (at the very best)
+   as 1, i.e. warning (see Branch execution/evaluation values section).
+   
+2) The ${<VAR>} tag refers to a local variable <VAR>.  If this variable
+   does not exist, parent's variable scope(s) is (are) searched.  If
+   this variable is not defined in the topmost parent's variable scope,
+   global variable scope is searched.  The behaviour of this tag is then
+   equivalent to 1), i.e. the ${::<VAR>} tag.
+
+3) Both of the above tags can be used with a special prefix (-), which tells
+   the variable evaluation engine not to issue any warnings and not to
+   change execution value of the branch.  The following is possible:
+   ${-::<VAR>}/${-<VAR>} to refer to global/local variable <VAR>
+   and ignore <VAR>'s non-existence.
 
 2.5.2 Environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -827,3 +870,11 @@ Also, note that:
 
 ; echo " Dolly" is not a comment, but another system command as SYSTEM
 <ACTION> has the complete line as its argument.
+
+3.2 Whitespace
+~~~~~~~~~~~~~~
+   TEST $EXPR{${n}<1}
+
+vs.
+
+   TEST $EXPR{${n} < 1}   ; TEST "$EXPR{${n} < 1}" ; is correct

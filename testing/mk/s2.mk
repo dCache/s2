@@ -17,8 +17,8 @@ ln:
 	done
 
 test: ln
-	rm -f $(S2_TEST_REPORT)
-	for s2 in `ls -1 *.$(S2_EXT) 2>/dev/null` ;\
+	@rm -f $(S2_EXIT_LOG)
+	@for s2 in `ls -1 *.$(S2_EXT) 2>/dev/null` ;\
 	do \
 	  s2_sh=`basename $$s2 .$(S2_EXT)`.$(SH_EXT) ;\
 	  s2_out=`basename $$s2 .$(S2_EXT)`.$(OUT_EXT) ;\
@@ -27,11 +27,18 @@ test: ln
 	    diff $$s2_out $(CHECK_DIR)/$$s2_out >/dev/null ;\
 	    err=$$?;\
 	    if test $$err -ne 0 ; then \
-	      echo "Output check failed!  S2 bug?  Please check and report." >&2 ; exit $$err;\
+	      echo "Output check failed!  S2 bug?  Please investigate ($$s2_out) and report." >&2 ; exit $$err;\
 	    fi\
 	  fi;\
-	  echo "$$? ($$s2_sh)" >> $(S2_TEST_REPORT);\
-	done
+	  echo "$$? ($$s2_sh)" >> $(S2_EXIT_LOG);\
+	done;\
+	if test -f $(CHECK_DIR)/$(S2_EXIT_LOG) ; then \
+	  diff $(S2_EXIT_LOG) $(CHECK_DIR)/$(S2_EXIT_LOG) >/dev/null ;\
+	  err=$$?;\
+	  if test $$err -ne 0 ; then \
+	    echo "Exit code check failed!  S2 bug?  Please investigate ($(S2_EXIT_LOG)) and report." >&2 ; exit $$err;\
+	  fi\
+	fi
 
 install:
 

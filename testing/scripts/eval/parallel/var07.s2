@@ -1,0 +1,8 @@
+; Parallel execution test references to global
+
+#if 0 ; saving to global variable space is not implemented for the scenario below
+SYSTEM out=(?P<::Hello>.*) echo -n 'Hello'
+
+SLEEP 1
+   SYSTEM echo "${Hello} World"
+#endif

@@ -200,10 +200,16 @@
 #define DM_PERR(...)    DM_BLOCK(ERR, ERR_ERR, dgPERR(P, ERR_ERR, __VA_ARGS__))
 #define DM_PWARN(...)   DM_BLOCK(WARN, ERR_WARN, dgPWARN(P, ERR_WARN, __VA_ARGS__))
 
+/* typedefs */
+typedef std::map<std::string, struct nDefun *> TFunctions;
+
 /* extern(al) functions (defined by other modules) */
 extern const char* PNAME(void);
 
 /* extern(al) function declarations */
 extern int parse(const char *filename, Node **root);
+
+/* global variables */
+extern TFunctions gl_fun_tab;	/* table of (global) functions */
 
 #endif /* _PARSE_H */

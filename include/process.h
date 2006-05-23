@@ -14,20 +14,23 @@
 #include <map>                  /* std::map */
 
 /* typedefs */
-typedef std::map<std::string, std::string> TVariables;
+typedef std::map<std::string, std::string> TVariables;		/* name/value pair */
 
 /* global variables */
-static TVariables gl_var_tab;
+static TVariables gl_var_tab;	/* table of global variables */
 
 struct Process
 {
+  /* FUNCTION */
+  BOOL fun;			/* Is this a function call? */
+
+  /* OFFSET */
+  uint OFFSET;			/* Additional OFFSET/indentation for function calls */
+
   Node *n;			/* pointer to the Node that's being evaluated */
 
   /* REPEAT */
   int64_t I;			/* Counter value when !(S2_REPEAT_NONE && S2_REPEAT_PAR), X otherwise. */
-
-  /* vector of parallel processes spawned by this process */
-  std::vector <Process *> vProc;
 
   /* debugging information */
   int executed;			/* execution value of the process (children exclusive) */

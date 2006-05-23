@@ -76,8 +76,17 @@ typedef enum CMP_t {
   CMP_GE = 5,			/* >= */
 } CMP_t;
 
+typedef enum NODE_t {
+  N_GENERAL = 0,		/* node of a general type */
+  N_DEFUN = 1,			/* DEFUN process */
+  N_FUN = 2,			/* FUN process */
+} NODE_t;
+
 struct Node
 {
+  /* TYPE */
+  NODE_t TYPE;			/* Type of the node.  Do not evaluate any children if DEFUN, ... */
+
   /* OFFSET */
   uint OFFSET;			/* Note: This OFFSET is for parsing purposes only;  *
                                  * any structuring assumptions must be based on     *
@@ -129,14 +138,14 @@ public:
   static std::string ind_param(const std::string *s);
   static std::string ind_param(const std::string &s);
   static std::string ind_param(const char *s);
-  static std::string nodeToString(Node *n, uint indent, struct Process *proc);
-  static int print_node(Node *n, uint indent, FILE *file, struct Process *proc, BOOL show_executed, BOOL show_evaluated);
+  static std::string nodeToString(Node *n, uint indent, Process *proc);
+  static int print_node(Node *n, uint indent, FILE *file, Process *proc, BOOL show_executed, BOOL show_evaluated);
 
-  int print_node(uint indent, FILE *file, struct Process *proc, BOOL show_executed, BOOL show_evaluated);
+  int print_node(uint indent, FILE *file, Process *proc, BOOL show_executed, BOOL show_evaluated);
   int print_tree(uint indent, FILE *file, BOOL pp_indent, BOOL exec_eval);
 
-  virtual int exec(struct Process *proc) { return ERR_OK; };
-  virtual std::string toString(struct Process *proc) { return "Node"; };
+  virtual int exec(Process *proc) { return ERR_OK; };
+  virtual std::string toString(Process *proc) { return "Node"; };
 
 };
 
@@ -155,8 +164,8 @@ public:
   ~nAssign();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 
@@ -174,8 +183,8 @@ public:
   ~nCmp();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 
@@ -192,8 +201,49 @@ public:
   ~nDelay();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+
+};
+
+struct nDefun : public Node
+{
+  std::string *name;				/* function name */
+  std::vector <std::string *> params;		/* vector of call by value parameters */
+  std::vector <std::string *> params_ref;	/* vector of parameters passed by reference */
+
+public:
+  nDefun();
+  nDefun(Node &node);
+  ~nDefun();
+
+  virtual void init();
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+
+};
+
+struct nFun : public Node
+{
+  std::string *name;			/* function name */
+  std::vector <std::string *> args;	/* vector of call by value arguments */
+  std::vector <std::string *> args_ref;	/* vector of arguments passed by reference */
+  nDefun *nDefunNode;			/* NULL if function not defined */
+
+public:
+  nFun();
+  nFun(Node &node);
+  ~nFun();
+
+  virtual void init();
+  int exec(Process *proc);
+  int exec(Process *proc, Process &proc_fun);
+  void exec_finish(Process *proc, Process &proc_fun);
+  std::string toString(Process *proc);
 
 private:
 
@@ -210,8 +260,8 @@ public:
   ~nMatch();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 
@@ -227,8 +277,8 @@ public:
   ~nNop();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 
@@ -246,8 +296,8 @@ public:
   ~nSetenv();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 
@@ -264,8 +314,8 @@ public:
   ~nSystem();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 
@@ -281,8 +331,8 @@ public:
   ~nTest();
 
   virtual void init();
-  int exec(struct Process *proc);
-  std::string toString(struct Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 

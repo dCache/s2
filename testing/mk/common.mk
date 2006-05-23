@@ -4,8 +4,7 @@ SH_EXT			:= sh
 OUT_EXT			:= out
 S2_LOGS			:= *.p *.d *.e *.l *.w *.out *.err *.log *.e0 *.e1 *.e2
 S2_FILES		:= $(wildcard *.s2)
-#S2_TEST_REPORT		:= s2_report-$(shell date '+%Y-%m-%d@%H:%M').log
-S2_TEST_REPORT		:= s2_report.log
+S2_EXIT_LOG		:= exit.log
 
 
 # Functions

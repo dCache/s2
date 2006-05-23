@@ -1,0 +1,11 @@
+; Function definition and call test.
+
+DEFUN GetAndShowRand n fd : r
+   ASSIGN r1 local_val
+      SYSTEM echo "r1=${r1}; r=${r}"
+
+&& NOP
+   NOP
+      ASSIGN rand "random" 
+         FUN GetAndShowRand 10 1 : rand
+            SYSTEM echo "Function returned r1=${r1} rand=${rand}"

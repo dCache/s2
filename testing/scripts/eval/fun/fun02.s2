@@ -1,0 +1,8 @@
+; Function definition and call test.
+
+DEFUN GetAndShowRand n fd : myr
+   ASSIGN myr $RND{${n}}
+   && SYSTEM echo "${myr}"
+
+&& FUN GetAndShowRand 50 1 : rand
+   SYSTEM echo "Function returned rand=${rand}"

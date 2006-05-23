@@ -901,8 +901,8 @@ evaluate:
     
 cleanup:
       /* Cleanup */
+      DELETE(proc);	/* Free proc *first*, then root */
       DELETE(root);
-      DELETE(proc);
     }
   }
 

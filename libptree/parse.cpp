@@ -38,6 +38,9 @@
 
 using namespace std;
 
+/* global variables */
+TFunctions gl_fun_tab;		/* table of (global) functions */
+
 struct Parser
 {
   char *line_end;               /* pointer to a the end of the allocated memory of parser lines */
@@ -129,6 +132,8 @@ _GET_INT(u,64);
 
   int ASSIGN(void);
   int CMP(CMP_t cmp);
+  int DEFUN(void);
+  int FUN(void);
   int MATCH(void);
   int NOP(void);
   int SETENV(void);
@@ -1186,6 +1191,8 @@ Parser::ACTION(void)
   }
 
   POPL_EAT(ASSIGN,,) else
+  POPL_EAT(DEFUN,,) else
+  POPL_EAT(FUN,,) else
   POPL_EAT(MATCH,,) else
   POPL_EAT(NOP,,) else
   POPL_EAT(SETENV,,) else
@@ -1297,6 +1304,94 @@ Parser::CMP(CMP_t cmp)
 
   return ERR_OK;
 } /* CMP */
+
+int
+Parser::DEFUN(void)
+{
+  TFunctions::iterator funIter;	/* name/function object pair */
+  std::string _val;
+  int c;
+
+  nDefun *r = new nDefun(parser_node);
+  new_node = r;
+  r->TYPE = N_DEFUN;		/* tell the defun process it should not evaluate its children */
+
+  WS(); /* allow whitespace before name of the function */
+  DQ_PARAM(dq_param,_val,r->name,"function name\n");
+
+  if ((funIter = gl_fun_tab.find(r->name->c_str())) != gl_fun_tab.end()) {
+    /* function `name' already defined, issue a warning and re-define it */
+    DM_PWARN("function `%s' already defined, re-defining\n", r->name->c_str());
+    funIter->second = r;
+  } else {
+    /* we have a definition of a new function */
+    gl_fun_tab.insert(std::pair<std::string, struct nDefun *>(r->name->c_str(), r));
+  }
+  
+  /* parameters */
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT;	 /* allow whitespace before function parameters, leave if comment char hit */
+
+    if((c = gc()) == ':') break;
+    else ugc();
+
+    DQ_PARAMv(dq_param,_val,r->params,"function call by value parameter\n");
+    DM_DBG(DM_N(3), "param=|%s|\n", _val.c_str());
+  }
+
+  /* : params_ref part */
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace before call by reference values, leave if comment char hit */
+
+    DQ_PARAMv(dq_param,_val,r->params_ref,"function call by reference parameter\n");
+    DM_DBG(DM_N(3), "retval=|%s|\n", _val.c_str());
+  }
+
+  return ERR_OK;
+} /* DEFUN */
+
+int
+Parser::FUN(void)
+{
+  std::string _val;
+  int c;
+
+  nFun *r = new nFun(parser_node);
+  new_node = r;
+  r->TYPE = N_FUN;
+
+  WS(); /* allow whitespace before name of the function */
+  DQ_PARAM(dq_param,_val,r->name,"function name\n");
+  
+  /* arguments */
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT;	 /* allow whitespace before function arguments, leave if comment char hit */
+
+    if((c = gc()) == ':') break;
+    else ugc();
+
+    DQ_PARAMv(dq_param,_val,r->args,"function argument\n");
+    DM_DBG(DM_N(3), "arg=|%s|\n", _val.c_str());
+  }
+
+  /* : args_ref part */
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace before call by reference values, leave if comment char hit */
+
+    DQ_PARAMv(dq_param,_val,r->args_ref,"function return value\n");
+    DM_DBG(DM_N(3), "retval=|%s|\n", _val.c_str());
+  }
+
+  return ERR_OK;
+} /* FUN */
 
 int
 Parser::MATCH(void)

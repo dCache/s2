@@ -67,6 +67,7 @@ Node::~Node()
 void
 Node::init()
 {
+  TYPE = N_GENERAL;
   OFFSET = 0;
   COND = S2_COND_NONE;
   REPEAT.type = S2_REPEAT_NONE;
@@ -95,6 +96,7 @@ Node::init()
 void
 Node::init(Node &node)
 {
+  TYPE = node.TYPE;
   OFFSET = node.OFFSET;
   COND = node.COND;
   REPEAT.type = node.REPEAT.type;
@@ -166,6 +168,8 @@ Node::append_node(Node *root_node, Node *n)
     return ERR_ASSERT;
   }
 
+  DM_DBG(DM_N(4), "attaching node %p (root %p)\n", n, root_node);
+
 last_par:  
   /* descend to the last node on this level */
   while(ptr_node->par)
@@ -194,6 +198,8 @@ last_par:
     n->parent = ptr_node->parent;
     n->rpar = ptr_node;
   }
+
+  DM_DBG(DM_N(4), "attached node %p (branch=%u; parent=%p; rpar=%p)\n", n, n->row, n->parent, n->rpar);
   
   return ERR_OK;
 } /* append_node */
@@ -399,9 +405,9 @@ Node::print_node
 //  S_P(&thread.print_mtx);
   if(proc && show_executed) {
     if(show_evaluated)
-      fprintf(file, "%d/%d: ", proc->executed, proc->evaluated);
+      fprintf(file, "%d/%d:", proc->executed, proc->evaluated);
     else
-      fprintf(file, "%d: ", proc->executed);
+      fprintf(file, "%d:", proc->executed);
   }
 
   fputs(nodeToString(n, indent, proc).c_str(), file);

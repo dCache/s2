@@ -70,6 +70,8 @@ nAssign::exec(Process *proc)
   uint var_size = var.size();
   uint val_size = val.size();
 
+  DM_DBG(DM_N(2), "using local variable table %p\n", proc->var_tab);
+
   if(var_size == 0 || val_size == 0) {
     /* ASSIGN ; (no operands, NOP) */
     RETURN(ERR_OK);

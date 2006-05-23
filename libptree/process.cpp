@@ -171,8 +171,15 @@ Process::Process()
 void
 Process::init()
 {
+  fun = FALSE;
+  OFFSET = 0;
+  n = NULL;
+  I = 0;
   executed = ERR_OK;
   evaluated = ERR_OK;
+  parent = NULL;
+  rpar = NULL;
+  var_tab = NULL;
 }
 
 /*
@@ -181,6 +188,8 @@ Process::init()
 void
 Process::init(Node *node, Process *p, Process *rpar)
 {
+  fun = FALSE;			/* not a function call by default */
+  OFFSET = p? p->OFFSET: 0;
   n = node;
 
   parent = p;
@@ -188,10 +197,11 @@ Process::init(Node *node, Process *p, Process *rpar)
   I = 0;
   var_tab = NULL;		/* use paren't scope (by default) */
 
+  /* create new table of variables if parallel process */
   if(n->REPEAT.type == S2_REPEAT_PAR || is_parallel()) {
     /* it is a parallel process, keep variables in the local variable space of this process */
     var_tab = new TVariables();
-    DM_DBG(DM_N(0), FBRANCH"creating local variable table %p\n", n->row, executed, evaluated, var_tab);
+    DM_DBG(DM_N(2), FBRANCH"created local variable table %p\n", n->row, executed, evaluated, var_tab);
   } else {
     /* Try to find the first rpar process which is also a parallel processes and *
      * use its variable scope (not a parallel repeat as they have several local  *
@@ -223,13 +233,16 @@ Process::Process(Node *node, Process *p, Process *rpar)
 Process::~Process()
 {
   /* delete finished processes spawned by this process */
-  DELETE_VEC(vProc);
+//  DELETE_VEC(vProc);
 
   /* delete table of local variables */
-  if(var_tab != &gl_var_tab
-     && (is_parallel() || n->REPEAT.type == S2_REPEAT_PAR)) {
-    DELETE(var_tab);
-  }
+  if(var_tab != &gl_var_tab)
+     if(is_parallel() || (n && n->REPEAT.type == S2_REPEAT_PAR) ||
+        fun) {
+       /* be defensive: test for `n' is necessary as we * 
+        * might be destroying an uninitialised process. */
+       DELETE(var_tab);
+     }
 }
 
 int
@@ -275,18 +288,26 @@ int
 Process::eval()
 {
   DM_DBG_I;
+  
+  if(n == NULL) {
+    /* be defensive */
+    DM_ERR_ASSERT("n == NULL\n");
+    RETURN(ERR_ASSERT);
+  }
+  
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
   int root_eval;
   int sreqs = 0;	/* number of parallel subrequests created */
   pthread_cond_t sreqs_cv = PTHREAD_COND_INITIALIZER;
   pthread_mutex_t sreqs_mtx = PTHREAD_MUTEX_INITIALIZER;
+  std::vector <Process *> vProc;	/* vector of parallel processes spawned by this process */
 
   /* Schedule parallel execution */
   if(n->par && n->COND == S2_COND_NONE) {
-    Node *ptr_node;
     /* S2_COND_NONE is important not to schedule parallel execution more than once *
      * e.g. when evaluating OR or AND branches                                     */
+    Node *ptr_node;
 
     DM_DBG(DM_N(3), FBRANCH"branches located at the same offset exist\n", n->row, executed, evaluated);
 
@@ -312,7 +333,7 @@ Process::eval()
             }
             S_V(&thread.total_mtx);
 
-            if(can_enqueue) {
+          if(can_enqueue) {
               Process *proc = new Process(ptr_node, parent, NULL);
               proc->I = i;
               vProc.push_back(proc);
@@ -390,12 +411,13 @@ Process::eval()
   std::vector<Process *>::const_iterator it;
   for (it = vProc.begin(); it != vProc.end(); it++) {
     UPDATE_MAX(evaluated, (*it)->evaluated);
+    delete *it;
   }
   
   DM_DBG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
   DM_LOG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
 
-  if(opts.e2_fname) Node::print_node(n, n->OFFSET, opts.e2_file, this, TRUE, TRUE);
+  if(opts.e2_fname) Node::print_node(n, OFFSET + n->OFFSET, opts.e2_file, this, TRUE, TRUE);
 
   RETURN(evaluated);	/* ${!} */
 }
@@ -422,7 +444,7 @@ seq:
       DM_DBG(DM_N(5), FBRANCH"repeats_eval=%d\n", n->row, executed, evaluated, repeats_eval);
     break;
 
-    case S2_REPEAT_PAR:
+    case S2_REPEAT_PAR: {
       int8_t step = n->REPEAT.X < n->REPEAT.Y? 1 : -1;
       int64_t i = n->REPEAT.X - step;
       uint threads_total = 1 + ((n->REPEAT.X > n->REPEAT.Y)? n->REPEAT.X - n->REPEAT.Y: n->REPEAT.Y - n->REPEAT.X);
@@ -430,6 +452,7 @@ seq:
         /* no parallel threads needed */
         goto seq;
 
+      std::vector <Process *> vProc;	/* vector of parallel processes spawned by this process */
       int sreqs = 0;		/* number of parallel subrequests created */
       pthread_cond_t sreqs_cv = PTHREAD_COND_INITIALIZER;
       pthread_mutex_t sreqs_mtx = PTHREAD_MUTEX_INITIALIZER;
@@ -485,12 +508,14 @@ seq:
       std::vector<Process *>::const_iterator it;
       for (it = vProc.begin(); it != vProc.end(); it++) {
         UPDATE_MAX(evaluated, (*it)->evaluated);
+        delete *it;
       }
 
       /* Investigate branches at the same offset */
       if(n->par)
         evaluated = eval_par();
         
+    }
     break;
   }
 
@@ -798,27 +823,49 @@ Process::eval_with_timeout()
 {
   DM_DBG_I;
   int timeout_exec, subtree_eval;
+  Process proc_fun;
 
   /* print the node with variables evaluated just before its execution */
-  if(opts.e0_fname) Node::print_node(n, n->OFFSET, opts.e0_file, this, FALSE, FALSE);
+  if(opts.e0_fname) Node::print_node(n, OFFSET + n->OFFSET, opts.e0_file, this, FALSE, FALSE);
 
   DM_DBG_T(DM_N(4), FBRANCH"starting execution of proc=%p\n", n->row, executed, evaluated, this);
 
-  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, n->OFFSET, this).c_str());
+  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, OFFSET + n->OFFSET, this).c_str());
+  if(n->TYPE == N_FUN) {
+    /* this is a function, we need to prepare function call process for it *
+     * (this will never timeout)                                           */
+    timeout_exec = ((nFun *)n)->exec(this, proc_fun);
+  } else
   timeout_exec = exec_with_timeout();
-  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, n->OFFSET, this).c_str());
+  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, OFFSET + n->OFFSET, this).c_str());
+
+  if(n->TYPE == N_FUN && timeout_exec == ERR_OK) {
+    /* evaluate function definition if there were no errors during binding *
+     * of the function (arguments/parameters mismatch, etc.)               */
+    DM_DBG(DM_N(3), FBRANCH"Evaluating a function %p\n", n->row, executed, evaluated, proc_fun.n);
+    if(proc_fun.n->child) {
+      /* we have a function with non-empty body */
+      Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
+      int fun_eval = proc_fun_body.eval();
+      ((nFun *)n)->exec_finish(this, proc_fun);
+      UPDATE_MAX(timeout_exec, fun_eval);
+    }
+  }
 
   /* there might have been warnings (unset variables) during tag expansions */
   UPDATE_MAX(executed, timeout_exec);
   evaluated = executed;				/* for ${?} */
 
   /* print the node with variables evaluated just after its execution */
-  if(opts.e1_fname) Node::print_node(n, n->OFFSET, opts.e1_file, this, TRUE, FALSE);
+  if(opts.e1_fname) Node::print_node(n, OFFSET + n->OFFSET, opts.e1_file, this, TRUE, FALSE);
 
   DM_DBG_T(DM_N(4), FBRANCH"finished execution (of proc=%p)\n", n->row, executed, evaluated, this);
   DM_LOG(DM_N(2), FBRANCH"executed=%d\n", n->row, executed, evaluated, timeout_exec);
-
-  subtree_eval = eval_subtree(timeout_exec, timeout_exec);
+  if(n->TYPE == N_DEFUN && !fun) {
+    /* we have a DEFUN node, don't evaluate its definition unless it is a function call */
+    subtree_eval = ERR_OK;
+  } else 
+    subtree_eval = eval_subtree(timeout_exec, timeout_exec);
   DM_DBG(DM_N(4), FBRANCH"proc=%p; subtree_eval=%d\n", n->row, executed, evaluated, this, subtree_eval);
 
   UPDATE_MAX(evaluated, subtree_eval);
@@ -870,12 +917,14 @@ Process::toString()
 BOOL
 Process::is_parallel()
 {
+  DM_DBG_I;
+  
 #define PAR_SEARCH(p)\
   node_ptr = n->p;\
   while(node_ptr) {\
     if(node_ptr->COND == S2_COND_NONE) {\
       DM_DBG(DM_N(3), "branch %u is parallel\n", n->row);\
-      return TRUE;\
+      RETURN(TRUE);\
     }\
     node_ptr = node_ptr->p;\
   }
@@ -883,23 +932,25 @@ Process::is_parallel()
 #if 0
   if(n->REPEAT.type == S2_REPEAT_PAR) {
     DM_DBG(DM_N(3), "branch %u is parallel\n", n->row);
-    return TRUE;
+    RETURN(TRUE);
   }
 #endif
 
-  if(n->COND != S2_COND_NONE) 
+  if(!n || n->COND != S2_COND_NONE) 
      goto not_parallel;
 
   /* check if it has any branches connected to it in parallel */
   Node *node_ptr;
 
+  DM_DBG(DM_N(3), "branch %u: n=%p; n->rpar=%p; n->par=%p\n\n", n->row, n, n->rpar, n->par);
   PAR_SEARCH(rpar);	/* up */
   PAR_SEARCH(par);	/* down */
 
 not_parallel:
-  DM_DBG(DM_N(3), "branch %u is NOT parallel%s\n", 
-         n->row, (n->REPEAT.type == S2_REPEAT_PAR)? " (is parallel repeat though)": "");
-  return FALSE;
+  if(n) DM_DBG(DM_N(3), "branch %u is NOT parallel%s\n", 
+          n->row, (n->REPEAT.type == S2_REPEAT_PAR)? " (is parallel repeat though)": "");
+
+  RETURN(FALSE);
 #undef PAR_SEARCH
 }
 
@@ -951,7 +1002,7 @@ Process::WriteVariable(TVariables *var_tab, const char *name, const char *value,
     return;
   }
 
-  if ((varIter = var_tab->find(name)) != var_tab->end()) {
+  if((varIter = var_tab->find(name)) != var_tab->end()) {
     /* variable `name' exists, change its value */
     varIter->second = (vlen < 0)? value : std::string(value, vlen);
   } else {
@@ -1028,7 +1079,7 @@ Process::ReadVariable(TVariables *var_tab, const char *name)
     return NULL;
   }
 
-  if ((varIter = var_tab->find(name)) != var_tab->end()) {
+  if((varIter = var_tab->find(name)) != var_tab->end()) {
     /* variable exists */
     DM_DBG(DM_N(0), _("read variable `%s' with value `%s' (from %p)\n"), name, varIter->second.c_str(), var_tab);
     return varIter->second.c_str();
@@ -1244,7 +1295,6 @@ Process::eval_str(const char *cstr, Process *proc)
           const char *read_var = var.c_str();
           unsigned no_warn = *read_var == '-';
 
-          DM_DBG(DM_N(4), FBRANCH"++++++++++++++++++++|%s|++++++++++++++++++++++\n", proc->n->row, proc->executed, proc->evaluated, read_var);
           DM_DBG(DM_N(4), "read_var=|%s|\n", read_var);
           if((new_var = proc->ReadVariable(read_var)) != NULL) {
             DM_DBG(DM_N(4), "var %s=|%s|\n", var.c_str(), new_var);
@@ -1256,7 +1306,6 @@ Process::eval_str(const char *cstr, Process *proc)
               UPDATE_MAX(proc->executed, ERR_WARN);
             }
             s.append("${" + std::string(read_var + no_warn) + "}");
-            DM_DBG(DM_N(4), FBRANCH"--------------------|%s|----------------------\n", proc->n->row, proc->executed, proc->evaluated, read_var);
           }
           state = sInit;
         } else {

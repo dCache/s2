@@ -889,7 +889,7 @@ evaluate:
       if(opts.pp_fname) lval = pp_print(root);
       DM_DBG(DM_N(1), "pretty-printer return value=%d\n", lval);
       UPDATE_MAX(rval, lval);
-    
+
       if (root) {
         Process::threads_init();
         proc = new Process(root, NULL, NULL);
@@ -902,6 +902,7 @@ evaluate:
 cleanup:
       /* Cleanup */
       DELETE(root);
+      DELETE(proc);
     }
   }
 

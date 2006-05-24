@@ -172,7 +172,7 @@ void
 Process::init()
 {
   fun = FALSE;
-  OFFSET = 0;
+  FUN_OFFSET = 0;
   n = NULL;
   I = 0;
   executed = ERR_OK;
@@ -189,7 +189,7 @@ void
 Process::init(Node *node, Process *p, Process *rpar)
 {
   fun = FALSE;			/* not a function call by default */
-  OFFSET = p? p->OFFSET: 0;
+  FUN_OFFSET = p? p->FUN_OFFSET: 0;
   n = node;
 
   parent = p;
@@ -416,8 +416,9 @@ Process::eval()
   
   DM_DBG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
   DM_LOG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
-
-  if(opts.e2_fname) Node::print_node(n, OFFSET + n->OFFSET, opts.e2_file, this, TRUE, TRUE);
+  
+  /* write e2 debugging/logging information */
+  n->executed = executed; n->evaluated = evaluated;
 
   RETURN(evaluated);	/* ${!} */
 }
@@ -826,38 +827,49 @@ Process::eval_with_timeout()
   Process proc_fun;
 
   /* print the node with variables evaluated just before its execution */
-  if(opts.e0_fname) Node::print_node(n, OFFSET + n->OFFSET, opts.e0_file, this, FALSE, FALSE);
+  if(n->TYPE != N_DEFUN) {
+    if(opts.e0_fname) Node::print_node(n, n->OFFSET - FUN_OFFSET, opts.e0_file, this, FALSE, FALSE);
+  }
 
   DM_DBG_T(DM_N(4), FBRANCH"starting execution of proc=%p\n", n->row, executed, evaluated, this);
 
-  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, OFFSET + n->OFFSET, this).c_str());
+  DM_LOG_B(DM_N(1), "e0:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
   if(n->TYPE == N_FUN) {
     /* this is a function, we need to prepare function call process for it *
      * (this will never timeout)                                           */
     timeout_exec = ((nFun *)n)->exec(this, proc_fun);
   } else
   timeout_exec = exec_with_timeout();
-  DM_LOG_B(DM_N(1), "%s\n", Node::nodeToString(n, OFFSET + n->OFFSET, this).c_str());
-
-  if(n->TYPE == N_FUN && timeout_exec == ERR_OK) {
-    /* evaluate function definition if there were no errors during binding *
-     * of the function (arguments/parameters mismatch, etc.)               */
-    DM_DBG(DM_N(3), FBRANCH"Evaluating a function %p\n", n->row, executed, evaluated, proc_fun.n);
-    if(proc_fun.n->child) {
-      /* we have a function with non-empty body */
-      Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
-      int fun_eval = proc_fun_body.eval();
-      ((nFun *)n)->exec_finish(this, proc_fun);
-      UPDATE_MAX(timeout_exec, fun_eval);
-    }
-  }
+  DM_LOG_B(DM_N(1), "e1:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
 
   /* there might have been warnings (unset variables) during tag expansions */
   UPDATE_MAX(executed, timeout_exec);
   evaluated = executed;				/* for ${?} */
 
   /* print the node with variables evaluated just after its execution */
-  if(opts.e1_fname) Node::print_node(n, OFFSET + n->OFFSET, opts.e1_file, this, TRUE, FALSE);
+  if(n->TYPE != N_DEFUN) {
+    if(opts.e1_fname) Node::print_node(n, n->OFFSET - FUN_OFFSET, opts.e1_file, this, TRUE, FALSE);
+  }
+
+  if(n->TYPE == N_FUN && timeout_exec == ERR_OK) {
+    /* evaluate function definition if there were no errors during binding *
+     * of the function (arguments/parameters mismatch, etc.)               */
+    DM_DBG(DM_N(3), FBRANCH"Evaluating a function %p\n", n->row, executed, evaluated, proc_fun.n);
+    std::string by_ref_vals = "";
+    if(proc_fun.n->child) {
+      /* we have a function with non-empty body */
+      Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
+      int fun_eval = proc_fun_body.eval();
+      ((nFun *)n)->exec_finish(this, proc_fun);
+      UPDATE_MAX(executed, fun_eval);
+      evaluated = executed;				/* for ${?} */
+
+      by_ref_vals = ((nFun *)n)->getByRefVals(&proc_fun);
+      if(by_ref_vals.length() > 0) by_ref_vals=" :" + by_ref_vals;
+    }
+    fprintf(opts.e0_file, "---> FUN %s%s\n", ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
+    fprintf(opts.e1_file, "%d:---> FUN %s%s\n", executed, ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
+  }
 
   DM_DBG_T(DM_N(4), FBRANCH"finished execution (of proc=%p)\n", n->row, executed, evaluated, this);
   DM_LOG(DM_N(2), FBRANCH"executed=%d\n", n->row, executed, evaluated, timeout_exec);

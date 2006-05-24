@@ -24,15 +24,15 @@ struct Process
   /* FUNCTION */
   BOOL fun;			/* Is this a function call? */
 
-  /* OFFSET */
-  uint OFFSET;			/* Additional OFFSET/indentation for function calls */
+  /* FUN_OFFSET */
+  uint FUN_OFFSET;		/* Special offset for function calls */
 
   Node *n;			/* pointer to the Node that's being evaluated */
 
   /* REPEAT */
   int64_t I;			/* Counter value when !(S2_REPEAT_NONE && S2_REPEAT_PAR), X otherwise. */
 
-  /* debugging information */
+  /* execution/evaluation values for the internal S2 logic */
   int executed;			/* execution value of the process (children exclusive) */
   int evaluated;		/* ``complete'' evaluation value of the process (children inclusive); ${!} */
 

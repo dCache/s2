@@ -268,12 +268,34 @@ pp_print(Node *node)
 
   f_open(opts.pp_fname, &opts.pp_file);
 
-  if(node) rval = node->print_tree(0, opts.pp_file, FALSE, FALSE);
+  if(node) rval = node->print_tree(0, opts.pp_file, TRUE, FALSE);
 
   f_close(opts.pp_fname, &opts.pp_file);
 
   return rval;
 } /* pp_print */
+
+/*
+ * After evaluation print of the tree.
+ * If `e2_fname' is NULL, prints to E2_DEFAULT_OUTPUT.
+ *
+ * Returns
+ *   0:  success
+ *   >0: errors
+ */
+static int
+e2_print(Node *node)
+{
+  int rval = ERR_OK;
+
+  f_open(opts.e2_fname, &opts.e2_file);
+
+  if(node) rval = node->print_tree(0, opts.e2_file, TRUE, TRUE);
+
+  f_close(opts.e2_fname, &opts.e2_file);
+
+  return rval;
+} /* e2_print */
 
 /********************************************************************
  * Usage function
@@ -885,7 +907,7 @@ evaluate:
       if(!tp_created) tp_init(opts.tp_size);
       tp_created = TRUE;
     
-      /* Pretty-print S2 tree ($ENV{VAR} are evaluated) */
+      /* pretty-print S2 tree ($ENV{VAR} are evaluated) */
       if(opts.pp_fname) lval = pp_print(root);
       DM_DBG(DM_N(1), "pretty-printer return value=%d\n", lval);
       UPDATE_MAX(rval, lval);
@@ -898,10 +920,15 @@ evaluate:
         DM_DBG(DM_N(1), "evaluation return value=%d\n", lval);
         UPDATE_MAX(rval, lval);
       }
+
+      /* after-evaluation print of the tree */
+      if(opts.e2_fname) lval = e2_print(root);
+      DM_DBG(DM_N(2), "after-evaluation print return value=%d\n", lval);
+      UPDATE_MAX(rval, lval);
     
 cleanup:
-      /* Cleanup */
-      DELETE(proc);	/* Free proc *first*, then root */
+      /* cleanup */
+      DELETE(proc);	/* free proc *first*, then root */
       DELETE(root);
     }
   }

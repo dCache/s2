@@ -80,8 +80,10 @@ Node::init()
   match_opt.px = MATCH_PX;
   match_opt.pcre = MATCH_PCRE;
   
-  /* debugging information */
+  /* debugging/logging information (executed/evaluated _only_ for e2) */
   row = 0;
+  executed = ERR_OK;
+  evaluated = ERR_OK;
 
   /* tree overhead */
   parent = NULL;
@@ -109,8 +111,10 @@ Node::init(Node &node)
   match_opt.px = node.match_opt.px;
   match_opt.pcre = node.match_opt.pcre;
 
-  /* debugging information */
+  /* debugging/logging information (executed/evaluated _only_ for e2) */
   row = node.row;
+  executed = node.executed;
+  evaluated = node.evaluated;
 
   /* tree overhead */
   parent = NULL;
@@ -398,16 +402,22 @@ int
 Node::print_node
 (Node *n, uint indent, FILE *file, Process *proc, BOOL show_executed, BOOL show_evaluated)
 {
-  if(show_executed && !proc)
-    /* don't show node which hasn't executed */
-    return ERR_OK;
+  int executed, evaluated;
+
+  if(proc) {
+    executed  = proc->executed;
+    evaluated = proc->evaluated;
+  } else {
+    executed  = n->executed;
+    evaluated = n->evaluated;
+  }
 
 //  S_P(&thread.print_mtx);
-  if(proc && show_executed) {
+  if(show_executed) {
     if(show_evaluated)
-      fprintf(file, "%d/%d:", proc->executed, proc->evaluated);
+      fprintf(file, "%d/%d:", executed, evaluated);
     else
-      fprintf(file, "%d:", proc->executed);
+      fprintf(file, "%d:", executed);
   }
 
   fputs(nodeToString(n, indent, proc).c_str(), file);

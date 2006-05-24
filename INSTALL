@@ -68,7 +68,7 @@ $ make rpm
 
 Note that if you just want to play with the S2 language and do not
 want SRM2 support, use
-$ ./configure --disable-gsoap
+$ ./configure --disable-srm2
 
 
 Testing directory

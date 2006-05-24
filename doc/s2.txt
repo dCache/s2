@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 test client documentation
-Version:	2006-05-23
+Version:	2006-05-24
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -873,8 +873,10 @@ Also, note that:
 
 3.2 Whitespace
 ~~~~~~~~~~~~~~
+S2 is a compact language.  Use the least amount of whitespace you can, e.g.:
+
    TEST $EXPR{${n}<1}
 
-vs.
+or use quotation marks where appropriate:
 
-   TEST $EXPR{${n} < 1}   ; TEST "$EXPR{${n} < 1}" ; is correct
+   TEST "$EXPR{${n} < 1}"   ; TEST $EXPR{${n} < 1} ; is incorrect (see the grammar)

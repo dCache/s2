@@ -16,10 +16,14 @@ ln:
 	done
 
 test: ln
+	@echo -e $(call HTML_HEAD,"`basename $(CWD)`") > $(S2_HTML_LOG)
 	@for dir in $(SUBDIRS) ;\
 	do \
+	  echo -e "<A HREF=$$dir/$(S2_HTML_LOG)>$$dir</A><BR>" >> $(S2_HTML_LOG);\
 	  $(MAKE) -C "$$dir" test || exit $$? ;\
 	done
+	@echo -e $(call HTML_TAIL) >> $(S2_HTML_LOG)
+
 
 install:
 

@@ -1,11 +1,14 @@
-; Function definition and call test.
+; Function definition and call test (indentation and passing variables).
 
-DEFUN GetAndShowRand n fd : r
-   ASSIGN r1 local_val
-      SYSTEM echo "r1=${r1}; r=${r}"
-
-&& NOP
+ASSIGN ScriptName "fun03"
    NOP
-      ASSIGN rand "random" 
-         FUN GetAndShowRand 10 1 : rand
-            SYSTEM echo "Function returned r1=${r1} rand=${rand}"
+      NOP
+         NOP
+            DEFUN Foo str code : a not_def c
+               SYSTEM echo "${ScriptName}: ${str}: ${code}"
+               && ASSIGN a "two words" c 1 ; don't assign to 
+               && NOP ${code}
+
+&& eval=1 FUN Foo "Testing a function call" 1 : a_byref not_def_byref c_byref
+   eval=2 NOP 2
+      SYSTEM echo "a_byref=${a_byref}, not_def_byref=${not_def_byref}, c_byref=${c_byref}"

@@ -112,8 +112,10 @@ struct Node
 #define MATCH_PX        0
 #define MATCH_PCRE      PCRE_ANCHORED
 
-  /* debugging information */
+  /* debugging/logging information (executed/evaluated _only_ for e2) */
   uint row;			/* parser row (node ID) */
+  int executed;			/* execution value of the process (children exclusive) */
+  int evaluated;		/* ``complete'' evaluation value of the process (children inclusive); ${!} */
 
   /* tree overhead */
   Node *parent;			/* the parent of this node; NULL if root */
@@ -244,6 +246,7 @@ public:
   int exec(Process *proc, Process &proc_fun);
   void exec_finish(Process *proc, Process &proc_fun);
   std::string toString(Process *proc);
+  std::string getByRefVals(Process *proc);
 
 private:
 

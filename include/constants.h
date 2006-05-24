@@ -28,8 +28,8 @@
 #define UINT64_MIN      0ULL
 
 /* S2 specific constants */
-#define S2_UNDEF_STR    "undef"                 /* undefined */
-#define S2_NULL_STR     "nil"                   /* NULL */
+#define S2_UNDEF_STR    "(undef)"	/* undefined */
+#define S2_NULL_STR     "(nil)"		/* NULL */
 
 /* Simple macros */
 #ifndef RETURN

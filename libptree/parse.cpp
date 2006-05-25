@@ -128,6 +128,8 @@ _GET_INT(u,64);
   int MATCH_OPTS(void);
   int COND(void);
   int REPEAT(void);
+  int REPEAT_FIXED(void);
+  int WHILE(void);
   int ACTION(void);
 
   int ASSIGN(void);
@@ -1101,15 +1103,42 @@ Parser::COND(void)
 int
 Parser::REPEAT(void)
 {
+  int rval;
+  char *opt;
+  char *end = NULL;
   int c = gc();
-  int start_col;
 
-  if(c != '>') {
-    /* no repeat present */
-    parser_node.REPEAT.type = S2_REPEAT_NONE;
-    ugc();
-    return ERR_OK;
+  switch(c) {
+    case '>':
+      EATW(REPEAT_FIXED);
+    break;
+
+    case 'W': 
+      ugc();
+      AZaz_(opt = line + col, &end);
+      if(POPL("WHILE")) parser_node.REPEAT.type = S2_REPEAT_WHILE;
+      else col -= end - opt;
+
+      return ERR_OK;
+    break;
+        
+    default: 
+      /* no repeat present */
+      parser_node.REPEAT.type = S2_REPEAT_NONE;
+      ugc();
+      return ERR_OK;
   }
+ 
+  /* parsing succeeded */
+  return ERR_OK;
+} /* REPEAT */
+
+/* optional repeat */
+int
+Parser::REPEAT_FIXED(void)
+{
+  int c;
+  int start_col;
 
   /* we have a repeat operator */
   WS();         /* allow whitespace after '>' */
@@ -1169,7 +1198,8 @@ Parser::REPEAT(void)
   
   /* parsing succeeded */
   return ERR_OK;
-} /* REPEAT */
+} /* REPEAT_FIXED */
+
 
 int
 Parser::ACTION(void)
@@ -1593,7 +1623,7 @@ empty:
 
   /* parsing succeeded */
   return ERR_OK;
-} /* MATCH */
+} /* TEST */
 
 #ifdef HAVE_GSOAP
 int

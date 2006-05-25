@@ -55,7 +55,7 @@ start with the ';' character and continue up to the next newline
 
   <COND> :: '||' | '&&'
 
-  <REPEAT> :: '>' <X> <PAR_SEQ> <Y>
+  <REPEAT> :: '>' <X> <PAR_SEQ> <Y> | 'WHILE'
   
   <PAR_SEQ> :: ' ' | '||' | '&&'
   
@@ -149,6 +149,7 @@ values are used.
   <TAG> :: '${' <VAR> '}' | '$ENV{' <VAR> '}' | 
            '$EXPR{' <EXPR> '}' | '$RND{' <EXPR> '}' |
            '$DATE{' <STR> '}' | '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
+           '$MD5{' <STR> '}' | '$DEFINED{' <VAR> '}'
 
   <I> :: <INTEGER> | <TAG>
 ; <TAG> must evaluate to <INTEGER>
@@ -328,7 +329,7 @@ The evaluation value is the value of the last iteration.
 
 The parallel repeat operator
 ----------------------------
->X Y <branch>
+  >X Y <branch>
 
 A virtual branch created by the use of the parallel repeat operator
 evaluates to TRUE, if all of <branch> iterations evaluate to TRUE.
@@ -338,6 +339,12 @@ evaluates to FALSE, the virtual branch evaluates to FALSE.
 
 The evaluation value of the branch is the maximum of its completed
 iterations.
+
+The WHILE loop
+--------------
+  WHILE <branch>
+
+Repeat execution of <branch> while it evaluates to TRUE.
 
 
 2.3 Actions
@@ -387,16 +394,16 @@ both strings.
 
 2.3.3 Function definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-<DEFUN> :: 'DEFUN' ({<FUN_PARAM> ' '}* ':'? | {<FUN_PARAM_REF> ' '}*)?
-<FUN_PARAM> :: <DQ_STR>
-<FUN_PARAM_REF> :: <DQ_STR>
+  <DEFUN> :: 'DEFUN' ({<FUN_PARAM> ' '}* ':'? | {<FUN_PARAM_REF> ' '}*)?
+  <FUN_PARAM> :: <DQ_STR>
+  <FUN_PARAM_REF> :: <DQ_STR>
 
 
 2.3.4 Function call
 ~~~~~~~~~~~~~~~~~~~
-<DEFUN> :: 'FUN' ({<FUN_ARG> ' '}* ':'? | {<FUN_ARG_REF> ' '}*)?
-<FUN_ARG> :: <DQ_STR>
-<FUN_ARG_REF> :: <DQ_STR>
+  <DEFUN> :: 'FUN' ({<FUN_ARG> ' '}* ':'? | {<FUN_ARG_REF> ' '}*)?
+  <FUN_ARG> :: <DQ_STR>
+  <FUN_ARG_REF> :: <DQ_STR>
 
 <FUN_ARG> are passed by value, <FUN_ARG_REF> are passed by reference.
 
@@ -797,15 +804,15 @@ $I{<I>} refrerence to the internal counter of a sequential repeat operator.
 
 2.5.2 Random number
 ~~~~~~~~~~~~~~~~~~~
-'$RND{' <EXPR> '}'
+  '$RND{' <EXPR> '}'
 
-  Returns a random number between 0 and <EXPR>-1.
+Returns a random number between 0 and <EXPR>-1.
 
 2.5.3 Date
 ~~~~~~~~~~
-'$DATE{' <STR> '}'
+  '$DATE{' <STR> '}'
 
-  Interpreted sequences in <STR> are:
+Interpreted sequences in <STR> are:
 
   %%     a literal %
   %C     century  (year  divided  by  100  and  truncated  to an integer)
@@ -838,11 +845,24 @@ If <STR> is empty, the output is +%Y-%m-%d@%H:%M:%S.%N, where %N is cut to 6 dig
 
 2.5.4 Formatted output
 ~~~~~~~~~~~~~~~~~~~~~~
-'$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
+  '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
 
-  The tag is replaced by a formatted output.  This tag conforms to 
-  IEEE Std 1003.1-2001 (``POSIX.1'').
+The tag is replaced by a formatted output.  This tag conforms to 
+IEEE Std 1003.1-2001 (``POSIX.1'').
   
+2.5.5 MD5 sum of a string
+~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$MD5{' <STR> '}' 
+
+The tag is replaced by an MD5 sum of <STR>.
+
+
+2.5.6 Test on an existence of a variable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$DEFINED{' <VAR> '}'
+
+The tag is replaced by 1 if <VAR> is defined, 0 otherwise.
+
 
 3 Caveats
 ~~~~~~~~~

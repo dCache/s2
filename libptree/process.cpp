@@ -438,6 +438,7 @@ Process::eval_repeats()
     case S2_REPEAT_NONE:	/* fall through */
     case S2_REPEAT_OR:		/* fall through */
     case S2_REPEAT_AND:		/* fall through */
+    case S2_REPEAT_WHILE:	/* fall through */
 seq:
       I = n->REPEAT.X;		/* necessary for S2_REPEAT_NONE only */
       repeats_eval = eval_sequential_repeats();
@@ -518,6 +519,7 @@ seq:
         
     }
     break;
+        
   }
 
   DM_DBG(DM_N(5), FBRANCH"eval_repeats returns\n", n->row, executed, evaluated);
@@ -616,15 +618,16 @@ Process::eval_sequential_repeats()
   int iter_eval;
 
   switch(n->REPEAT.type) {
-    case S2_REPEAT_NONE:	/* fall through */
+    case S2_REPEAT_NONE: {	/* fall through */
     case S2_REPEAT_PAR:		/* fall through: parallelism already handled in eval_repeats() */
       DM_DBG(DM_N(5), "NO/PAR repeat "FBRANCH"\n", n->row, executed, evaluated);
       iter_eval = eval_with_timeout();
       UPDATE_MAX(evaluated, iter_eval);
       DM_DBG(DM_N(5), "NO/PAR repeat "FBRANCH"iter_eval=%d\n", n->row, executed, evaluated, iter_eval);
+    }
     break;
 
-    case S2_REPEAT_OR:
+    case S2_REPEAT_OR: {
       I = i;
       do {
         I += step;
@@ -639,9 +642,10 @@ Process::eval_sequential_repeats()
           break;
         }
       } while(I != n->REPEAT.Y);
+    }
     break;
 
-    case S2_REPEAT_AND:
+    case S2_REPEAT_AND: {
       I = i;
       do {
         I += step;
@@ -656,8 +660,20 @@ Process::eval_sequential_repeats()
           break;
         }
       } while(I != n->REPEAT.Y);
+    }
     break;
 
+    case S2_REPEAT_WHILE: {
+      do {
+        DM_DBG(DM_N(5), "WHILE repeat "FBRANCH"\n", n->row, executed, evaluated);
+        iter_eval = eval_with_timeout();
+        UPDATE_MAX(evaluated, iter_eval);
+        DM_DBG(DM_N(5), "WHILE repeat "FBRANCH"iter_eval=%d\n", n->row, executed, evaluated, iter_eval);
+
+      } while(evaluated <= n->EVAL);
+      DM_DBG(DM_N(5), "WHILE repeat "FBRANCH"unsuccessfully evaluated; evaluated=%d > EVAL=%d\n", n->row, executed, evaluated, evaluated, n->EVAL);
+    }
+    break;
   }
 
   DM_DBG(DM_N(5), FBRANCH"eval_sequential_repeats returns\n", n->row, executed, evaluated);
@@ -1180,11 +1196,11 @@ Process::eval_str(const char *cstr, Process *proc)
   std::string var;
   enum s_eval { 
     sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
-    sMd5,
+    sMd5,  sDefined, sMatch, 
   } state = sInit;
   static const char* state_name[] = {
     "",    "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
-    "MD5", 
+    "MD5", "DEFINED", "MATCH",
   };
   const char *opt;
   int opt_off;
@@ -1270,6 +1286,16 @@ Process::eval_str(const char *cstr, Process *proc)
           /* MD5 sum of a string */
           var.clear();
           state = sMd5;
+          i += opt_off - 1;
+        } else if(OPL("DEFINED{")) {
+          /* MD5 sum of a string */
+          var.clear();
+          state = sDefined;
+          i += opt_off - 1;
+        } else if(OPL("MATCH{")) {
+          /* MD5 sum of a string */
+          var.clear();
+          state = sDefined;
           i += opt_off - 1;
         } else {
           /* return the borrowed dollar */
@@ -1545,6 +1571,38 @@ Process::eval_str(const char *cstr, Process *proc)
           char md5str[33];
           gen_md5(md5str, var.c_str());
           s.append(md5str);
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      }
+      continue;
+
+      case sDefined:{
+        if(c == '}' && !brackets) {
+          /* we have a variable to check whether it was defined */
+          var = eval_str(var.c_str(), proc);	/* evaluate things like: $DEFINED{...${var}...} */
+          s.append(proc->ReadVariable(var.c_str())? "1" : "0");
+          state = sInit;
+        } else {
+          var.push_back(c);
+        }
+      }
+      continue;
+
+      case sMatch:{
+        if(c == '}' && !brackets) {
+          var = eval_str(var.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
+          std::string expected;
+          std::string received;
+          int expected_len = get_dq_param(expected, var.c_str());
+          get_dq_param(received, var.c_str() + expected_len);
+          
+          DM_DBG(DM_N(4), "matching `%s' and `%s'\n", expected.c_str(), received.c_str());
+          s.append(pcre_matches(expected.c_str(),
+                                received.c_str(),
+                                proc->n->match_opt.pcre, proc)? "1": "0");
+
           state = sInit;
         } else {
           var.push_back(c);

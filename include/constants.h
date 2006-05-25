@@ -48,6 +48,7 @@ typedef enum S2_repeat {
   S2_REPEAT_OR = 1,
   S2_REPEAT_AND = 2,
   S2_REPEAT_PAR = 3,
+  S2_REPEAT_WHILE = 4,
 } S2_repeat;
 
 /* S2 defaults */

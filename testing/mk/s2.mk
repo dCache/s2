@@ -18,8 +18,8 @@ ln:
 
 test: ln
 	@rm -f $(S2_EXIT_LOG) $(S2_HTML_LOG)
-	@echo -e $(call HTML_HEAD,"`basename $(CWD)`") >> $(S2_HTML_LOG)
-	@echo -e $(call HTML_TABLE_HEAD) >> $(S2_HTML_LOG)
+	@echo -e "$(call HTML_HEAD,`basename $(CWD)`)" >> $(S2_HTML_LOG)
+	@echo -e "$(call HTML_TABLE_HEAD)" >> $(S2_HTML_LOG)
 	@for s2 in `ls -1 *.$(S2_EXT) 2>/dev/null` ;\
 	do \
 	  s2_bare=`basename $$s2 .$(S2_EXT)` ;\
@@ -28,7 +28,7 @@ test: ln
 	  ./$$s2_sh;\
           err=$$?;\
 	  echo "$$err ($$s2_sh)" >> $(S2_EXIT_LOG);\
-	  echo -e $(call HTML_TABLE_ROW,$$s2_bare,$$err) >> $(S2_HTML_LOG);\
+	  $(call HTML_TABLE_ROW,$(S2_HTML_LOG),$$s2_bare,$$err);\
 	  if test -f $(CHECK_DIR)/$$s2_out ; then \
 	    diff $$s2_out $(CHECK_DIR)/$$s2_out >/dev/null ;\
 	    err=$$?;\
@@ -44,8 +44,8 @@ test: ln
 	    echo "Exit code check(s) failed!  S2 bug?  Please compare $(S2_EXIT_LOG), $(CHECK_DIR)/$(S2_EXIT_LOG) and report." >&2 ; exit $$err;\
 	  fi\
 	fi
-	@echo -e $(call HTML_TABLE_TAIL) >> $(S2_HTML_LOG)
-	@echo -e $(call HTML_TAIL) >> $(S2_HTML_LOG)
+	@echo -e "$(call HTML_TABLE_TAIL)" >> $(S2_HTML_LOG)
+	@echo -e "$(call HTML_TAIL)" >> $(S2_HTML_LOG)
 
 
 install:

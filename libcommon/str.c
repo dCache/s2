@@ -294,10 +294,10 @@ get_dq_param(std::string &target, const char *source)
   target.clear();
   source_len = strlen(source);
 
-  fprintf(stderr, "entire string=|%s|\n", source);
+//  fprintf(stderr, "entire string=|%s|\n", source);
   do { c = gc(); } while(IS_WHITE(c));
   q = (c == '"');
-  fprintf(stderr, "|%c|\n", c);
+//  fprintf(stderr, "|%c|\n", c);
   if(!q) ugc();
   
   for(i = 0; (c = gc()) != '\0'; i++) {

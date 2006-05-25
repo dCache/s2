@@ -1,13 +1,10 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Nicer way logging of strings
 - $RAND{} and similar that cause problems + flag to evaluate only "static" variables?
 - TEST $EXPR vs just TEST
 - MATCH => $MATCH{"a" "b"}
 - LT/GT/... (<, >, ...)
 - SRM2 test scenarios and testing (storage system info/description as testing)!
-- WHILE loop
-- $EXIST/DEFINED{[::]<var>}
 - Saving to global vars (?P<::Hello>.*)
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Consider using '' for expressions which will not be evaluated (q_param).

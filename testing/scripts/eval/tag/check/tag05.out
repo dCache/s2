@@ -1,0 +1,1 @@
+$DEFINED{var1}=1; $DEFINED{var2}=0; $DEFINED{::var1}=1; 

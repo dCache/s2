@@ -354,16 +354,14 @@ Node::nodeToString(Node *n, uint indent, Process *proc)
     case S2_COND_AND: ss << "&& "; break;
   }
 
-  if(n->REPEAT.type != S2_REPEAT_NONE) {
-    ss << '>' << n->REPEAT.X;
-    switch(n->REPEAT.type) {
-      case S2_REPEAT_NONE: DM_ERR_ASSERT(_("S2_REPEAT_NONE\n")); break;
-      case S2_REPEAT_OR: ss << "||"; break;
-      case S2_REPEAT_AND: ss << "&&"; break;
-      case S2_REPEAT_PAR: ss << ' '; break;
-    }
-    ss << n->REPEAT.Y << ' ';
+  switch(n->REPEAT.type) {
+    case S2_REPEAT_NONE:  break;
+    case S2_REPEAT_OR:    ss << '>' << n->REPEAT.X << "||" << n->REPEAT.Y; break;
+    case S2_REPEAT_AND:   ss << '>' << n->REPEAT.X << "&&" << n->REPEAT.Y; break;
+    case S2_REPEAT_PAR:   ss << '>' << n->REPEAT.X << ' '  << n->REPEAT.Y; break;
+    case S2_REPEAT_WHILE: ss << "WHILE"; break;
   }
+  if(n->REPEAT.type != S2_REPEAT_NONE) ss << ' ';
 
   if(!IS_DEFAULT(n->EVAL, S2_EVAL))
     ss << "eval=" << n->EVAL << ' ';

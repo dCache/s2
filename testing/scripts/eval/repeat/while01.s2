@@ -1,0 +1,6 @@
+; WHILE loop
+
+WHILE ASSIGN r $RND{10}
+   SYSTEM echo "${r}"
+      NOP $EXPR{${r}>8}
+|| NOP

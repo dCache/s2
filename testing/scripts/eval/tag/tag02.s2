@@ -1,4 +1,4 @@
-; Tags test
+; $RND{} test
 
 NOP
 && SYSTEM echo "$RND{100}"

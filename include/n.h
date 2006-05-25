@@ -341,7 +341,6 @@ private:
 
 };
 
-
 /* external variables (defined by other modules) */
 extern struct opts_t opts;		/* command-line options */
 

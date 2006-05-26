@@ -245,6 +245,7 @@ escape_chars(const char* s, const char c, BOOL q)
       goto out;
     }
 
+    
     if(q && s[i] == c && !bslash) {
       /* we need to escape unescaped double quotes */
       ss << '\\';
@@ -294,7 +295,7 @@ get_dq_param(std::string &target, const char *source)
   target.clear();
   source_len = strlen(source);
 
-//  fprintf(stderr, "entire string=|%s|\n", source);
+//  fprintf(stderr, "complete string=|%s|\n", source);
   do { c = gc(); } while(IS_WHITE(c));
   q = (c == '"');
 //  fprintf(stderr, "|%c|\n", c);
@@ -330,10 +331,66 @@ out:
     bslash = c == '\\';
   }
 
-  if(q && c == '\n')
+  if(q && c == '\0')
     DM_WARN(ERR_WARN, "'\\0' terminated double-quoted parameter\n");
 
   return col - (c == '\0');
 
 #undef TERM_CHAR
 } /* get_dq_param */
+
+/*
+ * Get a parameter enclosed in curly (ballanced) brackets.
+ */
+extern int
+get_ballanced_br_param(std::string &target, const char *source)
+{
+#define gc(c)		(col < source_len) ? source[col++] : '\0'
+#define ugc()		col--
+
+  int i, c;
+  unsigned col = 0;
+  unsigned source_len;
+  BOOL bslash = FALSE;	/* we had the '\\' character */
+  int brackets = 1;
+  
+  if(source == NULL) {
+    DM_ERR_ASSERT(_("source == NULL\n"));\
+    return 0;
+  }
+
+  /* initialisation */
+  target.clear();
+  source_len = strlen(source);
+
+  fprintf(stderr, "complete string=|%s|\n", source);
+  
+  for(i = 0; (c = gc()) != '\0'; i++) {
+  
+    if(c == '\\' && bslash) {
+      /* two backslashes => no quoting */
+      bslash = FALSE;
+      target.push_back(c);
+      continue;
+    }
+
+    if(!bslash) {
+      if(c == '}') brackets--;
+      if(c == '{') brackets++;
+    }
+    
+    if(!brackets) {
+      fprintf(stderr, "|%s|; col=|%d|\n", target.c_str(), col);
+      return col;	/* found a string terminator */
+    }
+
+    target.push_back(c);
+    bslash = c == '\\';
+  }
+
+  if(c == '\0') DM_WARN(ERR_WARN, "'\\0' terminated parameter\n");
+
+  return col - (c == '\0');
+
+#undef TERM_CHAR
+} /* get_ballanced_br_param */

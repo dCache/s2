@@ -47,16 +47,8 @@ using namespace std;
 #define UPDATE_MAX_MUTEX(mtx,m1,m2)\
   do {S_P(mtx); UPDATE_MAX(m1,m2); S_V(mtx);} while(0)
 
-/* private data */
-typedef struct threads {
-  int total;
-  pthread_mutex_t total_mtx;
-  pthread_mutex_t print_mtx;
-  pthread_cond_t timeout_cv;
-  pthread_mutex_t timeout_mtx;
-  pthread_attr_t attr;
-} threads;
-static struct threads thread;
+/* global variables */
+struct tp_sync_t tp_sync;
 
 typedef struct timeout_info_t {
   Process *p;
@@ -112,7 +104,7 @@ eval_in_parallel(void *proc)
 
   root_eval = p->eval_sequential_repeats();
   UPDATE_MAX(p->evaluated, root_eval);
-  MUTEX(&thread.total_mtx, thread.total--);
+  MUTEX(&tp_sync.total_mtx, tp_sync.total--);
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", p->n->row, p->executed, p->evaluated, pthread_self());
 //  if(n->TIMEOUT) timeout_del(pthread_self());
@@ -175,6 +167,7 @@ Process::init()
   FUN_OFFSET = 0;
   n = NULL;
   I = 0;
+  et = EVAL_NONE;
   executed = ERR_OK;
   evaluated = ERR_OK;
   parent = NULL;
@@ -200,7 +193,7 @@ Process::init(Node *node, Process *p, Process *rpar)
   /* create new table of variables if parallel process */
   if(n->REPEAT.type == S2_REPEAT_PAR || is_parallel()) {
     /* it is a parallel process, keep variables in the local variable space of this process */
-    var_tab = new TVariables();
+    var_tab = new Vars_t();
     DM_DBG(DM_N(2), FBRANCH"created local variable table %p\n", n->row, executed, evaluated, var_tab);
   } else {
     /* Try to find the first rpar process which is also a parallel processes and *
@@ -250,18 +243,18 @@ Process::threads_init(void)
 {
   DM_DBG_I;
 
-  memset(&thread, 0, sizeof(threads));
+  memset(&tp_sync, 0, sizeof(tp_sync_t));
 
 #if USE_PTHREAD_ATTR
-  pthread_attr_init(&thread.attr);
-  pthread_attr_setstacksize(&thread.attr, THREAD_STACK_SIZE);
-  pthread_attr_setdetachstate(&thread.attr, PTHREAD_CREATE_JOINABLE);
+  pthread_attr_init(&tp_sync.attr);
+  pthread_attr_setstacksize(&tp_sync.attr, THREAD_STACK_SIZE);
+  pthread_attr_setdetachstate(&tp_sync.attr, PTHREAD_CREATE_JOINABLE);
 #endif
 
-  pthread_mutex_init(&thread.total_mtx, NULL);
-  pthread_mutex_init(&thread.print_mtx, NULL);
-  pthread_cond_init(&thread.timeout_cv, NULL);
-  pthread_mutex_init(&thread.timeout_mtx, NULL);
+  pthread_mutex_init(&tp_sync.total_mtx, NULL);
+  pthread_mutex_init(&tp_sync.print_mtx, NULL);
+  pthread_cond_init(&tp_sync.timeout_cv, NULL);
+  pthread_mutex_init(&tp_sync.timeout_mtx, NULL);
 
   RETURN(ERR_OK);
 }
@@ -270,13 +263,13 @@ int
 Process::threads_destroy(void)
 {
 #if USE_PTHREAD_ATTR
-  pthread_attr_destroy(&thread.attr);   /* valgrind complains */
+  pthread_attr_destroy(&tp_sync.attr);   /* valgrind complains */
 #endif
 
-  pthread_mutex_destroy(&thread.total_mtx);
-  pthread_mutex_destroy(&thread.print_mtx);
-  pthread_cond_destroy(&thread.timeout_cv);
-  pthread_mutex_destroy(&thread.timeout_mtx);
+  pthread_mutex_destroy(&tp_sync.total_mtx);
+  pthread_mutex_destroy(&tp_sync.print_mtx);
+  pthread_cond_destroy(&tp_sync.timeout_cv);
+  pthread_mutex_destroy(&tp_sync.timeout_mtx);
 
   return ERR_OK;
 }
@@ -326,12 +319,12 @@ Process::eval()
           do {
             i += step;
             DM_DBG(DM_N(1), "parallel repeat branch %u; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", ptr_node->row, ptr_node->REPEAT.X, ptr_node->REPEAT.Y, i);
-            S_P(&thread.total_mtx);
-            if(thread.total < opts.tp_size) {
-              thread.total++;
+            S_P(&tp_sync.total_mtx);
+            if(tp_sync.total < opts.tp_size) {
+              tp_sync.total++;
               can_enqueue = TRUE;
             }
-            S_V(&thread.total_mtx);
+            S_V(&tp_sync.total_mtx);
 
           if(can_enqueue) {
               Process *proc = new Process(ptr_node, parent, NULL);
@@ -350,7 +343,7 @@ Process::eval()
                  => evaluate sequentially */
               Process proc = Process(ptr_node, parent, NULL);
               proc.I = i;
-              DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", ptr_node->row, thread.total, proc.executed, proc.evaluated, opts.tp_size);
+              DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", ptr_node->row, tp_sync.total, proc.executed, proc.evaluated, opts.tp_size);
               repeats_eval = proc.eval_with_timeout();
               UPDATE_MAX(evaluated, repeats_eval);
             }
@@ -359,12 +352,12 @@ Process::eval()
           continue;
         } /* end repeats */
         
-        S_P(&thread.total_mtx);
-        if(thread.total < opts.tp_size) {
-          thread.total++;
+        S_P(&tp_sync.total_mtx);
+        if(tp_sync.total < opts.tp_size) {
+          tp_sync.total++;
           can_enqueue = TRUE;
         }
-        S_V(&thread.total_mtx);
+        S_V(&tp_sync.total_mtx);
         
         if(can_enqueue) {
           Process *proc = new Process(ptr_node, parent, NULL);
@@ -381,7 +374,7 @@ Process::eval()
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
           Process proc = Process(ptr_node, parent, NULL);
-          DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, thread.total, opts.tp_size);
+          DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, tp_sync.total, opts.tp_size);
           root_eval = proc.eval_repeats();
           UPDATE_MAX(evaluated, root_eval);
         }
@@ -465,12 +458,12 @@ seq:
         BOOL can_enqueue;
         can_enqueue = FALSE;
         
-        S_P(&thread.total_mtx);
-        if(thread.total < opts.tp_size) {
-          thread.total++;
+        S_P(&tp_sync.total_mtx);
+        if(tp_sync.total < opts.tp_size) {
+          tp_sync.total++;
           can_enqueue = TRUE;
         }
-        S_V(&thread.total_mtx);
+        S_V(&tp_sync.total_mtx);
 
         if(can_enqueue) {
           DM_DBG(DM_N(1), "parallel repeat "FBRANCH"enqueing a request\n", n->row, executed, evaluated);
@@ -488,7 +481,7 @@ seq:
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
           I = i;
-          DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, thread.total, opts.tp_size);
+          DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, tp_sync.total, opts.tp_size);
           repeats_eval = eval_with_timeout();
           UPDATE_MAX(evaluated, repeats_eval);
         }
@@ -700,8 +693,7 @@ pthread_timeout_handler(void *proc)
 
   DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
 
-  S_V(&thread.total_mtx);
-  S_V(&thread.print_mtx);
+  S_V(&tp_sync.total_mtx);
 
   DM_DBG_O;
 }
@@ -726,7 +718,7 @@ exec_in_parallel_without_timeout(void *timeout_info)
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, pthread_self());
   
-  if(pthread_cond_broadcast(&thread.timeout_cv)) {
+  if(pthread_cond_broadcast(&tp_sync.timeout_cv)) {
     DM_ERR(ERR_SYSTEM, _("pthread_cond_signal failed: %s\n"), strerror(errno));
   }
 
@@ -786,11 +778,11 @@ Process::exec_with_timeout()
     timeout.tv_nsec = ((now.tv_usec + timeout_add_usec) % 1000) * 1000;
 
     DM_DBG_T(DM_N(2), FBRANCH"seting timeout to wait till sec=%ld; nsec=%ld [now: sec=%ld, usec=%ld]\n", n->row, executed, evaluated, timeout.tv_sec, timeout.tv_nsec, now.tv_sec, now.tv_usec);
-    S_P(&thread.timeout_mtx);
+    S_P(&tp_sync.timeout_mtx);
     DM_DBG_T(DM_N(2), FBRANCH"waiting for timeout_cv\n", n->row, executed, evaluated);
     int rc;
     while(1) {
-      rc = pthread_cond_timedwait(&thread.timeout_cv, &thread.timeout_mtx, &timeout);
+      rc = pthread_cond_timedwait(&tp_sync.timeout_cv, &tp_sync.timeout_mtx, &timeout);
       if(rc == ETIMEDOUT) {
         /* timeout reached, cancel the thread */
         DM_DBG_T(DM_N(2), FBRANCH"timeout_cv timed out\n", n->row, executed, evaluated);
@@ -801,7 +793,7 @@ Process::exec_with_timeout()
         break;
       }
     }
-    S_V(&thread.timeout_mtx);
+    S_V(&tp_sync.timeout_mtx);
 
     if(rc == ETIMEDOUT) {
       /* timeout reached, cancel the thread */
@@ -849,13 +841,16 @@ Process::eval_with_timeout()
 
   DM_DBG_T(DM_N(4), FBRANCH"starting execution of proc=%p\n", n->row, executed, evaluated, this);
 
+  et=EVAL_STATIC;
   DM_LOG_B(DM_N(1), "e0:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
+  et=EVAL_ALL;
   if(n->TYPE == N_FUN) {
     /* this is a function, we need to prepare function call process for it *
      * (this will never timeout)                                           */
     timeout_exec = ((nFun *)n)->exec(this, proc_fun);
   } else
   timeout_exec = exec_with_timeout();
+  et=EVAL_STATIC;
   DM_LOG_B(DM_N(1), "e1:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
 
   /* there might have been warnings (unset variables) during tag expansions */
@@ -872,6 +867,7 @@ Process::eval_with_timeout()
      * of the function (arguments/parameters mismatch, etc.)               */
     DM_DBG(DM_N(3), FBRANCH"Evaluating a function %p\n", n->row, executed, evaluated, proc_fun.n);
     std::string by_ref_vals = "";
+    et=EVAL_ALL;
     if(proc_fun.n->child) {
       /* we have a function with non-empty body */
       Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
@@ -883,6 +879,7 @@ Process::eval_with_timeout()
       by_ref_vals = ((nFun *)n)->getByRefVals(&proc_fun);
       if(by_ref_vals.length() > 0) by_ref_vals=" :" + by_ref_vals;
     }
+    et=EVAL_STATIC;
     fprintf(opts.e0_file, "---> FUN %s%s\n", ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
     fprintf(opts.e1_file, "%d:---> FUN %s%s\n", executed, ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
   }
@@ -892,8 +889,10 @@ Process::eval_with_timeout()
   if(n->TYPE == N_DEFUN && !fun) {
     /* we have a DEFUN node, don't evaluate its definition unless it is a function call */
     subtree_eval = ERR_OK;
-  } else 
+  } else  {
+    et=EVAL_ALL;
     subtree_eval = eval_subtree(timeout_exec, timeout_exec);
+  }
   DM_DBG(DM_N(4), FBRANCH"proc=%p; subtree_eval=%d\n", n->row, executed, evaluated, this, subtree_eval);
 
   UPDATE_MAX(evaluated, subtree_eval);
@@ -970,7 +969,7 @@ Process::is_parallel()
   /* check if it has any branches connected to it in parallel */
   Node *node_ptr;
 
-  DM_DBG(DM_N(3), "branch %u: n=%p; n->rpar=%p; n->par=%p\n\n", n->row, n, n->rpar, n->par);
+  DM_DBG(DM_N(3), "branch %u: n=%p; n->rpar=%p; n->par=%p\n", n->row, n, n->rpar, n->par);
   PAR_SEARCH(rpar);	/* up */
   PAR_SEARCH(par);	/* down */
 
@@ -1016,9 +1015,9 @@ Process::e_match(const char *expected, const char *received)
  * Manipulation with variables.
  */
 void
-Process::WriteVariable(TVariables *var_tab, const char *name, const char *value, int vlen)
+Process::WriteVariable(Vars_t *var_tab, const char *name, const char *value, int vlen)
 {
-  TVariables::iterator varIter;
+  Vars_t::iterator iter;
 
   if(!var_tab) {
     DM_ERR_ASSERT(_("var_tab == NULL\n"));
@@ -1030,9 +1029,9 @@ Process::WriteVariable(TVariables *var_tab, const char *name, const char *value,
     return;
   }
 
-  if((varIter = var_tab->find(name)) != var_tab->end()) {
+  if((iter = var_tab->find(name)) != var_tab->end()) {
     /* variable `name' exists, change its value */
-    varIter->second = (vlen < 0)? value : std::string(value, vlen);
+    iter->second = (vlen < 0)? value : std::string(value, vlen);
   } else {
     /* we have a new variable */
     if(vlen < 0) var_tab->insert(std::pair<std::string, std::string>(name, value));
@@ -1093,9 +1092,9 @@ Process::WriteVariable(const char *name, const char *value)
 } /* WriteVariable */
 
 const char *
-Process::ReadVariable(TVariables *var_tab, const char *name)
+Process::ReadVariable(Vars_t *var_tab, const char *name)
 {
-  TVariables::iterator varIter;
+  Vars_t::iterator iter;
 
   if(!var_tab) {
     DM_ERR_ASSERT(_("var_tab == NULL\n"));
@@ -1107,10 +1106,10 @@ Process::ReadVariable(TVariables *var_tab, const char *name)
     return NULL;
   }
 
-  if((varIter = var_tab->find(name)) != var_tab->end()) {
+  if((iter = var_tab->find(name)) != var_tab->end()) {
     /* variable exists */
-    DM_DBG(DM_N(0), _("read variable `%s' with value `%s' (from %p)\n"), name, varIter->second.c_str(), var_tab);
-    return varIter->second.c_str();
+    DM_DBG(DM_N(0), _("read variable `%s' with value `%s' (from %p)\n"), name, iter->second.c_str(), var_tab);
+    return iter->second.c_str();
   } else {
     /* variable doesn't exist */
     DM_DBG(DM_N(0), _("failed to read variable `%s' from %p\n"), name, var_tab);
@@ -1188,12 +1187,26 @@ str_expr2i(const char *cstr, int64_t *e)
 std::string
 Process::eval_str(const char *cstr, Process *proc)
 {
+#define CHK_EVAL_ALL\
+  if(proc->et != EVAL_ALL) {\
+    s.append("$" + std::string(state_name[state]) + "{" + target + "}");\
+    state=sInit;\
+    continue;\
+  }
+
+#define GET_BALLANCED_BR_PARAM\
+  tgt_chars = get_ballanced_br_param(target, cstr + i + opt_off);\
+  if(tgt_chars == 0)\
+    /* no characters parsed, we hit \0 */\
+    break;\
+  i += tgt_chars + opt_off - 2;
+
   DM_DBG_I;
 
   int i, c;
   int slen;
   std::string s;
-  std::string var;
+  std::string target;
   enum s_eval { 
     sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
     sMd5,  sDefined, sMatch, 
@@ -1205,14 +1218,13 @@ Process::eval_str(const char *cstr, Process *proc)
   const char *opt;
   int opt_off;
   int bslash = 0;  	/* we had the '\\' character */
-  int brackets = 0;
 
   if(cstr == NULL) {
     DM_ERR_ASSERT(_("c_str == NULL\n"));
     return std::string(S2_NULL_STR);
   }
 
-  if(!proc) return std::string(cstr);
+  if(!proc || proc->et == EVAL_NONE) return std::string(cstr);
 
   s.clear();
   slen = strlen(cstr);
@@ -1220,9 +1232,6 @@ Process::eval_str(const char *cstr, Process *proc)
 //    DM_DBG(DM_N(0), "------>%d\n", i);
     c = cstr[i];
     opt = cstr + i;
-    if(c == '{') brackets++;
-    if(c == '}') brackets--;
-//    DM_DBG(DM_N(5), "brackets=%d\n", brackets);
 
     /* take care of escaped characters */
     if(bslash != 0) --bslash;
@@ -1247,366 +1256,328 @@ Process::eval_str(const char *cstr, Process *proc)
       break;
 
       case sDollar:{
+        int tgt_chars;
         if(c == '{') {
           /* we have a reference to a variable */
-          var.clear();
           state = sVar;
+          tgt_chars = get_ballanced_br_param(target, cstr + i + 1);
+          if(tgt_chars == 0)
+            /* no characters parsed, we hit \0 */
+            break;
+          i += tgt_chars - 1;
           continue;
         } else if(OPL("ENV{")) {
           /* we have a reference to environment variable */
-          var.clear();
           state = sEvar;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("I{")) {
           /* we have a reference to a repeat loop counter */
-          var.clear();
           state = sCounter;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("EXPR{")) {
           /* expression evaluation */
-          var.clear();
           state = sExpr;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("RND{")) {
           /* random values */
-          var.clear();
           state = sRnd;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("DATE{")) {
           /* date/time */
-          var.clear();
           state = sDate;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("PRINTF{")) {
           /* date/time */
-          var.clear();
           state = sPrintf;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("MD5{")) {
           /* MD5 sum of a string */
-          var.clear();
           state = sMd5;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("DEFINED{")) {
           /* MD5 sum of a string */
-          var.clear();
           state = sDefined;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else if(OPL("MATCH{")) {
           /* MD5 sum of a string */
-          var.clear();
           state = sDefined;
-          i += opt_off - 1;
+          GET_BALLANCED_BR_PARAM;
         } else {
           /* return the borrowed dollar */
           s.push_back('$');
           state = sInit;
           break;
         }
-        brackets++;
       }
       continue;
 
       case sVar:{
-        if(c == '}' && !brackets) {
-          /* we have a complete variable */
-          if(var == "?") {	/* ${?} */
-            /* return parent's execution value */
-            int parent_executed = proc->parent? proc->parent->executed: 0;
-            DM_DBG(DM_N(4), "returning parent's execution value %d\n", parent_executed);
-            s.append(i2str(parent_executed));
-            state = sInit;
-            continue;
-          }
-          if(var == "!") {	/* ${!} */
-            /* return evaluation value of the branch at the same offset */
-            int rpar_evaluated = proc->rpar? proc->rpar->evaluated: 0;
-            DM_DBG(DM_N(4), "returning rpar evaluation value %d\n", rpar_evaluated);
-            s.append(i2str(rpar_evaluated));
-            state = sInit;
-            continue;
-          }
-          /* classic variable ${var} */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: ${...${var}...} */
-
-          const char *new_var;
-          const char *read_var = var.c_str();
-          unsigned no_warn = *read_var == '-';
-
-          DM_DBG(DM_N(4), "read_var=|%s|\n", read_var);
-          if((new_var = proc->ReadVariable(read_var)) != NULL) {
-            DM_DBG(DM_N(4), "var %s=|%s|\n", var.c_str(), new_var);
-            s.append(new_var);
-          } else {
-            /* the variable is not defined, output its name and increase the evaluation value */
-            if(!no_warn) {
-              DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), var.c_str());
-              UPDATE_MAX(proc->executed, ERR_WARN);
-            }
-            s.append("${" + std::string(read_var + no_warn) + "}");
-          }
+        /* we have a complete variable */
+        if(target == "?") {	/* ${?} */
+          /* return parent's execution value */
+          int parent_executed = proc->parent? proc->parent->executed: 0;
+          DM_DBG(DM_N(4), "returning parent's execution value %d\n", parent_executed);
+          s.append(i2str(parent_executed));
           state = sInit;
-        } else {
-          var.push_back(c);
+          continue;
         }
+        if(target == "!") {	/* ${!} */
+          /* return evaluation value of the branch at the same offset */
+          int rpar_evaluated = proc->rpar? proc->rpar->evaluated: 0;
+          DM_DBG(DM_N(4), "returning rpar evaluation value %d\n", rpar_evaluated);
+          s.append(i2str(rpar_evaluated));
+          state = sInit;
+          continue;
+        }
+        /* classic variable ${var} */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: ${...${var}...} */
+
+        const char *new_var;
+        const char *read_var = target.c_str();
+        unsigned no_warn = *read_var == '-';
+
+        DM_DBG(DM_N(4), "read_var=|%s|\n", read_var);
+        if((new_var = proc->ReadVariable(read_var)) != NULL) {
+          DM_DBG(DM_N(4), "var %s=|%s|\n", target.c_str(), new_var);
+          s.append(new_var);
+        } else {
+          /* the variable is not defined, output its name and increase the evaluation value */
+          if(!no_warn && proc->et == EVAL_ALL) {
+            DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), target.c_str());
+            UPDATE_MAX(proc->executed, ERR_WARN);
+          }
+          s.append("${" + std::string(read_var + no_warn) + "}");
+        }
+        state = sInit;
       }
       continue;
 
       case sEvar:{
-        if(c == '}' && !brackets) {
-          /* we have a complete environment variable */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $ENV{...${var}...} */
+        
+        
+        /* we have a complete environment variable */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $ENV{...${var}...} */
 
-          const char *env_var;
-          env_var = getenv(var.c_str());
-          
-          if(env_var) {
-            DM_DBG(DM_N(4), "env var %s=|%s|\n", var.c_str(), env_var);
-            s.append(env_var);
-          } else {
-            /* the environment variable is not defined, output its name */
-            DM_WARN(ERR_WARN, _("environment variable `%s' is unset\n"), var.c_str());
-            s.append("$ENV{" + var + "}");
-          }
-          state = sInit;
+        const char *env_var;
+        env_var = getenv(target.c_str());
+        
+        if(env_var) {
+          DM_DBG(DM_N(4), "env var %s=|%s|\n", target.c_str(), env_var);
+          s.append(env_var);
         } else {
-          var.push_back(c);
+          /* the environment variable is not defined, output its name */
+          DM_WARN(ERR_WARN, _("environment variable `%s' is unset\n"), target.c_str());
+          s.append("$ENV{" + target + "}");
         }
+        state = sInit;
       }
       continue;
 
       case sCounter:{
-        if(c == '}' && !brackets) {
-          /* we have a reference to a repeat loop counter */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $I{...${var}...} */
+        /* we have a reference to a repeat loop counter */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $I{...${var}...} */
 
-          const char *word;
-          word = var.c_str();
-          char *endptr;
-          int16_t i16;
+        const char *word;
+        word = target.c_str();
+        char *endptr;
+        int16_t i16;
 
-          i16 = get_int16(word, &endptr, FALSE);
-          if(endptr != word) {
-            int64_t i64 = 0;
-            Process *ptr_proc = proc;
-            while(ptr_proc && i16 >= 0) {
-              if(ptr_proc->n->REPEAT.type == S2_REPEAT_OR || 
-                 ptr_proc->n->REPEAT.type == S2_REPEAT_AND ||
-                 ptr_proc->n->REPEAT.type == S2_REPEAT_PAR)
-              {
-                DM_DBG(DM_N(4), "found a repeat branch; i16=%d\n", i16);
-                if(!i16) {
-                  i64 = ptr_proc->I;
-                  DM_DBG(DM_N(4), "$I{%d}=%"PRIi64"\n", i16, i64);
-                  break;
-                } 
-                i16--;
-              }
-              ptr_proc = ptr_proc->parent;
+        i16 = get_int16(word, &endptr, FALSE);
+        if(endptr != word) {
+          int64_t i64 = 0;
+          Process *ptr_proc = proc;
+          while(ptr_proc && i16 >= 0) {
+            if(ptr_proc->n->REPEAT.type == S2_REPEAT_OR || 
+               ptr_proc->n->REPEAT.type == S2_REPEAT_AND ||
+               ptr_proc->n->REPEAT.type == S2_REPEAT_PAR)
+            {
+              DM_DBG(DM_N(4), "found a repeat branch; i16=%d\n", i16);
+              if(!i16) {
+                i64 = ptr_proc->I;
+                DM_DBG(DM_N(4), "$I{%d}=%"PRIi64"\n", i16, i64);
+                break;
+              } 
+              i16--;
             }
-            if(ptr_proc == NULL)
-              DM_WARN(ERR_WARN, _(FBRANCH"couldn't find repeat loop for repeat counter $I{%s}!\n"), proc->n->row, proc->executed, proc->evaluated, word);
-
-            DM_DBG(DM_N(4), "writing repeat counter value: %"PRIi64"\n", i64);
-            s.append(i2str(i64));
-          } else {
-            DM_WARN(ERR_WARN, _("cannot evaluate loop nesting `%s': %s\n"), word, _(strerror(errno)));
-            s.append("$I{" + var + "}");
+            ptr_proc = ptr_proc->parent;
           }
-          state = sInit;
+          if(ptr_proc == NULL)
+            DM_WARN(ERR_WARN, _(FBRANCH"couldn't find repeat loop for repeat counter $I{%s}!\n"), proc->n->row, proc->executed, proc->evaluated, word);
+
+          DM_DBG(DM_N(4), "writing repeat counter value: %"PRIi64"\n", i64);
+          s.append(i2str(i64));
         } else {
-          var.push_back(c);
+          DM_WARN(ERR_WARN, _("cannot evaluate loop nesting `%s': %s\n"), word, _(strerror(errno)));
+          s.append("$I{" + target + "}");
         }
+        state = sInit;
       }
       continue;
 
       case sExpr:{
-        if(c == '}' && !brackets) {
-          /* we have a complete expression to evaluate */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $EXPR{...${var}...} */
+        /* we have a complete expression to evaluate */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $EXPR{...${var}...} */
+        CHK_EVAL_ALL;
+        DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
-          int64_t e = 0;
-          DM_DBG(DM_N(4), "expr=|%s|\n", var.c_str());
-          if(str_expr2i(var.c_str(), &e)) {
-            DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), proc->n->row, proc->executed, proc->evaluated, var.c_str());
-          } else s.append(i2str(e));
-          state = sInit;
-        } else {
-          var.push_back(c);
-        }
+        int64_t e = 0;
+        if(str_expr2i(target.c_str(), &e)) {
+          DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
+        } else s.append(i2str(e));
+        state = sInit;
       }
       continue;
 
       case sRnd:{
-        if(c == '}' && !brackets) {
-          /* we have a maximum+1 random number */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $RND{...${var}...} */
+        /* we have a maximum+1 random number */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $RND{...${var}...} */
+        CHK_EVAL_ALL;
+        DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
-          int64_t e = 0;
-          if(str_expr2i(var.c_str(), &e)) {
-            DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), proc->n->row, proc->executed, proc->evaluated, var.c_str());
-          } else {
-            /* srandom() is done elsewhere */
-            s.append(i2str(random() % e));
-          }
-          state = sInit;
+        int64_t e = 0;
+        if(str_expr2i(target.c_str(), &e)) {
+          DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
         } else {
-          var.push_back(c);
+          /* srandom() is done elsewhere */
+          s.append(i2str(random() % e));
         }
+        state = sInit;
       }
       continue;
 
       case sDate:{
-        if(c == '}' && !brackets) {
-          struct timeval timestamp;
-          struct tm *now;
-          std::string date;
-        
-          gettimeofday(&timestamp, NULL);
-          now = localtime(&(timestamp.tv_sec));
+        CHK_EVAL_ALL;
 
-          if(var == "") {
-            /* use the default format */
-            date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu",
-                     now->tm_year+1900, now->tm_mon+1, now->tm_mday,
-                     now->tm_hour, now->tm_min, now->tm_sec, timestamp.tv_usec);
-          } else {
-            int j, esc = 0, len = var.length();
-            for(j = 0; j < len; j++) {
-              if(!esc) {
-                if(var[j] == '%') esc = 1;
-                else s.push_back(var[j]);
-                continue;
-              }
+        struct timeval timestamp;
+        struct tm *now;
+        std::string date;
+      
+        gettimeofday(&timestamp, NULL);
+        now = localtime(&(timestamp.tv_sec));
 
-              /* escape */
-              esc = 0;
-              switch(var[j]) {
-                case 'C': s.append(ssprintf("%02d", (now->tm_year+1900)/100)); break;
-                case 'D': s.append(ssprintf("%02d/%02d/%02d", now->tm_mon+1, now->tm_mday, now->tm_year % 100)); break;
-                case 'd': s.append(ssprintf("%02d", now->tm_mday)); break;
-                case 'e': s.append(ssprintf("%2d", now->tm_mday)); break;
-                case 'F': s.append(ssprintf("%04d-%02d-%02d", now->tm_year+1900, now->tm_mon+1, now->tm_mday)); break;
-                case 'H': s.append(ssprintf("%02d", now->tm_hour)); break;
-                case 'k': s.append(ssprintf("%2d", now->tm_hour)); break;
-                case 'I': s.append(ssprintf("%02d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
-                case 'l': s.append(ssprintf("%2d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
-                case 'j': s.append(ssprintf("%02d", now->tm_yday+1)); break;
-                case 'M': s.append(ssprintf("%02d", now->tm_min)); break;
-                case 'm': s.append(ssprintf("%02d", now->tm_mon+1)); break;
-                case 'n': s.push_back('\n'); break;
-                case 'N': s.append(ssprintf("%06d", timestamp.tv_usec)); break; /* cut to 6 digits */
-                case 'R': s.append(ssprintf("%02d:%02d", now->tm_hour, now->tm_min)); break;
-                case 's': s.append(ssprintf("%d", timestamp.tv_sec)); break;
-                case 'S': s.append(ssprintf("%02d", now->tm_sec)); break;
-                case 't': s.push_back('\t'); break;
-                case 'u': s.append(ssprintf("%d", now->tm_wday)); break;
-                case 'V': s.append(ssprintf("%d", week(now))); break;
-                case 'T': s.append(ssprintf("%02d:%02d:%02d", now->tm_hour, now->tm_min, now->tm_sec)); break;
-                case 'Y': s.append(ssprintf("%04d", now->tm_year+1900)); break;
-                case 'y': s.append(ssprintf("%02d", now->tm_year%100)); break;
-                case 'w': s.append(ssprintf("%d", now->tm_wday-1)); break;
-                default:
-                  s.push_back(var[j]);
-              }
-            }
-            if(esc) s.push_back('%');
-          }
-          s.append(date);
-          state = sInit;
+        if(target == "") {
+          /* use the default format */
+          date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu",
+                   now->tm_year+1900, now->tm_mon+1, now->tm_mday,
+                   now->tm_hour, now->tm_min, now->tm_sec, timestamp.tv_usec);
         } else {
-          var.push_back(c);
+          int j, esc = 0, len = target.length();
+          for(j = 0; j < len; j++) {
+            if(!esc) {
+              if(target[j] == '%') esc = 1;
+              else s.push_back(target[j]);
+              continue;
+            }
+
+            /* escape */
+            esc = 0;
+            switch(target[j]) {
+              case 'C': s.append(ssprintf("%02d", (now->tm_year+1900)/100)); break;
+              case 'D': s.append(ssprintf("%02d/%02d/%02d", now->tm_mon+1, now->tm_mday, now->tm_year % 100)); break;
+              case 'd': s.append(ssprintf("%02d", now->tm_mday)); break;
+              case 'e': s.append(ssprintf("%2d", now->tm_mday)); break;
+              case 'F': s.append(ssprintf("%04d-%02d-%02d", now->tm_year+1900, now->tm_mon+1, now->tm_mday)); break;
+              case 'H': s.append(ssprintf("%02d", now->tm_hour)); break;
+              case 'k': s.append(ssprintf("%2d", now->tm_hour)); break;
+              case 'I': s.append(ssprintf("%02d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
+              case 'l': s.append(ssprintf("%2d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
+              case 'j': s.append(ssprintf("%02d", now->tm_yday+1)); break;
+              case 'M': s.append(ssprintf("%02d", now->tm_min)); break;
+              case 'm': s.append(ssprintf("%02d", now->tm_mon+1)); break;
+              case 'n': s.push_back('\n'); break;
+              case 'N': s.append(ssprintf("%06d", timestamp.tv_usec)); break; /* cut to 6 digits */
+              case 'R': s.append(ssprintf("%02d:%02d", now->tm_hour, now->tm_min)); break;
+              case 's': s.append(ssprintf("%d", timestamp.tv_sec)); break;
+              case 'S': s.append(ssprintf("%02d", now->tm_sec)); break;
+              case 't': s.push_back('\t'); break;
+              case 'u': s.append(ssprintf("%d", now->tm_wday)); break;
+              case 'V': s.append(ssprintf("%d", week(now))); break;
+              case 'T': s.append(ssprintf("%02d:%02d:%02d", now->tm_hour, now->tm_min, now->tm_sec)); break;
+              case 'Y': s.append(ssprintf("%04d", now->tm_year+1900)); break;
+              case 'y': s.append(ssprintf("%02d", now->tm_year%100)); break;
+              case 'w': s.append(ssprintf("%d", now->tm_wday-1)); break;
+              default:
+                s.push_back(target[j]);
+            }
+          }
+          if(esc) s.push_back('%');
         }
+        s.append(date);
+        state = sInit;
       }
       continue;
 
       case sPrintf:{
-        if(c == '}' && !brackets) {
-          char **argv;
-          int spaces = 0;
-          int j, plen;
-          const char *var_cstr = NULL;
+        char **argv;
+        int spaces = 0;
+        int j, plen;
+        const char *var_cstr = NULL;
 
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $PRINTF{...${var}...} */
-          var_cstr = var.c_str();
-          plen = var.length();
-          for(j = 0; j < plen; j++) {
-            /* count the number of spaces to guess the maximum number of $PRINTF parameters (-2) */
-            if(IS_WHITE(var_cstr[j])) spaces++;
-          }
-          if((argv = (char **)malloc(sizeof(char **) * (spaces + 2))) == (char **)NULL) {
-            DM_ERR(ERR_SYSTEM, _("malloc failed\n"));
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $PRINTF{...${var}...} */
+        var_cstr = target.c_str();
+        plen = target.length();
+        for(j = 0; j < plen; j++) {
+          /* count the number of spaces to guess the maximum number of $PRINTF parameters (-2) */
+          if(IS_WHITE(var_cstr[j])) spaces++;
+        }
+        if((argv = (char **)malloc(sizeof(char **) * (spaces + 2))) == (char **)NULL) {
+          DM_ERR(ERR_SYSTEM, _("malloc failed\n"));
+          return s;
+        }
+        std::string arg;
+        int l = 0;
+        for(j = 0;; j++) {
+          int chars;
+          chars = get_dq_param(arg, var_cstr + l);
+          if(chars == 0) break;
+          if((argv[j] = (char *)strdup(arg.c_str())) == (char *)NULL) {
+            DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
             return s;
           }
-          std::string target;
-          int l = 0;
-          for(j = 0;; j++) {
-            int chars;
-            chars = get_dq_param(target, var_cstr + l);
-            if(chars == 0) break;
-            if((argv[j] = (char *)strdup(target.c_str())) == (char *)NULL) {
-              DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
-              return s;
-            }
-            l += chars;
-          }
-          argv[j] = 0;
-
-          s.append(ssprintf_chk(argv));
-          for(;j >= 0; j--) {
-            FREE(argv[j]);
-          }
-          FREE(argv);
-          state = sInit;
-        } else {
-          var.push_back(c);
+          l += chars;
         }
+        argv[j] = 0;
+
+        s.append(ssprintf_chk(argv));
+        for(;j >= 0; j--) {
+          FREE(argv[j]);
+        }
+        FREE(argv);
+        state = sInit;
       }
       continue;
 
       case sMd5:{
-        if(c == '}' && !brackets) {
-          /* we have a maximum+1 random number */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $MD5{...${var}...} */
-          char md5str[33];
-          gen_md5(md5str, var.c_str());
-          s.append(md5str);
-          state = sInit;
-        } else {
-          var.push_back(c);
-        }
+        /* we have a maximum+1 random number */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $MD5{...${var}...} */
+        char md5str[33];
+        gen_md5(md5str, target.c_str());
+        s.append(md5str);
+        state = sInit;
       }
       continue;
 
       case sDefined:{
-        if(c == '}' && !brackets) {
-          /* we have a variable to check whether it was defined */
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $DEFINED{...${var}...} */
-          s.append(proc->ReadVariable(var.c_str())? "1" : "0");
-          state = sInit;
-        } else {
-          var.push_back(c);
-        }
+        /* we have a variable to check whether it was defined */
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $DEFINED{...${var}...} */
+        s.append(proc->ReadVariable(target.c_str())? "1" : "0");
+        state = sInit;
       }
       continue;
 
       case sMatch:{
-        if(c == '}' && !brackets) {
-          var = eval_str(var.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
-          std::string expected;
-          std::string received;
-          int expected_len = get_dq_param(expected, var.c_str());
-          get_dq_param(received, var.c_str() + expected_len);
-          
-          DM_DBG(DM_N(4), "matching `%s' and `%s'\n", expected.c_str(), received.c_str());
-          s.append(pcre_matches(expected.c_str(),
-                                received.c_str(),
-                                proc->n->match_opt.pcre, proc)? "1": "0");
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
+        std::string expected;
+        std::string received;
+        int expected_len = get_dq_param(expected, target.c_str());
+        get_dq_param(received, target.c_str() + expected_len);
+        
+        DM_DBG(DM_N(4), "matching `%s' and `%s'\n", expected.c_str(), received.c_str());
+        s.append(pcre_matches(expected.c_str(),
+                              received.c_str(),
+                              proc->n->match_opt.pcre, proc)? "1": "0");
 
-          state = sInit;
-        } else {
-          var.push_back(c);
-        }
+        state = sInit;
       }
       continue;
 
@@ -1625,7 +1596,7 @@ Process::eval_str(const char *cstr, Process *proc)
   } else {
     if(state != sInit) {
       DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);
-      s.append("$" + std::string(state_name[state]) + "{" + var);
+      s.append("$" + std::string(state_name[state]) + "{" + target);
     }
   }
   

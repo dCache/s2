@@ -116,7 +116,7 @@ nFun::exec(Process *proc, Process &proc_fun)
     DM_ERR_ASSERT(_("proc_fun.var_tab != NULL\n"));
     RETURN(ERR_ASSERT);
   }
-  proc_fun.var_tab = new TVariables();
+  proc_fun.var_tab = new Vars_t();
   DM_DBG(DM_N(2), "created local variable table %p for function `%s'\n", proc_fun.var_tab, nDefunNode->name->c_str());
 
   DM_DBG(DM_N(3), "gl_var_tab=%p, proc->var_tab=%p, proc_fun.var_tab=%p\n", &gl_var_tab, proc->var_tab, proc_fun.var_tab);

@@ -1,6 +1,7 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- $RAND{} and similar that cause problems + flag to evaluate only "static" variables?
+- $RAND{} and similar that cause problems
+- Fix deadlock in parallel execution
 - TEST $EXPR vs just TEST
 - MATCH => $MATCH{"a" "b"}
 - LT/GT/... (<, >, ...)

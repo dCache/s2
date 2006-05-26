@@ -17,14 +17,14 @@
 #define RETURN(...) do {DM_DBG_O; return __VA_ARGS__;} while(0)
 #endif
 
-#define S_P(mtx)	pthread_mutex_lock(mtx)
-#define S_V(mtx)	pthread_mutex_unlock(mtx)
+#define S_P(mtx)	pthread_mutex_lock(mtx);
+#define S_V(mtx)	pthread_mutex_unlock(mtx);
 #define MUTEX(mtx,...)\
   do {S_P(mtx); __VA_ARGS__ ; S_V(mtx);} while(0)
 
 #define TP_THREADS_MAX	128		/* maximum number of threads in the threadpool */
 #define TP_THREADS_MIN	1		/* minimum number of threads in the threadpool */
-#define TP_THREADS_DEF	16		/* default number of threads in the threadpool */
+#define TP_THREADS_DEF	63		/* default number of threads in the threadpool */
 
 /* format of a single request. */
 typedef struct tp_request {
@@ -35,6 +35,15 @@ typedef struct tp_request {
   pthread_cond_t *p_sreqs_cv;		/* pointer to the conditional variable */
   struct tp_request *next;		/* pointer to next request, NULL if none */
 } tp_request;
+
+typedef struct tp_sync_t {
+  int total;
+  pthread_mutex_t total_mtx;
+  pthread_mutex_t print_mtx;
+  pthread_cond_t timeout_cv;
+  pthread_mutex_t timeout_mtx;
+  pthread_attr_t attr;
+} tp_sync_t;
 
 /* extern(al) function declarations */
 extern int tp_init(int tp_size);

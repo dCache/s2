@@ -121,8 +121,8 @@ public:
   ~SRM2();
 
   int matchReturnStatus(srm__TReturnStatus *returnStatus, Process *proc);
-  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc);
-  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc);
+  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc, EVAL_t et);
+  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc, EVAL_t et);
 
 };
 

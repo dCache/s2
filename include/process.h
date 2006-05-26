@@ -14,10 +14,18 @@
 #include <map>                  /* std::map */
 
 /* typedefs */
-typedef std::map<std::string, std::string> TVariables;		/* name/value pair */
+typedef std::map<std::string, std::string> Vars_t;		/* name/value pair */
+
+typedef enum EVAL_t {
+  EVAL_NONE = 0,		/* do not evaluate anything */
+  EVAL_ALL = 1,			/* evaluate all variables and tags */
+  EVAL_STATIC = 2,		/* evaluate only variables and `static' tags (e.g. not $DATE{}, $RND, ... */
+} EVAL_t;
+
 
 /* global variables */
-static TVariables gl_var_tab;	/* table of global variables */
+static Vars_t gl_var_tab;	/* table of global variables */
+
 
 struct Process
 {
@@ -40,7 +48,7 @@ struct Process
   Process *parent;		/* the parent of this process; NULL if root */
   Process *rpar;		/* a process which finished execution before this one (same indentation); NULL if none */
 
-  TVariables *var_tab;		/* local variables (if it is a process running in parallel) */
+  Vars_t *var_tab;		/* local variables (if it is a process running in parallel) */
 
 public:
   Process();
@@ -66,11 +74,11 @@ public:
   BOOL e_match(const char *expected, const char *received);
 
   /* operations on variables */
-  void WriteVariable(TVariables *var_tab, const char *name, const char *value, int vlen);
+  void WriteVariable(Vars_t *var_tab, const char *name, const char *value, int vlen);
   void WriteVariable(Process *proc, const char *name, const char *value, int vlen);
   void WriteVariable(const char *name, const char *value);
   void WriteVariable(const char *name, const char *value, int vlen);
-  const char *ReadVariable(TVariables *var_tab, const char *name);
+  const char *ReadVariable(Vars_t *var_tab, const char *name);
   const char *ReadVariable(Process *proc, const char *name);
   const char *ReadVariable(const char *name);
 
@@ -116,7 +124,12 @@ public:
   _EVAL_VEC_PINT(u,64);
 #undef _EVAL_VEC_PINT
 
+private:
+  EVAL_t et;			/* evaluation type */
+
 };
 
+/* global variables */
+extern struct tp_sync_t tp_sync;
 
 #endif /* _PROCESS_H */

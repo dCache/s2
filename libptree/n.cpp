@@ -24,6 +24,7 @@
 #include "s2.h"			/* opts (s2 options) */
 #include "str.h"
 #include "io.h"                 /* file_ropen(), ... */
+#include "thread_pool.h"	/* S_P, S_V */
 
 #include <sys/time.h>		/* gettimeofday() */
 #include <time.h>		/* gettimeofday() */
@@ -410,7 +411,7 @@ Node::print_node
     evaluated = n->evaluated;
   }
 
-//  S_P(&thread.print_mtx);
+  S_P(&tp_sync.print_mtx);
   if(show_executed) {
     if(show_evaluated)
       fprintf(file, "%d/%d:", executed, evaluated);
@@ -420,7 +421,7 @@ Node::print_node
 
   fputs(nodeToString(n, indent, proc).c_str(), file);
   fputc('\n', file);
-//  S_V(&thread.print_mtx);
+  S_V(&tp_sync.print_mtx);
 
   return ERR_OK;
 } /* print_node */

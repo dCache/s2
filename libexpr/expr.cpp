@@ -53,8 +53,6 @@ Expr::parse(int64_t *e)
   Attr attr;
   attr = S();
 
-  /* TEST FOR EMPTY STRING!!! */
-
   switch (attr.type) {
     case INT:
       *e = attr.v.i;
@@ -164,6 +162,12 @@ Expr::S()
   Attr attr;
 
   LEX();
+  if(sym == EofSym) {
+    /* we have an empty string */
+    attr.type = INT;
+    attr.v.i = 0;
+    RETURN(attr);
+  }
   attr = X();
   RETURN(attr);
 }

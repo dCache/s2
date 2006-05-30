@@ -1589,6 +1589,8 @@ Parser::SYSTEM(void)
   return ERR_OK;
 } /* SYSTEM */
 
+#if 1
+/* TEST <EXPRESSION> */
 int
 Parser::TEST(void)
 {
@@ -1621,6 +1623,44 @@ empty:
   /* parsing succeeded */
   return ERR_OK;
 } /* TEST */
+#else
+/* TEST <DQ_PARAM> ; comment */
+int
+Parser::TEST(void)
+{
+  std::string _val;
+  
+  nTest *r = new nTest(parser_node);
+  new_node = r;
+  int c;
+
+  WS(); /* allow whitespace before the TEST expression */
+  
+  c = gc();
+  if(c == CH_COMMENT) {
+    /* we have a comment character (no TEST parameter, use the default value -- empty string) */
+    ugc();
+    goto empty;
+  }
+  if(c == CH_EOL)
+    /* we have an EOL (no TEST parameter, use the default value -- empty string) */
+    goto empty;
+
+  ugc();
+
+  DQ_PARAM(dq_param,_val,r->expr,"TEST expression\n");
+
+  /* parsing succeeded */
+  return ERR_OK;
+
+empty:
+  /* default TEST expression */
+  NEW_STR(r->expr, "");
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* TEST */
+#endif
 
 #ifdef HAVE_GSOAP
 int

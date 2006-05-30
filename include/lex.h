@@ -21,7 +21,7 @@ enum Symbol {
 // &          &&
   BitAndSym, AndSym,
 // INT     REAL
-  IntSym, RealSym
+  IntSym, RealSym,
 };
 
 enum types {

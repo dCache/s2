@@ -3,6 +3,7 @@ Ordered by priority
 - LT/GT/... (<, >, ...)
 - Fix deadlock in parallel execution
 - SRM2 test scenarios and testing (storage system info/description as testing)!
+  * rewrite includes into functions
 - Saving to global vars (?P<::Hello>.*)
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - remove deprecated MATCH/LT/GT... (kept for backward compatibility only)

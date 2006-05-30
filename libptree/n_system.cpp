@@ -117,7 +117,7 @@ nSystem::toString(Process *proc)
 
   ss << "SYSTEM";
   SS_P_DQ(out);
-  quote = FALSE;        /* don't quote the system command */
+  quote = FALSE;		/* no quoting for <STR> */
   SS_DQ(" ", cmd);
 
   return ss.str();

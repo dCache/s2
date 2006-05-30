@@ -2,5 +2,6 @@
 
 ASSIGN var "long text"
    SYSTEM echo "var=|${var}|"
-   && ASSIGN var ${var}\ is\ redefined ; test escaped spaces
+   ; test escaped spaces
+   && ASSIGN var ${var}\ is\ redefined
    && SYSTEM echo "var=|${var}|"

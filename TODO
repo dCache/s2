@@ -1,15 +1,14 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- $RAND{} and similar that cause problems
-- Fix deadlock in parallel execution
-- TEST $EXPR vs just TEST
-- MATCH => $MATCH{"a" "b"}
 - LT/GT/... (<, >, ...)
+- Fix deadlock in parallel execution
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Saving to global vars (?P<::Hello>.*)
 - ECHO (vs. SYSTEM echo --- performance considerations)
-- Consider using '' for expressions which will not be evaluated (q_param).
-- Investigate gSoap memory leaks.
+- remove deprecated MATCH/LT/GT... (kept for backward compatibility only)
+- Support more $TAGs (e.g.: $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...)
+- Investigate gSoap memory leaks
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
+- Use '' for expressions which will not be evaluated (q_param)?
 - SEND/RECEIVE (TCP/UDP/...)?
-- minor (possible) pthreads POSIX threads related memory leaks (consider using Apache threads).
+- minor (possible) pthreads POSIX threads related memory leaks; use Apache threads?

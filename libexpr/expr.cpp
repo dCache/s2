@@ -53,6 +53,8 @@ Expr::parse(int64_t *e)
   Attr attr;
   attr = S();
 
+  /* TEST FOR EMPTY STRING!!! */
+
   switch (attr.type) {
     case INT:
       *e = attr.v.i;

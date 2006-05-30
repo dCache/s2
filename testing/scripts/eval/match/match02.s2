@@ -1,4 +1,4 @@
 ; MATCH action test
 
-MATCH "Mary had a little (?P<secret>.*)\." "Mary had a little lamb."
+TEST $MATCH{"Mary had a little (?P<secret>.*)\." "Mary had a little lamb."}
    SYSTEM echo "And the secret is: ${secret}!"

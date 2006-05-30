@@ -277,7 +277,7 @@ get_dq_param(std::string &target, const char *source)
 {
 #define TERM_CHAR(c)    (q? (c == '"'): IS_WHITE(c))
 #define gc(c)		(col < source_len) ? source[col++] : '\0'
-#define ugc()		col--
+#define ugc()		if(col > 0) col--
 
   int i, c;
   unsigned col = 0;
@@ -300,6 +300,7 @@ get_dq_param(std::string &target, const char *source)
   q = (c == '"');
 //  fprintf(stderr, "|%c|\n", c);
   if(!q) ugc();
+//  fprintf(stderr, "1) col=%d, q=%d\n", col, q);
   
   for(i = 0; (c = gc()) != '\0'; i++) {
     if(c == '\\' && bslash) {
@@ -334,9 +335,11 @@ out:
   if(q && c == '\0')
     DM_WARN(ERR_WARN, "'\\0' terminated double-quoted parameter\n");
 
-  return col - (c == '\0');
+  return col;
 
 #undef TERM_CHAR
+#undef gc
+#undef ugc
 } /* get_dq_param */
 
 /*
@@ -346,7 +349,7 @@ extern int
 get_ballanced_br_param(std::string &target, const char *source)
 {
 #define gc(c)		(col < source_len) ? source[col++] : '\0'
-#define ugc()		col--
+#define ugc()		if(col > 0) col--
 
   int i, c;
   unsigned col = 0;
@@ -363,7 +366,7 @@ get_ballanced_br_param(std::string &target, const char *source)
   target.clear();
   source_len = strlen(source);
 
-  fprintf(stderr, "complete string=|%s|\n", source);
+//  fprintf(stderr, "complete string=|%s|\n", source);
   
   for(i = 0; (c = gc()) != '\0'; i++) {
   
@@ -380,7 +383,7 @@ get_ballanced_br_param(std::string &target, const char *source)
     }
     
     if(!brackets) {
-      fprintf(stderr, "|%s|; col=|%d|\n", target.c_str(), col);
+//      fprintf(stderr, "|%s|; col=|%d|\n", target.c_str(), col);
       return col;	/* found a string terminator */
     }
 
@@ -388,9 +391,8 @@ get_ballanced_br_param(std::string &target, const char *source)
     bslash = c == '\\';
   }
 
-  if(c == '\0') DM_WARN(ERR_WARN, "'\\0' terminated parameter\n");
+  return col;
 
-  return col - (c == '\0');
-
-#undef TERM_CHAR
+#undef gc
+#undef ugc
 } /* get_ballanced_br_param */

@@ -1601,18 +1601,15 @@ Parser::TEST(void)
   WS(); /* allow whitespace before the TEST expression */
   
   c = gc();
-  if(c == CH_COMMENT) {
-    /* we have a comment character (no TEST parameter, use the default value -- empty string) */
-    ugc();
-    goto empty;
-  }
   if(c == CH_EOL)
     /* we have an EOL (no TEST parameter, use the default value -- empty string) */
     goto empty;
 
   ugc();
 
-  DQ_PARAM(dq_param,_val,r->expr,"TEST expression\n");
+  NEW_STR(r->expr, line + col, llen - col);
+  col = llen;       /* make parser happy */
+  DM_DBG(DM_N(3), "test=|%s|\n", r->expr->c_str());
 
   /* parsing succeeded */
   return ERR_OK;

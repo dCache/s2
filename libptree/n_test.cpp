@@ -84,8 +84,10 @@ nTest::toString(Process *proc)
     /* shouldn't ever happen, don't bother with ASSERT */
     return ss.str();
   
-  if(!(expr->length() == 0 || (expr->length() == 1) && (*expr)[0] == '0'))
+  if(!(expr->length() == 0 || (expr->length() == 1) && (*expr)[0] == '0')) {
+    quote = FALSE;		/* no quoting for <STR> */
     SS_DQ(" ", expr);
+  }
 
   return ss.str();
 }

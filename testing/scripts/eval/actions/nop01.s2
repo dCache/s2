@@ -2,5 +2,6 @@
 
 NOP 0 ; NOP $ENV{<var>} is allowed
    NOP 2
-   || NOP 1 ; return 1 (&& NOP 3 is never reached)
+   ; return 1 (&& NOP 3 is never reached)
+   || NOP 1
    && NOP 3

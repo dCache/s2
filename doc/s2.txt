@@ -40,9 +40,8 @@ conventions apply
 
 1.1) Branches
 ~~~~~~~~~~~~~
-The start symbol of the grammar is <S>.  Comments in the grammar
-start with the ';' character and continue up to the next newline
-('\n') character.
+The start symbol of the grammar is <S>.  Comments start optional whitespace,
+the ';' character and continue up to the next newline ('\n') character.
 
   <S> :: (<BRANCH> '\n' | <PREPROCESSOR> '\n')*
 
@@ -104,7 +103,7 @@ start with the ';' character and continue up to the next newline
 1.3) Actions
 ~~~~~~~~~~~~
   <ACTION> :: <ASSIGN> | <CMP_OP> | <DEFUN> | <FUN> |
-              <MATCH> | <NOP> | <SETENV> | <SLEEP> | <SRM2> | <SYSTEM>
+              <NOP> | <SETENV> | <SLEEP> | <SRM2> | <SYSTEM>
 
 Syntax of the individual actions is described in the Semantics section.
 
@@ -149,7 +148,8 @@ values are used.
   <TAG> :: '${' <VAR> '}' | '$ENV{' <VAR> '}' | 
            '$EXPR{' <EXPR> '}' | '$RND{' <EXPR> '}' |
            '$DATE{' <STR> '}' | '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
-           '$MD5{' <STR> '}' | '$DEFINED{' <VAR> '}'
+           '$MD5{' <STR> '}' | '$DEFINED{' <VAR> '}' |
+           '$MATCH{' <PATTERN> <SUBJECT> '}'
 
   <I> :: <INTEGER> | <TAG>
 ; <TAG> must evaluate to <INTEGER>
@@ -300,13 +300,14 @@ Repeatition
 There are 3 different repeat operators.  However, they all share the
 following characteristic:
 
->X Y
+  >X Y
+
 From X (down)to Y inclusive.  For example, >0 0 repeats the branch
 just once.
 
 The sequential '&&' repeat operator
 -----------------------------------
->X&&Y <branch>
+  >X&&Y <branch>
 
 A virtual branch created by the use of the sequential '&&' repeat
 operator evaluates to TRUE, if all of <branch> iterations
@@ -318,7 +319,7 @@ The evaluation value is the value of the last iteration.
 
 The sequential '||' repeat operator
 -----------------------------------
->X||Y <branch>
+  >X||Y <branch>
 
 A virtual branch created by the use of the sequential '||' repeat
 operator evaluates to FALSE, if all of <branch> iterations evaluate
@@ -408,18 +409,7 @@ both strings.
 <FUN_ARG> are passed by value, <FUN_ARG_REF> are passed by reference.
 
 
-2.3.5 MATCH
-~~~~~~~~~~~
-  <MATCH> :: 'MATCH' <PATTERN> <SUBJECT>
-  <PATTERN> :: <DQ_STR>
-  <SUBJECT> :: <DQ_STR>
-
-PCRE match <SUBJECT> against <PATTERN>.  Return 0 if match succeeded,
-return 2 if matching fails.  Please see the section dedicated to pattern
-matching.
-
-
-2.3.6 NOP
+2.3.5 NOP
 ~~~~~~~~~~
   <NOP> :: 'NOP' <NOP_VAL>?
   <NOP_VAL> :: <DQ_I>
@@ -429,7 +419,7 @@ operation" action.  It has an optional parameter --- execution value.
 If this parameter is omitted, the default value 0 is used.
 
 
-2.3.7 SETENV
+2.3.6 SETENV
 ~~~~~~~~~~~~
   <SETENV> :: 'SETENV' <OVERWRITE>? ( <VAR> <VAR_VAL> )+
   <OVERWRITE> :: 'overwrite' '=' <DQ_I>
@@ -440,7 +430,7 @@ If <VAR> is set, assign environment variable <VAR> value <VAR_VAL>
 only if <OVERWRITE> is unspecified or it evaluates to non-zero.
 
 
-2.3.8 SLEEP
+2.3.7 SLEEP
 ~~~~~~~~~~~
   <SLEEP> :: 'SLEEP' <SLEEP_OPT>?
   <SLEEP_OPT> :: <SLEEP_SEC> <SLEEP_NANOSEC>?
@@ -450,14 +440,14 @@ only if <OVERWRITE> is unspecified or it evaluates to non-zero.
 Sleep for a specified amount of seconds and/or nanoseconds.
 
 
-2.3.9 SRM2 actions
+2.3.8 SRM2 actions
 ~~~~~~~~~~~~~~~~~~~
 All SRM2 methods are implemented.  Please see the
 `testing/scripts/srm2/template' directory for syntax.
 
 
-2.3.10 SYSTEM
-~~~~~~~~~~~~~
+2.3.9 SYSTEM
+~~~~~~~~~~~~
   <SYSTEM> :: 'SYSTEM' <SYSTEM_OPT>? <SYSTEM_COMMAND>
   <SYSTEM_OPT> :: 'out' '=' <DQ_STR>
   <SYSTEM_COMMAND> :: <STR>
@@ -466,10 +456,10 @@ System call with an optional argument (out=<regex>) allowing the
 capture and pattern matching of a program's output.
 
 
-2.3.11 TEST
+2.3.10 TEST
 ~~~~~~~~~~~
   <TEST> :: 'TEST' <EXPR>
-  <EXPR> :: <DQ_STR>
+  <EXPR> :: <STR>
 
 Exit with the status determined by <EXPR>.  TEST <EXPR> executes
 as TRUE unless it is an empty string or 0.
@@ -864,39 +854,30 @@ The tag is replaced by an MD5 sum of <STR>.
 The tag is replaced by 1 if <VAR> is defined, 0 otherwise.
 
 
+2.3.7 Regular expression based matching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$MATCH{' <PATTERN> <SUBJECT> '}'
+  <PATTERN> :: <DQ_STR>
+  <SUBJECT> :: <DQ_STR>
+
+PCRE match <SUBJECT> against <PATTERN>.  Return 1 if match succeeded,
+return 0 if matching fails.  Please refer the section dedicated to pattern
+matching for more information.
+
+
 3 Caveats
 ~~~~~~~~~
-3.1 Comment character forms part of a parameter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Consider the following action:
+3.1 Comments
+~~~~~~~~~~~~
+While putting comments next to branches is allowed in some cases, it is bad
+practice and highly discouraged (cf. SYSTEM command).
 
-  NOP 2; return an error value 2
+3.2 TEST
+~~~~~~~~
+TEST 1>3
 
-The observant reader can figure out the error by studying S2 grammar as
-semicolons can appear as a part of <NOP_VAL>.  Therefore s2 issues a 
-"trailing garbage" warning and <NOP_VAL> has the value "2;".  The correct
-way of writing the above action is either:
+evaluates to true as 1>3 is a non-empty string.  Whereas
 
-  NOP "2"; return an error value 2
+TEST $EXPR{1>3}
 
-or 
-
-  NOP 2 ; return an error value 2
-
-
-Also, note that:
-
-  SYSTEM echo "Hello" ; echo " Dolly"
-
-; echo " Dolly" is not a comment, but another system command as SYSTEM
-<ACTION> has the complete line as its argument.
-
-3.2 Whitespace
-~~~~~~~~~~~~~~
-S2 is a compact language.  Use the least amount of whitespace you can, e.g.:
-
-   TEST $EXPR{${n}<1}
-
-or use quotation marks where appropriate:
-
-   TEST "$EXPR{${n} < 1}"   ; TEST $EXPR{${n} < 1} ; is incorrect (see the grammar)
+evaluates to false.

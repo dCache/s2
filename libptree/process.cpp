@@ -1193,13 +1193,17 @@ Process::eval_str(const char *cstr, Process *proc)
     state=sInit;\
     continue;\
   }
-
-#define GET_BALLANCED_BR_PARAM\
-  tgt_chars = get_ballanced_br_param(target, cstr + i + opt_off);\
-  if(tgt_chars == 0)\
-    /* no characters parsed, we hit \0 */\
-    break;\
-  i += tgt_chars + opt_off - 2;
+#define BALLANCED_OPL(str, s)\
+  if(OPL(str)) {\
+    /* we have a reference to a variable */\
+    state = s;\
+    tgt_chars = get_ballanced_br_param(target, opt + opt_off);\
+    if(tgt_chars == 0)\
+      /* no characters parsed, we hit \0 */\
+      break;\
+    i += tgt_chars + opt_off - 2;	/* compensate for +1 loop increment */\
+    continue;\
+  }
 
   DM_DBG_I;
 
@@ -1257,52 +1261,17 @@ Process::eval_str(const char *cstr, Process *proc)
 
       case sDollar:{
         int tgt_chars;
-        if(c == '{') {
-          /* we have a reference to a variable */
-          state = sVar;
-          tgt_chars = get_ballanced_br_param(target, cstr + i + 1);
-          if(tgt_chars == 0)
-            /* no characters parsed, we hit \0 */
-            break;
-          i += tgt_chars - 1;
-          continue;
-        } else if(OPL("ENV{")) {
-          /* we have a reference to environment variable */
-          state = sEvar;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("I{")) {
-          /* we have a reference to a repeat loop counter */
-          state = sCounter;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("EXPR{")) {
-          /* expression evaluation */
-          state = sExpr;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("RND{")) {
-          /* random values */
-          state = sRnd;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("DATE{")) {
-          /* date/time */
-          state = sDate;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("PRINTF{")) {
-          /* date/time */
-          state = sPrintf;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("MD5{")) {
-          /* MD5 sum of a string */
-          state = sMd5;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("DEFINED{")) {
-          /* MD5 sum of a string */
-          state = sDefined;
-          GET_BALLANCED_BR_PARAM;
-        } else if(OPL("MATCH{")) {
-          /* MD5 sum of a string */
-          state = sDefined;
-          GET_BALLANCED_BR_PARAM;
-        } else {
+        BALLANCED_OPL("{", sVar) else
+        BALLANCED_OPL("ENV{", sEvar) else
+        BALLANCED_OPL("I{", sCounter) else
+        BALLANCED_OPL("EXPR{", sExpr) else
+        BALLANCED_OPL("RND{", sRnd) else
+        BALLANCED_OPL("DATE{", sDate) else
+        BALLANCED_OPL("PRINTF{", sPrintf) else
+        BALLANCED_OPL("MD5{", sMd5) else
+        BALLANCED_OPL("DEFINED{", sDefined) else
+        BALLANCED_OPL("MATCH{", sMatch) else
+        {
           /* return the borrowed dollar */
           s.push_back('$');
           state = sInit;
@@ -1353,8 +1322,6 @@ Process::eval_str(const char *cstr, Process *proc)
       continue;
 
       case sEvar:{
-        
-        
         /* we have a complete environment variable */
         target = eval_str(target.c_str(), proc);	/* evaluate things like: $ENV{...${var}...} */
 
@@ -1508,35 +1475,37 @@ Process::eval_str(const char *cstr, Process *proc)
       continue;
 
       case sPrintf:{
-        char **argv;
+        char **argv = NULL;
         int spaces = 0;
         int j, plen;
-        const char *var_cstr = NULL;
+        const char *target_cstr = target.c_str();
 
-        target = eval_str(target.c_str(), proc);	/* evaluate things like: $PRINTF{...${var}...} */
-        var_cstr = target.c_str();
         plen = target.length();
+        DM_DBG(DM_N(4), "target_cstr=|%s|\n", target_cstr);
         for(j = 0; j < plen; j++) {
           /* count the number of spaces to guess the maximum number of $PRINTF parameters (-2) */
-          if(IS_WHITE(var_cstr[j])) spaces++;
+          if(IS_WHITE(target_cstr[j])) spaces++;
         }
+        DM_DBG(DM_N(4), "spaces+2=%d\n", spaces+2);
         if((argv = (char **)malloc(sizeof(char **) * (spaces + 2))) == (char **)NULL) {
           DM_ERR(ERR_SYSTEM, _("malloc failed\n"));
           return s;
         }
+        DM_DBG(DM_N(4), "argv=%p\n", argv);
         std::string arg;
         int l = 0;
         for(j = 0;; j++) {
           int chars;
-          chars = get_dq_param(arg, var_cstr + l);
+          chars = get_dq_param(arg, target_cstr + l);
           if(chars == 0) break;
+          arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $PRINTF{...${var}...} */
           if((argv[j] = (char *)strdup(arg.c_str())) == (char *)NULL) {
             DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
             return s;
           }
           l += chars;
         }
-        argv[j] = 0;
+        argv[j--] = 0;
 
         s.append(ssprintf_chk(argv));
         for(;j >= 0; j--) {
@@ -1566,11 +1535,13 @@ Process::eval_str(const char *cstr, Process *proc)
       continue;
 
       case sMatch:{
-        target = eval_str(target.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
         std::string expected;
         std::string received;
         int expected_len = get_dq_param(expected, target.c_str());
         get_dq_param(received, target.c_str() + expected_len);
+        
+        expected = eval_str(expected.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
+        received = eval_str(received.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
         
         DM_DBG(DM_N(4), "matching `%s' and `%s'\n", expected.c_str(), received.c_str());
         s.append(pcre_matches(expected.c_str(),

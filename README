@@ -21,15 +21,6 @@ of the first OR branch indented by the same number of spaces as the
 unsuccessful <ACTION>.  The OR and AND branches are left-associative
 and are evaluated in the short-circuit style.
 
-The following <ACTION>s are currently supported:
-<ASSIGN>: variable assignment
-<CMP_OP>: comparison operators (EQ, NE, LT, GT, LE and GE)
-<MATCH>:  explicit regular expression matching
-<NOP>:    no-operation
-<SLEEP>:  sleep for a specified amount of time
-<SRM2>:   the full SRM2 protocol functionality (31 actions)
-<SYSTEM>: execution of a system command
-
 The parameters common to all branches include the evaluation level
 which decides success or failure of a branch's execution, timeout
 and PCRE library options.

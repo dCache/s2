@@ -187,6 +187,14 @@ i2str(int64_t value)
 } /* i2str */
 
 extern std::string
+r2str(double value)
+{
+  std::stringstream ss;
+  ss << value << std::flush;
+  return ss.str();
+} /* r2str */
+
+extern std::string
 ssprintf(const char *fmt...)
 {
   int buf_size = 128;
@@ -276,13 +284,14 @@ extern int
 get_dq_param(std::string &target, const char *source)
 {
 #define TERM_CHAR(c)    (q? (c == '"'): IS_WHITE(c))
-#define gc(c)		(col < source_len) ? source[col++] : '\0'
+/* <= is important to make for gc/ugc() behaviour consistent; don't change to < */
+#define gc(c)		(col <= source_len) ? source[col++] : '\0'
 #define ugc()		if(col > 0) col--
 
   int i, c;
   unsigned col = 0;
   unsigned source_len;
-  BOOL q;		/* quotation mark at the start of the filename */
+  BOOL q;		/* quotation mark at the start of a string */
   BOOL bslash = FALSE;	/* we had the '\\' character */
   int esc = 0;		/* number of escaped characters */
   
@@ -313,6 +322,7 @@ get_dq_param(std::string &target, const char *source)
     if(TERM_CHAR(c) && !bslash) {
       if(c != '"') ugc();
 
+//      fprintf(stderr, "|%s|; col=|%d|\n", target.c_str(), col);
       return col;	/* found a string terminator */
     }
 
@@ -323,19 +333,19 @@ get_dq_param(std::string &target, const char *source)
       {
         /* single backslash => the following character is escaped */
         esc++;
-        goto out;
+        goto esc_out;
       }
     }
 
     target.push_back(c);
-out:
+esc_out:
     bslash = c == '\\';
   }
 
   if(q && c == '\0')
     DM_WARN(ERR_WARN, "'\\0' terminated double-quoted parameter\n");
 
-  return col;
+  return col - 1; /* do not count the terminating '\0' */
 
 #undef TERM_CHAR
 #undef gc
@@ -348,7 +358,8 @@ out:
 extern int
 get_ballanced_br_param(std::string &target, const char *source)
 {
-#define gc(c)		(col < source_len) ? source[col++] : '\0'
+/* <= is important to make for gc/ugc() behaviour consistent; don't change to < */
+#define gc(c)		(col <= source_len) ? source[col++] : '\0'
 #define ugc()		if(col > 0) col--
 
   int i, c;
@@ -391,7 +402,7 @@ get_ballanced_br_param(std::string &target, const char *source)
     bslash = c == '\\';
   }
 
-  return col;
+  return col - 1; /* do not count the terminating '\0' */
 
 #undef gc
 #undef ugc

@@ -1,6 +1,6 @@
 ; Testing test ;)
 
-TEST $EXPR{1>5}
+TEST 1>2
    SYSTEM echo never reached
-|| TEST 1>5
-   SYSTEM echo "1>5 is a string!"
+|| TEST 1<2
+   SYSTEM echo "1<2"

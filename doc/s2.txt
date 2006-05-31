@@ -102,7 +102,7 @@ the ';' character and continue up to the next newline ('\n') character.
 
 1.3) Actions
 ~~~~~~~~~~~~
-  <ACTION> :: <ASSIGN> | <CMP_OP> | <DEFUN> | <FUN> |
+  <ACTION> :: <ASSIGN> | <DEFUN> | <FUN> |
               <NOP> | <SETENV> | <SLEEP> | <SRM2> | <SYSTEM>
 
 Syntax of the individual actions is described in the Semantics section.
@@ -364,43 +364,14 @@ is set, assign variable <VAR> value <VAR_VAL> only if <OVERWRITE>
 is unspecified or it evaluates to non-zero.
 
 
-2.3.2 Comparison operators
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-  <CMP_OP> :: <OPERATOR> <OP1> <OP2>
-  <OPERATOR> :: 'EQ' | 'NE' | 'LT' | 'GT' | 'LE' | 'GE'
-  <OP1> :: <DQ_STR>
-  <OP2> :: <DQ_STR>
-
-The binary comparison operators return TRUE (0) if the result of
-comparison is TRUE, and return FALSE (2) if they evaluate to FALSE.
-
-The operators are shown in the following table.  If one of the 
-operands is a string, they are both compared as strings.
-
-operator  | "op1" meaning "op2"
-----------+-------------------------------------------
-EQ        | equal to (==)
-NE        | not equal to (!=)
-LT        | less than (<)
-GT        | greater than (>)
-LE        | less or equal than (<=)
-GE        | greater or equal than (>=)
-
-Before the actual comparsion, both operands are checked.  If they can
-both be converted to an integer, comparison is numerical, otherwise
-they compare as strings.  If there is a need to compare the two numbers
-as strings put the same non-numerical characters at the beginning of
-both strings.
-
-
-2.3.3 Function definition
+2.3.2 Function definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~
   <DEFUN> :: 'DEFUN' ({<FUN_PARAM> ' '}* ':'? | {<FUN_PARAM_REF> ' '}*)?
   <FUN_PARAM> :: <DQ_STR>
   <FUN_PARAM_REF> :: <DQ_STR>
 
 
-2.3.4 Function call
+2.3.3 Function call
 ~~~~~~~~~~~~~~~~~~~
   <DEFUN> :: 'FUN' ({<FUN_ARG> ' '}* ':'? | {<FUN_ARG_REF> ' '}*)?
   <FUN_ARG> :: <DQ_STR>
@@ -409,7 +380,7 @@ both strings.
 <FUN_ARG> are passed by value, <FUN_ARG_REF> are passed by reference.
 
 
-2.3.5 NOP
+2.3.4 NOP
 ~~~~~~~~~~
   <NOP> :: 'NOP' <NOP_VAL>?
   <NOP_VAL> :: <DQ_I>
@@ -419,7 +390,7 @@ operation" action.  It has an optional parameter --- execution value.
 If this parameter is omitted, the default value 0 is used.
 
 
-2.3.6 SETENV
+2.3.5 SETENV
 ~~~~~~~~~~~~
   <SETENV> :: 'SETENV' <OVERWRITE>? ( <VAR> <VAR_VAL> )+
   <OVERWRITE> :: 'overwrite' '=' <DQ_I>
@@ -430,7 +401,7 @@ If <VAR> is set, assign environment variable <VAR> value <VAR_VAL>
 only if <OVERWRITE> is unspecified or it evaluates to non-zero.
 
 
-2.3.7 SLEEP
+2.3.6 SLEEP
 ~~~~~~~~~~~
   <SLEEP> :: 'SLEEP' <SLEEP_OPT>?
   <SLEEP_OPT> :: <SLEEP_SEC> <SLEEP_NANOSEC>?
@@ -440,14 +411,14 @@ only if <OVERWRITE> is unspecified or it evaluates to non-zero.
 Sleep for a specified amount of seconds and/or nanoseconds.
 
 
-2.3.8 SRM2 actions
+2.3.9 SRM2 actions
 ~~~~~~~~~~~~~~~~~~~
 All SRM2 methods are implemented.  Please see the
 `testing/scripts/srm2/template' directory for syntax.
 
 
-2.3.9 SYSTEM
-~~~~~~~~~~~~
+2.3.10 SYSTEM
+~~~~~~~~~~~~~
   <SYSTEM> :: 'SYSTEM' <SYSTEM_OPT>? <SYSTEM_COMMAND>
   <SYSTEM_OPT> :: 'out' '=' <DQ_STR>
   <SYSTEM_COMMAND> :: <STR>
@@ -456,7 +427,7 @@ System call with an optional argument (out=<regex>) allowing the
 capture and pattern matching of a program's output.
 
 
-2.3.10 TEST
+2.3.11 TEST
 ~~~~~~~~~~~
   <TEST> :: 'TEST' <EXPR>
   <EXPR> :: <STR>
@@ -792,6 +763,8 @@ $I{<I>} refrerence to the internal counter of a sequential repeat operator.
 
   C-like operator priority table 
 
+Comments can be used inside expressions, however, this usage is discouraged.
+
 2.5.2 Random number
 ~~~~~~~~~~~~~~~~~~~
   '$RND{' <EXPR> '}'
@@ -869,15 +842,5 @@ matching for more information.
 ~~~~~~~~~
 3.1 Comments
 ~~~~~~~~~~~~
-While putting comments next to branches is allowed in some cases, it is bad
-practice and highly discouraged (cf. SYSTEM command).
-
-3.2 TEST
-~~~~~~~~
-TEST 1>3
-
-evaluates to true as 1>3 is a non-empty string.  Whereas
-
-TEST $EXPR{1>3}
-
-evaluates to false.
+While putting comments next to branches is allowed in most cases, it is bad
+practice and highly discouraged (consider SYSTEM command).

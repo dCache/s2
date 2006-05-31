@@ -41,6 +41,7 @@ struct Process
   int64_t I;			/* Counter value when !(S2_REPEAT_NONE && S2_REPEAT_PAR), X otherwise. */
 
   /* execution/evaluation values for the internal S2 logic */
+  EVAL_t et;			/* evaluation type */
   int executed;			/* execution value of the process (children exclusive) */
   int evaluated;		/* ``complete'' evaluation value of the process (children inclusive); ${!} */
 
@@ -123,9 +124,6 @@ public:
   _EVAL_VEC_PINT(u,32);
   _EVAL_VEC_PINT(u,64);
 #undef _EVAL_VEC_PINT
-
-private:
-  EVAL_t et;			/* evaluation type */
 
 };
 

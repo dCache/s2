@@ -1,8 +1,14 @@
 #ifndef _LEX_H
 #define _LEX_H
 
+#include "process.h"		/* Process */
+
+/* C++ utils */
+#include <iostream>             /* std::string, cout, endl, ... */
+#include <sstream>              /* std::stringstream, ... */
+
 enum Symbol {
-// EOF     INV_SYM
+// EOF    INV_SYM
   EofSym, InvalidSym,
 // +        -         *        /       %
   PlusSym, MinusSym, MultSym, DivSym, ModSym,
@@ -20,25 +26,31 @@ enum Symbol {
   BitOrSym, OrSym,
 // &          &&
   BitAndSym, AndSym,
-// INT     REAL
-  IntSym, RealSym,
+// INT     REAL    STRING
+  IntSym, RealSym, StringSym
 };
 
-enum types {
-  INV, INT, REAL,
+enum Types {
+  INV, INT, REAL, STRING,
   COUNT /* number of types */
 };
 
 struct Attr {
-  types type;		/* type    */
+public:
+  Types type;		/* type    */
   union {
-    int64_t i;		/* integer */
-    double  r;		/* real    */
-//    char   *s;		/* string  */
+    int64_t	i;	/* integer */
+    double	r;	/* real    */
+    std::string	*s;	/* string  */
   } v;			/* value   */
+
+  Attr();
+  ~Attr();
+  std::string toString();
+
 };
 
-class Lex {
+struct Lex {
 public:
   Lex();
   Lex(const char *s);
@@ -48,10 +60,13 @@ public:
   static const char* SymbolName(Symbol s);
   char gc(void);
   void ugc(void);
+  BOOL eof(void);
 
 private:
-  const char *expr;
-  int expr_col;
+  const char *source;
+  int col;
+  int source_len;
+  std::vector <std::string *> strings;
 
 };
 

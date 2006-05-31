@@ -10,13 +10,16 @@
 #include "diagnose/dg.h"
 #endif
 
-#include <stdlib.h>
-
 #include "expr.h"
+#include "str.h"		/* i2str */
+#include "free.h"		/* FREE(), DELETE() macros */
 
 #include "i18.h"
 #include "constants.h"
 #include "sysdep.h"
+
+#include <stdlib.h>
+#include <errno.h>		/* errno */
 
 /* simple macros */
 #define EXPECT(s)\
@@ -28,6 +31,11 @@
 
 #define LEX()	do { if((sym = l.lex(lex_attr)) == InvalidSym) return attr; } while(0)
 
+#define NEW_STR(v,s)\
+  if((v = new std::string(s)) == NULL) {\
+    DM_ERR_ASSERT(_("new failed\n"));\
+  } else strings.push_back(v);		/* free the allocated string on exit */
+
 /* constructor */
 Expr::Expr()
 {
@@ -35,29 +43,29 @@ Expr::Expr()
 
 
 /* constructor */
-Expr::Expr(const char *s)
+Expr::Expr(const char *s, Process *p)
 {
   l = Lex(s);
+  proc = p;
 }
 
 
 /* destructor */
 Expr::~Expr()
 {
+  DELETE_VEC(strings);
 }
 
 
-int
-Expr::parse(int64_t *e)
+Attr
+Expr::parse()
 {
+  DM_DBG_I;
+
   Attr attr;
   attr = S();
-
-  switch (attr.type) {
-    case INT:
-      *e = attr.v.i;
-    break;
-
+ 
+#if 0
     case REAL:
       *e = (int64_t)attr.v.r;
       if(*e != attr.v.r) {
@@ -68,34 +76,53 @@ Expr::parse(int64_t *e)
     default:
       DM_ERR(ERR_ERR, _("expression evaluation did not return a number\n"));
       return ERR_ERR;
-  }
+#endif
 
-  return ERR_OK;
+  RETURN(attr);
 }
 
 
-types Expr::ConvTypes(Attr& a1, Attr& a2)
+Types
+Expr::ConvTypes(Attr& a1, Attr& a2)
 {
-  static types table[COUNT][COUNT] = {
-    /*            a2:  INV,    INT,   REAL */
-    /* a1:                                 */
-    /* INV   */       {INV,   INV,    INV},
-    /* INT    */      {INV,   INT,    REAL},
-    /* REAL   */      {INV,   REAL,   REAL},
+  static Types table[COUNT][COUNT] = {
+    /*            a2:  INV,    INT,   REAL,   STRING */
+    /* a1:                                           */
+    /* INV    */      {INV,   INV,    INV,    INV   },
+    /* INT    */      {INV,   INT,    REAL,   STRING},
+    /* REAL   */      {INV,   REAL,   REAL,   STRING},
+    /* STRING */      {INV,   STRING, STRING, STRING},
   };
-  types type;
+  Types type;
 
   type = table[a1.type][a2.type];
   if (type == REAL) {			/* conversion int na real */
     if (a1.type == INT) {		/* conversion a1 (int -> real) */
       a1.type = REAL;
       a1.v.r = a1.v.i;
-    }
-    else
+    } else
     if (a2.type == INT) {		/* conversion a2 (int -> real) */
       a2.type = REAL;
-      a2.v.r  = a2.v.i;
+      a2.v.r = a2.v.i;
     }
+  }
+  else if(type == STRING) {
+    if (a1.type == INT) {		/* conversion a1 (int -> string) */
+      a1.type = STRING;
+      NEW_STR(a1.v.s,i2str(a1.v.i).c_str());
+    } else
+    if (a1.type == REAL) {		/* conversion a1 (real -> string) */
+      a1.type = STRING;
+      NEW_STR(a1.v.s,r2str(a2.v.r).c_str());
+    } else
+    if (a2.type == INT) {		/* conversion a2 (int -> string) */
+      a2.type = STRING;
+      NEW_STR(a2.v.s,i2str(a2.v.i).c_str());
+    } else
+    if (a2.type == REAL) {		/* conversion a2 (real -> string) */
+      a2.type = STRING;
+      NEW_STR(a2.v.s,r2str(a2.v.r).c_str());
+    } 
   }
   return type;
 }
@@ -131,11 +158,48 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
       }
     break;
 
+    case STRING:
+      int cmp = strcmp(a1.v.s->c_str(), a2.v.s->c_str());
+      switch (o) {
+        case EqSym: return cmp == 0 ? TRUE : FALSE;
+        case LtSym: return cmp <  0 ? TRUE : FALSE;
+        case GtSym: return cmp >  0 ? TRUE : FALSE;
+        case NeSym: return cmp != 0 ? TRUE : FALSE;
+        case LeSym: return cmp <= 0 ? TRUE : FALSE;
+        case GeSym: return cmp >= 0 ? TRUE : FALSE;
+        default:
+          DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(o));
+      }
+    break;
+
     default:
       DM_ERR(ERR_ERR, _("cannot compare values of incompatible types\n"));
   }
 
   return 0; /* unable to compare */
+}
+
+void
+Expr::normalize(Attr &attr)
+{
+  switch(attr.type) {
+    case STRING: {
+      Attr a, eof_a;
+      Lex l = Lex(attr.v.s->c_str());
+      Symbol s = l.lex(a);
+      if((s == IntSym || s == RealSym) && l.eof()) {
+        DM_DBG(DM_N(4), "normalizing string type to %s\n", Lex::SymbolName(s));
+        attr = a;
+      }
+    }
+    break;
+
+    case INV:  /* fall through */
+    case INT:  /* fall through */
+    case REAL: /* fall through */
+    default:
+      break;
+  }
 }
 
 
@@ -565,7 +629,7 @@ Expr::K()
 }
 
 /* K1 -> + K1 | - K1 | ! K1 | ~ K1
-      |  ( X ) | INT | REAL */
+      |  ( X ) | INT | REAL | STRING */
 Attr
 Expr::K1()
 {
@@ -575,7 +639,7 @@ Expr::K1()
   attr.type = INV;
   switch(sym) {
     /* K1 -> + K1 */
-    case PlusSym:
+    case PlusSym: {
       LEX();				/* unary plus */
       attr = K1();
       switch (attr.type) {
@@ -584,10 +648,11 @@ Expr::K1()
 
         default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
       }
+    }
     break;
 
     /* K1 -> - K1 */
-    case MinusSym:
+    case MinusSym: {
       LEX();				/* unary minus */
       attr = K1();
       switch (attr.type) {
@@ -596,10 +661,11 @@ Expr::K1()
   
         default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
       }
+    }
     break;
 
     /* K1 -> ! K1 */
-    case NotSym:
+    case NotSym: {
       LEX();
       attr = K1();
       switch (attr.type) {
@@ -608,10 +674,11 @@ Expr::K1()
   
         default: DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
+    }
     break;
 
     /* K1 -> ~ K1 */
-    case BitNotSym:
+    case BitNotSym: {
       LEX();
       attr = K1();
       switch (attr.type) {
@@ -620,27 +687,44 @@ Expr::K1()
   
         default: DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
+    }
     break;
 
     /* K1 -> ( X ) */
-    case LprSym:
+    case LprSym: {
       LEX();
       attr = X();
       EXPECT(RprSym);
+    }
     break;
 
     /* K1 -> INT */
-    case IntSym:
+    case IntSym: {
       attr.type = INT;
       attr.v.i = lex_attr.v.i;		/* get the value from lex */
       LEX();
+    }
     break;
 
     /* K1 -> REAL */
-    case RealSym:
+    case RealSym: {
       attr.type = REAL;
       attr.v.r = lex_attr.v.r;		/* get the value from lex */
       LEX();
+    }
+    break;
+
+    /* K1 -> STRING */
+    case StringSym: {
+      std::string s;			/* string with no $TAGs */
+      attr.type = STRING;
+      s = Process::eval_str(lex_attr.v.s->c_str(), proc);
+      NEW_STR(attr.v.s,s.c_str());
+      DM_DBG(DM_N(4),"s=|%s|\n",s.c_str());
+      normalize(attr);
+      DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
+      LEX();
+    }
     break;
 
     default:

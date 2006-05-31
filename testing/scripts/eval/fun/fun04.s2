@@ -1,7 +1,7 @@
 ; Factorial
 
 DEFUN Factorial n : val_n
-   TEST $EXPR{${n}<1}
+   TEST ${n}<1
       ASSIGN val_n 1
    || FUN Factorial $EXPR{${n}-1} : val_n_1
       ASSIGN val_n $EXPR{${n}*${val_n_1}}

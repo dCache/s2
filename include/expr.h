@@ -3,24 +3,28 @@
 
 #include "lex.h"
 
-class Expr {
+struct Expr {
+  Process *proc;	/* pointer to the Process with relevant variable tables, etc. */
+
 public:
   Symbol sym;           /* current symbol */
   Attr   lex_attr;      /* symbol attribute */
 
   Expr();
-  Expr(const char *);
+  Expr(const char *s, Process *p);
   ~Expr();
 
-  int parse(int64_t *e);
+  Attr parse();
 
 private:
   Lex l;
+  std::vector <std::string *> strings;
 
   void expect(Symbol s);
 
-  types ConvTypes(Attr &a1, Attr &a2);
+  Types ConvTypes(Attr &a1, Attr &a2);
   int compare(Attr a1, Attr a2, Symbol o);
+  void normalize(Attr &attr);
 
   /* grammar */
   Attr S();

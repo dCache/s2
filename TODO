@@ -1,12 +1,12 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- LT/GT/... (<, >, ...)
+- Expressions: handle overflows and INT/REAL conversions better.
+- Proper expressions testing, more examples.
 - Fix deadlock in parallel execution
 - SRM2 test scenarios and testing (storage system info/description as testing)!
   * rewrite includes into functions
 - Saving to global vars (?P<::Hello>.*)
 - ECHO (vs. SYSTEM echo --- performance considerations)
-- remove deprecated MATCH/LT/GT... (kept for backward compatibility only)
 - Support more $TAGs (e.g.: $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...)
 - Investigate gSoap memory leaks
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?

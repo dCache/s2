@@ -11,15 +11,53 @@
 #endif
 
 #include "lex.h"
+#include "expr.h"
 
 #include "constants.h"
 #include "i18.h"
 #include "limits.h"
+#include "str.h"
+#include "free.h"		/* FREE(), DELETE() */
 
-#include <ctype.h>	/* isspace(), ... */
-#include <math.h>	/* pow(), ... */
+#include <ctype.h>		/* isspace(), ... */
+#include <math.h>		/* pow(), ... */
+#include <errno.h>		/* errno */
 
 #define IS_HEX_CHAR(c) ((c) >= 'A' && (c) <= 'F')
+
+#define NEW_STR(v,s)\
+  if((v = new std::string(s)) == NULL) {\
+    DM_ERR_ASSERT(_("new failed\n"));\
+  } else strings.push_back(v);		/* free the allocated string on exit */
+
+/* constructor */
+Attr::Attr()
+{
+}
+
+
+/* destructor */
+Attr::~Attr()
+{
+}
+
+std::string
+Attr::toString()
+{
+  std::string str;
+
+  switch(type) {
+    case INV:    str = "(invalid)" ; break;
+    case INT:    str = i2str(v.i); break;
+    case REAL:   str = r2str(v.r); break;
+    case STRING: str = std::string(v.s->c_str()); break;
+    default:  /* never reached */
+      DM_ERR_ASSERT(_("switch: default: %d\n"), type);
+      str = "(default)";
+  }
+
+  return str;
+}
 
 /* constructor */
 Lex::Lex()
@@ -30,34 +68,50 @@ Lex::Lex()
 /* constructor */
 Lex::Lex(const char *s)
 {
-  expr = s;
-  expr_col = 0;
+  if(!s) {
+    DM_ERR_ASSERT(_("s == NULL\n"));
+  }
+  source = s;
+  col = 0;
+  source_len = strlen(source);
 }
 
 
 /* desructor */
 Lex::~Lex()
 {
+  DELETE_VEC(strings);
 }
 
 
 char
 Lex::gc(void)
 {
-  return expr[expr_col++];
+  /* <= is important to make for gc/ugc() behaviour consistent; don't change to < */
+  return (col <= source_len)? source[col++]: '\0';
 }
 
 
 void
 Lex::ugc(void)
 {
-  expr_col--;
+  if(col > 0) col--;
+}
+
+BOOL
+Lex::eof(void)
+{
+  DM_DBG(DM_N(5), "%d/%d\n", col, source_len);
+  return col >= source_len;
 }
 
 
 Symbol
 Lex::lex(Attr& attr)
 {
+#define IS_SEP(c)	(c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '(' || c == ')' || c == '^' || c == '~' || c == '<' || c == '>' || c == '=' || c == '!' || c == '|' || c == '&' || c == ';')
+#define TERM_CHAR(c)    (q? (c == '"'): (IS_WHITE(c) || IS_SEP(c)) && !brackets)
+
   DM_DBG_I;
 
   Symbol sym;
@@ -65,20 +119,25 @@ Lex::lex(Attr& attr)
   enum { sInit,
          sNum, sNumber,
          sReal01, sReal02, sReal03, sReal04, 
-         sLt, sGt, sEq, sNe, sOr, sAnd } state = sInit;
+         sLt, sGt, sEq, sNe, sOr, sAnd, sString, sComment } state = sInit;
   int64_t inum = 0;
-  double power10;
-  int expon, sign, base;
+  double power10 = 0;
+  int expon = 0, sign = 0, base = 0;
+  BOOL bslash = FALSE;	/* we had the '\\' character */
+  BOOL q = FALSE;	/* quotation mark at the start of a string */
+  int brackets = 0;
 
   attr.type = INV;
   do {
     c = gc();
+    DM_DBG(DM_N(5), "gc()='%c'\n", c);
  
     switch (state) {
       case sInit:
-        if (isspace(c))
+        if (IS_WHITE(c))
           ;
         else if (isdigit(c) && c != '0') {
+          /* decimal numbers */
           state = sNumber;
           base = 10;
           inum = c - '0';
@@ -102,10 +161,14 @@ Lex::lex(Attr& attr)
           case '!': state = sNe; break;
           case '|': state = sOr; break;
           case '&': state = sAnd; break;
+          case ';': state = sComment; break;
 
-          default:
-            DM_ERR(ERR_ERR, _("invalid character '%c'\n"), c);
-            return InvalidSym;
+          default: /* string */
+            state = sString;
+            attr.type = STRING;
+            NEW_STR(attr.v.s,);
+            q = (c == '"');	/* string enclosed in quotes */
+            if(!q) attr.v.s->push_back(c);
         }
       break;
 
@@ -123,17 +186,17 @@ Lex::lex(Attr& attr)
         }  
         else {
           /* 0 */
-          state = sInit;
+          state = sNumber;
+          base = 10;
+          inum = 0;
           ugc();
-          attr.v.i = 0;
-          attr.type = INT;
-          return IntSym;
         }
         attr.v.i = inum;
       break;
 
       case sNumber:
         /* base is defined (octal, decimal, hexadecimal) */
+        DM_DBG(DM_N(4), "number (%"PRIi64"), base=%d\n", attr.v.i, base);
         if (isalpha(c)) c = toupper(c);
         if (isdigit(c)) {
           attr.v.i = inum * base + (c - '0');
@@ -141,7 +204,7 @@ Lex::lex(Attr& attr)
             /* attr.v.i overflow => use real */
             attr.v.r = (double) inum * base + (c - '0');
             state = sReal01;
-            DM_DBG(DM_N(3), "integer too large, using real (%d)\n", attr.v.r);
+            DM_DBG(DM_N(3), "integer too large, using real (%lld)\n", attr.v.r);
           } else inum = attr.v.i;
         }
         else if (IS_HEX_CHAR(c) && base == 16) {
@@ -150,7 +213,7 @@ Lex::lex(Attr& attr)
             /* attr.v.i overflow => use real */
             attr.v.r = (double) inum * base + ((c - 'A') + 10);
             state = sReal01;
-            DM_DBG(DM_N(3), "integer too large, using real (%d)\n", attr.v.r);
+            DM_DBG(DM_N(3), "integer too large, using real (%lld)\n", attr.v.r);
           } else inum = attr.v.i;
         }
         else if (c == '.') {
@@ -172,11 +235,13 @@ Lex::lex(Attr& attr)
           state = sInit;
           ugc();
           attr.type = INT;
+          DM_DBG(DM_N(4), "we have an integer (%"PRIi64")\n", attr.v.i);
           return IntSym;
         }
       break;
 
       case sReal01:		/* real number before . */
+        DM_DBG(DM_N(4), "real number (%f), base=%d, exponent=%d\n", attr.v.r, base, expon);
         if (isalpha(c)) c = toupper(c);
         if (isdigit(c))
           attr.v.r = attr.v.r * base + (c - '0');
@@ -194,11 +259,13 @@ Lex::lex(Attr& attr)
           state = sInit;
           ugc();
           attr.type = REAL;
+          DM_DBG(DM_N(4), "we have an integer (%lld)\n", attr.v.i);
           return RealSym;
         }
       break;
 
       case sReal02:		/* real number after . */
+        DM_DBG(DM_N(4), "real number (%f), base=%d\n", attr.v.r, base);
         if (isalpha(c)) c = toupper(c);
         if (isdigit(c))
           attr.v.r += (c - '0') * (power10 /= base);
@@ -211,11 +278,13 @@ Lex::lex(Attr& attr)
           state = sInit;
           ugc();
           attr.type = REAL;
+          DM_DBG(DM_N(4), "we have a real number (%f)\n", attr.v.r);
           return RealSym;
         }
       break;
 
       case sReal03:		/* real number (exponent) */
+        DM_DBG(DM_N(4), "real number (%f), base=%d\n", attr.v.r, base);
         state = sReal04;
         if (isdigit(c))
           expon = c - '0';
@@ -227,15 +296,19 @@ Lex::lex(Attr& attr)
           state = sInit;
           ugc();
           attr.type = REAL;
+          DM_DBG(DM_N(4), "we have a real number (%f)\n", attr.v.r);
           return RealSym;
         }
       break;
 
       case sReal04:		/* real number (exponent, finish) */
-        if (isdigit(c))
+        DM_DBG(DM_N(4), "real number (%f), base=%d, exponent=%d, sign=%d\n", attr.v.r, base, sign, expon);
+        if (isdigit(c)) {
           expon = expon * base + (c - '0');
-        else {
-          power10 = pow(sign > 0 ? expon : -expon, base);
+        } else {
+          /* not a digit, calculate the final real number */
+          power10 = pow(base, sign > 0 ? expon : -expon);
+          DM_DBG(DM_N(4), "real number (%f), base=%d, exponent=%d, power10=%f\n", attr.v.r, base, expon, power10);
           if (attr.v.r * power10 > HUGE_VAL) {
             if (sign > 0) DM_ERR(ERR_ERR, _("real number too big\n"));
             else DM_ERR(ERR_ERR, _("real number too small\n"));
@@ -247,6 +320,7 @@ Lex::lex(Attr& attr)
           state = sInit;
           ugc();
           attr.type = REAL;
+          DM_DBG(DM_N(4), "we have a real number (%f)\n", attr.v.r);
           return RealSym;
         }
       break;
@@ -315,12 +389,59 @@ Lex::lex(Attr& attr)
         }
       return sym;
 
+      case sString:		/* string */
+        if(c == '\\' && bslash) {
+          /* two backslashes => no quoting */
+          bslash = FALSE;
+          attr.v.s->push_back('\\');
+          continue;
+        }
+
+        if(!bslash) {
+          /* brackets within a string must be ballanced for non-quoted strings; the reason *
+           * being such strings may contain/be tags, e.g. $MATCH{"a ." "a b"}              */
+          if(c == '}') brackets--;
+          if(c == '{') brackets++;
+        }
+
+        if ((c == '\0'
+             || TERM_CHAR(c) && !bslash)
+           ) {
+          /* we have a string terminator */
+          state = sInit;
+          if(c != '"') {
+            ugc();
+            if(q) DM_WARN(ERR_WARN, "'%s%c' terminated double-quoted parameter\n", (c == 0)? "\\": "", c);
+          }
+          return StringSym;
+        }
+
+        if(!q) {
+          /* we have an unquoted string => remove escaping of whitespace and "s */
+          if(c == '\\' && !bslash && 
+             (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
+          {
+            /* single backslash => the following character is escaped */
+            goto esc_out;
+          }
+        }
+
+        attr.v.s->push_back(c);
+esc_out:
+        bslash = c == '\\';
+      break;
+
+      case sComment:		/* ; */
+        /* ignore everything until '\0' */
+      break;
+
     } /* switch */
-  } while (c != EOF);
+  } while (c != '\0');
 
   return EofSym;
-}
 
+#undef TERM_CHAR
+}
 
 const char*
 Lex::SymbolName(Symbol s)
@@ -335,7 +456,7 @@ Lex::SymbolName(Symbol s)
     "~",
     "|", "||",
     "&", "&&",
-    "INT", "REAL",
+    "INT", "REAL", "STRING",
   };
   return symbs[s];
 }

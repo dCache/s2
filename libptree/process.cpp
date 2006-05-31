@@ -14,9 +14,6 @@
 #include "n.h"			/* Node */
 #include "process.h"		/* Process */
 #include "expr.h"		/* Expression evaluation */
-#include "printf.h"		/* $PRINTF{} */
-#include "md5f.h"		/* md5 sum function */
-#include "date.h"		/* $DATE{} */
 
 #include "constants.h"
 #include "i18.h"
@@ -27,6 +24,11 @@
 #include "s2.h"			/* opts (s2 options) */
 #include "str.h"
 #include "thread_pool.h"
+
+/* Tags */
+#include "printf.h"		/* $PRINTF{} */
+#include "md5f.h"		/* md5 sum function */
+#include "date.h"		/* $DATE{}, e.g.: week() */
 
 #include <sys/time.h>		/* gettimeofday() */
 #include <time.h>		/* gettimeofday() */
@@ -1169,19 +1171,6 @@ Process::ReadVariable(const char *name)
 } /* ReadVariable */
 
 /*
- * Try to evaluate an expression to a 64-bit integer.
- * 
- * Returns: 0 on success
- *          1 on failure and e is not modified
- */
-extern int
-str_expr2i(const char *cstr, int64_t *e)
-{
-  Expr expr(cstr);
-  return expr.parse(e);
-}
-
-/*
  * Evaluate cstr and return evaluated std::string.
  */
 std::string
@@ -1383,14 +1372,13 @@ Process::eval_str(const char *cstr, Process *proc)
 
       case sExpr:{
         /* we have a complete expression to evaluate */
-        target = eval_str(target.c_str(), proc);	/* evaluate things like: $EXPR{...${var}...} */
+        /* DO NOT evaluate target here, let Expr do the evaluation *
+         * (e.g. strings with whitespace in them)                  */
         CHK_EVAL_ALL;
         DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
-        int64_t e = 0;
-        if(str_expr2i(target.c_str(), &e)) {
-          DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
-        } else s.append(i2str(e));
+        Expr e = Expr(target.c_str(), proc);
+        s.append(e.parse().toString());
         state = sInit;
       }
       continue;
@@ -1401,12 +1389,13 @@ Process::eval_str(const char *cstr, Process *proc)
         CHK_EVAL_ALL;
         DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
-        int64_t e = 0;
-        if(str_expr2i(target.c_str(), &e)) {
-          DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s'\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
+        Expr e = Expr(target.c_str(), proc);
+        Attr attr = e.parse();
+        if(attr.type != INT) {
+          DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s' to an integer\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
         } else {
           /* srandom() is done elsewhere */
-          s.append(i2str(random() % e));
+          s.append(i2str(random() % attr.v.i));
         }
         state = sInit;
       }
@@ -1581,6 +1570,7 @@ Process::eval_str(const std::string *s, Process *proc)
     DM_ERR_ASSERT(_("s == NULL\n"));
     return std::string(S2_NULL_STR);
   }
+
   return eval_str(s->c_str(), proc);
 } /* eval_str */
 

@@ -67,15 +67,6 @@ _TYPEDEF_PINT(u,32);
 _TYPEDEF_PINT(u,64);
 #undef _TYPEDEF_PINT
 
-typedef enum CMP_t {
-  CMP_EQ = 0,			/* == */
-  CMP_NE = 1,			/* != */
-  CMP_LT = 2,			/* < */
-  CMP_GT = 3,			/* > */
-  CMP_LE = 4,			/* <= */
-  CMP_GE = 5,			/* >= */
-} CMP_t;
-
 typedef enum NODE_t {
   N_GENERAL = 0,		/* node of a general type */
   N_DEFUN = 1,			/* DEFUN process */
@@ -173,25 +164,6 @@ private:
 
 };
 
-struct nCmp : public Node
-{
-  CMP_t cmp;
-  std::string *lop;
-  std::string *rop;
-
-public:
-  nCmp();
-  nCmp(Node &node);
-  ~nCmp();
-
-  virtual void init();
-  int exec(Process *proc);
-  std::string toString(Process *proc);
-
-private:
-
-};
-
 struct nDelay : public Node
 {
   std::string *sec;
@@ -247,24 +219,6 @@ public:
   void exec_finish(Process *proc, Process &proc_fun);
   std::string toString(Process *proc);
   std::string getByRefVals(Process *proc);
-
-private:
-
-};
-
-struct nMatch : public Node
-{
-  std::string *expected;
-  std::string *received;
-
-public:
-  nMatch();
-  nMatch(Node &node);
-  ~nMatch();
-
-  virtual void init();
-  int exec(Process *proc);
-  std::string toString(Process *proc);
 
 private:
 

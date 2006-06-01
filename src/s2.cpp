@@ -21,21 +21,15 @@
 #include "match.h"
 #include "n.h"			/* Node */
 #include "process.h"		/* Process */
-#include "parse.h"
+#include "parse.h"		/* parse() function */
+#include "max.h"		/* UPDATE_MAX() */
+#include "opt.h"		/* OPT() */
 #include "thread_pool.h"
 
 #include <errno.h>		/* errno */
 #include <signal.h>		/* signal() */
 #include <stdio.h>		/* stderr */
 #include <stdlib.h>		/* exit() */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-
-#include <iostream>		/* std::string, cout, endl, ... */
-
-using namespace std;
 
 /* options */
 struct opts_t opts;

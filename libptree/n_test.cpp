@@ -14,13 +14,7 @@
 
 #include "free.h"               /* FREE(), DELETE() */
 #include "io.h"                 /* file_ropen(), ... */
-#include "str.h"
 #include "expr.h"
-
-#include <signal.h>             /* signal() */
-#include <stdlib.h>             /* exit(), system() */
-#include <stdio.h>              /* stderr */
-#include <errno.h>              /* errno */
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* ostringstream */
@@ -67,9 +61,10 @@ nTest::exec(Process *proc)
 {
   DM_DBG_I;
 
-//  std::string s = Process::eval_str(expr, proc);
   Expr e = Expr(expr->c_str(), proc);
   std::string s = e.parse().toString();
+
+  DM_DBG(DM_N(3), "|%s|\n", s.c_str());
 
   if(s.length() == 0 || (s.length() == 1 && s[0] == '0')) return ERR_ERR;
 

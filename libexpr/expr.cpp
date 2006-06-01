@@ -13,6 +13,7 @@
 #include "expr.h"
 #include "str.h"		/* i2str */
 #include "free.h"		/* FREE(), DELETE() macros */
+#include "max.h"		/* UPDATE_MAX() */
 
 #include "i18.h"
 #include "constants.h"
@@ -45,7 +46,7 @@ Expr::Expr()
 /* constructor */
 Expr::Expr(const char *s, Process *p)
 {
-  l = Lex(s);
+  l = Lex(s, p);
   proc = p;
 }
 
@@ -65,19 +66,7 @@ Expr::parse()
   Attr attr;
   attr = S();
  
-#if 0
-    case REAL:
-      *e = (int64_t)attr.v.r;
-      if(*e != attr.v.r) {
-        DM_WARN(ERR_WARN, "truncating %f to %lld\n", attr.v.r, *e);
-      }
-    break;
-
-    default:
-      DM_ERR(ERR_ERR, _("expression evaluation did not return a number\n"));
-      return ERR_ERR;
-#endif
-
+//  normalize(attr);	/* time-waster, let the user deal with it */
   RETURN(attr);
 }
 
@@ -185,7 +174,7 @@ Expr::normalize(Attr &attr)
   switch(attr.type) {
     case STRING: {
       Attr a, eof_a;
-      Lex l = Lex(attr.v.s->c_str());
+      Lex l = Lex(attr.v.s->c_str(), proc);
       Symbol s = l.lex(a);
       if((s == IntSym || s == RealSym) && l.eof()) {
         DM_DBG(DM_N(4), "normalizing string type to %s\n", Lex::SymbolName(s));
@@ -194,11 +183,20 @@ Expr::normalize(Attr &attr)
     }
     break;
 
-    case INV:  /* fall through */
-    case INT:  /* fall through */
-    case REAL: /* fall through */
+    case INV:	/* fall through */
+    case INT:	/* fall through */
+    break;
+
+    case REAL:	/* see if an integer can take the real number */
+      int64_t inum = (int64_t)attr.v.r;
+      if(inum == attr.v.r) {
+        attr.type = INT;
+        attr.v.i = inum;
+      }
+    break;
+
     default:
-      break;
+    break;
   }
 }
 
@@ -226,12 +224,6 @@ Expr::S()
   Attr attr;
 
   LEX();
-  if(sym == EofSym) {
-    /* we have an empty string */
-    attr.type = INT;
-    attr.v.i = 0;
-    RETURN(attr);
-  }
   attr = X();
   RETURN(attr);
 }
@@ -247,20 +239,26 @@ Expr::A1(Attr iattr)
   DM_DBG_I;
   Attr attr;
 
-  if (sym == OrSym) {			/* A1 -> || B A1 */
-    LEX();
-    attr = B();
-    switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i = iattr.v.i || attr.v.i;
-      break;
-
-      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
-    }
-    attr = A1(iattr);
-  }
-  else {				/* A1 -> e */
-    DM_DBG(DM_N(5), "A1 -> e\n");
-    RETURN(iattr);
+  switch(sym) {
+    case OrSym:			/* A1 -> || B A1 */
+      LEX();
+      attr = B();
+      switch (ConvTypes(iattr, attr)) {
+        case INT: iattr.v.i = iattr.v.i || attr.v.i;
+        break;
+  
+        default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+      }
+      attr = A1(iattr);
+    break;
+    
+    case EofSym: 		/* A1 -> e */
+      DM_DBG(DM_N(5), "A1 -> e\n");
+      RETURN(iattr);
+    break;
+    
+    default:
+      RETURN(iattr);
   }
 
   RETURN(attr);
@@ -289,7 +287,7 @@ Expr::B1(Attr iattr)
     attr = B1(iattr);
   }
   else {				/* B1 -> e */
-    DM_DBG(DM_N(5), "B1 -> e\n");
+    if(sym == EofSym) DM_DBG(DM_N(5), "B1 -> e\n");
     RETURN(iattr);
   }
 
@@ -319,7 +317,7 @@ Expr::C1(Attr iattr)
     attr = C1(iattr);
   }
   else {				/* C1 -> e */
-    DM_DBG(DM_N(5), "C1 -> e\n");
+    if(sym == EofSym) DM_DBG(DM_N(5), "C1 -> e\n");
     RETURN(iattr);
   }
 
@@ -349,7 +347,7 @@ Expr::D1(Attr iattr)
     attr = D1(iattr);
   }
   else {				/* D1 -> e */
-    DM_DBG(DM_N(5), "D1 -> e\n");
+    if(sym == EofSym) DM_DBG(DM_N(5), "D1 -> e\n");
     RETURN(iattr);
   }
 
@@ -379,7 +377,7 @@ Expr::E1(Attr iattr)
     attr = E1(iattr);
   }
   else {				/* E1 -> e */
-    DM_DBG(DM_N(5), "E1 -> e\n");
+    if(sym == EofSym) DM_DBG(DM_N(5), "E1 -> e\n");
     RETURN(iattr);
   }
 
@@ -407,6 +405,7 @@ Expr::F1(Attr iattr)
     attr = F1(iattr);
   }
   else {				/* F1 -> e */
+    if(sym == EofSym) DM_DBG(DM_N(5), "F1 -> e\n"); 
     RETURN(iattr);
   }
 
@@ -435,6 +434,7 @@ Expr::G1(Attr iattr)
     attr = F1(iattr);
   }
   else {				/* G1 -> e */
+    if(sym == EofSym) DM_DBG(DM_N(5), "G1 -> e\n"); 
     RETURN(iattr);
   }
 
@@ -459,7 +459,21 @@ Expr::H1(Attr iattr)
       LEX();
       attr = I();
       switch (ConvTypes(iattr, attr)) {
-        case INT: iattr.v.i <<= attr.v.i;
+        case INT: {
+          int64_t inum = iattr.v.i << attr.v.i;
+#ifdef CHECK_OVERFLOWS
+          if(attr.v.i < 0) {
+            UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, "left shift is negative %"PRIi64"\n", attr.v.i);
+          } else if(attr.v.i > 0) {
+            if(iattr.v.i >= inum || attr.v.i >= 63) {
+              UPDATE_MAX(proc->executed, ERR_WARN);
+              DM_WARN(ERR_WARN, "integer overflow using left shift (%"PRIi64" << %"PRIi64")\n", iattr.v.i, attr.v.i);
+            }
+          }
+#endif
+          iattr.v.i = inum;
+        }
         break;
   
         default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
@@ -481,8 +495,11 @@ Expr::H1(Attr iattr)
     break;
 
     /* H1 -> e */
-    default:
+    case EofSym:
       DM_DBG(DM_N(5), "H1 -> e\n");
+    /* fall through */
+
+    default:
       RETURN(iattr);
   }
 
@@ -505,8 +522,24 @@ Expr::I1(Attr iattr)
       LEX();
       attr = J();
       switch (ConvTypes(iattr, attr)) {
-        case INT:     iattr.v.i += attr.v.i; break;
-        case REAL:    iattr.v.r += attr.v.r; break;
+        case INT: {
+          int64_t inum = iattr.v.i + attr.v.i;
+#ifdef CHECK_OVERFLOWS
+          double rnum = (double)iattr.v.i + attr.v.i;
+          if(inum != rnum) {
+            DM_DBG(DM_N(3), "integer overflow detected, using double instead of integer\n");
+            iattr.type = REAL;
+            iattr.v.r = rnum;
+            break;
+          }
+#endif
+          iattr.v.i = inum;
+        }
+        break;
+
+        case REAL:
+          iattr.v.r += attr.v.r;
+        break;
   
         default: DM_ERR(ERR_ERR, _("addition is not supported for these types\n"));
       }
@@ -518,8 +551,23 @@ Expr::I1(Attr iattr)
       LEX();
       attr = J();
       switch (ConvTypes(iattr, attr)) {
-        case INT:     iattr.v.i -= attr.v.i; break;
-        case REAL:    iattr.v.r -= attr.v.r; break;
+        case INT:
+          int64_t inum = iattr.v.i - attr.v.i;
+#ifdef CHECK_OVERFLOWS
+          double rnum = (double)iattr.v.i - attr.v.i;
+          if(inum != rnum) {
+            DM_DBG(DM_N(3), "integer overflow detected, using double instead of integer\n");
+            iattr.type = REAL;
+            iattr.v.r = rnum;
+            break;
+          }
+#endif
+          iattr.v.i = inum;
+        break;
+
+        case REAL:
+          iattr.v.r -= attr.v.r;
+        break;
   
         default: DM_ERR(ERR_ERR, _("subtraction is not supported for these types\n"));
       }
@@ -527,9 +575,13 @@ Expr::I1(Attr iattr)
     break;
 
     /* I1 -> e */
-    default:
+    case EofSym:
       DM_DBG(DM_N(5), "I1 -> e\n");
+    /* fall through */
+
+    default:
       RETURN(iattr);
+    break;
   }
 
   RETURN(attr);
@@ -551,8 +603,23 @@ Expr::J1(Attr iattr)
       LEX();
       attr = K();
       switch (ConvTypes(iattr, attr)) {
-        case INT:     iattr.v.i *= attr.v.i; break;
-        case REAL:    iattr.v.r *= attr.v.r; break;
+        case INT:
+          int64_t inum = iattr.v.i * attr.v.i;
+#ifdef CHECK_OVERFLOWS
+          double rnum = (double)iattr.v.i * attr.v.i;
+          if(inum != rnum) {
+            DM_DBG(DM_N(3), "integer overflow detected, using double instead of integer\n");
+            iattr.type = REAL;
+            iattr.v.r = rnum;
+            break;
+          }
+#endif
+          iattr.v.i = inum;
+        break;
+
+        case REAL:
+          iattr.v.r *= attr.v.r;
+        break;
   
         default: DM_ERR(ERR_ERR, _("multiplication is not supported for these types\n"));
       }
@@ -607,9 +674,12 @@ Expr::J1(Attr iattr)
       attr = J1(iattr);
     break;
 
+    case EofSym:
     /* J1 -> e */
-    default:
       DM_DBG(DM_N(5), "J1 -> e\n");
+    /* fall through */
+
+    default:
       RETURN(iattr);
   }
 
@@ -656,7 +726,17 @@ Expr::K1()
       LEX();				/* unary minus */
       attr = K1();
       switch (attr.type) {
-        case INT:  attr.v.i = -attr.v.i; break;
+        case INT:
+          int64_t inum = -attr.v.i;
+#ifdef CHECK_OVERFLOWS
+          if(attr.v.i == inum) {
+            UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, "integer overflow using unary minus (%"PRIi64" == %"PRIi64")\n", attr.v.i, inum);
+          }
+#endif
+          attr.v.i = inum;
+        break;
+
         case REAL: attr.v.r = -attr.v.r; break;
   
         default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
@@ -724,6 +804,15 @@ Expr::K1()
       normalize(attr);
       DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
       LEX();
+    }
+    break;
+
+    /* K1 -> e */
+    case EofSym: {
+      /* we have an empty string */
+      DM_DBG(DM_N(5), "K1 -> e\n");
+      attr.type = STRING;
+      NEW_STR(attr.v.s,"");
     }
     break;
 

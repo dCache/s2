@@ -10,7 +10,6 @@
 #include "diagnose/dg.h"
 #endif
 
-#include "parse.h"
 #include "n.h"			/* Node */
 #include "process.h"		/* Process */
 #include "expr.h"		/* Expression evaluation */
@@ -20,6 +19,8 @@
 #include "sysdep.h"		/* BOOL, STD_BUF, ... */
 
 #include "free.h"		/* FREE(), DELETE() */
+#include "opt.h"		/* OPT() */
+#include "max.h"		/* UPDATE_MAX() */
 #include "io.h"			/* file_ropen(), ... */
 #include "s2.h"			/* opts (s2 options) */
 #include "str.h"
@@ -32,7 +33,6 @@
 
 #include <sys/time.h>		/* gettimeofday() */
 #include <time.h>		/* gettimeofday() */
-#include <signal.h>		/* signal() */
 #include <stdlib.h>		/* exit(), system() */
 #include <stdio.h>		/* stderr */
 #include <errno.h>		/* errno */
@@ -57,6 +57,7 @@ typedef struct timeout_info_t {
   BOOL terminated;
 } timeout_info_t;
 
+/* functions */
 int
 thread_create
 (pthread_t *pthread, void *(*start_routine)(void *), void *arg)
@@ -1202,11 +1203,11 @@ Process::eval_str(const char *cstr, Process *proc)
   std::string target;
   enum s_eval { 
     sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
-    sMd5,  sDefined, sMatch, 
+    sMd5,  sDefined,  sMatch,  sInt,
   } state = sInit;
   static const char* state_name[] = {
     "",    "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
-    "MD5", "DEFINED", "MATCH",
+    "MD5", "DEFINED", "MATCH", "INT",
   };
   const char *opt;
   int opt_off;
@@ -1260,6 +1261,7 @@ Process::eval_str(const char *cstr, Process *proc)
         BALLANCED_OPL("MD5{", sMd5) else
         BALLANCED_OPL("DEFINED{", sDefined) else
         BALLANCED_OPL("MATCH{", sMatch) else
+        BALLANCED_OPL("INT{", sInt) else
         {
           /* return the borrowed dollar */
           s.push_back('$');
@@ -1301,8 +1303,8 @@ Process::eval_str(const char *cstr, Process *proc)
         } else {
           /* the variable is not defined, output its name and increase the evaluation value */
           if(!no_warn && proc->et == EVAL_ALL) {
-            DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), target.c_str());
             UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), target.c_str());
           }
           s.append("${" + std::string(read_var + no_warn) + "}");
         }
@@ -1322,6 +1324,7 @@ Process::eval_str(const char *cstr, Process *proc)
           s.append(env_var);
         } else {
           /* the environment variable is not defined, output its name */
+          UPDATE_MAX(proc->executed, ERR_WARN);
           DM_WARN(ERR_WARN, _("environment variable `%s' is unset\n"), target.c_str());
           s.append("$ENV{" + target + "}");
         }
@@ -1357,12 +1360,15 @@ Process::eval_str(const char *cstr, Process *proc)
             }
             ptr_proc = ptr_proc->parent;
           }
-          if(ptr_proc == NULL)
+          if(ptr_proc == NULL) {
+            UPDATE_MAX(proc->executed, ERR_WARN);
             DM_WARN(ERR_WARN, _(FBRANCH"couldn't find repeat loop for repeat counter $I{%s}!\n"), proc->n->row, proc->executed, proc->evaluated, word);
+          }
 
           DM_DBG(DM_N(4), "writing repeat counter value: %"PRIi64"\n", i64);
           s.append(i2str(i64));
         } else {
+          UPDATE_MAX(proc->executed, ERR_WARN);
           DM_WARN(ERR_WARN, _("cannot evaluate loop nesting `%s': %s\n"), word, _(strerror(errno)));
           s.append("$I{" + target + "}");
         }
@@ -1541,6 +1547,33 @@ Process::eval_str(const char *cstr, Process *proc)
       }
       continue;
 
+      case sInt:{
+        /* DO NOT evaluate target here, let Expr do the evaluation *
+         * (e.g. strings with whitespace in them)                  */
+        CHK_EVAL_ALL;
+        DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
+
+        Expr e = Expr(target.c_str(), proc);
+        Attr a = e.parse();
+        switch(a.type) {
+          case INT:	/* we have an integer, good */
+          break;
+          
+          case REAL:	/* round it up */
+            a.type = INT;
+            a.v.i = (int64_t)a.v.r;
+          break;
+          
+          default:
+            UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
+          break;
+        }
+        s.append(a.toString());
+        state = sInit;
+      }
+      continue;
+
     }
 
     /* no TAGs found, simply copy the characters */
@@ -1555,6 +1588,7 @@ Process::eval_str(const char *cstr, Process *proc)
     s.push_back('$');
   } else {
     if(state != sInit) {
+      UPDATE_MAX(proc->executed, ERR_WARN);
       DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);
       s.append("$" + std::string(state_name[state]) + "{" + target);
     }

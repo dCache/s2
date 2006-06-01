@@ -2,7 +2,12 @@ Please send bug reports with S2 scripts causing them to the current
 maintainer.  When reporting BUGs, please verify against the latest
 s2 version.
 
-Known/Expected bugs:
-~~~~~~~~~~~~~~~~~~~~
-1) Parallel execution and timeouts didn't receive as much testing as they
-   deserve.  Please report bugs!
+Known
+~~~~~
+None
+
+Expected
+~~~~~~~~
+* Parallel execution, timeouts and expression evaluation
+  didn't receive as much testing as they deserve.
+  Please report problems!

@@ -353,7 +353,8 @@ esc_out:
 } /* get_dq_param */
 
 /*
- * Get a parameter enclosed in curly (ballanced) brackets.
+ * Get a parameter enclosed in curly (ballanced) brackets and ignore brackets in
+ * double quoted strings.
  */
 extern int
 get_ballanced_br_param(std::string &target, const char *source)
@@ -366,6 +367,7 @@ get_ballanced_br_param(std::string &target, const char *source)
   unsigned col = 0;
   unsigned source_len;
   BOOL bslash = FALSE;	/* we had the '\\' character */
+  BOOL string = FALSE;	/* we had an opening " */
   int brackets = 1;
   
   if(source == NULL) {
@@ -380,7 +382,7 @@ get_ballanced_br_param(std::string &target, const char *source)
 //  fprintf(stderr, "complete string=|%s|\n", source);
   
   for(i = 0; (c = gc()) != '\0'; i++) {
-  
+//    fprintf(stderr, "'%c'; bslash=%d, string=%d\n", c, bslash, string);
     if(c == '\\' && bslash) {
       /* two backslashes => no quoting */
       bslash = FALSE;
@@ -388,7 +390,13 @@ get_ballanced_br_param(std::string &target, const char *source)
       continue;
     }
 
-    if(!bslash) {
+    if(c == '"') {
+      string = string? FALSE: TRUE;
+      target.push_back(c);
+      continue;
+    }
+
+    if(!bslash && !string) {
       if(c == '}') brackets--;
       if(c == '{') brackets++;
     }
@@ -401,6 +409,9 @@ get_ballanced_br_param(std::string &target, const char *source)
     target.push_back(c);
     bslash = c == '\\';
   }
+
+  if(c == '\0')
+    DM_WARN(ERR_WARN, "'\\0' terminated {} parameter\n");
 
   return col - 1; /* do not count the terminating '\0' */
 

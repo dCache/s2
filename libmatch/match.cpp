@@ -17,7 +17,6 @@
 
 #include "process.h"		/* Process (interface for writing variables) */
 
-#include <signal.h>             /* signal() */
 #include <stdlib.h>             /* exit() */
 #include <stdio.h>              /* stderr */
 

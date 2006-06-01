@@ -1,0 +1,4 @@
+; Truncation to an integer value
+
+SYSTEM echo $INT{100/3}
+&& SYSTEM echo $INT{"cannot do this"}

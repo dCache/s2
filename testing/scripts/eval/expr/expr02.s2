@@ -2,3 +2,5 @@
 
 ASSIGN fifty 50
 && SYSTEM echo $EXPR{ ${fifty}/25 }
+&& TEST $EXPR{0. == 0.0}
+&& TEST $EXPR{-1.0 == -1e-0}

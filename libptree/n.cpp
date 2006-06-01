@@ -10,7 +10,6 @@
 #include "diagnose/dg.h"
 #endif
 
-#include "parse.h"
 #include "n.h"
 #include "process.h"
 
@@ -29,7 +28,6 @@
 #include <sys/time.h>		/* gettimeofday() */
 #include <time.h>		/* gettimeofday() */
 #include <errno.h>		/* errno */
-#include <signal.h>             /* signal() */
 #include <unistd.h>		/* sleep() */
 #include <stdlib.h>             /* exit() */
 #include <stdio.h>              /* stderr */

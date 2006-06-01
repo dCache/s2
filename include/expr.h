@@ -4,8 +4,6 @@
 #include "lex.h"
 
 struct Expr {
-  Process *proc;	/* pointer to the Process with relevant variable tables, etc. */
-
 public:
   Symbol sym;           /* current symbol */
   Attr   lex_attr;      /* symbol attribute */
@@ -17,6 +15,7 @@ public:
   Attr parse();
 
 private:
+  Process *proc;	/* pointer to the Process with relevant variable tables, etc. */
   Lex l;
   std::vector <std::string *> strings;
 

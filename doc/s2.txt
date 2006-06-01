@@ -149,7 +149,7 @@ values are used.
            '$EXPR{' <EXPR> '}' | '$RND{' <EXPR> '}' |
            '$DATE{' <STR> '}' | '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
            '$MD5{' <STR> '}' | '$DEFINED{' <VAR> '}' |
-           '$MATCH{' <PATTERN> <SUBJECT> '}'
+           '$MATCH{' <PATTERN> <SUBJECT> '}' | '$INT{' <EXPR> '}'
 
   <I> :: <INTEGER> | <TAG>
 ; <TAG> must evaluate to <INTEGER>
@@ -836,6 +836,12 @@ The tag is replaced by 1 if <VAR> is defined, 0 otherwise.
 PCRE match <SUBJECT> against <PATTERN>.  Return 1 if match succeeded,
 return 0 if matching fails.  Please refer the section dedicated to pattern
 matching for more information.
+
+2.3.6 Truncating to an integer value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$INT{' <EXPR> '}'
+
+Warning message is issued if conversion is not possible.
 
 
 3 Caveats

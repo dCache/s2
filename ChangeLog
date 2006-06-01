@@ -1,3 +1,7 @@
+2006-05-31 19:24  Jiri Mencak
+	* all: Redesigned expression evaluation.
+
+
 2006-05-23 11:11  Jiri Mencak
 	* all: Implemented functions.
 

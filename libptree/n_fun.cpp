@@ -15,13 +15,7 @@
 
 #include "free.h"               /* FREE(), DELETE() */
 #include "io.h"                 /* file_ropen(), ... */
-#include "str.h"
-
-#include <signal.h>             /* signal() */
-#include <stdlib.h>             /* exit(), system() */
-#include <stdio.h>              /* stderr */
-#include <errno.h>              /* errno */
-#include <time.h>               /* nanosleep() */
+#include "max.h"		/* UPDATE_MAX() */
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* ostringstream */
@@ -167,6 +161,7 @@ nFun::toString(Process *proc)
   ss << "FUN";
 
   if(name == NULL) {
+    UPDATE_MAX(proc->executed, ERR_ASSERT);
     DM_ERR_ASSERT(_("name == NULL\n"));
     return ss.str();
   }

@@ -7,6 +7,8 @@
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* std::stringstream, ... */
 
+#define CHECK_OVERFLOWS		/* overflow checking on by default */
+
 enum Symbol {
 // EOF    INV_SYM
   EofSym, InvalidSym,
@@ -53,7 +55,7 @@ public:
 struct Lex {
 public:
   Lex();
-  Lex(const char *s);
+  Lex(const char *s, Process *p);
   ~Lex();
 
   Symbol lex(Attr& attr);
@@ -63,6 +65,7 @@ public:
   BOOL eof(void);
 
 private:
+  Process *proc;	/* pointer to the Process with relevant variable tables, etc. */
   const char *source;
   int col;
   int source_len;

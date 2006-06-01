@@ -23,11 +23,12 @@
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
 
 #include "free.h"               /* FREE(), DELETE() */
+#include "max.h"		/* UPDATE_MAX() */
+#include "opt.h"		/* OPT() */
 #include "io.h"                 /* file_ropen(), ... */
 #include "n.h"                  /* Node */
 #include "str.h"
 
-#include <signal.h>             /* signal() */
 #include <stdlib.h>             /* exit() */
 #include <stdio.h>              /* stderr */
 #include <errno.h>              /* errno */

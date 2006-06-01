@@ -2,6 +2,7 @@
 
 NOP
 && SYSTEM out=100 echo -n $EXPR{ 1e2 }
+&& SYSTEM out=-0.1 echo -n $EXPR{ -1e-1 }
 && SYSTEM out=8 echo -n $EXPR{ 010 }
 && SYSTEM out=532 echo -n $EXPR{ 01024 }
 && SYSTEM out=10 echo -n $EXPR{ 0xA }

@@ -1,15 +1,14 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Expressions: handle overflows and INT/REAL conversions better.
-- Proper expressions testing, more examples.
 - Fix deadlock in parallel execution
 - SRM2 test scenarios and testing (storage system info/description as testing)!
-  * rewrite includes into functions
+*** New release ****************************************************************
 - Saving to global vars (?P<::Hello>.*)
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs (e.g.: $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...)
-- Investigate gSoap memory leaks
+- Plugin architecture to make adding of new protocols simple?
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
 - Use '' for expressions which will not be evaluated (q_param)?
 - SEND/RECEIVE (TCP/UDP/...)?
-- minor (possible) pthreads POSIX threads related memory leaks; use Apache threads?
+- Minor (possible) pthreads POSIX threads related memory leaks; use Apache threads?
+- Investigate gSoap memory leaks?

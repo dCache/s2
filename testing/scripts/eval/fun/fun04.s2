@@ -6,7 +6,7 @@ DEFUN Factorial n : val_n
    || FUN Factorial $EXPR{${n}-1} : val_n_1
       ASSIGN val_n $EXPR{${n}*${val_n_1}}
 
-; Twenty is maximum before 64bit int overflow
+; Twenty is maximum before 64bit int overflow into reals
 && ASSIGN n 20
    FUN Factorial ${n} : f
       SYSTEM echo "Factorial(${n})=${f}"

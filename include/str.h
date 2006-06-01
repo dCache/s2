@@ -45,15 +45,4 @@ extern std::string escape_chars(const char* s, const char c, BOOL q);
 extern int get_dq_param(std::string &target, const char *source);
 extern int get_ballanced_br_param(std::string &target, const char *source);
 
-/* free vector of types (e.g. ints) */
-#define FREE_VEC(vec)\
-  for (uint __i = 0; __i < vec.size(); __i++) {\
-    FREE(vec[__i]);\
-  }
-/* delete vector of objects (e.g. strings) */
-#define DELETE_VEC(vec)\
-  for (uint __i = 0; __i < vec.size(); __i++) {\
-    DELETE(vec[__i]);\
-  }
-
 #endif /* _STR_H */

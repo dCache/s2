@@ -17,14 +17,6 @@
 #define MAX_IFS         63                      /* maximum number of nested #if directives */
 #define MAX_INCS	63			/* maximum number of files to include */
 
-/* simple macros */
-#define OPT(s)          (((s) == NULL)? FALSE: (strcmp(opt, (s)) == 0))
-#define OPN(s, n)       (((s) == NULL)? FALSE: (strncmp(opt, (s), (n)) == 0))
-#define OPI(s)          (((s) == NULL)? FALSE: (strcasecmp(opt, (s)) == 0))
-#define OPL(s)          (((s) == NULL)? FALSE: (strncmp(opt, (s), (opt_off = strlen(s))) == 0))
-
-#define UPDATE_MAX(m1, m2)      ((m1) < (m2))? (m1) = (m2): (m1) = (m1)
-#define UPDATE_MAXF(m1, m2, f)  if((m1) < (m2 = f)) (m1) = (m2)
 #define STRDUP(target,source)\
   if(((target) = strdup(source)) == (char *)NULL) {\
     DM_ERR(ERR_SYSTEM, _("strdup failed\n"));\

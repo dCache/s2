@@ -34,6 +34,9 @@
 #define SS_P_VEC_PAR_PERMISSIONMODE(param)\
   if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTPermissionMode(v[i]->param->mode);}
 
+#define SS_P_VEC_PAR_PERMISSIONMODE_PTR(param)\
+  if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTPermissionMode(*(v[i]->param));}
+
 #define SS_P_VEC_PAR_REQUESTTYPE(param)\
   if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTRequestType(*(v[i]->param));}
 
@@ -121,8 +124,8 @@ public:
   ~SRM2();
 
   int matchReturnStatus(srm__TReturnStatus *returnStatus, Process *proc);
-  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc, EVAL_t et);
-  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc, EVAL_t et);
+  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc);
+  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc);
 
 };
 

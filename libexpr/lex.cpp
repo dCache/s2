@@ -18,6 +18,7 @@
 #include "limits.h"
 #include "str.h"
 #include "free.h"		/* FREE(), DELETE() */
+#include "max.h"		/* UPDATE_MAX() */
 
 #include <ctype.h>		/* isspace(), ... */
 #include <math.h>		/* pow(), ... */
@@ -66,7 +67,7 @@ Lex::Lex()
 
 
 /* constructor */
-Lex::Lex(const char *s)
+Lex::Lex(const char *s, Process *p)
 {
   if(!s) {
     DM_ERR_ASSERT(_("s == NULL\n"));
@@ -74,6 +75,8 @@ Lex::Lex(const char *s)
   source = s;
   col = 0;
   source_len = strlen(source);
+
+  proc = p;
 }
 
 
@@ -120,9 +123,9 @@ Lex::lex(Attr& attr)
          sNum, sNumber,
          sReal01, sReal02, sReal03, sReal04, 
          sLt, sGt, sEq, sNe, sOr, sAnd, sString, sComment } state = sInit;
-  int64_t inum = 0;
-  double power10 = 0;
-  int expon = 0, sign = 0, base = 0;
+  int64_t inum = 0;	/* for overflows/underflows */
+  double power10 = 1.0;
+  int expon = 0, sign = 1, base = 10;
   BOOL bslash = FALSE;	/* we had the '\\' character */
   BOOL q = FALSE;	/* quotation mark at the start of a string */
   int brackets = 0;
@@ -140,8 +143,7 @@ Lex::lex(Attr& attr)
           /* decimal numbers */
           state = sNumber;
           base = 10;
-          inum = c - '0';
-          attr.v.i = inum;
+          attr.v.i = c - '0';
         }
         else switch (c) {
           case 0:   return EofSym;
@@ -173,25 +175,30 @@ Lex::lex(Attr& attr)
       break;
 
       case sNum:
-        /* octal or hexadecimal number */
+        /* octal, hexadecimal or decimal numbers */
         if(isdigit(c)) {
           state = sNumber;
           base = 8;
-          inum = c - '0';
+          attr.v.i = c - '0';
         } else
         if(c == 'x' || c == 'X') {
           state = sNumber;
           base = 16;
-          inum = 0;
-        }  
+          attr.v.i = 0;
+        } else
+        if(c == '.') {
+          state = sReal02;
+          base = 10;
+          attr.v.r = 0;
+        }
         else {
           /* 0 */
-          state = sNumber;
-          base = 10;
-          inum = 0;
+          attr.type = INT;
+          attr.v.i = 0;
           ugc();
+          DM_DBG(DM_N(4), "we have a 0\n");
+          return IntSym;
         }
-        attr.v.i = inum;
       break;
 
       case sNumber:
@@ -199,36 +206,36 @@ Lex::lex(Attr& attr)
         DM_DBG(DM_N(4), "number (%"PRIi64"), base=%d\n", attr.v.i, base);
         if (isalpha(c)) c = toupper(c);
         if (isdigit(c)) {
+          inum = attr.v.i;
           attr.v.i = inum * base + (c - '0');
+#ifdef CHECK_OVERFLOWS
           if (inum > (INT64_MAX - (c - '0'))/base) {
             /* attr.v.i overflow => use real */
             attr.v.r = (double) inum * base + (c - '0');
             state = sReal01;
-            DM_DBG(DM_N(3), "integer too large, using real (%lld)\n", attr.v.r);
-          } else inum = attr.v.i;
+            DM_DBG(DM_N(3), "integer too large, using real (%f)\n", attr.v.r);
+          }
+#endif
         }
         else if (IS_HEX_CHAR(c) && base == 16) {
+          inum = attr.v.i;
           attr.v.i = inum * base + ((c - 'A') + 10);
+#ifdef CHECK_OVERFLOWS
           if (inum > (INT64_MAX - ((c - 'A') + 10))/base) {
             /* attr.v.i overflow => use real */
             attr.v.r = (double) inum * base + ((c - 'A') + 10);
             state = sReal01;
-            DM_DBG(DM_N(3), "integer too large, using real (%lld)\n", attr.v.r);
-          } else inum = attr.v.i;
+            DM_DBG(DM_N(3), "integer too large, using real (%f)\n", attr.v.r);
+          }
+#endif
         }
         else if (c == '.') {
-          attr.v.r = inum;
-          power10 = 1.0;
-          sign = 1;
-          expon = 0;
+          attr.v.r = attr.v.i;
           state = sReal02;
         }
-        else if (c == 'e' || c == 'E') {
+        else if (c == 'E') {	/* 'e' is handled by toupper() */
           /* exponent */
-          attr.v.r = inum;
-          power10 = 1.0;
-          sign = 1;
-          expon = 0;
+          attr.v.r = attr.v.i;
           state = sReal03;
         }
         else {
@@ -241,38 +248,35 @@ Lex::lex(Attr& attr)
       break;
 
       case sReal01:		/* real number before . */
-        DM_DBG(DM_N(4), "real number (%f), base=%d, exponent=%d\n", attr.v.r, base, expon);
+        DM_DBG(DM_N(4), "real number (%f), c='%c', base=%d, exponent=%d, sign=%d, power10=%f\n", attr.v.r, c, base, sign, expon, power10);
         if (isalpha(c)) c = toupper(c);
         if (isdigit(c))
           attr.v.r = attr.v.r * base + (c - '0');
         else if (IS_HEX_CHAR(c) && base == 16)
           attr.v.r = attr.v.r * base + ((c - 'A') + 10);
-        else if (c == '.') {
-          power10 = 1.0;
-          sign = 1;
-          expon = 0;
+        else if (c == '.')
           state = sReal02;
-        } else
+        else
         if(c == 'e' || c == 'E')
           state = sReal03;
         else {
           state = sInit;
           ugc();
           attr.type = REAL;
-          DM_DBG(DM_N(4), "we have an integer (%lld)\n", attr.v.i);
+          DM_DBG(DM_N(4), "we have an real number (%f)\n", attr.v.r);
           return RealSym;
         }
       break;
 
       case sReal02:		/* real number after . */
-        DM_DBG(DM_N(4), "real number (%f), base=%d\n", attr.v.r, base);
+        DM_DBG(DM_N(4), "real number (%f), c='%c', base=%d, exponent=%d, sign=%d, power10=%f\n", attr.v.r, c, base, sign, expon, power10);
         if (isalpha(c)) c = toupper(c);
         if (isdigit(c))
           attr.v.r += (c - '0') * (power10 /= base);
         else if (IS_HEX_CHAR(c) && base == 16)
           /* note e/E is ignored for hexadecimal real numbers */
           attr.v.r += ((c - 'A') + 10) * (power10 /= base);
-        else if (c == 'e' || c == 'E')
+        else if (c == 'E')	/* 'e' is handled by toupper() */
           state = sReal03;
         else {
           state = sInit;
@@ -284,8 +288,7 @@ Lex::lex(Attr& attr)
       break;
 
       case sReal03:		/* real number (exponent) */
-        DM_DBG(DM_N(4), "real number (%f), base=%d\n", attr.v.r, base);
-        state = sReal04;
+        DM_DBG(DM_N(4), "real number (%f), c='%c', base=%d, exponent=%d, sign=%d, power10=%f\n", attr.v.r, c, base, sign, expon, power10);
         if (isdigit(c))
           expon = c - '0';
         else if (c == '+')
@@ -299,22 +302,32 @@ Lex::lex(Attr& attr)
           DM_DBG(DM_N(4), "we have a real number (%f)\n", attr.v.r);
           return RealSym;
         }
+        state = sReal04;
       break;
 
       case sReal04:		/* real number (exponent, finish) */
-        DM_DBG(DM_N(4), "real number (%f), base=%d, exponent=%d, sign=%d\n", attr.v.r, base, sign, expon);
+        DM_DBG(DM_N(4), "real number (%f), c='%c', base=%d, exponent=%d, sign=%d, power10=%f\n", attr.v.r, c, base, sign, expon, power10);
         if (isdigit(c)) {
           expon = expon * base + (c - '0');
         } else {
           /* not a digit, calculate the final real number */
           power10 = pow(base, sign > 0 ? expon : -expon);
-          DM_DBG(DM_N(4), "real number (%f), base=%d, exponent=%d, power10=%f\n", attr.v.r, base, expon, power10);
-          if (attr.v.r * power10 > HUGE_VAL) {
-            if (sign > 0) DM_ERR(ERR_ERR, _("real number too big\n"));
-            else DM_ERR(ERR_ERR, _("real number too small\n"));
-            attr.v.r = 0;
+          double rnum = attr.v.r * power10;
+          DM_DBG(DM_N(4), "huge_val=%f; real number (%f), c='%c', base=%d, exponent=%d, sign=%d, power10=%f\n", HUGE_VALF, attr.v.r, c, base, sign, expon, power10);
+#ifdef CHECK_OVERFLOWS
+          if (rnum >= HUGE_VALF) {	/* = is necessary, HUGE_VALF is infinity... */
+            if (sign > 0) {
+              attr.v.r = rnum;
+              UPDATE_MAX(proc->executed, ERR_WARN);
+              DM_WARN(ERR_WARN, _("real number too big, using %f\n"), attr.v.r);
+            } else {
+              attr.v.r = 0;
+              UPDATE_MAX(proc->executed, ERR_WARN);
+              DM_WARN(ERR_WARN, _("real number too small, using %f\n"), attr.v.r);
+            }
           }
           else
+#endif
             attr.v.r *= power10;
   
           state = sInit;
@@ -411,7 +424,10 @@ Lex::lex(Attr& attr)
           state = sInit;
           if(c != '"') {
             ugc();
-            if(q) DM_WARN(ERR_WARN, "'%s%c' terminated double-quoted parameter\n", (c == 0)? "\\": "", c);
+            if(q) {
+              UPDATE_MAX(proc->executed, ERR_WARN);
+              DM_WARN(ERR_WARN, "'%s%c' terminated double-quoted parameter\n", (c == 0)? "\\": "", c);
+            }
           }
           return StringSym;
         }
@@ -438,7 +454,7 @@ esc_out:
     } /* switch */
   } while (c != '\0');
 
-  return EofSym;
+  RETURN(EofSym);
 
 #undef TERM_CHAR
 }

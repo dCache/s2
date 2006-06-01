@@ -14,12 +14,8 @@
 
 #include "free.h"               /* FREE(), DELETE() */
 #include "io.h"                 /* file_ropen(), ... */
-#include "str.h"
 
-#include <signal.h>             /* signal() */
-#include <stdlib.h>             /* exit(), system() */
-#include <stdio.h>              /* stderr */
-#include <errno.h>              /* errno */
+#include <errno.h>		/* errno */
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* ostringstream */

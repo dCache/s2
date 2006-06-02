@@ -1,8 +1,7 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Fix deadlock in parallel execution
+- Prepare directories for SRM 2.2 WSDL
 - SRM2 test scenarios and testing (storage system info/description as testing)!
-*** New release ****************************************************************
 - Saving to global vars (?P<::Hello>.*)
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs (e.g.: $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...)

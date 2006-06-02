@@ -47,7 +47,13 @@ using namespace std;
 
 /* simple macros */
 #define UPDATE_MAX_MUTEX(mtx,m1,m2)\
-  do {S_P(mtx); UPDATE_MAX(m1,m2); S_V(mtx);} while(0)
+  do {\
+    S_P(mtx);\
+    DM_DBG(DM_N(3), FBRANCH"<<< update_max_mutex\n", n->row, executed, evaluated);\
+    UPDATE_MAX(m1,m2);\
+    DM_DBG(DM_N(3), FBRANCH"update_max_mutex >>>\n", n->row, executed, evaluated);\
+    S_V(mtx);\
+  } while(0)
 
 /* global variables */
 struct tp_sync_t tp_sync;
@@ -194,14 +200,15 @@ Process::init(Node *node, Process *p, Process *rpar)
   var_tab = NULL;		/* use paren't scope (by default) */
 
   /* create new table of variables if parallel process */
-  if(n->REPEAT.type == S2_REPEAT_PAR || is_parallel()) {
+  if((n->REPEAT.type == S2_REPEAT_PAR || is_parallel()) && n->TYPE != N_DEFUN) {
     /* it is a parallel process, keep variables in the local variable space of this process */
     var_tab = new Vars_t();
     DM_DBG(DM_N(2), FBRANCH"created local variable table %p\n", n->row, executed, evaluated, var_tab);
   } else {
+#if 0
     /* Try to find the first rpar process which is also a parallel processes and *
      * use its variable scope (not a parallel repeat as they have several local  *
-     * variable scopes.                                                          */
+     * variable scopes).                                                         */
     Process *proc_ptr = rpar;
     while(proc_ptr) {
       if(proc_ptr->is_parallel()) {
@@ -211,6 +218,7 @@ Process::init(Node *node, Process *p, Process *rpar)
       }
       proc_ptr = proc_ptr->rpar;
     }
+#endif
   }
 }
 
@@ -228,15 +236,13 @@ Process::Process(Node *node, Process *p, Process *rpar)
  */
 Process::~Process()
 {
-  /* delete finished processes spawned by this process */
-//  DELETE_VEC(vProc);
-
   /* delete table of local variables */
   if(var_tab != &gl_var_tab)
      if(is_parallel() || (n && n->REPEAT.type == S2_REPEAT_PAR) ||
         fun) {
-       /* be defensive: test for `n' is necessary as we * 
-        * might be destroying an uninitialised process. */
+       /* be defensive: test for `n' is necessary as we might    * 
+        * be destroying an uninitialised process; local variable *
+        * tables of functions are destroyed elsewhere            */
        DELETE(var_tab);
      }
 }
@@ -323,10 +329,12 @@ Process::eval()
             i += step;
             DM_DBG(DM_N(1), "parallel repeat branch %u; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", ptr_node->row, ptr_node->REPEAT.X, ptr_node->REPEAT.Y, i);
             S_P(&tp_sync.total_mtx);
+            DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
             if(tp_sync.total < opts.tp_size) {
               tp_sync.total++;
               can_enqueue = TRUE;
             }
+            DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
             S_V(&tp_sync.total_mtx);
 
           if(can_enqueue) {
@@ -334,7 +342,7 @@ Process::eval()
               proc->I = i;
               vProc.push_back(proc);
               DM_DBG(DM_N(1), "parallel repeat branch %u: enqueing a request\n", ptr_node->row);
-              if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
+              if(tp_enqueue(proc, &sreqs, &sreqs_mtx, &sreqs_cv)) {
                 DM_ERR(ERR_SYSTEM, _("branch %u: failed to create new thread: %s\n"), ptr_node->row, strerror(errno));
               } else {
                 /* number of sub-requests */
@@ -356,17 +364,19 @@ Process::eval()
         } /* end repeats */
         
         S_P(&tp_sync.total_mtx);
+        DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
         if(tp_sync.total < opts.tp_size) {
           tp_sync.total++;
           can_enqueue = TRUE;
         }
+        DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
         S_V(&tp_sync.total_mtx);
         
         if(can_enqueue) {
           Process *proc = new Process(ptr_node, parent, NULL);
           vProc.push_back(proc);
           DM_DBG(DM_N(1), FBRANCH"enqueing a request\n", n->row, executed, evaluated);
-          if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
+          if(tp_enqueue(proc, &sreqs, &sreqs_mtx, &sreqs_cv)) {
             DM_ERR(ERR_SYSTEM, _(FBRANCH"failed to create new thread: %s\n"), n->row, executed, evaluated, strerror(errno));
           } else {
             /* number of sub-requests */
@@ -392,10 +402,12 @@ Process::eval()
   DM_DBG(DM_N(3), FBRANCH"root_eval=%d\n", n->row, executed, evaluated, root_eval);
 
   S_P(&sreqs_mtx);
+  DM_DBG(DM_N(3), FBRANCH"<<< sreqs_mtx\n", n->row, executed, evaluated);
   while(sreqs != 0) {
-    DM_DBG(DM_N(2), FBRANCH"waiting for sreqs=0 (%d)\n", n->row, executed, evaluated, sreqs);
+    DM_DBG(DM_N(3), FBRANCH"waiting for sreqs=0 (%d)\n", n->row, executed, evaluated, sreqs);
     pthread_cond_wait(&sreqs_cv, &sreqs_mtx);
   }
+  DM_DBG(DM_N(3), FBRANCH"sreqs_mtx >>>\n", n->row, executed, evaluated);
   S_V(&sreqs_mtx);
 
   /* threads-related cleanup */
@@ -462,10 +474,12 @@ seq:
         can_enqueue = FALSE;
         
         S_P(&tp_sync.total_mtx);
+        DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
         if(tp_sync.total < opts.tp_size) {
           tp_sync.total++;
           can_enqueue = TRUE;
         }
+        DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
         S_V(&tp_sync.total_mtx);
 
         if(can_enqueue) {
@@ -473,7 +487,7 @@ seq:
           Process *proc = new Process(n, parent, NULL);
           proc->I = i;
           vProc.push_back(proc);
-          if(tp_enqueue(proc, &sreqs, &sreqs_cv)) {
+          if(tp_enqueue(proc, &sreqs, &sreqs_mtx, &sreqs_cv)) {
             DM_ERR(ERR_SYSTEM, _(FBRANCH"failed to create new thread: %s\n"), n->row, executed, evaluated, strerror(errno));
           } else {
             /* number of sub-requests */
@@ -491,10 +505,12 @@ seq:
       } while(i != n->REPEAT.Y);
 
       S_P(&sreqs_mtx);
+      DM_DBG(DM_N(3), FBRANCH"<<< r sreqs_mtx (%d)\n", n->row, executed, evaluated, sreqs);
       while(sreqs != 0) {
-        DM_DBG(DM_N(2), FBRANCH"waiting for sreqs=0 (%d)\n", n->row, executed, evaluated, sreqs);
+        DM_DBG(DM_N(3), FBRANCH"waiting for r sreqs=0 (%d)\n", n->row, executed, evaluated, sreqs);
         pthread_cond_wait(&sreqs_cv, &sreqs_mtx);
       }
+      DM_DBG(DM_N(3), FBRANCH"r sreqs_mtx (%d) >>>\n", n->row, executed, evaluated, sreqs);
       S_V(&sreqs_mtx);
 
       /* threads-related cleanup */
@@ -782,7 +798,7 @@ Process::exec_with_timeout()
 
     DM_DBG_T(DM_N(2), FBRANCH"seting timeout to wait till sec=%ld; nsec=%ld [now: sec=%ld, usec=%ld]\n", n->row, executed, evaluated, timeout.tv_sec, timeout.tv_nsec, now.tv_sec, now.tv_usec);
     S_P(&tp_sync.timeout_mtx);
-    DM_DBG_T(DM_N(2), FBRANCH"waiting for timeout_cv\n", n->row, executed, evaluated);
+    DM_DBG(DM_N(3), FBRANCH"<<< timeout_mtx\n", n->row, executed, evaluated);
     int rc;
     while(1) {
       rc = pthread_cond_timedwait(&tp_sync.timeout_cv, &tp_sync.timeout_mtx, &timeout);
@@ -796,6 +812,7 @@ Process::exec_with_timeout()
         break;
       }
     }
+    DM_DBG(DM_N(3), FBRANCH"timeout_mtx >>>\n", n->row, executed, evaluated);
     S_V(&tp_sync.timeout_mtx);
 
     if(rc == ETIMEDOUT) {
@@ -1223,7 +1240,6 @@ Process::eval_str(const char *cstr, Process *proc)
   s.clear();
   slen = strlen(cstr);
   for(i = 0; i < slen; i++) {
-//    DM_DBG(DM_N(0), "------>%d\n", i);
     c = cstr[i];
     opt = cstr + i;
 

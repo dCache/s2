@@ -20,7 +20,11 @@
 #define S_P(mtx)	pthread_mutex_lock(mtx);
 #define S_V(mtx)	pthread_mutex_unlock(mtx);
 #define MUTEX(mtx,...)\
-  do {S_P(mtx); __VA_ARGS__ ; S_V(mtx);} while(0)
+  do {S_P(mtx);\
+      DM_DBG(DM_N(3), "<<< mutex "# mtx"\n");\
+      __VA_ARGS__ ;\
+      DM_DBG(DM_N(3), "mutex "# mtx" >>>\n");\
+      S_V(mtx);} while(0)
 
 #define TP_THREADS_MAX	128		/* maximum number of threads in the threadpool */
 #define TP_THREADS_MIN	1		/* minimum number of threads in the threadpool */
@@ -31,8 +35,9 @@ typedef struct tp_request {
   void *data;				/* request's data */
   int tp_tid;				/* number of the thread handling this request */
   int *sreqs;				/* pointer to the total number of parallel requests *
-                                         * connected with this request                      */
-  pthread_cond_t *p_sreqs_cv;		/* pointer to the conditional variable */
+                                         * (subrequests) related with this request         */
+  pthread_mutex_t *p_sreqs_mtx;		/* pointer to the subrequest's mutex */
+  pthread_cond_t *p_sreqs_cv;		/* pointer to the subrequest's conditional variable */
   struct tp_request *next;		/* pointer to next request, NULL if none */
 } tp_request;
 
@@ -48,7 +53,7 @@ typedef struct tp_sync_t {
 /* extern(al) function declarations */
 extern int tp_init(int tp_size);
 extern int tp_cleanup(void);
-extern int tp_enqueue(void *data, int *sreqs, pthread_cond_t *p_sreqs_cv);
+extern int tp_enqueue(void *data, int *sreqs, pthread_mutex_t *p_sreqs_mtx, pthread_cond_t *p_sreqs_cv);
 extern int tp_dequeue(void *data);
 
 /* extern(al) function declarations (defined in other modules) */

@@ -409,6 +409,8 @@ Node::print_node
     evaluated = n->evaluated;
   }
 
+  std::string str = nodeToString(n, indent, proc);
+
   S_P(&tp_sync.print_mtx);
   if(show_executed) {
     if(show_evaluated)
@@ -417,7 +419,7 @@ Node::print_node
       fprintf(file, "%d:", executed);
   }
 
-  fputs(nodeToString(n, indent, proc).c_str(), file);
+  fputs(str.c_str(), file);
   fputc('\n', file);
   S_V(&tp_sync.print_mtx);
 

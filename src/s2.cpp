@@ -30,6 +30,8 @@
 #include <signal.h>		/* signal() */
 #include <stdio.h>		/* stderr */
 #include <stdlib.h>		/* exit() */
+#include <sys/types.h>		/* RH getpid() */
+#include <unistd.h>		/* RH getpid() */
 
 /* options */
 struct opts_t opts;
@@ -139,24 +141,6 @@ f_close(const char* fname, FILE **file)
 
   return ERR_OK;
 }
-
-#if !defined(__WIN32__)
-/* Signal handler. */
-static void
-sig_handler(int sig)
-{
-  exit(exit_val);       /* calls exit_handler() */
-}
-
-/* Set signal handlers. */
-static void
-set_signals(void)
-{
-  signal(SIGINT, sig_handler);
-  signal(SIGTERM, sig_handler);
-  signal(SIGHUP, sig_handler);
-}
-#endif
 
 /* Exit handler. */
 static void
@@ -948,9 +932,6 @@ main(int argc, char *argv[])
 
   /* Close all open diagnose streams at exit */
   atexit(exit_handler);         /* normal exit */
-#if !defined(__WIN32__)
-  set_signals();                /* deal with some signals sent to s2 */
-#endif
 
   /* Parse command line options */
   i = parse_cmd_opts(argc, argv);
@@ -999,9 +980,6 @@ main(int argc, char *argv[])
 
   /* Close all open diagnose streams at exit */
   atexit(exit_handler);         /* normal exit */
-#if !defined(__WIN32__)
-  set_signals();                /* deal with some signals sent to s2 */
-#endif
 
   /* Parse command line options */
   i = parse_cmd_opts(argc, argv);

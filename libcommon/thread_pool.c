@@ -13,7 +13,6 @@
 #include "thread_pool.h"
 
 #include "free.h"
-#include "constants.h"
 #include "i18.h"
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
 
@@ -61,6 +60,7 @@ static int tp_create(void);
 static int
 request_add(void *data,
             int *sreqs,
+            pthread_mutex_t *p_sreqs_mtx,
             pthread_cond_t *p_sreqs_cv)
 {
   DM_DBG_I;
@@ -77,6 +77,7 @@ request_add(void *data,
   /* fill the request payload */
   request->data = data;
   request->sreqs = sreqs;
+  request->p_sreqs_mtx = p_sreqs_mtx;
   request->p_sreqs_cv = p_sreqs_cv;
   request->next = NULL;
 
@@ -273,29 +274,30 @@ request_loop_handler(void *p_tp_tid)
         tp_handle_request(request);
         DM_DBG(DM_N(3), FTHREAD"handled request (%d/%p)\n", tp_tid, tid, request->tp_tid, request);
 
+        S_P(request->p_sreqs_mtx);
         if(request->sreqs) {
-          DM_DBG(DM_N(3), FTHREAD"subrequests=%d\n", tp_tid, tid, *request->sreqs);
-          MUTEX(&request_mtx, *request->sreqs = *request->sreqs - 1);
-          DM_DBG(DM_N(3), FTHREAD"subrequests=%d\n", tp_tid, tid, *request->sreqs);
+          DM_DBG(DM_N(3), FTHREAD"sreqs=%d\n", tp_tid, tid, *request->sreqs);
+          *request->sreqs -= 1;
+          DM_DBG(DM_N(3), FTHREAD"sreqs=%d\n", tp_tid, tid, *request->sreqs);
 
           if(*(request->sreqs) == 0) {
-            DM_DBG(DM_N(3), FTHREAD"subrequests == 0 => signalling sreqs_cv\n", tp_tid, tid);
+            DM_DBG(DM_N(3), FTHREAD"sreqs=0 => signalling sreqs_cv\n", tp_tid, tid);
             rc = pthread_cond_signal(request->p_sreqs_cv);
             if(rc) {
               DM_ERR(ERR_SYSTEM, _(FTHREAD"pthread_cond_signal failed: %s\n"), tp_tid, tid, strerror(errno));
               RETURN(NULL);
             }
+          } else {
+            DM_DBG(DM_N(3), FTHREAD"sreqs=%d\n", *(request->sreqs));
           }
         }
+        S_V(request->p_sreqs_mtx);
+
+	/* and lock the request mutex again */
+	rc = S_P(&request_mtx);
 
         DM_DBG(DM_N(3), FTHREAD"freeing request (%d/%p)\n", tp_tid, tid, request->tp_tid, request);
 	FREE(request);
-
-        /* Remove thread cleanup handler. */
-//        pthread_cleanup_pop(0);
-
-	/* and lock the mutex again */
-	rc = S_P(&request_mtx);
       }
     } else {
       /* On the condition variable.                          */
@@ -391,14 +393,17 @@ tp_cleanup(void)
 }
 
 extern int
-tp_enqueue(void *data, int *sreqs, pthread_cond_t *p_sreqs_cv)
+tp_enqueue(void *data,
+           int *sreqs,
+           pthread_mutex_t *p_sreqs_mtx,
+           pthread_cond_t *p_sreqs_cv)
 {
   DM_DBG_I;
 
   if(sreqs) DM_DBG(DM_N(4), "data=%p; subrequests=%d\n", data, *sreqs);
   else DM_DBG(DM_N(4), "data=%p\n", data);
 
-  int rc = request_add(data, sreqs, p_sreqs_cv);
+  int rc = request_add(data, sreqs, p_sreqs_mtx, p_sreqs_cv);
 
   RETURN(rc);
 }

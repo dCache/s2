@@ -161,7 +161,6 @@ nFun::toString(Process *proc)
   ss << "FUN";
 
   if(name == NULL) {
-    UPDATE_MAX(proc->executed, ERR_ASSERT);
     DM_ERR_ASSERT(_("name == NULL\n"));
     return ss.str();
   }

@@ -2,12 +2,20 @@ Please send bug reports with S2 scripts causing them to the current
 maintainer.  When reporting BUGs, please verify against the latest
 s2 version.
 
-Known
-~~~~~
-None
+Known problems
+~~~~~~~~~~~~~~
+1) NPTL bugs
+~~~~~~~~~~~~
+I'm experiencing a deadlock in 1 out of 10000 consecutive runs of a
+script spawning parallel processes using nested parallel repeat loops
+with NPTL 3.2.5.  The same test was fine for 100000 consecutiveruns
+with the traditional LinuxThreads 0.10 library.  Please use
+"getconf GNU_LIBPTHREAD_VERSION" to see which threads library you're
+using before reporting deadlocks.  You do not need to report them
+for NPTL 3.2.5.
 
-Expected
-~~~~~~~~
+Expected problems
+~~~~~~~~~~~~~~~~~
 * Parallel execution, timeouts and expression evaluation
-  didn't receive as much testing as they deserve.
-  Please report problems!
+  didn't receive as much testing as they deserve and are still being
+  tested.  Please report problems!

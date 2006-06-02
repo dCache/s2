@@ -121,7 +121,7 @@ int
 Expr::compare(Attr a1, Attr a2, Symbol o)
 {
   switch (ConvTypes(a1, a2)) {
-    case INT:
+    case INT:{
       switch (o) {
         case EqSym: return a1.v.i == a2.v.i;
         case LtSym: return a1.v.i <  a2.v.i;
@@ -132,9 +132,10 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
         default:
           DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(o));
       }
+    }
     break;
 
-    case REAL:
+    case REAL:{
       switch (o) {
         case EqSym: return a1.v.r == a2.v.r;
         case LtSym: return a1.v.r <  a2.v.r;
@@ -145,9 +146,10 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
         default:
           DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(o));
       }
+    }
     break;
 
-    case STRING:
+    case STRING:{
       int cmp = strcmp(a1.v.s->c_str(), a2.v.s->c_str());
       switch (o) {
         case EqSym: return cmp == 0 ? TRUE : FALSE;
@@ -159,6 +161,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
         default:
           DM_ERR_ASSERT(_("switch: default: %s\n"), Lex::SymbolName(o));
       }
+    }
     break;
 
     default:
@@ -172,7 +175,7 @@ void
 Expr::normalize(Attr &attr)
 {
   switch(attr.type) {
-    case STRING: {
+    case STRING:{
       Attr a, eof_a;
       Lex l = Lex(attr.v.s->c_str(), proc);
       Symbol s = l.lex(a);
@@ -187,16 +190,17 @@ Expr::normalize(Attr &attr)
     case INT:	/* fall through */
     break;
 
-    case REAL:	/* see if an integer can take the real number */
+    case REAL:{	/* see if an integer can take the real number */
       int64_t inum = (int64_t)attr.v.r;
       if(inum == attr.v.r) {
         attr.type = INT;
         attr.v.i = inum;
       }
+    }
     break;
 
     default:
-    break;
+      ;		/* yeah, needed */
   }
 }
 
@@ -240,21 +244,26 @@ Expr::A1(Attr iattr)
   Attr attr;
 
   switch(sym) {
-    case OrSym:			/* A1 -> || B A1 */
+    case OrSym:{		/* A1 -> || B A1 */
       LEX();
       attr = B();
       switch (ConvTypes(iattr, attr)) {
-        case INT: iattr.v.i = iattr.v.i || attr.v.i;
+        case INT:{
+          iattr.v.i = iattr.v.i || attr.v.i;
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+        default:
+          DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
       attr = A1(iattr);
+    }
     break;
     
-    case EofSym: 		/* A1 -> e */
+    case EofSym:{ 		/* A1 -> e */
       DM_DBG(DM_N(5), "A1 -> e\n");
       RETURN(iattr);
+    }
     break;
     
     default:
@@ -279,10 +288,13 @@ Expr::B1(Attr iattr)
     LEX();
     attr = C();
     switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i = iattr.v.i && attr.v.i;
+      case INT:{
+        iattr.v.i = iattr.v.i && attr.v.i;
+      }
       break;
 
-      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+      default:
+        DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = B1(iattr);
   }
@@ -309,10 +321,13 @@ Expr::C1(Attr iattr)
     LEX();
     attr = D();
     switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i |= attr.v.i;
+      case INT:{
+        iattr.v.i |= attr.v.i;
+      }
       break;
 
-      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+      default:
+        DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = C1(iattr);
   }
@@ -339,10 +354,13 @@ Expr::D1(Attr iattr)
     LEX();
     attr = E();
     switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i ^= attr.v.i;
+      case INT:{
+        iattr.v.i ^= attr.v.i;
+      }
       break;
 
-      default: DM_ERR(ERR_ERR, _("the %s operator requires INT type values\n"), Lex::SymbolName(sym));
+      default:
+        DM_ERR(ERR_ERR, _("the %s operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = D1(iattr);
   }
@@ -369,10 +387,13 @@ Expr::E1(Attr iattr)
     LEX();
     attr = F();
     switch (ConvTypes(iattr, attr)) {
-      case INT: iattr.v.i &= attr.v.i;
+      case INT:{
+        iattr.v.i &= attr.v.i;
+      }
       break;
 
-      default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+      default:
+        DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
     }
     attr = E1(iattr);
   }
@@ -455,11 +476,11 @@ Expr::H1(Attr iattr)
 
   switch(sym) {
     /* H1 -> << I H1 */
-    case ShlSym:
+    case ShlSym:{
       LEX();
       attr = I();
       switch (ConvTypes(iattr, attr)) {
-        case INT: {
+        case INT:{
           int64_t inum = iattr.v.i << attr.v.i;
 #ifdef CHECK_OVERFLOWS
           if(attr.v.i < 0) {
@@ -476,22 +497,28 @@ Expr::H1(Attr iattr)
         }
         break;
   
-        default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+        default:
+          DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
       attr = H1(iattr);
+    }
     break;
 
     /* H1 -> >> I H1 */
-    case ShrSym:
+    case ShrSym:{
       LEX();
       attr = I();
       switch (ConvTypes(iattr, attr)) {
-        case INT: iattr.v.i >>= attr.v.i;
+        case INT:{
+          iattr.v.i >>= attr.v.i;
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
+        default:
+          DM_ERR(ERR_ERR, _("the %s binary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
       attr = H1(iattr);
+    }
     break;
 
     /* H1 -> e */
@@ -522,7 +549,7 @@ Expr::I1(Attr iattr)
       LEX();
       attr = J();
       switch (ConvTypes(iattr, attr)) {
-        case INT: {
+        case INT:{
           int64_t inum = iattr.v.i + attr.v.i;
 #ifdef CHECK_OVERFLOWS
           double rnum = (double)iattr.v.i + attr.v.i;
@@ -537,21 +564,23 @@ Expr::I1(Attr iattr)
         }
         break;
 
-        case REAL:
+        case REAL:{
           iattr.v.r += attr.v.r;
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("addition is not supported for these types\n"));
+        default:
+          DM_ERR(ERR_ERR, _("addition is not supported for these types\n"));
       }
       attr = I1(iattr);
     break;
 
     /* I1 -> - J I1 */
-    case MinusSym:
+    case MinusSym:{
       LEX();
       attr = J();
       switch (ConvTypes(iattr, attr)) {
-        case INT:
+        case INT:{
           int64_t inum = iattr.v.i - attr.v.i;
 #ifdef CHECK_OVERFLOWS
           double rnum = (double)iattr.v.i - attr.v.i;
@@ -563,15 +592,19 @@ Expr::I1(Attr iattr)
           }
 #endif
           iattr.v.i = inum;
-        break;
+        }
+	break;
 
-        case REAL:
+        case REAL:{
           iattr.v.r -= attr.v.r;
-        break;
+        }
+	break;
   
-        default: DM_ERR(ERR_ERR, _("subtraction is not supported for these types\n"));
+        default:
+	  DM_ERR(ERR_ERR, _("subtraction is not supported for these types\n"));
       }
       attr = I1(iattr);
+    }
     break;
 
     /* I1 -> e */
@@ -581,7 +614,6 @@ Expr::I1(Attr iattr)
 
     default:
       RETURN(iattr);
-    break;
   }
 
   RETURN(attr);
@@ -599,11 +631,11 @@ Expr::J1(Attr iattr)
 
   switch(sym) {
     /* J1 -> * K J1 */
-    case MultSym:
+    case MultSym:{
       LEX();
       attr = K();
       switch (ConvTypes(iattr, attr)) {
-        case INT:
+        case INT:{
           int64_t inum = iattr.v.i * attr.v.i;
 #ifdef CHECK_OVERFLOWS
           double rnum = (double)iattr.v.i * attr.v.i;
@@ -615,23 +647,27 @@ Expr::J1(Attr iattr)
           }
 #endif
           iattr.v.i = inum;
-        break;
+        }
+	break;
 
-        case REAL:
+        case REAL:{
           iattr.v.r *= attr.v.r;
-        break;
+        }
+	break;
   
-        default: DM_ERR(ERR_ERR, _("multiplication is not supported for these types\n"));
+        default:
+          DM_ERR(ERR_ERR, _("multiplication is not supported for these types\n"));
       }
       attr = J1(iattr);
+    }
     break;
 
     /* J1 -> / K J1 */
-    case DivSym:
+    case DivSym:{
       LEX();
       attr = K();
       switch (ConvTypes(iattr, attr)) {
-        case INT:
+        case INT:{
           if (attr.v.i) {		/* division INT/INT => REAL */
             iattr.v.r = iattr.v.i;
             iattr.type = REAL;
@@ -640,38 +676,45 @@ Expr::J1(Attr iattr)
           else {
             iattr.v.i = 0;
             DM_ERR(ERR_ERR, _("division by zero\n"));
-          };
+          }
+        }
         break;
   
-        case REAL:
+        case REAL:{
           if (attr.v.r) iattr.v.r /= attr.v.r;
           else {
             iattr.v.r = 0.0;
             DM_ERR(ERR_ERR, _("division by zero\n"));
-          };
+          }
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("division is not supported for these types\n"));
+        default:
+          DM_ERR(ERR_ERR, _("division is not supported for these types\n"));
       }
       attr = J1(iattr);
+    }
     break;
 
     /* J1 -> % K J1 */
-    case ModSym:
+    case ModSym:{
       LEX();
       attr = K();
       switch (ConvTypes(iattr, attr)) {
-        case INT: 
+        case INT:{
           if (attr.v.i) iattr.v.i %= attr.v.i;
           else {
             iattr.v.i = 0;
             DM_ERR(ERR_ERR, _("modulo division by zero\n"));
-          };
+          }
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("modulo division is not supported for these types\n"));
+        default:
+          DM_ERR(ERR_ERR, _("modulo division is not supported for these types\n"));
       }
       attr = J1(iattr);
+    }
     break;
 
     case EofSym:
@@ -709,24 +752,25 @@ Expr::K1()
   attr.type = INV;
   switch(sym) {
     /* K1 -> + K1 */
-    case PlusSym: {
+    case PlusSym:{
       LEX();				/* unary plus */
       attr = K1();
       switch (attr.type) {
         case INT:
         case REAL: break;
 
-        default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
+        default:
+          DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
       }
     }
     break;
 
     /* K1 -> - K1 */
-    case MinusSym: {
+    case MinusSym:{
       LEX();				/* unary minus */
       attr = K1();
       switch (attr.type) {
-        case INT:
+        case INT:{
           int64_t inum = -attr.v.i;
 #ifdef CHECK_OVERFLOWS
           if(attr.v.i == inum) {
@@ -735,43 +779,54 @@ Expr::K1()
           }
 #endif
           attr.v.i = inum;
-        break;
+        }
+	break;
 
-        case REAL: attr.v.r = -attr.v.r; break;
+        case REAL:{
+	  attr.v.r = -attr.v.r;
+	}
+	break;
   
-        default: DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
+        default:
+	  DM_ERR(ERR_ERR, _("illegal use of unary minus\n"));
       }
     }
     break;
 
     /* K1 -> ! K1 */
-    case NotSym: {
+    case NotSym:{
       LEX();
       attr = K1();
       switch (attr.type) {
-        case INT: attr.v.i = attr.v.i ? FALSE : TRUE;
+        case INT:{
+          attr.v.i = attr.v.i ? FALSE : TRUE;
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
+        default:
+          DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
     }
     break;
 
     /* K1 -> ~ K1 */
-    case BitNotSym: {
+    case BitNotSym:{
       LEX();
       attr = K1();
       switch (attr.type) {
-        case INT: attr.v.i = ~attr.v.i;
+        case INT:{
+          attr.v.i = ~attr.v.i;
+        }
         break;
   
-        default: DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
+        default:
+          DM_ERR(ERR_ERR, _("the %s unary operator requires INT type values\n"), Lex::SymbolName(sym));
       }
     }
     break;
 
     /* K1 -> ( X ) */
-    case LprSym: {
+    case LprSym:{
       LEX();
       attr = X();
       EXPECT(RprSym);
@@ -779,7 +834,7 @@ Expr::K1()
     break;
 
     /* K1 -> INT */
-    case IntSym: {
+    case IntSym:{
       attr.type = INT;
       attr.v.i = lex_attr.v.i;		/* get the value from lex */
       LEX();
@@ -787,7 +842,7 @@ Expr::K1()
     break;
 
     /* K1 -> REAL */
-    case RealSym: {
+    case RealSym:{
       attr.type = REAL;
       attr.v.r = lex_attr.v.r;		/* get the value from lex */
       LEX();
@@ -795,7 +850,7 @@ Expr::K1()
     break;
 
     /* K1 -> STRING */
-    case StringSym: {
+    case StringSym:{
       std::string s;			/* string with no $TAGs */
       attr.type = STRING;
       s = Process::eval_str(lex_attr.v.s->c_str(), proc);
@@ -808,7 +863,7 @@ Expr::K1()
     break;
 
     /* K1 -> e */
-    case EofSym: {
+    case EofSym:{
       /* we have an empty string */
       DM_DBG(DM_N(5), "K1 -> e\n");
       attr.type = STRING;

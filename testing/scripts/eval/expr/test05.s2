@@ -1,0 +1,7 @@
+; Test evaluation of a string inside an expression.
+
+ASSIGN a "5+3"
+   SYSTEM echo "${a}"
+
+&& TEST ${a}+2 == 10
+   SYSTEM echo "OK"

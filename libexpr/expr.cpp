@@ -66,7 +66,6 @@ Expr::parse()
   Attr attr;
   attr = S();
  
-//  normalize(attr);	/* time-waster, let the user deal with it */
   RETURN(attr);
 }
 
@@ -852,12 +851,25 @@ Expr::K1()
     /* K1 -> STRING */
     case StringSym:{
       std::string s;			/* string with no $TAGs */
-      attr.type = STRING;
       s = Process::eval_str(lex_attr.v.s->c_str(), proc);
-      NEW_STR(attr.v.s,s.c_str());
-      DM_DBG(DM_N(4),"s=|%s|\n",s.c_str());
-      normalize(attr);
-      DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
+      if(strcmp(s.c_str(), lex_attr.v.s->c_str())) {
+        /* string evaluation produced a different string; *
+         * evaluate the expression again                  */
+        Expr e = Expr(s.c_str(), proc);
+        Attr a = e.parse();
+        attr = a;
+        if(a.type == STRING) {
+          NEW_STR(attr.v.s,a.v.s->c_str());
+          DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
+        }
+        DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
+      } else {
+        /* string evaluation didn't produce a different string; *
+         * it is a string                                       */
+        attr.type = STRING;
+        NEW_STR(attr.v.s,s.c_str());
+        DM_DBG(DM_N(4),"s=|%s|\n",s.c_str());
+      }
       LEX();
     }
     break;

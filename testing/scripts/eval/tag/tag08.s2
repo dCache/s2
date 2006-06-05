@@ -1,0 +1,9 @@
+; Testing $FUN{} tag
+
+DEFUN expand n : a b c
+   ASSIGN a "" b "" c ""
+      WHILE TEST ${n} > 0
+         ASSIGN n $EXPR{${n}-1} a "${a}a" b "${b}b" c "${c}c"
+      || NOP
+   
+&& SYSTEM echo "$FUN{expand 3}"

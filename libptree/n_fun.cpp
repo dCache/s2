@@ -72,16 +72,16 @@ int
 nFun::exec(Process *proc, Process &proc_fun)
 {
   DM_DBG_I;
-  TFunctions::iterator funIter;		/* name/function object pair */
+  TFunctions::iterator iter;		/* name/function object pair */
 
   if(!nDefunNode) {
-    if((funIter = gl_fun_tab.find(name->c_str())) == gl_fun_tab.end()) {
+    if((iter = gl_fun_tab.find(name->c_str())) == gl_fun_tab.end()) {
       /* Function `name' is not defined. */
       DM_ERR(ERR_ERR, _("function `%s' not defined\n"), name->c_str());
       RETURN(ERR_ERR);
     }
   
-    nDefunNode = funIter->second;
+    nDefunNode = iter->second;
   }
 
   /* check number of parameters */

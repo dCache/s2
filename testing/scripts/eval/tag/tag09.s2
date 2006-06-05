@@ -1,0 +1,10 @@
+; Factorial
+
+DEFUN Factorial n : val_n
+   TEST ${n}<1
+      ASSIGN val_n 1
+   || ASSIGN val_n "$EXPR{${n}*$FUN{Factorial $EXPR{${n}-1}}}"
+
+; Twenty is maximum before 64bit int overflow into reals
+&& ASSIGN n 20
+   SYSTEM echo "Factorial(${n})=$FUN{Factorial ${n}}"

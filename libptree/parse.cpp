@@ -466,8 +466,7 @@ Parser::ugc(void)
 {
   if(col > 0) return --col;
 
-  DM_ERR_ASSERT(_("cannot unget any more; returning 0x%X character)\n"), CH_INV_UGC);
-  return CH_INV_UGC;
+  return 0;
 } /* ugc */
 
 /*
@@ -622,10 +621,11 @@ Parser::AZaz_09(const char *l, char **end)
   return ERR_OK;
 } /* AZaz_09 */
 
+#if 1
 /*
  * Parse one of the following strings:
  * 1) [^ \t\r\n]* 
- * 2) '"' [^"]* '"'
+ * 2) " [^"]* "
  * Note: ad 1) space can be part of the parsed string if it is escaped
  *       ad 2) "     can be part of the parsed string if it is escaped.
  * 
@@ -646,9 +646,9 @@ Parser::double_quoted_param(std::string &target, BOOL env_var)
 {
 #define TERM_CHAR(c)    (q? (c == '"'): IS_WHITE(c))
   int i, c;
-  BOOL q;               /* quotation mark at the start of the filename */
-  BOOL bslash = FALSE;  /* we had the '\\' character */
-  int esc = 0;          /* number of escaped characters */
+  BOOL q;		/* quotation mark at the start of the parameter */
+  BOOL bslash = FALSE;	/* we had the '\\' character */
+  int esc = 0;		/* number of escaped characters */
   char *ptr_env = NULL;
   
   q = (c = gc()) == '"';
@@ -711,6 +711,114 @@ out:
 
 #undef TERM_CHAR
 } /* double_quoted_param */
+#else
+/*
+ * Parse one of the following strings:
+ * 1) [^ \t\r\n]* 
+ * 2) " [^"]* "
+ * 3) ' [^']* '
+ * Note: ad 1) space can be part of the parsed string if it is escaped
+ *       ad 2) "     can be part of the parsed string if it is escaped.
+ *       ad 3) '     can be part of the parsed string if it is escaped.
+ * 
+ * - De-escaping of spaces is performed: 'a\ string' => 'a string'
+ * - \\ is left unchanged: '\\"' => '\\"'
+ * 
+ * Environment variables $ENV{VAR} are interpreted if `env_var' is TRUE.
+ *
+ * Returns
+ *   ERR_OK:  found a parameter
+ *   ERR_ERR: the first character is a whitespace character or _only_ S2_EOL or
+ *            we were unable to get the value of an environment variable.
+ */
+int
+Parser::double_quoted_param(std::string &target, BOOL env_var)
+{
+  DM_DBG_I;
+  
+#define TERM_CHAR(c)    (term_char? (c) == term_char : IS_WHITE(c))
+  int i, c = gc();
+  BOOL q;			/* ' at the start of target */
+  BOOL dq;			/* " at the start of target */
+  BOOL bslash = FALSE;		/* we had the '\\' character */
+  char term_char = '\0';	/* parameter terminator */
+  char *ptr_env = NULL;
+
+  q  = c == '\'';
+  dq = c == '"';
+  if(q || dq) {
+    term_char = c;
+    target.push_back(c);
+  } else ugc();
+
+  DM_DBG(DM_N(3), "col=%d; dq_char='%c'\n", col, c);
+
+  if(IS_WHITE(c) || c == CH_EOL) return ERR_ERR;
+  
+  for(i = 0; (c = gc()) != CH_EOL; i++) {
+    int start_col = col;
+
+    DM_DBG(DM_N(3), "col=%d; dq_char='%c'\n", col, c);
+
+    /* see if we have $ENV{<VAR>} */
+    if(c == '$' && env_var) {
+      if(!bslash) {
+        ptr_env = ENV_VAR();
+        if(ptr_env == NULL) {
+          /* ENV didn't follow $, error or environment variable not set */
+          col = start_col;
+          /* ignore this and copy the string as it is */
+        } else {
+          /* we have ptr_env pointing at ENV variable => overwrite the line with its value */
+          int env_len = strlen(ptr_env);
+          target.append(ptr_env);
+          i += env_len - 1;
+          continue;
+        }
+      }
+    }
+
+    if(c == '\\' && bslash) {
+      /* two backslashes => no quoting */
+      bslash = FALSE;
+      target.push_back(c);
+      continue;
+    }
+
+    if(TERM_CHAR(c) && !bslash) {
+      if(term_char) {
+        term_char = c;
+        target.push_back(c);
+      } else ugc();
+
+      return ERR_OK;            /* found a string terminator */
+    }
+
+    if(!term_char) {
+      /* we have an unquoted string => remove escaping of whitespace */
+      if(c == '\\' && !bslash &&
+         IS_WHITE(line[col]))	/* look ahead */
+      {
+        /* single backslash => the following character is escaped */
+        goto out;
+      }
+    }
+
+    target.push_back(c);
+out:
+    bslash = c == '\\';
+  }
+
+  if(term_char && c == CH_EOL) {
+    DM_PWARN("'\\0' terminated %squoted parameter\n", dq? "double-": "");
+    target.push_back(term_char);
+  }
+
+  return ERR_OK;
+
+#undef TERM_CHAR
+} /* double_quoted_param */
+#endif
 
 int
 Parser::dq_param(std::string &target)

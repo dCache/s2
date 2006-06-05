@@ -274,6 +274,9 @@ request_loop_handler(void *p_tp_tid)
         tp_handle_request(request);
         DM_DBG(DM_N(3), FTHREAD"handled request (%d/%p)\n", tp_tid, tid, request->tp_tid, request);
 
+	/* and lock the request mutex again */
+	rc = S_P(&request_mtx);
+
         S_P(request->p_sreqs_mtx);
         if(request->sreqs) {
           DM_DBG(DM_N(3), FTHREAD"sreqs=%d\n", tp_tid, tid, *request->sreqs);
@@ -292,9 +295,6 @@ request_loop_handler(void *p_tp_tid)
           }
         }
         S_V(request->p_sreqs_mtx);
-
-	/* and lock the request mutex again */
-	rc = S_P(&request_mtx);
 
         DM_DBG(DM_N(3), FTHREAD"freeing request (%d/%p)\n", tp_tid, tid, request->tp_tid, request);
 	FREE(request);

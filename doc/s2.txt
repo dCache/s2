@@ -149,7 +149,10 @@ values are used.
            '$EXPR{' <EXPR> '}' | '$RND{' <EXPR> '}' |
            '$DATE{' <STR> '}' | '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
            '$MD5{' <STR> '}' | '$DEFINED{' <VAR> '}' |
-           '$MATCH{' <PATTERN> <SUBJECT> '}' | '$INT{' <EXPR> '}'
+           '$MATCH{' <PATTERN> <SUBJECT> '}' | '$INT{' <EXPR> '}' |
+           '$FUN{' <FUN_NAME> {<FUN_ARG> ' '}* '}' |
+           '$SEQ{' <SEQ_FROM> <SEQ_TO> '}' |
+           
 
   <I> :: <INTEGER> | <TAG>
 ; <TAG> must evaluate to <INTEGER>
@@ -366,14 +369,15 @@ is unspecified or it evaluates to non-zero.
 
 2.3.2 Function definition
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-  <DEFUN> :: 'DEFUN' ({<FUN_PARAM> ' '}* ':'? | {<FUN_PARAM_REF> ' '}*)?
+  <DEFUN> :: 'DEFUN' <FUN_NAME> ({<FUN_PARAM> ' '}* ':'? | {<FUN_PARAM_REF> ' '}*)?
+  <FUN_NAME> :: <DQ_STR>
   <FUN_PARAM> :: <DQ_STR>
   <FUN_PARAM_REF> :: <DQ_STR>
 
 
 2.3.3 Function call
 ~~~~~~~~~~~~~~~~~~~
-  <DEFUN> :: 'FUN' ({<FUN_ARG> ' '}* ':'? | {<FUN_ARG_REF> ' '}*)?
+  <DEFUN> :: 'FUN' <FUN_NAME> ({<FUN_ARG> ' '}* ':'? | {<FUN_ARG_REF> ' '}*)?
   <FUN_ARG> :: <DQ_STR>
   <FUN_ARG_REF> :: <DQ_STR>
 
@@ -837,12 +841,30 @@ PCRE match <SUBJECT> against <PATTERN>.  Return 1 if match succeeded,
 return 0 if matching fails.  Please refer the section dedicated to pattern
 matching for more information.
 
-2.3.6 Truncating to an integer value
+2.3.8 Truncating to an integer value
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   '$INT{' <EXPR> '}'
 
 Warning message is issued if conversion is not possible.
 
+2.3.9 In-situ function call expansion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$FUN{' <FUN_NAME> {<FUN_ARG> ' '}* '}'
+
+Any <FUN_PARAM_REF> defined by DEFUN shall be expanded in-situ separated
+by a space ' '.
+
+
+2.3.10 Generating a sequence of numbers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$SEQ{' <SEQ_FROM> <SEQ_TO> '}'
+  <SEQ_FROM> :: <EXPR>
+  <SEQ_TO> :: <EXPR>
+
+Produces a sequence of numbers from <SEQ_FROM> to <SEQ_TO> separated 
+by spaces.  If <SEQ_FROM> > <SEQ_TO> it counts from <SEQ_TO> down to
+<SEQ_FROM>.  At least one number is always output, i.e. $SEQ{0 0}
+produces 0.
 
 3 Caveats
 ~~~~~~~~~

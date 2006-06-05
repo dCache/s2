@@ -8,7 +8,7 @@ Known problems
 ~~~~~~~~~~~~
 I'm experiencing a deadlock in 1 out of 10000 consecutive runs of a
 script spawning parallel processes using nested parallel repeat loops
-with NPTL 3.2.5.  The same test was fine for 100000 consecutiveruns
+with NPTL 3.2.5.  The same test was fine for 500000 consecutive runs
 with the traditional LinuxThreads 0.10 library.  Please use
 "getconf GNU_LIBPTHREAD_VERSION" to see which threads library you're
 using before reporting deadlocks.  You do not need to report them

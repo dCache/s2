@@ -1,0 +1,5 @@
+; Testing $SEQ{} tag
+
+SYSTEM echo "$SEQ{-10 10}"
+&& SYSTEM echo "$SEQ{10 -10}"
+&& SYSTEM echo "$SEQ{1 1}"

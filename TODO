@@ -1,13 +1,16 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- Implement FOR <var> <IN> <list>
+- Change [][]..[] to [dq_params...]
 - Prepare directories for SRM 2.2 WSDL
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Saving to global vars (?P<::Hello>.*)
+- Allow things like >${a} ${b}
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs (e.g.: $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...)
 - Plugin architecture to make adding of new protocols simple?
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
-- Use '' for expressions which will not be evaluated (q_param)?
 - SEND/RECEIVE (TCP/UDP/...)?
-- Minor (possible) pthreads POSIX threads related memory leaks; use Apache threads?
-- Investigate gSoap memory leaks?
+- Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
+  investigate?  Use Apache threads instead?
+- Investigate gSoap memory leaks???

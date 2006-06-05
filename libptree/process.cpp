@@ -25,6 +25,7 @@
 #include "s2.h"			/* opts (s2 options) */
 #include "str.h"
 #include "thread_pool.h"
+#include "parse.h"		/* TFunctions, gl_var_tab */
 
 /* Tags */
 #include "printf.h"		/* $PRINTF{} */
@@ -204,21 +205,6 @@ Process::init(Node *node, Process *p, Process *rpar)
     /* it is a parallel process, keep variables in the local variable space of this process */
     var_tab = new Vars_t();
     DM_DBG(DM_N(2), FBRANCH"created local variable table %p\n", n->row, executed, evaluated, var_tab);
-  } else {
-#if 0
-    /* Try to find the first rpar process which is also a parallel processes and *
-     * use its variable scope (not a parallel repeat as they have several local  *
-     * variable scopes).                                                         */
-    Process *proc_ptr = rpar;
-    while(proc_ptr) {
-      if(proc_ptr->is_parallel()) {
-        DM_DBG(DM_N(3), "branch %u is parallel\n", proc_ptr->n->row);
-        var_tab = proc_ptr->var_tab;
-        break;
-      }
-      proc_ptr = proc_ptr->rpar;
-    }
-#endif
   }
 }
 
@@ -241,8 +227,7 @@ Process::~Process()
      if(is_parallel() || (n && n->REPEAT.type == S2_REPEAT_PAR) ||
         fun) {
        /* be defensive: test for `n' is necessary as we might    * 
-        * be destroying an uninitialised process; local variable *
-        * tables of functions are destroyed elsewhere            */
+        * be destroying an uninitialised process;                */
        DELETE(var_tab);
      }
 }
@@ -855,13 +840,13 @@ Process::eval_with_timeout()
   Process proc_fun;
 
   /* print the node with variables evaluated just before its execution */
+  et=EVAL_STATIC;
   if(n->TYPE != N_DEFUN) {
     if(opts.e0_fname) Node::print_node(n, n->OFFSET - FUN_OFFSET, opts.e0_file, this, FALSE, FALSE);
   }
 
   DM_DBG_T(DM_N(4), FBRANCH"starting execution of proc=%p\n", n->row, executed, evaluated, this);
 
-  et=EVAL_STATIC;
   DM_LOG_B(DM_N(1), "e0:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
   et=EVAL_ALL;
   if(n->TYPE == N_FUN) {
@@ -1220,11 +1205,11 @@ Process::eval_str(const char *cstr, Process *proc)
   std::string target;
   enum s_eval { 
     sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
-    sMd5,  sDefined,  sMatch,  sInt,
+    sMd5,  sDefined,  sMatch,  sInt,  sFun,  sSeq,
   } state = sInit;
   static const char* state_name[] = {
     "",    "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
-    "MD5", "DEFINED", "MATCH", "INT",
+    "MD5", "DEFINED", "MATCH", "INT", "FUN", "SEQ",
   };
   const char *opt;
   int opt_off;
@@ -1278,6 +1263,8 @@ Process::eval_str(const char *cstr, Process *proc)
         BALLANCED_OPL("DEFINED{", sDefined) else
         BALLANCED_OPL("MATCH{", sMatch) else
         BALLANCED_OPL("INT{", sInt) else
+        BALLANCED_OPL("FUN{", sFun) else
+        BALLANCED_OPL("SEQ{", sSeq) else
         {
           /* return the borrowed dollar */
           s.push_back('$');
@@ -1332,6 +1319,7 @@ Process::eval_str(const char *cstr, Process *proc)
         /* we have a complete environment variable */
         target = eval_str(target.c_str(), proc);	/* evaluate things like: $ENV{...${var}...} */
 
+        DM_DBG(DM_N(3), "target=|%s|\n", target.c_str());
         const char *env_var;
         env_var = getenv(target.c_str());
         
@@ -1500,7 +1488,8 @@ Process::eval_str(const char *cstr, Process *proc)
         DM_DBG(DM_N(4), "spaces+2=%d\n", spaces+2);
         if((argv = (char **)malloc(sizeof(char **) * (spaces + 2))) == (char **)NULL) {
           DM_ERR(ERR_SYSTEM, _("malloc failed\n"));
-          return s;
+          state = sInit;
+          continue;
         }
         DM_DBG(DM_N(4), "argv=%p\n", argv);
         std::string arg;
@@ -1512,7 +1501,8 @@ Process::eval_str(const char *cstr, Process *proc)
           arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $PRINTF{...${var}...} */
           if((argv[j] = (char *)strdup(arg.c_str())) == (char *)NULL) {
             DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
-            return s;
+            state = sInit;
+            continue;
           }
           l += chars;
         }
@@ -1567,7 +1557,6 @@ Process::eval_str(const char *cstr, Process *proc)
         /* DO NOT evaluate target here, let Expr do the evaluation *
          * (e.g. strings with whitespace in them)                  */
         CHK_EVAL_ALL;
-        DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
         Expr e = Expr(target.c_str(), proc);
         Attr a = e.parse();
@@ -1590,11 +1579,169 @@ Process::eval_str(const char *cstr, Process *proc)
       }
       continue;
 
+      case sFun:{
+        CHK_EVAL_ALL;
+
+        TFunctions::iterator iter;		/* name/function object pair */
+        const char *target_cstr = target.c_str();
+        nDefun *nDefunNode = NULL;
+        Process proc_fun;
+        int j, chars;
+        std::string name;
+        std::vector <std::string *> args;	/* vector of call by value arguments */
+
+        chars = get_dq_param(name, target_cstr);/* function name */
+        name = eval_str(name.c_str(), proc);	/* evaluate things like: $FUNC{...${var}... <arguments>} */
+
+        DM_DBG(DM_N(3), "target=|%s|\n", target.c_str());
+        DM_DBG(DM_N(3), "function name=|%s|\n", name.c_str());
+        if(!nDefunNode) {
+          if((iter = gl_fun_tab.find(name.c_str())) == gl_fun_tab.end()) {
+            /* Function `name' is not defined. */
+            UPDATE_MAX(proc->executed, ERR_ERR);
+            DM_ERR(ERR_ERR, _("function `%s' not defined\n"), name.c_str());
+            state = sInit;
+            continue;
+          }
+        
+          nDefunNode = iter->second;
+        }
+      
+        int l = chars;
+        for(j = 0;; j++) {
+          int chars;
+          std::string arg;
+          chars = get_dq_param(arg, target_cstr + l);
+          arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $FUN{name ...${var}...} */
+          DM_DBG(DM_N(3), "arg=|%s|\n", arg.c_str());
+          if(chars == 0) break;
+          std::string *new_arg = new std::string(arg);
+          if(new_arg == (std::string *)NULL) {
+            DM_ERR(ERR_SYSTEM, _("new failed\n"));
+            state = sInit;
+            continue;
+          }
+          args.push_back(new_arg);
+          l += chars;
+        }
+
+        /* check number of parameters */
+        uint params_size = nDefunNode->params.size();
+        uint args_size = args.size();
+        
+        DM_DBG(DM_N(3), "args_size=%d; params_size=%d\n", args_size, params_size);
+        if(args_size != params_size)
+        {
+          UPDATE_MAX(proc->executed, ERR_ERR);
+          DM_ERR(ERR_ERR, _("number of function `%s' parameters (%u) != number of its arguments (%u) passed by value\n"), name.c_str(), params_size, args_size);
+          state = sInit;
+          continue;
+        }
+        
+        DM_DBG(DM_N(3), "creating new process\n");
+        proc_fun = Process(nDefunNode, proc, NULL);
+        proc_fun.fun = TRUE;			/* this is a function call */
+        DM_DBG(DM_N(3), "created new process\n");
+      
+        /* check variable table */  
+        if(proc_fun.var_tab != NULL) {
+          DM_ERR_ASSERT(_("proc_fun.var_tab != NULL\n"));
+          state = sInit;
+          continue;
+        }
+        proc_fun.var_tab = new Vars_t();
+        DM_DBG(DM_N(2), "created local variable table %p for function `%s'\n", proc_fun.var_tab, nDefunNode->name->c_str());
+      
+        DM_DBG(DM_N(3), "gl_var_tab=%p, proc->var_tab=%p, proc_fun.var_tab=%p\n", &gl_var_tab, proc->var_tab, proc_fun.var_tab);
+        
+        /* pass arguments to the function by value (evaluate the arguments) */
+        for(uint u = 0; u < args_size; u++) {
+          proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
+                                 Process::eval_str(args[u], proc).c_str());
+        }
+      
+        proc_fun.FUN_OFFSET = nDefunNode->OFFSET - proc->n->OFFSET;
+
+        proc_fun.et=EVAL_ALL;
+        if(proc_fun.n->child) {
+          /* we have a function with non-empty body */
+          Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
+          DM_DBG(DM_N(3), "evaluating function %s\n", name.c_str());
+          int fun_eval = proc_fun_body.eval();
+          uint params_ref_size = nDefunNode->params_ref.size();
+
+          /* simulate "passed by reference", i.e.: write into parent's scope */
+          for(uint u = 0; u < params_ref_size; u++) {
+            const char *v = proc_fun.ReadVariable(nDefunNode->params_ref[u]->c_str());
+            if(v) {
+              /* params/args_ref[u] is set */
+              if(u != 0) s.push_back(' ');
+              s.append(v);
+            } else {
+              /* unset */
+              UPDATE_MAX(proc->executed, ERR_WARN);
+              DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), v);
+            }
+          }
+          
+          UPDATE_MAX(proc->executed, fun_eval);
+          proc->evaluated = proc->executed;		/* for ${?} */
+        }
+        
+        DELETE_VEC(args);
+
+        state = sInit;
+      }
+      continue;
+
+      case sSeq:{
+        /* DO NOT evaluate target here, let Expr do the evaluation *
+         * (e.g. strings with whitespace in them)                  */
+        CHK_EVAL_ALL;
+
+        const char *target_cstr = target.c_str();
+        std::string arg;
+        int chars;
+        int64_t x, y;
+        Expr e;
+        Attr a;
+
+        chars = get_dq_param(arg, target_cstr);
+        arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $SEQ{...${var}...} */
+        e = Expr(arg.c_str(), proc);
+        a = e.parse();
+        if(a.type != INT) {
+          UPDATE_MAX(proc->executed, ERR_WARN);
+          DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
+          x = 0;
+        } else x = a.v.i;
+
+        chars = get_dq_param(arg, target_cstr + chars);
+        e = Expr(arg.c_str(), proc);
+        arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $SEQ{...${var}...} */
+        a = e.parse();
+        if(a.type != INT) {
+          UPDATE_MAX(proc->executed, ERR_WARN);
+          DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
+          x = 0;
+        } else y = a.v.i;
+        
+        int step = x < y? 1 : -1;
+        int j = x - step;
+        do {
+          j += step;
+          if(j != x) s.push_back(' ');
+          s.append(i2str(j));
+        } while(j != y);
+        
+        state = sInit;
+      }
+      continue;
+
     }
 
     /* no TAGs found, simply copy the characters */
     s.push_back(c);
-
   }
 
   DM_DBG(DM_N(4), "state=%d\n", state);
@@ -1609,7 +1756,7 @@ Process::eval_str(const char *cstr, Process *proc)
       s.append("$" + std::string(state_name[state]) + "{" + target);
     }
   }
-  
+
   RETURN(s);
 } /* eval_str */
 

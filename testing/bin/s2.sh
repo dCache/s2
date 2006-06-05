@@ -129,7 +129,7 @@ main() {
       --e1-file=${S2_E1}\
       --e2-file=${S2_E2}\
       $@\
-      ${S2_TEST_FILE} > ${S2_OUT} 2>${S2_ERR}
+      ${S2_TEST_FILE} > ${S2_OUT} 2>>${S2_ERR}
     err=$?
     echo "$err (${ProgramName})"
     return $err

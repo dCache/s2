@@ -1,0 +1,10 @@
+.cvsignore
+.depend
+.libs
+*.a
+*.exe
+*.dll
+*.la 
+*.lo
+*.o
+*.so

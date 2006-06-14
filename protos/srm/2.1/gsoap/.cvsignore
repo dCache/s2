@@ -1,0 +1,7 @@
+.cvsignore
+.depend
+*.cpp
+*.h
+*.nsmap
+*.o
+*.xml

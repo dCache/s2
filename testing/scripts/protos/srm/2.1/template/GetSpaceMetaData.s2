@@ -1,0 +1,3 @@
+; srmGetSpaceMetaData
+
+srmGetSpaceMetaData $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfSpaceToken[arrayOfSpaceToken0 arrayOfSpaceToken1] spaceDetails=(?P<arrayOfSpaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

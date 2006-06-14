@@ -1,0 +1,3 @@
+; srmMv
+
+srmMv $ENV{SRM_ENDPOINT} userID=$ENV{USER} fromSURLOrStFN=<fromSURLOrStFN> fromStorageSystemInfo=<fromStorageSystemInfo> toSURLOrStFN=<toSURLOrStFN> toStorageSystemInfo=<toStorageSystemInfo> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

@@ -1,0 +1,3 @@
+; srmPrepareToPut
+
+srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.fileStorageType[<type0> <type1>] arrayOfFileRequests.knownSizeOfThisFile[0 0] arrayOfFileRequests.lifetime[0 0] arrayOfFileRequests.spaceToken[<t0> <t1>] arrayOfFileRequests.SURLOrStFN[<s0> <s1>] arrayOfFileRequests.storageSystemInfo[<i0> <i1>] arrayOfTransferProtocols[<p1> <p2>] userRequestDescription=<userRequestDescription> overwriteOption=<overwriteOption> storageSystemInfo=<storageSystemInfo> totalRetryTime=<totalRetryTime> requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)

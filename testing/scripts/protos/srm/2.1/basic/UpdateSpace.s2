@@ -1,0 +1,16 @@
+; srmUpdateSpace
+;
+; srmReserveSpace
+
+ASSIGN srmTest srmUpdateSpace
+
+&& srmReserveSpace $ENV{SRM_ENDPOINT} userID=$ENV{USER} typeOfSpace=Durable userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} sizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE} sizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE} lifetimeOfSpaceToReserve=$ENV{LIFETIME} typeOfReservedSpace=(?P<typeOfReservedSpace>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) referenceHandleOfReservedSpace=(?P<referenceHandleOfReservedSpace>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+   SYSTEM echo "srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace}; referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}
+&& srmUpdateSpace $ENV{SRM_ENDPOINT} userID=$ENV{USER} spaceToken=${referenceHandleOfReservedSpace} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTimeFromCallingTime=$ENV{LIFETIME_NEW} sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "srmUpdateSpace: sizeOfGuaranteedSpace=${sizeOfGuaranteedSpace}, lifetimeGranted=${lifetimeGranted}" >> $ENV{S2_LOG}
+
+&& TEST $ENV{RESERVE_SPACE_NEW} == ${sizeOfGuaranteedSpace}
+&& TEST $ENV{LIFETIME_NEW} == ${lifetimeGranted}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

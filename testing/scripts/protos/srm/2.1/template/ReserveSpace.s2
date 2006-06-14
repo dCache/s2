@@ -1,0 +1,3 @@
+; srmReserveSpace
+
+srmReserveSpace $ENV{SRM_ENDPOINT} userID=$ENV{USER} typeOfSpace=Durable userSpaceTokenDescription=<userSpaceTokenDescription> sizeOfTotalSpaceDesired=1 sizeOfGuaranteedSpaceDesired=2 lifetimeOfSpaceToReserve=3 storageSystemInfo=<storageSystemInfo> typeOfReservedSpace=(?P<typeOfReservedSpace>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) referenceHandleOfReservedSpace=(?P<referenceHandleOfReservedSpace>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

@@ -1,0 +1,24 @@
+; PutGet01: transfer of a file to/from SRM server
+;
+; srmPrepareToGet
+; srmPrepareToPut
+; srmPutDone
+; srmStatusOfGetRequest
+; srmStatusOfPutRequest
+
+ASSIGN srmTest PutGet01
+   #include ../include/PutCycle01.s2
+   #include ../include/GetCycle01.s2
+
+
+;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT}
+&& ASSIGN sURL $ENV{NEW_SRM_FILE}
+   FUN PutCycle01 ${fileToPut} ${sURL}
+
+;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN fileToGet $ENV{FILE_TO_GET}
+   FUN GetCycle01 ${fileToGet} ${sURL}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

@@ -1,0 +1,49 @@
+; PutCycle with multiple files
+;
+; @param: ${filesToPut}
+; @param: ${sURLs}
+;
+; srmPrepareToPut
+; srmStatusOfPutRequest
+; srmPutDone
+
+#ifndef _PUT_CYCLE_
+#define _PUT_CYCLE_
+
+; Generic functions
+#include ../../../../include/Basic.s2
+; SRM functions
+#include ../../include/Basic.s2
+#include ../include/FileTransPut.s2
+
+DEFUN DefTransferURLs f : t
+   ASSIGN t ".*returnStatus.statusCode${:c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL${:c}=(?P<transferURL${:c}>.*?)( |$)"
+   && ASSIGN :c $EXPR{${:c}+1}
+
+DEFUN PutCycle filesToPut sURLs
+   ; Define local variables
+   ASSIGN fileToPutSizes $MAP{FileSize $SPLIT{${filesToPut}}}
+   && ASSIGN storageTypes $MAP{StorageTypes $SPLIT{${filesToPut}}}
+   && ASSIGN lifetimes $MAP{Lifetimes $SPLIT{${filesToPut}}}
+   && ASSIGN c 0 transferURLs ""
+   && ASSIGN transferURLs "$MAP{DefTransferURLs $SPLIT{${filesToPut}}}"
+   
+   && srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$SPLIT{${fileToPutSizes}}] arrayOfFileRequests.fileStorageType[$SPLIT{${storageTypes}}] arrayOfFileRequests.lifetime[$SPLIT{${lifetimes}}] arrayOfFileRequests.SURLOrStFN[$SPLIT{${sURLs}}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+      SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
+      && >1||3 SLEEP $ENV{SLEEP_SOR}
+         srmStatusOfPutRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+         || SYSTEM echo "srmStatusOfPutRequest failed" >> $ENV{S2_LOG} && exit 2
+
+      ; The actual physical transfer
+      && ASSIGN c 0
+         WHILE FUN car ${filesToPut} : fileToPut filesToPut
+            FUN FileTransPut ${fileToPut} ${transferURL${c}}
+            && ASSIGN c $EXPR{${c}+1}
+         || TEST "${filesToPut}" == "" && !$DEFINED{transferURL${c}}
+
+   && srmPutDone $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$SPLIT{${sURLs}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+      SYSTEM echo "srmPutDone: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+   && SYSTEM echo "Put cycle succeeded" >> $ENV{S2_LOG}
+
+; _PUT_CYCLE_
+#endif

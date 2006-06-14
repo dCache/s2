@@ -1,0 +1,24 @@
+; Do the real file transfer (Get)
+;
+; @param: ${fileToGet}
+; @param: ${transferURL}
+
+#ifndef _FILE_TRANS_GET_
+#define _FILE_TRANS_GET_
+
+DEFUN FileTransGet fileToGet transferURL
+   ; substring matching
+   match=-c TEST $MATCH{"^gsiftp://" ${transferURL}}
+      SYSTEM globus-url-copy ${transferURL} file://${fileToGet}
+      ; return 2 if globus-url-copy fails, it returns 1 which is just a warning in s2
+      || SYSTEM echo "globus-url-copy failed ${!}" >> $ENV{S2_LOG} && exit 2
+   || TEST $MATCH{"^rfio://(?P<rfioHost>.*?)/(?P<rfioPath>.*)" ${transferURL}}
+      #if $ENV{RFCP_SUDO}
+      SYSTEM sudo -u dteam001 rfcp ${rfioHost}:${rfioPath} ${fileToGet} 
+      #else
+      SYSTEM rfcp ${rfioHost}:${rfioPath} ${fileToGet}
+      #endif
+      || SYSTEM echo "rfcp failed ${!}" >> $ENV{S2_LOG} && exit 2
+
+; _FILE_TRANS_GET_
+#endif

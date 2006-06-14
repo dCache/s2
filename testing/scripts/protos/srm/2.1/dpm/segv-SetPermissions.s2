@@ -1,0 +1,9 @@
+; srmSetPermission
+; srmCheckPermission
+;
+; srmPrepareToPut
+; srmStatusOfPutRequest
+; srmPutDone
+
+srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} storageSystemInfo=<i1> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+&& srmSetPermission $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} permissionType=ADD userPermissionArray.mode[RWX] otherPermission=RWX returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

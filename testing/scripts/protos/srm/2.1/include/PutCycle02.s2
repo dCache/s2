@@ -1,0 +1,27 @@
+; PutCycle with two files
+;
+; @param: ${fileToPut0} ${fileToPut1}
+; @param: ${sURL0} ${sURL1}
+;
+; srmPrepareToPut
+; srmStatusOfPutRequest
+; srmPutDone
+
+#include ./FileTransPut.s2
+
+DEFUN PutCycle02 fileToPut0 fileToPut1 sURL0 sURL1
+  ;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.knownSizeOfThisFile[0] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[${sURL0} ${sURL1}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+     SYSTEM echo "$DATE{} SRM2 test B: srmPrepareToPut: putRequestToken=${putRequestToken} success" >> $ENV{S2_LOG}
+     && >1||3 SLEEP $ENV{SLEEP_SOR}
+        srmStatusOfPutRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[${sURL0} ${sURL1}] fileStatuses=".*returnStatus.statusCode0=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL0=(?P<transferURL0>.*?) .*returnStatus.statusCode1=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL1=(?P<transferURL1>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+           SYSTEM echo "$DATE{} SRM2 test B: srmStatusOfPutRequest: file fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+        || SYSTEM echo "srmStatusOfPutRequest failed" >> $ENV{S2_LOG} && exit 2
+     && FUN FileTransPut ${fileToPut0} ${transferURL0}
+     && FUN FileTransPut ${fileToPut1} ${transferURL1}
+  && NOP
+     srmPutDone $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[${sURL0} ${sURL1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+     && SYSTEM echo "$DATE{} SRM2 test B: srmPutDone: success" >> $ENV{S2_LOG}
+     || SYSTEM echo "$DATE{} SRM2 test B: srmPutDone: failed" >> $ENV{S2_LOG}
+  && SYSTEM echo "Put cycle succeeded; wrote ${fileToPut0} to ${sURL0}" >> $ENV{S2_LOG}
+  && SYSTEM echo "Put cycle succeeded; wrote ${fileToPut1} to ${sURL1}" >> $ENV{S2_LOG}

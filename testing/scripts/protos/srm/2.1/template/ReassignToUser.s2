@@ -1,0 +1,3 @@
+; srmReassignToUser
+
+srmReassignToUser $ENV{SRM_ENDPOINT} userID=$ENV{USER} assignedUser=<assignedUser> lifeTimeOfThisAssignment=0 SURLOrStFN=<SURLOrStFN> storageSystemInfo=<storageSystemInfo> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

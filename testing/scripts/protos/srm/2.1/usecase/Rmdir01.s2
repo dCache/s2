@@ -1,0 +1,45 @@
+; Rmdir01: remove directory test
+;
+; srmMkdir
+; srmRmdir
+; srmPrepareToGet
+; srmPrepareToPut
+; srmPutDone
+; srmStatusOfGetRequest
+; srmStatusOfPutRequest
+
+ASSIGN srmTest Rmdir01
+   #include ../include/PutCycle01.s2
+   #include ../include/GetCycle01.s2
+
+&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} storageSystemInfo=<i1> returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+
+; put a file into the newly created directory
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT}
+&& ASSIGN sURL $ENV{NEW_SRM_DIR}/f0
+   FUN PutCycle01 ${fileToPut} ${sURL}
+
+; this remove should fail, not a recursive rm
+&& NOP 0
+   srmRmdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} storageSystemInfo=<i1> recursive=0 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "$DATE{} non-recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> $ENV{S2_LOG}
+
+; try to fetch the file, it should succeed
+&& ASSIGN fileToGet $ENV{FILE_TO_GET}
+   FUN GetCycle01 ${fileToGet} ${sURL}
+
+; this remove should succeed if a recursive rm is supported by the server
+&& NOP 0
+   srmRmdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} storageSystemInfo=<i1> recursive=1 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "$DATE{} recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> $ENV{S2_LOG}
+
+; try to fetch the file (should fail)
+&& FUN GetCycle01 ${fileToGet} ${sURL}
+   SYSTEM echo "$DATE{} KO: successfully fetched a file from a directory which should've been removed!" >> $ENV{S2_LOG} && exit 2
+
+; try to put files into the removed directory (should fail)
+&& FUN PutCycle01 ${fileToPut} ${sURL}
+   SYSTEM echo "$DATE{} KO: successfully put files into a directory which should've been removed!" >> $ENV{S2_LOG} && exit 2
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

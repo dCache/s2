@@ -1,0 +1,33 @@
+; Pin01: pinning
+;
+; srmPrepareToPut
+; srmStatusOfPutRequest
+; srmPutDone
+; srmExtendFileLifeTime
+; srmReleaseFiles
+
+ASSIGN srmTest Pin01
+   #include ../include/PutCycle01.s2
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT}
+&& ASSIGN sURL $ENV{NEW_SRM_FILE}
+   FUN PutCycle01 ${fileToPut} ${sURL}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; use srmExtendFileLifeTime to try to extend the pin time for the file
+&& srmExtendFileLifeTime $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} siteURL=${sURL} newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+   TEST $ENV{LIFETIME_NEW} == ${newTimeExtended}
+      SYSTEM echo "$DATE{} file lifetime extended to $ENV{LIFETIME_NEW}" >> $ENV{S2_LOG}
+   || SYSTEM echo "$DATE{} file lifetime didn't extend to $ENV{LIFETIME_NEW}" >> $ENV{S2_LOG} && exit 2
+; use srmReleaseFiles to remove one file
+&& srmReleaseFiles $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[${sURL}] keepFiles=0 fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+   SYSTEM echo "$DATE{} srmReleaseFiles: success" >> $ENV{S2_LOG}
+; try to extend the pins again (this should result in failure).
+&& NOP
+   srmExtendFileLifeTime $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} siteURL=${sURL} newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+   || SYSTEM echo "$DATE{} couldn't extend file lifetime (file already released), success." >> $ENV{S2_LOG}
+   && SYSTEM echo "$DATE{} could extend file lifetime to ${newTimeExtended} (file already released), failure!" >> $ENV{S2_LOG} && exit 2
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

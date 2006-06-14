@@ -1,0 +1,3 @@
+; srmRm
+
+srmRm $ENV{SRM_ENDPOINT} userID=$ENV{USER} path.SURLOrStFN[<s0> <s1>] path.storageSystemInfo[<i0> <i1>] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

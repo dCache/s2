@@ -1,0 +1,26 @@
+; PutGet02: transfer of two files in one go to/from SRM server
+;
+; srmPrepareToGet
+; srmPrepareToPut
+; srmPutDone
+; srmStatusOfGetRequest
+; srmStatusOfPutRequest
+
+ASSIGN srmTest PutGet02
+   #include ../include/PutCycle02.s2
+   #include ../include/GetCycle02.s2
+
+;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN fileToPut0 $ENV{FILE_TO_PUT0}
+&& ASSIGN fileToPut1 $ENV{FILE_TO_PUT1}
+&& ASSIGN sURL0 $ENV{NEW_SRM_FILE0}
+&& ASSIGN sURL1 $ENV{NEW_SRM_FILE1}
+   FUN PutCycle02 ${fileToPut0} ${fileToPut1} ${sURL0} ${sURL1}
+
+;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN fileToGet0 $ENV{FILE_TO_GET0}
+&& ASSIGN fileToGet1 $ENV{FILE_TO_GET1}
+   FUN GetCycle02 ${fileToGet0} ${fileToGet1} ${sURL0} ${sURL1}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

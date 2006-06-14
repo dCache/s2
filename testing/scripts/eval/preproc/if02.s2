@@ -1,0 +1,9 @@
+; #ifdef #ifndef #define #endif preprocessor directive test
+
+#define ONE
+#ifdef ONE
+SYSTEM echo "one"
+#endif
+#ifndef ONE
+SYSTEM echo "never reached"
+#endif

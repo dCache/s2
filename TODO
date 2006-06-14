@@ -1,13 +1,14 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Implement FOR <var> <IN> <list>
-- Change [][]..[] to [dq_params...]
-- Prepare directories for SRM 2.2 WSDL
 - SRM2 test scenarios and testing (storage system info/description as testing)!
+- Implement SRM 2.2
+- Testing, optimize for speed
 - Saving to global vars (?P<::Hello>.*)
-- Allow things like >${a} ${b}
+- output of TEST ${empty} == "" and simillar in e* files
 - ECHO (vs. SYSTEM echo --- performance considerations)
-- Support more $TAGs (e.g.: $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...)
+- Support more $TAGs, e.g.:
+  * $FILE{<eval> <file>} (read in contents from <file> and optionally <eval>uate tags it contains)
+  * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...
 - Plugin architecture to make adding of new protocols simple?
   API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
 - SEND/RECEIVE (TCP/UDP/...)?

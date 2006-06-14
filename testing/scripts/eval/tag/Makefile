@@ -1,1 +1,1 @@
--include mk/general.mk ../mk/general.mk ../../mk/general.mk ../../../mk/general.mk ../../../../mk/general.mk
+-include mk/general.mk ../mk/general.mk ../../mk/general.mk ../../../mk/general.mk ../../../../mk/general.mk ../../../../../mk/general.mk ../../../../../../mk/general.mk

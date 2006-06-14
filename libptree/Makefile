@@ -25,7 +25,11 @@ DOCS		:=
 
 
 # Includes ###########################################################
-INCLUDES	+= -I../gsoap -I../libsrm2api -I$(_with_gsoapdir)/include
+ifneq ($(SRM_VERSION),)
+SRM_DIR		:= ../protos/srm/$(SRM_VERSION)
+INCLUDES	+= -I$(SRM_DIR)/gsoap -I$(SRM_DIR)/api -I$(_with_gsoapdir)/include
+endif
+
 CPPFLAGS	+= $(INCLUDES)
 INCS		:=
 

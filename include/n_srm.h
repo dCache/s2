@@ -5,11 +5,11 @@
 #include <stdint.h>
 #endif
 
-#include "n.h"                  /* Node */
-#include "srm2api.h"
-#include "srm_soap27.h"
+#if defined(HAVE_SRM21)
 
-#define SRM2_CALL                               /* disable for debug purposes */
+#include "n.h"			/* Node */
+
+#define SRM2_CALL		/* disable for debug purposes */
 
 /* simple macros */
 #define SS_SRM(method)\
@@ -123,7 +123,7 @@ public:
   SRM2();
   ~SRM2();
 
-  int matchReturnStatus(srm__TReturnStatus *returnStatus, Process *proc);
+  int matchReturnStatus(struct srm__TReturnStatus *returnStatus, Process *proc);
   std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc);
   std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc);
 
@@ -142,7 +142,7 @@ struct srmAbortFiles : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmAbortFilesResponse_ *resp;
+  struct srm__srmAbortFilesResponse_ *resp;
 
 public:
   srmAbortFiles();
@@ -168,7 +168,7 @@ struct srmAbortRequest : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmAbortRequestResponse_ *resp;
+  struct srm__srmAbortRequestResponse_ *resp;
 
 public:
   srmAbortRequest();
@@ -196,7 +196,7 @@ struct srmCompactSpace : public SRM2
   std::string *newSizeOfThisSpace;
 
   /* response (API) */
-  srm__srmCompactSpaceResponse_ *resp;
+  struct srm__srmCompactSpaceResponse_ *resp;
 
 public:
   srmCompactSpace();
@@ -229,7 +229,7 @@ struct srmCopy : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmCopyResponse_ *resp;
+  struct srm__srmCopyResponse_ *resp;
 
 public:
   srmCopy();
@@ -258,7 +258,7 @@ struct srmExtendFileLifeTime : public SRM2
   std::string *newTimeExtended;
 
   /* response (API) */
-  srm__srmExtendFileLifeTimeResponse_ *resp;
+  struct srm__srmExtendFileLifeTimeResponse_ *resp;
 
 public:
   srmExtendFileLifeTime();
@@ -284,7 +284,7 @@ struct srmGetRequestID : public SRM2
   std::string *requestTokens;
 
   /* response (API) */
-  srm__srmGetRequestIDResponse_ *resp;
+  struct srm__srmGetRequestIDResponse_ *resp;
 
 public:
   srmGetRequestID();
@@ -311,7 +311,7 @@ struct srmGetRequestSummary : public SRM2
   std::string *requestSummary;
 
   /* response (API) */
-  srm__srmGetRequestSummaryResponse_ *resp;
+  struct srm__srmGetRequestSummaryResponse_ *resp;
 
 public:
   srmGetRequestSummary();
@@ -338,7 +338,7 @@ struct srmGetSpaceMetaData : public SRM2
   std::string *spaceDetails;
 
   /* response (API) */
-  srm__srmGetSpaceMetaDataResponse_ *resp;
+  struct srm__srmGetSpaceMetaDataResponse_ *resp;
 
 public:
   srmGetSpaceMetaData();
@@ -365,7 +365,7 @@ struct srmGetSpaceToken : public SRM2
   std::string *possibleSpaceTokens;
 
   /* response (API) */
-  srm__srmGetSpaceTokenResponse_ *resp;
+  struct srm__srmGetSpaceTokenResponse_ *resp;
 
 public:
   srmGetSpaceToken();
@@ -392,7 +392,7 @@ struct srmChangeFileStorageType : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmChangeFileStorageTypeResponse_ *resp;
+  struct srm__srmChangeFileStorageTypeResponse_ *resp;
 
 public:
   srmChangeFileStorageType();
@@ -420,7 +420,7 @@ struct srmCheckPermission : public SRM2
   std::string *permissions;
 
   /* response (API) */
-  srm__srmCheckPermissionResponse_ *resp;
+  struct srm__srmCheckPermissionResponse_ *resp;
 
 public:
   srmCheckPermission();
@@ -453,7 +453,7 @@ struct srmLs : public SRM2
   std::string *pathDetails;
 
   /* response (API) */
-  srm__srmLsResponse_ *resp;
+  struct srm__srmLsResponse_ *resp;
 
 public:
   srmLs();
@@ -464,7 +464,7 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
-  std::string srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote, std::vector<srm__TMetaDataPathDetail *> details) const;
+  std::string srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
 
 private:
 };
@@ -481,7 +481,7 @@ struct srmMkdir : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmMkdirResponse_ *resp;
+  struct srm__srmMkdirResponse_ *resp;
 
 public:
   srmMkdir();
@@ -509,7 +509,7 @@ struct srmMv : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmMvResponse_ *resp;
+  struct srm__srmMvResponse_ *resp;
 
 public:
   srmMv();
@@ -541,7 +541,7 @@ struct srmPrepareToGet : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmPrepareToGetResponse_ *resp;
+  struct srm__srmPrepareToGetResponse_ *resp;
 
 public:
   srmPrepareToGet();
@@ -575,7 +575,7 @@ struct srmPrepareToPut : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmPrepareToPutResponse_ *resp;
+  struct srm__srmPrepareToPutResponse_ *resp;
 
 public:
   srmPrepareToPut();
@@ -603,7 +603,7 @@ struct srmPutDone : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmPutDoneResponse_ *resp;
+  struct srm__srmPutDoneResponse_ *resp;
 
 public:
   srmPutDone();
@@ -632,7 +632,7 @@ struct srmReassignToUser : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmReassignToUserResponse_ *resp;
+  struct srm__srmReassignToUserResponse_ *resp;
 
 public:
   srmReassignToUser();
@@ -660,7 +660,7 @@ struct srmReleaseFiles : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmReleaseFilesResponse_ *resp;
+  struct srm__srmReleaseFilesResponse_ *resp;
 
 public:
   srmReleaseFiles();
@@ -688,7 +688,7 @@ struct srmReleaseSpace : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmReleaseSpaceResponse_ *resp;
+  struct srm__srmReleaseSpaceResponse_ *resp;
 
 public:
   srmReleaseSpace();
@@ -715,7 +715,7 @@ struct srmRemoveFiles : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmRemoveFilesResponse_ *resp;
+  struct srm__srmRemoveFilesResponse_ *resp;
 
 public:
   srmRemoveFiles();
@@ -751,7 +751,7 @@ struct srmReserveSpace : public SRM2
   std::string *referenceHandleOfReservedSpace;
 
   /* response (API) */
-  srm__srmReserveSpaceResponse_ *resp;
+  struct srm__srmReserveSpaceResponse_ *resp;
 
 public:
   srmReserveSpace();
@@ -776,7 +776,7 @@ struct srmResumeRequest : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmResumeRequestResponse_ *resp;
+  struct srm__srmResumeRequestResponse_ *resp;
 
 public:
   srmResumeRequest();
@@ -802,7 +802,7 @@ struct srmRm : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmRmResponse_ *resp;
+  struct srm__srmRmResponse_ *resp;
 
 public:
   srmRm();
@@ -830,7 +830,7 @@ struct srmRmdir : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmRmdirResponse_ *resp;
+  struct srm__srmRmdirResponse_ *resp;
 
 public:
   srmRmdir();
@@ -861,7 +861,7 @@ struct srmSetPermission : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmSetPermissionResponse_ *resp;
+  struct srm__srmSetPermissionResponse_ *resp;
 
 public:
   srmSetPermission();
@@ -889,7 +889,7 @@ struct srmStatusOfCopyRequest : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmStatusOfCopyRequestResponse_ *resp;
+  struct srm__srmStatusOfCopyRequestResponse_ *resp;
 
 public:
   srmStatusOfCopyRequest();
@@ -917,7 +917,7 @@ struct srmStatusOfGetRequest : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmStatusOfGetRequestResponse_ *resp;
+  struct srm__srmStatusOfGetRequestResponse_ *resp;
 
 public:
   srmStatusOfGetRequest();
@@ -945,7 +945,7 @@ struct srmStatusOfPutRequest : public SRM2
   std::string *fileStatuses;
 
   /* response (API) */
-  srm__srmStatusOfPutRequestResponse_ *resp;
+  struct srm__srmStatusOfPutRequestResponse_ *resp;
 
 public:
   srmStatusOfPutRequest();
@@ -971,7 +971,7 @@ struct srmSuspendRequest : public SRM2
   /* response (parser) */
 
   /* response (API) */
-  srm__srmSuspendRequestResponse_ *resp;
+  struct srm__srmSuspendRequestResponse_ *resp;
 
 public:
   srmSuspendRequest();
@@ -1003,7 +1003,7 @@ struct srmUpdateSpace : public SRM2
   std::string *lifetimeGranted;
 
   /* response (API) */
-  srm__srmUpdateSpaceResponse_ *resp;
+  struct srm__srmUpdateSpaceResponse_ *resp;
 
 public:
   srmUpdateSpace();
@@ -1016,5 +1016,8 @@ public:
 
 private:
 };
+
+#endif	/* HAVE_SRM21 */
+
 
 #endif /* _N_SRM_H */

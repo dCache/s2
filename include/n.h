@@ -33,12 +33,12 @@
 #define SS_VEC(vec)\
   if(vec.size()) {\
     ss << " "#vec << "[";\
-    for(uint i = 0; i < vec.size(); i++) {\
-      if(i) ss << "][";\
-      ss << Node::ind_param(vec[i]);\
+    for(uint __u = 0; __u < vec.size(); __u++) {\
+      if(__u) ss << " ";\
+      ss << dq_param(Process::eval_str(vec[__u],proc), quote);\
     }\
     ss << "]";\
-  }
+  }\
 
 #define SS_VEC_DEL(vec)\
   do {SS_VEC(vec); if(proc) DELETE_VEC(vec)} while(0)
@@ -88,9 +88,9 @@ struct Node
 
   /* REPEAT */
   struct {
-    S2_repeat type;             /* Repeat type (S2_REPEAT_NONE if normal branch). */
-    int64_t X;                  /* Repeat from value when !S2_REPEAT_NONE, 0 otherwise. */
-    int64_t Y;                  /* Repeat to value when !S2_REPEAT_NONE, 0 otherwise. */
+    S2_repeat type;		/* Repeat type (S2_REPEAT_NONE if normal branch). */
+    std::string *X;		/* Repeat from value (string value from the parser). */
+    std::string *Y;		/* Repeat to value (string value from the parser). */
   } REPEAT;
 
   /* EVAL */
@@ -123,14 +123,6 @@ public:
 
   static Node *get_node_with_offset(Node *ptr_node, const uint offset);
   static int append_node(Node *root_node, Node *n);
-  static std::string dq_param(const std::string *s, BOOL quote);
-  static std::string dq_param(const std::string &s, BOOL quote);
-  static std::string dq_param(const char *s, BOOL quote);
-  static std::string dq_param(const bool b, BOOL quote);
-  static std::string dq_param(const unsigned char c, BOOL quote);
-  static std::string ind_param(const std::string *s);
-  static std::string ind_param(const std::string &s);
-  static std::string ind_param(const char *s);
   static std::string nodeToString(Node *n, uint indent, Process *proc);
   static int print_node(Node *n, uint indent, FILE *file, Process *proc, BOOL show_executed, BOOL show_evaluated);
 

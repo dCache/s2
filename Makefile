@@ -12,8 +12,9 @@ VERSION_H	:= include/version.h
 
 # Subdirectories #####################################################
 SUBDIRS		:= libcommon libmatch
-ifeq ($(_enable_gsoap),yes)
-SUBDIRS		+= gsoap libsrm2api libsrm2n
+ifneq ($(SRM_VERSION),)
+SRM_DIR		:= protos/srm/$(SRM_VERSION)
+SUBDIRS		+= $(SRM_DIR)/gsoap $(SRM_DIR)/api $(SRM_DIR)/n
 endif
 SUBDIRS		+= libexpr libptree src doc testing
 SUBDIRS_CLEAN	:= $(SUBDIRS) pant www

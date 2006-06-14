@@ -10,7 +10,7 @@ S2_HTML_LOG		:= index.html
 
 # Functions
 CWD			= $(shell pwd)
-CLIMB			= $(shell (test -r $1 && $3 $1) || (test -r ../$1 && $3 ../$1) || (test -r ../../$1 && $3 ../../$1) || (test -r ../../../$1 && $3 ../../../$1) || (test -r ../../../../$1 && $3 ../../../../$1) || echo $2)
+CLIMB			= $(shell (test -r $1 && $3 $1) || (test -r ../$1 && $3 ../$1) || (test -r ../../$1 && $3 ../../$1) || (test -r ../../../$1 && $3 ../../../$1) || (test -r ../../../../$1 && $3 ../../../../$1) || (test -r ../../../../../$1 && $3 ../../../../../$1) || (test -r ../../../../../../$1 && $3 ../../../../../../$1) || echo $2)
 WHICH			= $(call CLIMB,$1,$2,echo)
 NS			= $(call CLIMB,$1,$2,cat)
 
@@ -73,7 +73,7 @@ echo -e "</TR>" >> $1
 
 
 # Directories
-SUBDIRS			= `find . -maxdepth 1 -type d | sed '1,0 d' | sed 's|^./||' | egrep -v '^(.svn|CVS|template)$$'`
+SUBDIRS			= `find . -maxdepth 1 -type d | sed '1,0 d' | sed 's|^./||' | egrep -v '^(.svn|CVS|template|include)$$'`
 SUBDIRS_CLEAN		= $(SUBDIRS)
 CHECK_DIR		= check
 
@@ -81,4 +81,4 @@ CHECK_DIR		= check
 # Scripts
 S2_SH			= $(call WHICH,bin/s2.sh,false)
 
--include local.mk ../local.mk ../../local.mk ../../../mk/local.mk ../../../../mk/local.mk
+-include local.mk ../local.mk ../../local.mk ../../../mk/local.mk ../../../../mk/local.mk ../../../../../mk/local.mk ../../../../../../mk/local.mk

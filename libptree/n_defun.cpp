@@ -15,6 +15,7 @@
 #include "free.h"               /* FREE(), DELETE() */
 #include "io.h"                 /* file_ropen(), ... */
 #include "max.h"		/* UPDATE_MAX() */
+#include "str.h"		/* dq_param() */
 
 #include <errno.h>              /* errno */
 #include <time.h>               /* nanosleep() */

@@ -1,0 +1,7 @@
+; Testing $INTERLEAVE{} tag.
+
+ASSIGN l1 "1 2 3" l2 "4 5 6" l3 "7 8 9" l4 "10 11 12"
+&& SYSTEM echo "$INTERLEAVE{3 1 2 3 4 5 6 7 8 9 10 11 12}"
+&& SYSTEM echo "$INTERLEAVE{3 $SPLIT{${l1}} $SPLIT{${l2}} $SPLIT{${l3}} $SPLIT{${l4}}}"
+&& SYSTEM echo "$EVAL{$INTERLEAVE{2 ${l1} ${l2} ${l3} ${l4}}}"
+&& SYSTEM echo "$INTERLEAVE{2 1 2 3 4 5 6 7 8 9 10 11 12}"

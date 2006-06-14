@@ -2,3 +2,4 @@
 
 SYSTEM echo $INT{100/3}
 && SYSTEM echo $INT{"cannot do this"}
+|| SYSTEM echo $INT{}

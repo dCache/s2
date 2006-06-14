@@ -1,0 +1,12 @@
+; LISP emulator ;)
+
+DEFUN car list : car cdr
+   TEST $MATCH{"(?P<car>[^ ]+)([ ]+|$)(?P<cdr>.*)" ${list}}
+
+&& ASSIGN seq "1 2 3 4 5"
+&& NOP
+   WHILE FUN car ${seq} : first seq
+      SYSTEM echo "first=${first}; seq=${seq}"
+
+|| TEST ${seq} == ""
+   SYSTEM echo "OK"

@@ -14,6 +14,7 @@
 
 #include "free.h"               /* FREE(), DELETE() */
 #include "io.h"                 /* file_ropen(), ... */
+#include "str.h"		/* dq_param() */
 
 #include <errno.h>		/* errno */
 

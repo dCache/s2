@@ -25,6 +25,7 @@
 
 /* typedefs */
 typedef std::map<std::string, struct nDefun *> TFunctions;
+typedef std::map<std::string, std::string> TDefines;
 
 /* extern(al) functions (defined by other modules) */
 extern const char* PNAME(void);

@@ -117,7 +117,6 @@ eval_in_parallel(void *proc)
   MUTEX(&tp_sync.total_mtx, tp_sync.total--);
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", p->n->row, p->executed, p->evaluated, pthread_self());
-//  if(n->TIMEOUT) timeout_del(pthread_self());
 
 #if 0
   pthread_exit((void *)proc);
@@ -307,8 +306,10 @@ Process::eval()
         if(ptr_node->REPEAT.type == S2_REPEAT_PAR) {
           /* repeats execution */
           int repeats_eval;
-          int8_t step = ptr_node->REPEAT.X < ptr_node->REPEAT.Y? 1 : -1;
-          int64_t i = ptr_node->REPEAT.X - step;
+          int64_t x = expr2i(ptr_node->REPEAT.X, this);
+          int64_t y = expr2i(ptr_node->REPEAT.Y, this);
+          int8_t step = x < y ? 1 : -1;
+          int64_t i = x - step;
 
           do {
             i += step;
@@ -343,7 +344,7 @@ Process::eval()
               repeats_eval = proc.eval_with_timeout();
               UPDATE_MAX(evaluated, repeats_eval);
             }
-          } while(i != ptr_node->REPEAT.Y);
+          } while(i != y);
 
           continue;
         } /* end repeats */
@@ -401,10 +402,10 @@ Process::eval()
 
   /* Parallel execution finished, we have one thread of execution. *
    * Go through the parallel branches and set the return value.    */
-  std::vector<Process *>::const_iterator it;
-  for (it = vProc.begin(); it != vProc.end(); it++) {
-    UPDATE_MAX(evaluated, (*it)->evaluated);
-    delete *it;
+  std::vector<Process *>::const_iterator iter;
+  for (iter = vProc.begin(); iter != vProc.end(); iter++) {
+    UPDATE_MAX(evaluated, (*iter)->evaluated);
+    delete *iter;
   }
   
   DM_DBG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
@@ -433,16 +434,18 @@ Process::eval_repeats()
     case S2_REPEAT_AND:		/* fall through */
     case S2_REPEAT_WHILE:	/* fall through */
 seq:
-      I = n->REPEAT.X;		/* necessary for S2_REPEAT_NONE only */
+      I = expr2i(n->REPEAT.X, this);	/* necessary for S2_REPEAT_NONE only */
       repeats_eval = eval_sequential_repeats();
       UPDATE_MAX(evaluated, repeats_eval);
       DM_DBG(DM_N(5), FBRANCH"repeats_eval=%d\n", n->row, executed, evaluated, repeats_eval);
     break;
 
     case S2_REPEAT_PAR: {
-      int8_t step = n->REPEAT.X < n->REPEAT.Y? 1 : -1;
-      int64_t i = n->REPEAT.X - step;
-      uint threads_total = 1 + ((n->REPEAT.X > n->REPEAT.Y)? n->REPEAT.X - n->REPEAT.Y: n->REPEAT.Y - n->REPEAT.X);
+      int64_t x = expr2i(n->REPEAT.X, this);
+      int64_t y = expr2i(n->REPEAT.Y, this);
+      int8_t step = x < y ? 1 : -1;
+      int64_t i = x - step;
+      uint threads_total = 1 + ((x > y)? x - y: y - x);
       if(threads_total == 1)
         /* no parallel threads needed */
         goto seq;
@@ -487,7 +490,7 @@ seq:
           repeats_eval = eval_with_timeout();
           UPDATE_MAX(evaluated, repeats_eval);
         }
-      } while(i != n->REPEAT.Y);
+      } while(i != y);
 
       S_P(&sreqs_mtx);
       DM_DBG(DM_N(3), FBRANCH"<<< r sreqs_mtx (%d)\n", n->row, executed, evaluated, sreqs);
@@ -504,10 +507,10 @@ seq:
 
       /* Parallel execution finished, we have one thread of execution. *
        * Go through the parallel branches and set the return value.    */
-      std::vector<Process *>::const_iterator it;
-      for (it = vProc.begin(); it != vProc.end(); it++) {
-        UPDATE_MAX(evaluated, (*it)->evaluated);
-        delete *it;
+      std::vector<Process *>::const_iterator iter;
+      for (iter = vProc.begin(); iter != vProc.end(); iter++) {
+        UPDATE_MAX(evaluated, (*iter)->evaluated);
+        delete *iter;
       }
 
       /* Investigate branches at the same offset */
@@ -610,8 +613,10 @@ Process::eval_sequential_repeats()
   DM_DBG_I;
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
-  int8_t step = n->REPEAT.X < n->REPEAT.Y? 1 : -1;
-  int64_t i = n->REPEAT.X - step;
+  int64_t x = expr2i(n->REPEAT.X, this);
+  int64_t y = expr2i(n->REPEAT.Y, this);
+  int8_t step = x < y ? 1 : -1;
+  int64_t i = x - step;
   int iter_eval;
 
   switch(n->REPEAT.type) {
@@ -638,7 +643,7 @@ Process::eval_sequential_repeats()
           /* end on first successful evaluation */
           break;
         }
-      } while(I != n->REPEAT.Y);
+      } while(I != y);
     }
     break;
 
@@ -656,7 +661,7 @@ Process::eval_sequential_repeats()
           /* end on first unsuccessful evaluation */
           break;
         }
-      } while(I != n->REPEAT.Y);
+      } while(I != y);
     }
     break;
 
@@ -854,7 +859,8 @@ Process::eval_with_timeout()
      * (this will never timeout)                                           */
     timeout_exec = ((nFun *)n)->exec(this, proc_fun);
   } else
-  timeout_exec = exec_with_timeout();
+    timeout_exec = exec_with_timeout();
+
   et=EVAL_STATIC;
   DM_LOG_B(DM_N(1), "e1:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
 
@@ -896,7 +902,7 @@ Process::eval_with_timeout()
     subtree_eval = ERR_OK;
   } else  {
     et=EVAL_ALL;
-    subtree_eval = eval_subtree(timeout_exec, timeout_exec);
+    subtree_eval = eval_subtree(executed);
   }
   DM_DBG(DM_N(4), FBRANCH"proc=%p; subtree_eval=%d\n", n->row, executed, evaluated, this, subtree_eval);
 
@@ -909,10 +915,10 @@ Process::eval_with_timeout()
  * Evaluate subtree of a node.
  */
 int
-Process::eval_subtree(const int root_exec, int &root_eval)
+Process::eval_subtree(const int root_exec)
 {
   DM_DBG_I;
-  int child_eval;
+  int child_eval = ERR_OK;
 
   /* investigate CHILDREN */
   if(root_exec <= n->EVAL) { 
@@ -921,13 +927,12 @@ Process::eval_subtree(const int root_exec, int &root_eval)
       DM_DBG(DM_N(3), FBRANCH"evaluating child branch %u\n", n->row, executed, evaluated, n->child->row);
       Process proc = Process(n->child, this, NULL);
       child_eval = proc.eval();
-      root_eval = child_eval;
     }
   }
 
-  DM_DBG(DM_N(5), FBRANCH"subtree_eval=%d\n", n->row, executed, evaluated, root_eval);
+  DM_DBG(DM_N(5), FBRANCH"subtree_eval=%d\n", n->row, executed, evaluated, child_eval);
 
-  RETURN(root_eval);
+  RETURN(child_eval);
 }
 /* eval_subtree */
 
@@ -1016,6 +1021,17 @@ Process::e_match(const char *expected, const char *received)
   return match;
 } /* e_match */
 
+inline static Process *
+get_parent_scope(Process *up)
+{
+  while(up && !up->var_tab) {
+    up = up->parent;
+  }
+  if(up) up = up->parent;	/* skip */
+
+  return up;
+}
+
 /*
  * Manipulation with variables.
  */
@@ -1043,17 +1059,14 @@ Process::WriteVariable(Vars_t *var_tab, const char *name, const char *value, int
     else var_tab->insert(std::pair<std::string, std::string>(name, std::string(value, vlen)));
   }
   
-  if(vlen < 0) DM_DBG(DM_N(0), _("wrote variable `%s' with value `%s' (to %p)\n"), name, value, var_tab);
-  else DM_DBG(DM_N(0), _("wrote variable `%s' with value `%.*s' (to %p)\n"), name, vlen, value, var_tab);
+  if(vlen < 0) DM_DBG(DM_N(2), _("wrote variable `%s' with value `%s' (to %p)\n"), name, value, var_tab);
+  else DM_DBG(DM_N(2), _("wrote variable `%s' with value `%.*s' (to %p)\n"), name, vlen, value, var_tab);
 } /* WriteVariable */
 
 void
 Process::WriteVariable(Process *proc, const char *name, const char *value, int vlen)
 {
-  if(!proc) {
-    DM_ERR_ASSERT(_("proc == NULL\n"));
-    return;
-  }
+  if(!proc) WriteVariable(&gl_var_tab, name, value, vlen);
   
   if(proc->var_tab == NULL) {
     /* we don't have a table of local variables */
@@ -1083,9 +1096,19 @@ Process::WriteVariable(const char *name, const char *value, int vlen)
   
   name_len = strlen(name);
   no_warn = *name == '-';	/* shouldn't be necessary (not used, but be consistent with ReadVariable) */
-  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn] == ':')
+
+  DM_DBG(DM_N(3), _("process=%p, process->var_tab=%p; parent=%p; parent->var_tab=%p\n"), this, this->var_tab, parent, parent? parent->var_tab : NULL);
+
+  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn + 1] == ':')
     /* ${::<name>} or ${-::<name>} */
     return WriteVariable(&gl_var_tab, name + no_warn + 2, value, vlen);
+
+  if(name_len > (no_warn + 1) && name[no_warn] == ':') {
+    /* ${:<name>} or ${-:<name>} */
+    Process *up = get_parent_scope(this);
+    DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
+    return WriteVariable(up, name + no_warn + 1, value, vlen);
+  }
 
   WriteVariable(this, name + no_warn, value, vlen);
 } /* WriteVariable */
@@ -1113,11 +1136,11 @@ Process::ReadVariable(Vars_t *var_tab, const char *name)
 
   if((iter = var_tab->find(name)) != var_tab->end()) {
     /* variable exists */
-    DM_DBG(DM_N(0), _("read variable `%s' with value `%s' (from %p)\n"), name, iter->second.c_str(), var_tab);
+    DM_DBG(DM_N(2), _("read variable `%s' with value `%s' (from %p)\n"), name, iter->second.c_str(), var_tab);
     return iter->second.c_str();
   } else {
     /* variable doesn't exist */
-    DM_DBG(DM_N(0), _("failed to read variable `%s' from %p\n"), name, var_tab);
+    DM_DBG(DM_N(2), _("failed to read variable `%s' from %p\n"), name, var_tab);
     return (const char *)NULL;
   }
 } /* ReadVariable */
@@ -1125,10 +1148,7 @@ Process::ReadVariable(Vars_t *var_tab, const char *name)
 const char*
 Process::ReadVariable(Process *proc, const char *name)
 {
-  if(!proc) {
-    DM_ERR_ASSERT(_("proc == NULL\n"));
-    return NULL;
-  }
+  if(!proc) return ReadVariable(&gl_var_tab, name);
 
   if(proc->var_tab == NULL) {
     /* we don't have a table of local variables */
@@ -1166,25 +1186,75 @@ Process::ReadVariable(const char *name)
   
   name_len = strlen(name);
   no_warn = *name == '-';
-  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn] == ':')
+
+  DM_DBG(DM_N(3), _("process=%p, process->var_tab=%p; parent=%p; parent->var_tab=%p\n"), this, this->var_tab, parent, parent? parent->var_tab : NULL);
+  
+  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn + 1] == ':')
     /* ${::<name>} or ${-::<name>} */
     return ReadVariable(&gl_var_tab, name + no_warn + 2);
 
+  if(name_len > (no_warn + 1) && name[no_warn] == ':') {
+    /* ${:<name>} or ${-:<name>} */
+    Process *up = get_parent_scope(this);
+    DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
+    return ReadVariable(parent, name + no_warn + 1);
+  }
+  
   return ReadVariable(this, name + no_warn);
 } /* ReadVariable */
 
 /*
- * Evaluate cstr and return evaluated std::string.
+ * Evaluate an expression into an integer if possible.
+ */
+int64_t
+Process::expr2i(const char *cstr, Process *proc)
+{
+  Expr e;
+  Attr a;
+  EVAL_t et_orig;
+  int i = 0;
+
+  if(!cstr || !proc) return 0;
+
+  /* we need to evaluate the string completely (not just variables or nothing!) */
+  et_orig = proc->et;
+  proc->et = EVAL_ALL;
+  e = Expr(cstr, proc);
+  a = e.parse();
+  switch(a.type) {
+    case INT:	/* we have an integer, good */
+      i = a.v.i;
+      goto ret;
+    break;
+    
+    default:
+      UPDATE_MAX(proc->executed, ERR_WARN);
+      DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), cstr);
+    break;
+  }
+  
+ret:
+  proc->et = et_orig;
+  return i;
+}
+
+/*
+ * Evaluate an expression into an integer if possible.
+ */
+int64_t
+Process::expr2i(const std::string *s, Process *proc)
+{
+  if(!s || !proc) return 0;
+  
+  return expr2i(s->c_str(), proc);
+}
+
+/*
+ * Evaluate the $SPLIT{} tags.
  */
 std::string
-Process::eval_str(const char *cstr, Process *proc)
+Process::preeval_str(const char *cstr)
 {
-#define CHK_EVAL_ALL\
-  if(proc->et != EVAL_ALL) {\
-    s.append("$" + std::string(state_name[state]) + "{" + target + "}");\
-    state=sInit;\
-    continue;\
-  }
 #define BALLANCED_OPL(str, s)\
   if(OPL(str)) {\
     /* we have a reference to a variable */\
@@ -1204,12 +1274,142 @@ Process::eval_str(const char *cstr, Process *proc)
   std::string s;
   std::string target;
   enum s_eval { 
-    sInit, sDollar, sVar, sEvar, sCounter, sExpr,  sRnd,  sDate,  sPrintf,
-    sMd5,  sDefined,  sMatch,  sInt,  sFun,  sSeq,
+    sInit, sDollar, sSplit,
   } state = sInit;
   static const char* state_name[] = {
-    "",    "",      "",   "ENV", "I",      "EXPR", "RND", "DATE", "PRINTF",
-    "MD5", "DEFINED", "MATCH", "INT", "FUN", "SEQ",
+    "",    "",     "SPLIT",
+  };
+  const char *opt;
+  int opt_off;
+  int bslash = 0;  	/* we had the '\\' character */
+
+  if(cstr == NULL) {
+    DM_ERR_ASSERT(_("c_str == NULL\n"));
+    return std::string(S2_NULL_STR);
+  }
+
+  if(et == EVAL_NONE) return std::string(cstr);
+
+  s.clear();
+  slen = strlen(cstr);
+  for(i = 0; i < slen; i++) {
+    c = cstr[i];
+    opt = cstr + i;
+
+    /* take care of escaped characters */
+    if(bslash != 0) --bslash;
+    if(c == '\\') {
+      if(bslash) {
+        /* two backslashes => no quoting */
+        bslash = 0;
+      } else {
+        bslash = 2;
+      }
+    }
+
+    switch (state) {
+      case sInit:{
+        if(c == '$') {
+          if(!bslash) {
+            state = sDollar;
+            continue;
+          }
+        }
+      }
+      break;
+
+      case sDollar:{
+        int tgt_chars;
+        BALLANCED_OPL("SPLIT{", sSplit) else
+        {
+          /* return the borrowed dollar */
+          s.push_back('$');
+          state = sInit;
+          break;
+        }
+      }
+      continue;
+
+      case sSplit:{
+        target = eval_str(target.c_str(), this);	/* evaluate => expand variables, */
+        if(et == EVAL_ALL) {
+          s.append(target);
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
+        }
+        state = sInit;
+      }
+      continue;
+
+    }
+
+    /* no TAGs found, simply copy the characters */
+    s.push_back(c);
+  }
+
+  DM_DBG(DM_N(4), "state=%d\n", state);
+
+  /* sanity checks */
+  if(state == sDollar) {
+    s.push_back('$');
+  } else {
+    if(state != sInit) {
+      UPDATE_MAX(executed, ERR_WARN);
+      DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);
+      s.append("$" + std::string(state_name[state]) + "{" + target);
+    }
+  }
+
+  RETURN(s);
+
+#undef BALLANCED_OPL
+} /* preeval_str */
+
+std::string
+Process::preeval_str(const std::string *s)
+{
+  if(s == NULL) {
+    DM_ERR_ASSERT(_("s == NULL\n"));
+    return std::string(S2_NULL_STR);
+  }
+
+  return preeval_str(s->c_str());
+} /* preeval_str */
+
+/*
+ * Evaluate cstr and return evaluated std::string.
+ */
+std::string
+Process::eval_str(const char *cstr, Process *proc)
+{
+#define BALLANCED_OPL(str, s)\
+  if(OPL(str)) {\
+    /* we have a reference to a variable */\
+    state = s;\
+    tgt_chars = get_ballanced_br_param(target, opt + opt_off);\
+    if(tgt_chars == 0)\
+      /* no characters parsed, we hit \0 */\
+      break;\
+    i += tgt_chars + opt_off - 2;	/* compensate for +1 loop increment */\
+    target = proc->preeval_str(target.c_str());\
+    continue;\
+  }
+
+  DM_DBG_I;
+
+  int i, c;
+  int slen;
+  std::string s;
+  std::string target;
+  enum s_eval { 
+    sInit, sDollar, sVar, sEvar, sCounter, sEval,  sExpr,  sRnd,  sDate,  sPrintf,
+    sMd5,  sDefined,  sMatch,  sInt,  sFun,  sMap,  sInterleave,  sSeq,
+  } state = sInit;
+  static const char* state_name[] = {
+    "",    "",      "",   "ENV", "I",      "EVAL", "EXPR", "RND", "DATE", "PRINTF",
+    "MD5", "DEFINED", "MATCH", "INT", "FUN", "MAP", "INTERLEAVE", "SEQ",
   };
   const char *opt;
   int opt_off;
@@ -1221,7 +1421,12 @@ Process::eval_str(const char *cstr, Process *proc)
   }
 
   if(!proc || proc->et == EVAL_NONE) return std::string(cstr);
-
+#if 0
+  DM_DBG(DM_N(4), "before preevaluated=|%s|\n", cstr);
+  cstr = proc->preeval_str(cstr).c_str();
+  DM_DBG(DM_N(4), "preevaluated=|%s|\n", cstr);
+#endif
+  
   s.clear();
   slen = strlen(cstr);
   for(i = 0; i < slen; i++) {
@@ -1256,6 +1461,7 @@ Process::eval_str(const char *cstr, Process *proc)
         BALLANCED_OPL("ENV{", sEvar) else
         BALLANCED_OPL("I{", sCounter) else
         BALLANCED_OPL("EXPR{", sExpr) else
+        BALLANCED_OPL("EVAL{", sEval) else
         BALLANCED_OPL("RND{", sRnd) else
         BALLANCED_OPL("DATE{", sDate) else
         BALLANCED_OPL("PRINTF{", sPrintf) else
@@ -1264,6 +1470,8 @@ Process::eval_str(const char *cstr, Process *proc)
         BALLANCED_OPL("MATCH{", sMatch) else
         BALLANCED_OPL("INT{", sInt) else
         BALLANCED_OPL("FUN{", sFun) else
+        BALLANCED_OPL("MAP{", sMap) else
+        BALLANCED_OPL("INTERLEAVE{", sInterleave) else
         BALLANCED_OPL("SEQ{", sSeq) else
         {
           /* return the borrowed dollar */
@@ -1319,7 +1527,7 @@ Process::eval_str(const char *cstr, Process *proc)
         /* we have a complete environment variable */
         target = eval_str(target.c_str(), proc);	/* evaluate things like: $ENV{...${var}...} */
 
-        DM_DBG(DM_N(3), "target=|%s|\n", target.c_str());
+        DM_DBG(DM_N(4), "target=|%s|\n", target.c_str());
         const char *env_var;
         env_var = getenv(target.c_str());
         
@@ -1380,15 +1588,37 @@ Process::eval_str(const char *cstr, Process *proc)
       }
       continue;
 
+      case sEval:{
+        target = eval_str(target.c_str(), proc);
+        target = eval_str(target.c_str(), proc);
+        DM_DBG(DM_N(4), "$eval=|%s|\n", target.c_str());
+
+        if(proc->et == EVAL_ALL) {
+          s.append(target.c_str());
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
+        }
+        state = sInit;
+      }
+      continue;
+
       case sExpr:{
         /* we have a complete expression to evaluate */
         /* DO NOT evaluate target here, let Expr do the evaluation *
          * (e.g. strings with whitespace in them)                  */
-        CHK_EVAL_ALL;
         DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
-        Expr e = Expr(target.c_str(), proc);
-        s.append(e.parse().toString());
+        if(proc->et == EVAL_ALL) {
+          Expr e = Expr(target.c_str(), proc);
+          s.append(e.parse().toString());
+        } else {
+          target = eval_str(target.c_str(), proc);	/* evaluate things like: $EXPR{...${var}...} */
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
+        }
         state = sInit;
       }
       continue;
@@ -1396,79 +1626,91 @@ Process::eval_str(const char *cstr, Process *proc)
       case sRnd:{
         /* we have a maximum+1 random number */
         target = eval_str(target.c_str(), proc);	/* evaluate things like: $RND{...${var}...} */
-        CHK_EVAL_ALL;
-        DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
+        DM_DBG(DM_N(4), "rnd=|%s|\n", target.c_str());
 
-        Expr e = Expr(target.c_str(), proc);
-        Attr attr = e.parse();
-        if(attr.type != INT) {
-          DM_ERR(ERR_ERR, _(FBRANCH"couldn't evaluate expression `%s' to an integer\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
+        if(proc->et == EVAL_ALL) {
+          Expr e = Expr(target.c_str(), proc);
+          Attr attr = e.parse();
+          if(attr.type != INT) {
+            UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, _(FBRANCH"couldn't evaluate expression `%s' to an integer\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
+          } else {
+            /* srandom() is done elsewhere */
+            s.append(i2str(random() % attr.v.i));
+          }
         } else {
-          /* srandom() is done elsewhere */
-          s.append(i2str(random() % attr.v.i));
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
         }
         state = sInit;
       }
       continue;
 
       case sDate:{
-        CHK_EVAL_ALL;
+        target = eval_str(target.c_str(), proc);	/* evaluate things like: $DATE{...${var}...} */
 
-        struct timeval timestamp;
-        struct tm *now;
-        std::string date;
-      
-        gettimeofday(&timestamp, NULL);
-        now = localtime(&(timestamp.tv_sec));
-
-        if(target == "") {
-          /* use the default format */
-          date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu",
-                   now->tm_year+1900, now->tm_mon+1, now->tm_mday,
-                   now->tm_hour, now->tm_min, now->tm_sec, timestamp.tv_usec);
-        } else {
-          int j, esc = 0, len = target.length();
-          for(j = 0; j < len; j++) {
-            if(!esc) {
-              if(target[j] == '%') esc = 1;
-              else s.push_back(target[j]);
-              continue;
+        if(proc->et == EVAL_ALL) {
+          struct timeval timestamp;
+          struct tm *now;
+          std::string date;
+        
+          gettimeofday(&timestamp, NULL);
+          now = localtime(&(timestamp.tv_sec));
+  
+          if(target == "") {
+            /* use the default format */
+            date = ssprintf("%04d-%02d-%02d@%02d:%02d:%02d.%06lu",
+                     now->tm_year+1900, now->tm_mon+1, now->tm_mday,
+                     now->tm_hour, now->tm_min, now->tm_sec, timestamp.tv_usec);
+          } else {
+            int j, esc = 0, len = target.length();
+            for(j = 0; j < len; j++) {
+              if(!esc) {
+                if(target[j] == '%') esc = 1;
+                else s.push_back(target[j]);
+                continue;
+              }
+  
+              /* escape */
+              esc = 0;
+              switch(target[j]) {
+                case 'C': s.append(ssprintf("%02d", (now->tm_year+1900)/100)); break;
+                case 'D': s.append(ssprintf("%02d/%02d/%02d", now->tm_mon+1, now->tm_mday, now->tm_year % 100)); break;
+                case 'd': s.append(ssprintf("%02d", now->tm_mday)); break;
+                case 'e': s.append(ssprintf("%2d", now->tm_mday)); break;
+                case 'F': s.append(ssprintf("%04d-%02d-%02d", now->tm_year+1900, now->tm_mon+1, now->tm_mday)); break;
+                case 'H': s.append(ssprintf("%02d", now->tm_hour)); break;
+                case 'k': s.append(ssprintf("%2d", now->tm_hour)); break;
+                case 'I': s.append(ssprintf("%02d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
+                case 'l': s.append(ssprintf("%2d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
+                case 'j': s.append(ssprintf("%02d", now->tm_yday+1)); break;
+                case 'M': s.append(ssprintf("%02d", now->tm_min)); break;
+                case 'm': s.append(ssprintf("%02d", now->tm_mon+1)); break;
+                case 'n': s.push_back('\n'); break;
+                case 'N': s.append(ssprintf("%06d", timestamp.tv_usec)); break; /* cut to 6 digits */
+                case 'R': s.append(ssprintf("%02d:%02d", now->tm_hour, now->tm_min)); break;
+                case 's': s.append(ssprintf("%d", timestamp.tv_sec)); break;
+                case 'S': s.append(ssprintf("%02d", now->tm_sec)); break;
+                case 't': s.push_back('\t'); break;
+                case 'u': s.append(ssprintf("%d", now->tm_wday)); break;
+                case 'V': s.append(ssprintf("%d", week(now))); break;
+                case 'T': s.append(ssprintf("%02d:%02d:%02d", now->tm_hour, now->tm_min, now->tm_sec)); break;
+                case 'Y': s.append(ssprintf("%04d", now->tm_year+1900)); break;
+                case 'y': s.append(ssprintf("%02d", now->tm_year%100)); break;
+                case 'w': s.append(ssprintf("%d", now->tm_wday-1)); break;
+                default:
+                  s.push_back(target[j]);
+              }
             }
-
-            /* escape */
-            esc = 0;
-            switch(target[j]) {
-              case 'C': s.append(ssprintf("%02d", (now->tm_year+1900)/100)); break;
-              case 'D': s.append(ssprintf("%02d/%02d/%02d", now->tm_mon+1, now->tm_mday, now->tm_year % 100)); break;
-              case 'd': s.append(ssprintf("%02d", now->tm_mday)); break;
-              case 'e': s.append(ssprintf("%2d", now->tm_mday)); break;
-              case 'F': s.append(ssprintf("%04d-%02d-%02d", now->tm_year+1900, now->tm_mon+1, now->tm_mday)); break;
-              case 'H': s.append(ssprintf("%02d", now->tm_hour)); break;
-              case 'k': s.append(ssprintf("%2d", now->tm_hour)); break;
-              case 'I': s.append(ssprintf("%02d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
-              case 'l': s.append(ssprintf("%2d", (now->tm_hour % 12) ? (now->tm_hour % 12) : 12)); break;
-              case 'j': s.append(ssprintf("%02d", now->tm_yday+1)); break;
-              case 'M': s.append(ssprintf("%02d", now->tm_min)); break;
-              case 'm': s.append(ssprintf("%02d", now->tm_mon+1)); break;
-              case 'n': s.push_back('\n'); break;
-              case 'N': s.append(ssprintf("%06d", timestamp.tv_usec)); break; /* cut to 6 digits */
-              case 'R': s.append(ssprintf("%02d:%02d", now->tm_hour, now->tm_min)); break;
-              case 's': s.append(ssprintf("%d", timestamp.tv_sec)); break;
-              case 'S': s.append(ssprintf("%02d", now->tm_sec)); break;
-              case 't': s.push_back('\t'); break;
-              case 'u': s.append(ssprintf("%d", now->tm_wday)); break;
-              case 'V': s.append(ssprintf("%d", week(now))); break;
-              case 'T': s.append(ssprintf("%02d:%02d:%02d", now->tm_hour, now->tm_min, now->tm_sec)); break;
-              case 'Y': s.append(ssprintf("%04d", now->tm_year+1900)); break;
-              case 'y': s.append(ssprintf("%02d", now->tm_year%100)); break;
-              case 'w': s.append(ssprintf("%d", now->tm_wday-1)); break;
-              default:
-                s.push_back(target[j]);
-            }
+            if(esc) s.push_back('%');
           }
-          if(esc) s.push_back('%');
+          s.append(date);
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
         }
-        s.append(date);
         state = sInit;
       }
       continue;
@@ -1495,10 +1737,12 @@ Process::eval_str(const char *cstr, Process *proc)
         std::string arg;
         int l = 0;
         for(j = 0;; j++) {
+          BOOL ws_only;
           int chars;
-          chars = get_dq_param(arg, target_cstr + l);
-          if(chars == 0) break;
+          chars = get_dq_param(arg, target_cstr + l, ws_only);
+          if(ws_only) break;
           arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $PRINTF{...${var}...} */
+          DM_DBG(DM_N(4), "arg=|%s|\n", arg.c_str());
           if((argv[j] = (char *)strdup(arg.c_str())) == (char *)NULL) {
             DM_ERR(ERR_SYSTEM, _("strdup failed\n"));
             state = sInit;
@@ -1508,9 +1752,18 @@ Process::eval_str(const char *cstr, Process *proc)
         }
         argv[j--] = 0;
 
-        s.append(ssprintf_chk(argv));
-        for(;j >= 0; j--) {
-          FREE(argv[j]);
+        if(proc->et == EVAL_ALL) {
+          if(j >= 0) /* no SEGVs when $PRINTF{} (empty argument) */
+            s.append(ssprintf_chk(argv));
+          for(;j >= 0; j--) FREE(argv[j]);
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          for(int x = 0; x <= j; x++) {
+            if(x != 0) s.push_back(' ');
+            s.append(dq_param(argv[x], TRUE));
+            FREE(argv[x]);
+          }
+          s.append("}");
         }
         FREE(argv);
         state = sInit;
@@ -1520,9 +1773,15 @@ Process::eval_str(const char *cstr, Process *proc)
       case sMd5:{
         /* we have a maximum+1 random number */
         target = eval_str(target.c_str(), proc);	/* evaluate things like: $MD5{...${var}...} */
-        char md5str[33];
-        gen_md5(md5str, target.c_str());
-        s.append(md5str);
+        if(proc->et == EVAL_ALL) {
+          char md5str[33];
+          gen_md5(md5str, target.c_str());
+          s.append(md5str);
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
+        }
         state = sInit;
       }
       continue;
@@ -1530,7 +1789,13 @@ Process::eval_str(const char *cstr, Process *proc)
       case sDefined:{
         /* we have a variable to check whether it was defined */
         target = eval_str(target.c_str(), proc);	/* evaluate things like: $DEFINED{...${var}...} */
-        s.append(proc->ReadVariable(target.c_str())? "1" : "0");
+        if(proc->et == EVAL_ALL) {
+          s.append(proc->ReadVariable(target.c_str())? "1" : "0");
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
+        }
         state = sInit;
       }
       continue;
@@ -1540,61 +1805,72 @@ Process::eval_str(const char *cstr, Process *proc)
         std::string received;
         int expected_len = get_dq_param(expected, target.c_str());
         get_dq_param(received, target.c_str() + expected_len);
-        
+
         expected = eval_str(expected.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
         received = eval_str(received.c_str(), proc);	/* evaluate things like: $MATCH{...${var}...} */
-        
-        DM_DBG(DM_N(4), "matching `%s' and `%s'\n", expected.c_str(), received.c_str());
-        s.append(pcre_matches(expected.c_str(),
-                              received.c_str(),
-                              proc->n->match_opt.pcre, proc)? "1": "0");
+
+        if(proc->et == EVAL_ALL) {
+          DM_DBG(DM_N(4), "matching `%s' and `%s'\n", expected.c_str(), received.c_str());
+          s.append(pcre_matches(expected.c_str(),
+                                received.c_str(),
+                                proc->n->match_opt.pcre, proc)? "1": "0");
+        } else {
+          /* do not evaluate, show what we're matching only */
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(dq_param(expected.c_str(), TRUE) + " ");
+          s.append(dq_param(received.c_str(), TRUE));
+          s.append("}");
+        }
 
         state = sInit;
       }
       continue;
 
       case sInt:{
-        /* DO NOT evaluate target here, let Expr do the evaluation *
-         * (e.g. strings with whitespace in them)                  */
-        CHK_EVAL_ALL;
-
-        Expr e = Expr(target.c_str(), proc);
-        Attr a = e.parse();
-        switch(a.type) {
-          case INT:	/* we have an integer, good */
-          break;
-          
-          case REAL:	/* round it up */
-            a.type = INT;
-            a.v.i = (int64_t)a.v.r;
-          break;
-          
-          default:
-            UPDATE_MAX(proc->executed, ERR_WARN);
-            DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
-          break;
+        if(proc->et == EVAL_ALL) {
+          /* DO NOT evaluate target here, let Expr do the evaluation *
+           * (e.g. strings with whitespace in them)                  */
+          Expr e = Expr(target.c_str(), proc);
+          Attr a = e.parse();
+          switch(a.type) {
+            case INT:	/* we have an integer, good */
+            break;
+            
+            case REAL:	/* round it up */
+              a.type = INT;
+              a.v.i = (int64_t)a.v.r;
+            break;
+            
+            default:
+              UPDATE_MAX(proc->executed, ERR_WARN);
+              DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
+            break;
+          }
+          s.append(a.toString());
+        } else {
+          target = eval_str(target.c_str(), proc);	/* evaluate things like: $INT{...${var}...} */
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(target.c_str());
+          s.append("}");
         }
-        s.append(a.toString());
         state = sInit;
       }
       continue;
 
       case sFun:{
-        CHK_EVAL_ALL;
-
         TFunctions::iterator iter;		/* name/function object pair */
         const char *target_cstr = target.c_str();
         nDefun *nDefunNode = NULL;
         Process proc_fun;
-        int j, chars;
+        int chars;
         std::string name;
         std::vector <std::string *> args;	/* vector of call by value arguments */
 
         chars = get_dq_param(name, target_cstr);/* function name */
-        name = eval_str(name.c_str(), proc);	/* evaluate things like: $FUNC{...${var}... <arguments>} */
+        name = eval_str(name.c_str(), proc);	/* evaluate things like: $FUN{...${var}... <arguments>} */
 
-        DM_DBG(DM_N(3), "target=|%s|\n", target.c_str());
-        DM_DBG(DM_N(3), "function name=|%s|\n", name.c_str());
+        DM_DBG(DM_N(4), "target=|%s|\n", target.c_str());
+        DM_DBG(DM_N(4), "function name=|%s|\n", name.c_str());
         if(!nDefunNode) {
           if((iter = gl_fun_tab.find(name.c_str())) == gl_fun_tab.end()) {
             /* Function `name' is not defined. */
@@ -1607,14 +1883,18 @@ Process::eval_str(const char *cstr, Process *proc)
           nDefunNode = iter->second;
         }
       
+        /* get the number of parameters */
+        uint params_size = nDefunNode->params.size();
+
         int l = chars;
-        for(j = 0;; j++) {
+        while(1) {
+          BOOL ws_only;
           int chars;
           std::string arg;
-          chars = get_dq_param(arg, target_cstr + l);
+          chars = get_dq_param(arg, target_cstr + l, ws_only);
           arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $FUN{name ...${var}...} */
-          DM_DBG(DM_N(3), "arg=|%s|\n", arg.c_str());
-          if(chars == 0) break;
+          DM_DBG(DM_N(4), "arg=|%s|\n", arg.c_str());
+          if(ws_only) break;
           std::string *new_arg = new std::string(arg);
           if(new_arg == (std::string *)NULL) {
             DM_ERR(ERR_SYSTEM, _("new failed\n"));
@@ -1625,67 +1905,278 @@ Process::eval_str(const char *cstr, Process *proc)
           l += chars;
         }
 
-        /* check number of parameters */
-        uint params_size = nDefunNode->params.size();
         uint args_size = args.size();
         
-        DM_DBG(DM_N(3), "args_size=%d; params_size=%d\n", args_size, params_size);
-        if(args_size != params_size)
-        {
-          UPDATE_MAX(proc->executed, ERR_ERR);
-          DM_ERR(ERR_ERR, _("number of function `%s' parameters (%u) != number of its arguments (%u) passed by value\n"), name.c_str(), params_size, args_size);
-          state = sInit;
-          continue;
-        }
-        
-        DM_DBG(DM_N(3), "creating new process\n");
-        proc_fun = Process(nDefunNode, proc, NULL);
-        proc_fun.fun = TRUE;			/* this is a function call */
-        DM_DBG(DM_N(3), "created new process\n");
-      
-        /* check variable table */  
-        if(proc_fun.var_tab != NULL) {
-          DM_ERR_ASSERT(_("proc_fun.var_tab != NULL\n"));
-          state = sInit;
-          continue;
-        }
-        proc_fun.var_tab = new Vars_t();
-        DM_DBG(DM_N(2), "created local variable table %p for function `%s'\n", proc_fun.var_tab, nDefunNode->name->c_str());
-      
-        DM_DBG(DM_N(3), "gl_var_tab=%p, proc->var_tab=%p, proc_fun.var_tab=%p\n", &gl_var_tab, proc->var_tab, proc_fun.var_tab);
-        
-        /* pass arguments to the function by value (evaluate the arguments) */
-        for(uint u = 0; u < args_size; u++) {
-          proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
-                                 Process::eval_str(args[u], proc).c_str());
-        }
-      
-        proc_fun.FUN_OFFSET = nDefunNode->OFFSET - proc->n->OFFSET;
-
-        proc_fun.et=EVAL_ALL;
-        if(proc_fun.n->child) {
-          /* we have a function with non-empty body */
-          Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
-          DM_DBG(DM_N(3), "evaluating function %s\n", name.c_str());
-          int fun_eval = proc_fun_body.eval();
-          uint params_ref_size = nDefunNode->params_ref.size();
-
-          /* simulate "passed by reference", i.e.: write into parent's scope */
-          for(uint u = 0; u < params_ref_size; u++) {
-            const char *v = proc_fun.ReadVariable(nDefunNode->params_ref[u]->c_str());
-            if(v) {
-              /* params/args_ref[u] is set */
-              if(u != 0) s.push_back(' ');
-              s.append(v);
-            } else {
-              /* unset */
-              UPDATE_MAX(proc->executed, ERR_WARN);
-              DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), v);
-            }
+        if(proc->et == EVAL_ALL) {
+          DM_DBG(DM_N(4), "args_size=%d; params_size=%d\n", args_size, params_size);
+          if(args_size != params_size)
+          {
+            UPDATE_MAX(proc->executed, ERR_ERR);
+            DM_ERR(ERR_ERR, _("number of function `%s' parameters (%u) != number of its arguments (%u) passed by value\n"), name.c_str(), params_size, args_size);
+            state = sInit;
+            continue;
           }
           
-          UPDATE_MAX(proc->executed, fun_eval);
-          proc->evaluated = proc->executed;		/* for ${?} */
+          DM_DBG(DM_N(4), "creating new process\n");
+          proc_fun = Process(nDefunNode, proc, NULL);
+//          proc_fun.fun = TRUE;			/* this is a function call */
+          DM_DBG(DM_N(4), "created new process\n");
+        
+          /* check variable table */  
+          if(proc_fun.var_tab != NULL) {
+            DM_ERR_ASSERT(_("proc_fun.var_tab != NULL\n"));
+            state = sInit;
+            continue;
+          }
+          proc_fun.var_tab = new Vars_t();
+          DM_DBG(DM_N(2), "created local variable table %p for function `%s'\n", proc_fun.var_tab, nDefunNode->name->c_str());
+        
+          DM_DBG(DM_N(4), "gl_var_tab=%p, proc->var_tab=%p, proc_fun.var_tab=%p\n", &gl_var_tab, proc->var_tab, proc_fun.var_tab);
+          
+          /* pass arguments to the function by value (evaluate the arguments) */
+          for(uint u = 0; u < args_size; u++) {
+            proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
+                                   Process::eval_str(args[u], proc).c_str());
+          }
+        
+//          proc_fun.FUN_OFFSET = nDefunNode->OFFSET - proc->n->OFFSET;
+  
+//          proc_fun.et=EVAL_ALL;
+          if(proc_fun.n->child) {
+            /* we have a function with non-empty body */
+            Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
+            DM_DBG(DM_N(4), "evaluating function %s\n", name.c_str());
+            int fun_eval = proc_fun_body.eval();
+            uint params_ref_size = nDefunNode->params_ref.size();
+  
+            /* simulate "passed by reference", i.e.: write into parent's scope */
+            for(uint u = 0; u < params_ref_size; u++) {
+              const char *v = proc_fun.ReadVariable(nDefunNode->params_ref[u]->c_str());
+              if(v) {
+                /* params/args_ref[u] is set */
+                if(u != 0) s.push_back(' ');
+                s.append(v);
+              } else {
+                /* unset */
+                UPDATE_MAX(proc->executed, ERR_WARN);
+                DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), v);
+              }
+            }
+            
+            UPDATE_MAX(proc->executed, fun_eval);
+            proc->evaluated = proc->executed;		/* for ${?} */
+          }
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(dq_param(name.c_str(), TRUE));
+          for(uint u = 0; u < args_size; u++) {
+            s.append(' ' + dq_param(args[u]->c_str(), TRUE));
+          }
+          s.append("}");
+        }
+        
+        DELETE_VEC(args);
+
+        state = sInit;
+      }
+      continue;
+
+      case sMap:{
+        TFunctions::iterator iter;		/* name/function object pair */
+        const char *target_cstr = target.c_str();
+        nDefun *nDefunNode = NULL;
+        Process proc_fun;
+        int chars;
+        uint j;
+        std::string name;
+        std::vector <std::string *> args;	/* vector of call by value arguments */
+
+        chars = get_dq_param(name, target_cstr);/* function name */
+        name = eval_str(name.c_str(), proc);	/* evaluate things like: $MAP{...${var}... <arguments>} */
+
+        DM_DBG(DM_N(4), "target=|%s|\n", target.c_str());
+        DM_DBG(DM_N(4), "function name=|%s|\n", name.c_str());
+        if(!nDefunNode) {
+          if((iter = gl_fun_tab.find(name.c_str())) == gl_fun_tab.end()) {
+            /* Function `name' is not defined. */
+            UPDATE_MAX(proc->executed, ERR_ERR);
+            DM_ERR(ERR_ERR, _("function `%s' not defined\n"), name.c_str());
+            state = sInit;
+            continue;
+          }
+        
+          nDefunNode = iter->second;
+        }
+      
+        /* get the number of parameters */
+        uint params_size = nDefunNode->params.size();
+
+        int l = chars;
+        BOOL ws_only = FALSE;
+        uint j_max = params_size? params_size: 1;
+
+        if(proc->et != EVAL_ALL) {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(dq_param(name.c_str(), TRUE));
+        }
+        
+        while(!ws_only) {
+          args.clear();
+          for(j = 0; j < j_max; j++) {
+            int chars;
+            std::string arg;
+            chars = get_dq_param(arg, target_cstr + l, ws_only);
+            arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $MAP{name ...${var}...} */
+            DM_DBG(DM_N(4), "arg=|%s|\n", arg.c_str());
+            if(ws_only) break;
+            std::string *new_arg = new std::string(arg);
+            if(new_arg == (std::string *)NULL) {
+              DM_ERR(ERR_SYSTEM, _("new failed\n"));
+              state = sInit;
+              continue;
+            }
+            args.push_back(new_arg);
+            l += chars;
+          }
+          if(j == 0) 
+            /* no more arguments */
+            break;
+  
+          /* prepare for evaluation */
+          uint args_size = args.size();
+          
+          if(proc->et == EVAL_ALL) {
+            DM_DBG(DM_N(4), "args_size=%d; params_size=%d\n", args_size, params_size);
+            if(args_size != params_size)
+            {
+              UPDATE_MAX(proc->executed, ERR_ERR);
+              DM_ERR(ERR_ERR, _("number of function `%s' parameters (%u) != number of its arguments (%u) passed by value\n"), name.c_str(), params_size, args_size);
+              state = sInit;
+              continue;
+            }
+            
+            DM_DBG(DM_N(4), "creating new process\n");
+            proc_fun = Process(nDefunNode, proc, NULL);
+//            proc_fun.fun = TRUE;			/* this is a function call */
+            DM_DBG(DM_N(4), "created new process\n");
+          
+            /* check variable table */  
+            if(proc_fun.var_tab != NULL) {
+              DM_ERR_ASSERT(_("proc_fun.var_tab != NULL\n"));
+              state = sInit;
+              continue;
+            }
+            proc_fun.var_tab = new Vars_t();
+            DM_DBG(DM_N(2), "created local variable table %p for function `%s'\n", proc_fun.var_tab, nDefunNode->name->c_str());
+          
+            DM_DBG(DM_N(4), "gl_var_tab=%p, proc->var_tab=%p, proc_fun.var_tab=%p\n", &gl_var_tab, proc->var_tab, proc_fun.var_tab);
+            
+            /* pass arguments to the function by value (evaluate the arguments) */
+            for(uint u = 0; u < args_size; u++) {
+              proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
+                                     Process::eval_str(args[u], proc).c_str());
+            }
+          
+//            proc_fun.FUN_OFFSET = nDefunNode->OFFSET - proc->n->OFFSET;
+    
+//            proc_fun.et=EVAL_ALL;
+            if(proc_fun.n->child) {
+              /* we have a function with non-empty body */
+              Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
+              DM_DBG(DM_N(4), "evaluating function %s\n", name.c_str());
+              int fun_eval = proc_fun_body.eval();
+              uint params_ref_size = nDefunNode->params_ref.size();
+    
+              /* simulate "passed by reference", i.e.: write into parent's scope */
+              for(uint u = 0; u < params_ref_size; u++) {
+                const char *v = proc_fun.ReadVariable(nDefunNode->params_ref[u]->c_str());
+                if(v) {
+                  /* params/args_ref[u] is set */
+                  if(u != 0) s.push_back(' ');
+                  s.append(v);
+                } else {
+                  /* unset */
+                  UPDATE_MAX(proc->executed, ERR_WARN);
+                  DM_WARN(ERR_WARN, _("variable `%s' is unset\n"), v);
+                }
+              }
+              
+              UPDATE_MAX(proc->executed, fun_eval);
+              proc->evaluated = proc->executed;		/* for ${?} */
+            }
+            /* cleanup */
+            DELETE(proc_fun.var_tab);
+          } else {
+            for(uint u = 0; u < args_size; u++) {
+              s.append(' ' + dq_param(args[u]->c_str(), TRUE));
+            }
+          }
+          DELETE_VEC(args);
+        }
+        
+        if(proc->et != EVAL_ALL) {
+          s.append("}");
+        }
+        
+        state = sInit;
+      }
+      continue;
+
+      case sInterleave:{
+        const char *target_cstr = target.c_str();
+        int chars;
+        std::string count;
+        int64_t i64count;
+        std::vector <std::string *> args;	/* vector of call by value arguments */
+
+        chars = get_dq_param(count, target_cstr);	/* interleave count */
+        i64count = expr2i(count.c_str(), proc);		/* evaluate things like: $INTERLEAVE{...${var}... <arguments>} */
+
+        DM_DBG(DM_N(4), "target=|%s|\n", target.c_str());
+        DM_DBG(DM_N(4), "i64count=%u\n", i64count);
+
+        int l = chars;
+        while(1) {
+          BOOL ws_only;
+          int chars;
+          std::string arg;
+          chars = get_dq_param(arg, target_cstr + l, ws_only);
+          /* do not evaluate arguments */
+          DM_DBG(DM_N(4), "arg=|%s|\n", arg.c_str());
+          if(ws_only) break;
+          std::string *new_arg = new std::string(arg);
+          if(new_arg == (std::string *)NULL) {
+            DM_ERR(ERR_SYSTEM, _("new failed\n"));
+            state = sInit;
+            continue;
+          }
+          args.push_back(new_arg);
+          l += chars;
+        }
+
+        int args_size = args.size();
+
+        if(proc->et == EVAL_ALL) {
+          BOOL appended = FALSE;
+          int64_t w = args_size/i64count;
+          int64_t d = args_size-w*i64count;
+          if(d) DM_WARN(ERR_WARN, _("%s: discarding %"PRIi64" elements\n"), std::string(state_name[state]).c_str(), d);
+          for(int j = 0; j < w; j++) {
+            int ind;
+            for(int i = 0; i < i64count && (ind = w*i+j) < args_size; i++) {
+              DM_DBG(DM_N(4), "i=%d; j=%d; args[%d]=|%s|\n", i, j, ind, args[ind]->c_str());
+              if(appended) s.push_back(' ');
+              s.append(args[ind]->c_str());  
+              appended = TRUE;
+            }
+          }
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(dq_param(count.c_str(), TRUE));
+          for(int i = 0; i < args_size; i++) {
+            s.append(' ' + dq_param(args[i]->c_str(), TRUE));
+          }
+          s.append("}");
         }
         
         DELETE_VEC(args);
@@ -1695,45 +2186,51 @@ Process::eval_str(const char *cstr, Process *proc)
       continue;
 
       case sSeq:{
-        /* DO NOT evaluate target here, let Expr do the evaluation *
-         * (e.g. strings with whitespace in them)                  */
-        CHK_EVAL_ALL;
-
         const char *target_cstr = target.c_str();
-        std::string arg;
+        std::string arg_x, arg_y;
         int chars;
         int64_t x, y;
         Expr e;
         Attr a;
+  
+        chars = get_dq_param(arg_x, target_cstr);
+        chars = get_dq_param(arg_y, target_cstr + chars);
+        arg_x = eval_str(arg_x.c_str(), proc);	/* evaluate things like: $SEQ{...${var}...} */
+        DM_DBG(DM_N(4), "seq.x=|%s|\n", arg_x.c_str());
+        arg_y = eval_str(arg_y.c_str(), proc);	/* evaluate things like: $SEQ{...${var}...} */
+        DM_DBG(DM_N(4), "seq.y=|%s|\n", arg_y.c_str());
 
-        chars = get_dq_param(arg, target_cstr);
-        arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $SEQ{...${var}...} */
-        e = Expr(arg.c_str(), proc);
-        a = e.parse();
-        if(a.type != INT) {
-          UPDATE_MAX(proc->executed, ERR_WARN);
-          DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
-          x = 0;
-        } else x = a.v.i;
+        if(proc->et == EVAL_ALL) {
+          e = Expr(arg_x.c_str(), proc);
+          a = e.parse();
+          if(a.type != INT) {
+            UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), arg_x.c_str());
+            x = 0;
+          } else x = a.v.i;
+  
+          e = Expr(arg_y.c_str(), proc);
+          a = e.parse();
+          if(a.type != INT) {
+            UPDATE_MAX(proc->executed, ERR_WARN);
+            DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), arg_y.c_str());
+            y = 0;
+          } else y = a.v.i;
 
-        chars = get_dq_param(arg, target_cstr + chars);
-        e = Expr(arg.c_str(), proc);
-        arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $SEQ{...${var}...} */
-        a = e.parse();
-        if(a.type != INT) {
-          UPDATE_MAX(proc->executed, ERR_WARN);
-          DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
-          x = 0;
-        } else y = a.v.i;
-        
-        int step = x < y? 1 : -1;
-        int j = x - step;
-        do {
-          j += step;
-          if(j != x) s.push_back(' ');
-          s.append(i2str(j));
-        } while(j != y);
-        
+          int step = x < y? 1 : -1;
+          int j = x - step;
+          do {
+            j += step;
+            if(j != x) s.push_back(' ');
+            s.append(i2str(j));
+          } while(j != y);
+        } else {
+          s.append("$" + std::string(state_name[state]) + "{");
+          s.append(dq_param(arg_x.c_str(), TRUE) + " ");
+          s.append(dq_param(arg_y.c_str(), TRUE));
+          s.append("}");
+        }
+  
         state = sInit;
       }
       continue;
@@ -1758,6 +2255,8 @@ Process::eval_str(const char *cstr, Process *proc)
   }
 
   RETURN(s);
+
+#undef BALLANCED_OPL
 } /* eval_str */
 
 std::string
@@ -1779,7 +2278,7 @@ Process::eval2##u##int##s(const std::string *str)\
   char *endptr;\
 \
   if(str == NULL) {\
-    DM_DBG(DM_N(0), _("returning default value 0"));\
+    DM_DBG(DM_N(2), _("returning default value 0"));\
     return 0;\
   }\
   str_val = eval_str(str, this);\
@@ -1821,21 +2320,71 @@ _EVAL2PINT(u,32);
 _EVAL2PINT(u,64);
 #undef _EVAL2PINT
 
+#if 1
 /*
- * Evaluate std::vector <std::string *>.
+ * Evaluate std::vector <std::string *> into std::vector <std::string *>.
  */
 std::vector <std::string *>
 Process::eval_vec_str(const std::vector <std::string *> &v)
 {
+  DM_DBG_I;
   std::vector <std::string *> ev;
+  std::vector <std::string *>::const_iterator iter;
 
-  for(uint i = 0; i < v.size(); i++) {
-    if(v[i]) ev.push_back(new std::string(Process::eval_str(v[i], this).c_str()));
+  for(iter = v.begin(); iter != v.end(); iter++) {
+    if(*iter) {
+      const char *s_cstr = (*iter)->c_str();
+      std::string target = preeval_str(s_cstr);
+      const char *target_cstr = target.c_str();
+      DM_DBG(DM_N(4), "s_cstr=|%s|; target_cstr=|%s|\n", s_cstr, target_cstr);
+      uint l = 0;
+      while(1) {
+        BOOL ws_only;
+        int chars;
+        std::string arg;
+        DM_DBG(DM_N(4), "target_cstr=|%s|\n", target_cstr + l);
+        chars = get_dq_param(arg, target_cstr + l, ws_only);
+        DM_DBG(DM_N(4), "chars=%d\n", chars);
+        if(ws_only) break;
+        arg = Process::eval_str(arg.c_str(), this);
+        DM_DBG(DM_N(4), "ev.push_back(%s)\n", arg.c_str());
+        ev.push_back(new std::string(arg.c_str()));
+        l += chars;
+      }
+    }
+    else ev.push_back((std::string *)NULL);
+  }
+
+  RETURN(ev);
+} /* eval_vec_str */
+#else
+/*
+ * Evaluate std::vector <std::string *> into std::vector <std::string *>.
+ */
+std::vector <std::string *>
+Process::eval_vec_str(const std::vector <std::string *> &v)
+{
+  DM_DBG_I;
+
+  std::vector <std::string *> ev;
+  std::vector <std::string *>::const_iterator iter;
+
+  for (iter = v.begin(); iter != v.end(); iter++) {
+    DM_DBG(DM_N(4), "before preevaluated=|%s|\n", (*iter)->c_str());
+    std::string str = preeval_str((*iter)->c_str());
+    DM_DBG(DM_N(4), "preevaluated=|%s|\n", str.c_str());
+
+//    DM_DBG(DM_N(3), "et=%d; string=|%s|\n", et, (*iter)->c_str());
+    str = Process::eval_str(str.c_str(), this);
+    DM_DBG(DM_N(3), "et=%d; eval_vec_string=|%s|\n", et, str.c_str());
+  
+    if(*iter) ev.push_back(new std::string(str.c_str()));
     else ev.push_back((std::string *)NULL);
   }
 
   return ev;
 } /* eval_vec_str */
+#endif
 
 /*
  * Evaluate std::vector <std::string *>.
@@ -1844,11 +2393,12 @@ Process::eval_vec_str(const std::vector <std::string *> &v)
 std::vector <u##int##s##_t> \
 Process::eval_vec_##u##int##s(const std::vector <std::string *> &v)\
 {\
+  std::vector <std::string *> vs = eval_vec_str(v);\
   std::vector <u##int##s##_t> ev;\
 \
-  for(uint c = 0; c < v.size(); c++) {\
-    if(v[c]) {\
-      u##int##s##_t i = eval2##u##int##s(v[c]);\
+  for(uint c = 0; c < vs.size(); c++) {\
+    if(vs[c]) {\
+      u##int##s##_t i = eval2##u##int##s(vs[c]);\
       DM_DBG(DM_N(3), "evaluating[%u] to %"fp"\n", c, i);\
       ev.push_back(i);\
     } else {\
@@ -1857,6 +2407,7 @@ Process::eval_vec_##u##int##s(const std::vector <std::string *> &v)\
     }\
   }\
 \
+  DELETE_VEC(vs);\
   return ev;\
 }
 _EVAL_VEC_INT(,32,"ld");
@@ -1872,12 +2423,13 @@ _EVAL_VEC_INT(u,64,"llu");
 std::vector <u##int##s##_t *> \
 Process::eval_vec_p##u##int##s(const std::vector <std::string *> &v)\
 {\
+  std::vector <std::string *> vs = eval_vec_str(v);\
   std::vector <u##int##s##_t *> ev;\
 \
-  for(uint c = 0; c < v.size(); c++) {\
+  for(uint c = 0; c < vs.size(); c++) {\
     u##int##s##_t *i = NULL;\
-    if(v[c]) {\
-      p##u##int##s##_t p = eval2p##u##int##s(v[c]);\
+    if(vs[c]) {\
+      p##u##int##s##_t p = eval2p##u##int##s(vs[c]);\
       if(p.p) {\
         i = (u##int##s##_t *)malloc(sizeof(u##int##s##_t));\
         if(!i) {\
@@ -1892,6 +2444,7 @@ Process::eval_vec_p##u##int##s(const std::vector <std::string *> &v)\
     ev.push_back(i);\
   }\
 \
+  DELETE_VEC(vs);\
   return ev;\
 }
 _EVAL_VEC_PINT(,32,"ld");

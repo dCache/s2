@@ -12,7 +12,7 @@
 
 #include "parse.h"
 
-#ifdef HAVE_GSOAP
+#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
 #include "n_srm.h"
 #include "soapH.h"              /* soap_codes_srm__TSpaceType, ... */
 #endif
@@ -75,6 +75,13 @@ using namespace std;
   }\
   NEW_STR(v, t.c_str())}
 
+#define DQ_PARAMa(f,t,v,s)\
+ {PARSE(f,t,s)\
+  if((v) != NULL) {\
+    v->append(' ' + t);\
+  }\
+  NEW_STR(v, t.c_str())}
+
 #if FAST_CODE
 #define DQ_PARAMv(f,t,v,s)\
  {PARSE(f,t,s)\
@@ -93,15 +100,14 @@ using namespace std;
 
 #define EQ_PARAM(t,v,s)\
  {EAT(WEQW);            /* eat whitespace* '=' whitespace* */\
-  DQ_PARAM(dq_param,t,v,s" value\n");}          /* TODO: I18! */
+  DQ_PARAM(dq_param,t,v,s" value\n");}		/* TODO: I18! */
 
 #define EQ_PARAM_ENV(t,v,s)\
  {EAT(WEQW);            /* eat whitespace* '=' whitespace* */\
-  DQ_PARAM(dq_param_env,t,v,s" value\n");}      /* TODO: I18! */
+  DQ_PARAM(dq_param_env,t,v,s" value\n");}	/* TODO: I18! */
 
 #define IND_PARAM(t,v,s)\
- {EAT(LIND);            /* eat whitespace* '[' whitespace* */\
-  DQ_PARAMv(ind_param,t,v,s" value\n");}        /* TODO: I18! */
+ {DQ_PARAMv(dq_param_ind,t,v,s" value\n");}	/* TODO: I18! */
 
 #define INT(f,s,i)      /* start_col must be locally defined */\
   if((f) != ERR_OK) {\
@@ -175,13 +181,14 @@ using namespace std;
   }
 
 #define POPL_ARRAY(s,r)\
-  if(POPL(s)) { /* s[][]... */\
-    EAT(LIND); col--;   /* nicer diagnostics */\
-    while(col < llen && line[col] == '[') {\
+  if(POPL(s)) { /* s[dq_param...] */\
+    EAT(LIND);\
+    while(col < llen && line[col] != ']') {\
       _val.clear();\
       IND_PARAM(_val,r,s);\
       WS();\
     }\
+    EAT(RIND);\
   }
 
 /* Extending diagnose library macros */
@@ -211,6 +218,7 @@ using namespace std;
 
 /* global variables */
 TFunctions gl_fun_tab;		/* table of (global) functions */
+TDefines defines;		/* defines */
 
 struct Parser
 {
@@ -274,10 +282,11 @@ _GET_INT(u,64);
   int AZaz_(const char *l, char **end);         /* [A-Za-z_]+ */
   int AZaz_dot(const char *l, char **end);      /* [A-Za-z_.]+ */
   int AZaz_09(const char *l, char **end);       /* [A-Za-z_][A-Za-z0-9_] */
-  int double_quoted_param(std::string &target, BOOL env_var);
+  int double_quoted_param(std::string &target, BOOL env_var, const char* term_chars);
   int dq_param(std::string &target);
   int dq_param_env(std::string &target);
-  int ind_param(std::string &target);
+  int dq_param_x(std::string &target);
+  int dq_param_ind(std::string &target);
   BOOL is_true_block(void);
   int set_include_dirname(char *target, const char *filename);
 
@@ -287,6 +296,7 @@ _GET_INT(u,64);
   int WcW(int ch);              /* skips whitespace* `ch' whitespace* */
   inline int WEQW(void);        /* skips whitespace* '=' whitespace* */
   inline int LIND(void);        /* skips whitespace* '[' whitespace* */
+  inline int RIND(void);        /* skips whitespace* ']' whitespace* */
   char *ENV_VAR(void);
 
   /* the grammar itself */
@@ -312,7 +322,7 @@ _GET_INT(u,64);
   int SYSTEM(void);
   int TEST(void);
 
-#ifdef HAVE_GSOAP
+#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
   /* SRM2 related stuff */
   int ENDPOINT(std::string **target);
   int srmAbortFilesR(void);
@@ -346,7 +356,7 @@ _GET_INT(u,64);
   int srmStatusOfPutRequestR(void);
   int srmSuspendRequestR(void);
   int srmUpdateSpaceR(void);
-#endif /* HAVE_GSOAP */
+#endif
 };
 
 /*
@@ -642,17 +652,21 @@ Parser::AZaz_09(const char *l, char **end)
  *            we were unable to get the value of an environment variable.
  */
 int
-Parser::double_quoted_param(std::string &target, BOOL env_var)
+Parser::double_quoted_param(std::string &target, BOOL env_var, const char* term_chars)
 {
-#define TERM_CHAR(c)    (q? (c == '"'): IS_WHITE(c))
+#define TERM_CHAR(c)    (dq? (c == '"'): (term_chars)? strchr(term_chars, c) != NULL : (IS_WHITE(c) && (!tag || (tag && !brackets))))
   int i, c;
-  BOOL q;		/* quotation mark at the start of the parameter */
+  BOOL dq;		/* quotation mark at the start of the parameter */
   BOOL bslash = FALSE;	/* we had the '\\' character */
+  BOOL string = FALSE;	/* we had an opening " */
   int esc = 0;		/* number of escaped characters */
   char *ptr_env = NULL;
+  BOOL tag;		/* $[A-Za-z]{ */
+  int brackets = 0;
   
-  q = (c = gc()) == '"';
-  if(!q && c != CH_EOL) ugc();
+  dq = (c = gc()) == '"';
+  tag = c == '$';
+  if(!dq && c != CH_EOL) ugc();
   if(IS_WHITE(c) || c == CH_EOL) return ERR_ERR;
   
   for(i = 0; (c = gc()) != CH_EOL; i++) {
@@ -682,13 +696,24 @@ Parser::double_quoted_param(std::string &target, BOOL env_var)
       continue;
     }
 
+    if(!bslash && !string) {
+      if(c == '}') brackets--;
+      if(c == '{') brackets++;
+    }
+
     if(TERM_CHAR(c) && !bslash) {
       if(c != '"') ugc();
 
       return ERR_OK;            /* found a string terminator */
     }
 
-    if(!q) {
+    if(c == '"') {
+      string = string? FALSE: TRUE;
+      target.push_back(c);
+      continue;
+    }
+
+    if(!dq) {
       /* we have an unquoted string => remove escaping of whitespace and "s */
       if(c == '\\' && !bslash && 
          (IS_WHITE(line[col]) || line[col] == '"')) /* look ahead */
@@ -704,7 +729,7 @@ out:
     bslash = c == '\\';
   }
 
-  if(q && c == CH_EOL)
+  if(dq && c == CH_EOL)
     DM_PWARN("'\\0' terminated double-quoted parameter\n");
 
   return ERR_OK;
@@ -823,68 +848,26 @@ out:
 int
 Parser::dq_param(std::string &target)
 {
-  return double_quoted_param(target, FALSE);
+  return double_quoted_param(target, FALSE, NULL);
 } /* dq_param */
 
 int
 Parser::dq_param_env(std::string &target)
 {
-  return double_quoted_param(target, TRUE);
+  return double_quoted_param(target, TRUE, NULL);
 } /* dq_param_env */
 
-/*
- * Parse \[ [^\]]* \].
- * 
- * - De-escaping of ] is performed: 'a [string\]' => 'a [string]'
- * 
- * Returns
- *   ERR_OK:      found a parameter
- *   ERR_ERR: the first character is S2_EOL
- */
 int
-Parser::ind_param(std::string &target)
+Parser::dq_param_x(std::string &target)
 {
-#define TERM_CHAR(c)    (c == ']')
-  int i, c;
-  BOOL bslash = FALSE;  /* we had the '\\' character */
-  int esc = 0;          /* number of escaped characters */
+  return double_quoted_param(target, FALSE, "|& \t");
+} /* dq_param_x */
 
-  if((c = gc()) != CH_EOL) ugc();
-  else return ERR_ERR;
-  
-  for(i = 0; (c = gc()) != CH_EOL; i++) {
-    if(c == '\\' && bslash) {
-      /* two backslashes => no quoting */
-      bslash = FALSE;
-      target.push_back(c);
-      continue;
-    }
-
-    if(TERM_CHAR(c) && !bslash) {
-      return ERR_OK;            /* found a string terminator */
-    }
-
-    /* remove escaping of ']' */
-    if(c == '\\' && !bslash && 
-       line[col] == ']') /* look ahead */
-    {
-      /* single backslash => the following character is escaped */
-      esc++;
-      goto out;
-    }
-
-    target.push_back(c);
-out:
-    bslash = c == '\\';
-  }
-
-  if(c == CH_EOL)
-    DM_PWARN("'\\0' terminated index parameter\n");
-
-  return ERR_OK;
-
-#undef TERM_CHAR
-} /* ind_param */
+int
+Parser::dq_param_ind(std::string &target)
+{
+  return double_quoted_param(target, FALSE, "] \t");
+} /* dq_param_ind */
 
 /* 
  * Returns
@@ -984,6 +967,15 @@ Parser::LIND(void)
 } /* LIND */
 
 /*
+ * Skips whitespace* ']' whitespace*
+ */
+inline int
+Parser::RIND(void)
+{
+  return WcW(']');
+} /* RIND */
+
+/*
  * Parse ENV{<VAR>} and return a value of environment variable <VAR>.
  */
 char *
@@ -1049,6 +1041,13 @@ Parser::S(void)
 int
 Parser::PREPROCESSOR()
 {
+#define CHECK_IF_NESTING\
+  if(++preproc.IF.p >= MAX_IFS) {\
+    DM_PERR(_("too many nested #if((n)def) directives (max %u)\n"), MAX_IFS);\
+    preproc.IF.p--;\
+    return ERR_OK;\
+  }
+  
   int rval;
   char *opt;
   char *end = NULL;
@@ -1069,13 +1068,23 @@ Parser::PREPROCESSOR()
   WS();                         /* allow whitespace after CH_PREPROC ('#') */
   AZaz_(opt = line + col, &end);        /* get preprocessor directive name */
 
-  if(POPL("if")) {
+  if(POPL("ifdef")) {
+    WS();       /* allow whitespace after 'ifdef' */
+    CHECK_IF_NESTING;
+    PARSE(dq_param,_val,"ifdef directive parameter\n");		/* parse variable name into _val */
+    preproc.IF.b[preproc.IF.p] = defines.find(_val) != defines.end();
+  } else if(POPL("ifndef")) {
+    WS();       /* allow whitespace after 'ifndef' */
+    CHECK_IF_NESTING;
+    PARSE(dq_param,_val,"ifndef directive parameter\n");	/* parse variable name into _val */
+    preproc.IF.b[preproc.IF.p] = defines.find(_val) == defines.end();
+  } else if(POPL("define")) {
+    WS();       /* allow whitespace after 'define' */
+    PARSE(dq_param,_val,"define directive parameter\n");	/* parse variable name into _val */
+    defines.insert(std::pair<std::string, std::string>(_val, ""));
+  } else if(POPL("if")) {
     WS();       /* allow whitespace after 'if' */
-    if(++preproc.IF.p >= MAX_IFS) {
-      DM_PERR(_("too many nested #if directives (max %u)\n"), MAX_IFS);
-      preproc.IF.p--;
-      return ERR_OK;
-    }
+    CHECK_IF_NESTING;
     UINT8(_("#if directive"),preproc.IF.b[preproc.IF.p]);
   } else if(POPL("else")) {
     WS();       /* allow whitespace after 'else' */
@@ -1149,9 +1158,9 @@ Parser::PREPROCESSOR()
     /* open succeeded */
   } else {
     if(*opt)
-      DM_PERR(_("unknown preprocessor directive `%.*s'; use: #(if|else|endif)\n"), end - opt, opt);
+      DM_PERR(_("unknown preprocessor directive `%.*s'; use: #(ifdef|ifndef|define|if|else|endif|require)\n"), end - opt, opt);
     else
-      DM_PERR(_("unknown preprocessor directive; use: #(if|else|endif)\n"));
+      DM_PERR(_("unknown preprocessor directive; use: #(ifdef|ifndef|define|if|else|endif|require)\n"));
       
     return ERR_ERR;
   }
@@ -1416,11 +1425,13 @@ Parser::REPEAT_FIXED(void)
 {
   int c;
   int start_col;
+  std::string _val;
 
   /* we have a repeat operator */
   WS();         /* allow whitespace after '>' */
 
-  INT64(_("start value of the repeat operator"),parser_node.REPEAT.X);
+  DQ_PARAM(dq_param_x,_val,parser_node.REPEAT.X,"function name\n");
+  _val.clear();
 
   start_col = col;
   WS();         /* allow whitespace after X */
@@ -1471,7 +1482,7 @@ Parser::REPEAT_FIXED(void)
   
   WS();         /* allow whitespace '||' or '&&' */
 
-  INT64(_("end value of the repeat operator"), parser_node.REPEAT.Y);
+  DQ_PARAM(dq_param,_val,parser_node.REPEAT.Y,"end value of the repeat operator\n");
   
   /* parsing succeeded */
   return ERR_OK;
@@ -1502,7 +1513,7 @@ Parser::ACTION(void)
   POPL_EAT(SYSTEM,,) else
   POPL_EAT(TEST,,) else
 
-#ifdef HAVE_GSOAP
+#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
   POPL_EAT(srmAbortFiles,R,) else
   POPL_EAT(srmAbortRequest,R,) else
   POPL_EAT(srmChangeFileStorageType,R,) else
@@ -1534,7 +1545,7 @@ Parser::ACTION(void)
   POPL_EAT(srmStatusOfPutRequest,R,) else
   POPL_EAT(srmSuspendRequest,R,) else
   POPL_EAT(srmUpdateSpace,R,) else
-#endif /* HAVE_GSOAP */
+#endif
 
   POPL_ERR;
 
@@ -1583,7 +1594,7 @@ Parser::ASSIGN(void)
 int
 Parser::DEFUN(void)
 {
-  TFunctions::iterator funIter;	/* name/function object pair */
+  TFunctions::iterator iter;	/* name/function object pair */
   std::string _val;
   int c;
 
@@ -1594,10 +1605,10 @@ Parser::DEFUN(void)
   WS(); /* allow whitespace before name of the function */
   DQ_PARAM(dq_param,_val,r->name,"function name\n");
 
-  if ((funIter = gl_fun_tab.find(r->name->c_str())) != gl_fun_tab.end()) {
+  if ((iter = gl_fun_tab.find(r->name->c_str())) != gl_fun_tab.end()) {
     /* function `name' already defined, issue a warning and re-define it */
     DM_PWARN("function `%s' already defined, re-defining\n", r->name->c_str());
-    funIter->second = r;
+    iter->second = r;
   } else {
     /* we have a definition of a new function */
     gl_fun_tab.insert(std::pair<std::string, struct nDefun *>(r->name->c_str(), r));
@@ -1849,7 +1860,7 @@ empty:
   return ERR_OK;
 } /* TEST */
 
-#ifdef HAVE_GSOAP
+#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
 int
 Parser::ENDPOINT(std::string **target)
 {
@@ -3004,7 +3015,7 @@ Parser::srmUpdateSpaceR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmUpdateSpaceR */
-#endif /* HAVE_GSOAP */
+#endif
 
 /*
  * Returns
@@ -3037,7 +3048,7 @@ loop:
   while(dfreads(&line, &line_end, preproc.INC.fd[preproc.INC.p], (uint32_t *)&llen)) {
     int lval;
     rows++; row++;
-    parser_node.init();
+    DELETE(parser_node.REPEAT.X); DELETE(parser_node.REPEAT.Y); parser_node.init();
     parser_node.row = row;
 
     /* ignore empty lines and comments */

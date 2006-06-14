@@ -67,7 +67,7 @@ public:
   int eval_sequential_repeats();
   int exec_with_timeout();
   int eval_with_timeout();
-  int eval_subtree(const int root_exec, int &root_eval);
+  int eval_subtree(const int root_exec);
 
   BOOL is_parallel();
 
@@ -86,8 +86,10 @@ public:
   std::string toString();
 
   /* evaluation functions (basic) */
-  static std::string eval_str(const std::string *s, Process *proc);
+  static int64_t expr2i(const char *cstr, Process *proc);
+  static int64_t expr2i(const std::string *s, Process *proc);
   static std::string eval_str(const char *cstr, Process *proc);
+  static std::string eval_str(const std::string *s, Process *proc);
 #define EVAL2CSTR(str) (str)? Process::eval_str(str, proc).c_str(): (const char *)NULL
 
 #define _EVAL2INT(u,s) u##int##s##_t eval2##u##int##s(const std::string *str)
@@ -124,6 +126,10 @@ public:
   _EVAL_VEC_PINT(u,32);
   _EVAL_VEC_PINT(u,64);
 #undef _EVAL_VEC_PINT
+
+private:
+  std::string preeval_str(const std::string *s);
+  std::string preeval_str(const char *cstr);
 
 };
 

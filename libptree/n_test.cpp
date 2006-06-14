@@ -14,7 +14,8 @@
 
 #include "free.h"               /* FREE(), DELETE() */
 #include "io.h"                 /* file_ropen(), ... */
-#include "expr.h"
+#include "expr.h"		/* Expr */
+#include "str.h"		/* dq_param() */
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* ostringstream */

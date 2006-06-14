@@ -48,7 +48,7 @@ str_char(const char *s, int c)
 extern char *
 unescaped_char(const char *s, int c)
 {
-  BOOL q = FALSE;       /* previous character was the '\\' character */
+  BOOL esc = FALSE;       /* previous character was the '\\' character */
   int llen;
   int i;
   
@@ -59,14 +59,14 @@ unescaped_char(const char *s, int c)
 
   for(i = 0; i < llen; i++)
   {
-    if(s[i] == '\\' && !q) {
-      q = TRUE;
+    if(s[i] == '\\' && !esc) {
+      esc = TRUE;
       continue;
     }
-    if(s[i] == c && !q)
+    if(s[i] == c && !esc)
       return (char *)(s + i);
 
-    q = FALSE;
+    esc = FALSE;
   }
     
   return NULL;
@@ -134,6 +134,27 @@ is_absolute_path(const char *path)
 }
 
 /*
+ * Returns
+ *   TRUE:  s starts $[A-Z]*{
+ *   false: otherwise
+ */
+inline BOOL
+is_tag(const char *s)
+{
+  if(s == NULL || *s != '$')
+    return FALSE;
+
+  while(*++s != '\0')
+  {
+    if(IS_ASCII_ALPHA(*s)) continue;
+    if(*s == '{') return TRUE;
+    return FALSE;
+  }
+    
+  return FALSE;
+}
+
+/*
  * Convert a number in a text to type and return the converted value.
  * A pointer to the last converted character is returned in *endptr.
  */
@@ -162,7 +183,7 @@ get_##sign##int##size(const char *word, char **endptr, BOOL warn)\
   }\
 \
   if(word == *endptr && warn) {\
-    DM_WARN(ERR_WARN, _("no integer characters converted, returning %ll" #d "\n"), value);\
+    DM_WARN(ERR_WARN, _("no integer characters converted from `%s', returning %ll" #d "\n"), word, value);\
   }\
 \
   return (sign##int##size##_t)value;\
@@ -225,15 +246,15 @@ ssprintf(const char *fmt...)
 }
 
 /*
- * If q == TRUE create a string with escaped `c' characters 
+ * If esc == TRUE create a string with escaped `c' characters 
  * unless already escaped by the backslash character '\\'.
  * 
  * e.g.: 
- * if q && c == '"' => string: 'hello "world"' is printed as 'hello \"world\"'
- * if !q            => string: 'hello "world"' is printed as 'hello "world"'
+ * if esc && c == '"' => string: 'hello "world"' is printed as 'hello \"world\"'
+ * if !esc            => string: 'hello "world"' is printed as 'hello "world"'
  */
 extern std::string
-escape_chars(const char* s, const char c, BOOL q)
+escape_chars(const char* s, const char c, BOOL esc)
 {
   std::stringstream ss;
   BOOL bslash = FALSE;  /* we had the '\\' character */
@@ -248,13 +269,13 @@ escape_chars(const char* s, const char c, BOOL q)
   for(i = 0; i < llen; i++)
   {
     if(s[i] == '\\' && bslash) {
-      /* two backslashes => no quoting */
+      /* two backslashes => no escaping */
       bslash = FALSE;
       goto out;
     }
 
     
-    if(q && s[i] == c && !bslash) {
+    if(esc && s[i] == c && !bslash) {
       /* we need to escape unescaped double quotes */
       ss << '\\';
     }
@@ -264,6 +285,132 @@ out:
   }
 
   return ss.str();
+}
+
+/* 
+ * Create a string parameter enclosed by double quotes depending on
+ * characters in the string and its length.
+ */
+extern std::string
+dq_param(const char *s, BOOL quote)
+{
+  DM_DBG_I;
+  std::stringstream ss;
+  BOOL q = FALSE;
+
+  if(!quote) RETURN(std::string(s));
+
+//#define DELIMIT_PARAM
+#ifdef DELIMIT_PARAM    /* for debugging only */
+  ss << '|';
+#endif
+
+  if(s == NULL) {
+    ss << S2_NULL_STR;
+    goto out;
+  }
+
+  if(!is_tag(s)) {
+    q = str_char(s, ' ') != NULL ||	/* constains a space */
+        str_char(s, '\t') != NULL ||	/* constains a tabulator */
+        str_char(s, '\n') != NULL ||	/* constains a newline character */
+        str_char(s, '\r') != NULL ||	/* constains a carriage return */
+        *s == 0;			/* empty string */
+  }
+
+  if(q) ss << '"';
+
+  ss << escape_chars(s, '"', q);
+
+  if(q) ss << '"';
+
+out:
+#ifdef DELIMIT_PARAM    /* for debugging only */
+  ss << '|';
+#endif
+
+#undef DELIMIT_PARAM    /* for debugging only */
+
+  RETURN(ss.str());
+} /* dq_param */
+
+extern std::string
+dq_param(const std::string &s, BOOL quote)
+{
+  if(!quote) return s.c_str();
+
+  return dq_param(s.c_str(), quote);
+}
+
+extern std::string
+dq_param(const std::string *s, BOOL quote)
+{
+  if(s == NULL) return std::string(S2_NULL_STR);
+
+  if(!quote) return s->c_str();
+
+  return dq_param(s->c_str(), quote);
+}
+
+extern std::string
+dq_param(const bool b, BOOL quote)
+{
+  std::string s = b? std::string("1"): std::string("0");
+  
+  return s;
+}
+
+extern std::string
+dq_param(const unsigned char c, BOOL quote)
+{
+  std::string s = i2str(c);
+  
+  return s;
+}
+
+/* 
+ * Create a string parameter enclosed by double quotes depending on
+ * characters in the string and its length.
+ */
+extern std::string
+ind_param(const char *s)
+{
+  std::stringstream ss;
+
+//#define DELIMIT_PARAM
+#ifdef DELIMIT_PARAM    /* for debugging only */
+  ss << '|';
+#endif
+
+  if(s == NULL) {
+    ss << S2_NULL_STR;
+    goto out;
+  }
+
+  ss << escape_chars(s, ']', TRUE);
+
+out:
+#ifdef DELIMIT_PARAM    /* for debugging only */
+  ss << '|';
+#endif
+
+  return ss.str();
+
+#undef DELIMIT_PARAM    /* for debugging only */
+} /* ind_param */
+
+extern std::string
+ind_param(const std::string &s)
+{
+  return ind_param(s.c_str());
+}
+
+extern std::string
+ind_param(const std::string *s)
+{
+  if(s == NULL) return std::string(S2_NULL_STR);
+
+  return ind_param(s->c_str());
 }
 
 /*
@@ -280,10 +427,11 @@ out:
  * 
  * Returns the number of characters parsed.
  */
+#if 0
 extern int
-get_dq_param(std::string &target, const char *source)
+get_dq_param(std::string &target, const char *source, BOOL &ws_only)
 {
-#define TERM_CHAR(c)    (q? (c == '"'): IS_WHITE(c))
+#define TERM_CHAR(c)    (dq? (c == '"'): IS_WHITE(c))
 /* <= is important to make for gc/ugc() behaviour consistent; don't change to < */
 #define gc(c)		(col <= source_len) ? source[col++] : '\0'
 #define ugc()		if(col > 0) col--
@@ -291,9 +439,8 @@ get_dq_param(std::string &target, const char *source)
   int i, c;
   unsigned col = 0;
   unsigned source_len;
-  BOOL q;		/* quotation mark at the start of a string */
+  BOOL dq;		/* quotation mark at the start of a string */
   BOOL bslash = FALSE;	/* we had the '\\' character */
-  int esc = 0;		/* number of escaped characters */
   
   if(source == NULL) {
     DM_ERR_ASSERT(_("source == NULL\n"));\
@@ -301,15 +448,17 @@ get_dq_param(std::string &target, const char *source)
   }
 
   /* initialisation */
+  ws_only = TRUE;	/* whitespace or empty string only */
   target.clear();
   source_len = strlen(source);
 
-//  fprintf(stderr, "complete string=|%s|\n", source);
+  DM_DBG(DM_N(5), "complete string=|%s|\n", source);
   do { c = gc(); } while(IS_WHITE(c));
-  q = (c == '"');
-//  fprintf(stderr, "|%c|\n", c);
-  if(!q) ugc();
-//  fprintf(stderr, "1) col=%d, q=%d\n", col, q);
+  dq = (c == '"');
+  DM_DBG(DM_N(6), "|%c|\n", c);
+  if(c != '\0') ws_only = FALSE;
+  if(!dq) ugc();
+  DM_DBG(DM_N(5), "1) col=%d, dq=%d\n", col, dq);
   
   for(i = 0; (c = gc()) != '\0'; i++) {
     if(c == '\\' && bslash) {
@@ -322,17 +471,16 @@ get_dq_param(std::string &target, const char *source)
     if(TERM_CHAR(c) && !bslash) {
       if(c != '"') ugc();
 
-//      fprintf(stderr, "|%s|; col=|%d|\n", target.c_str(), col);
+      DM_DBG(DM_N(5), "|%s|; col=|%d|\n", target.c_str(), col);
       return col;	/* found a string terminator */
     }
 
-    if(!q) {
+    if(!dq) {
       /* we have an unquoted string => remove escaping of whitespace and "s */
       if(c == '\\' && !bslash && 
          (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
-        esc++;
         goto esc_out;
       }
     }
@@ -342,7 +490,7 @@ esc_out:
     bslash = c == '\\';
   }
 
-  if(q && c == '\0')
+  if(dq && c == '\0')
     DM_WARN(ERR_WARN, "'\\0' terminated double-quoted parameter\n");
 
   return col - 1; /* do not count the terminating '\0' */
@@ -350,6 +498,108 @@ esc_out:
 #undef TERM_CHAR
 #undef gc
 #undef ugc
+} /* get_dq_param */
+#else
+extern int
+get_dq_param(std::string &target, const char *source, BOOL &ws_only)
+{
+#define TERM_CHAR(c)    (dq? (c == '"'): (IS_WHITE(c) && (!tag || (tag && !brackets))))
+/* <= is important to make for gc/ugc() behaviour consistent; don't change to < */
+#define gc(c)		(col <= source_len) ? source[col++] : '\0'
+#define ugc()		if(col > 0) col--
+
+  int i, c;
+  unsigned col = 0;
+  unsigned source_len;
+  BOOL dq;		/* quotation mark at the start of a string */
+  BOOL bslash = FALSE;	/* we had the '\\' character */
+  BOOL string = FALSE;	/* we had an opening " */
+  BOOL tag;		/* $[A-Za-z]{ */
+  int brackets = 0;
+  
+  if(source == NULL) {
+    DM_ERR_ASSERT(_("source == NULL\n"));\
+    return 0;
+  }
+
+  /* initialisation */
+  ws_only = TRUE;	/* whitespace or empty string only */
+  target.clear();
+  source_len = strlen(source);
+
+  DM_DBG(DM_N(5), "complete string=|%s|\n", source);
+  do { c = gc(); } while(IS_WHITE(c));
+  dq = (c == '"');
+//  tag = is_tag(source + col);
+  tag = c == '$';	/* speed things up */
+  DM_DBG(DM_N(6), "|%c|\n", c);
+  if(c != '\0') ws_only = FALSE;
+  if(!dq) ugc();
+  DM_DBG(DM_N(5), "1) col=%d, dq=%d\n", col, dq);
+  
+  for(i = 0; (c = gc()) != '\0'; i++) {
+    DM_DBG(DM_N(5), "'%c'; bslash=%d, string=%d, brackets=%d\n", c, bslash, string, brackets);
+    if(c == '\\' && bslash) {
+      /* two backslashes => no quoting */
+      bslash = FALSE;
+      target.push_back(c);
+      continue;
+    }
+
+    if(!bslash && !string) {
+      if(c == '}') brackets--;
+      if(c == '{') brackets++;
+    }
+
+    DM_DBG(DM_N(5), "'%c'; bslash=%d, string=%d, brackets=%d\n", c, bslash, string, brackets);
+
+    if(TERM_CHAR(c) && !bslash) {
+      if(c != '"') ugc();
+
+      DM_DBG(DM_N(5), "|%s|; col=|%d|\n", target.c_str(), col);
+      return col;	/* found a string terminator */
+    }
+
+    if(c == '"') {
+      string = string? FALSE: TRUE;
+      target.push_back(c);
+      continue;
+    }
+
+    if(!dq) {
+      /* we have an unquoted string => remove escaping of whitespace and "s */
+      if(c == '\\' && !bslash && 
+         (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
+      {
+        /* single backslash => the following character is escaped */
+        goto esc_out;
+      }
+    }
+    
+    target.push_back(c);
+esc_out:
+    bslash = c == '\\';
+  }
+
+  if(dq && c == '\0')
+    DM_WARN(ERR_WARN, "'\\0' terminated double-quoted parameter\n");
+
+  return col - 1; /* do not count the terminating '\0' */
+
+#undef gc
+#undef ugc
+} /* get_dq_param */
+
+#endif
+
+/*
+ * See 3 parameter get_dq_param above.
+ */
+extern int
+get_dq_param(std::string &target, const char *source)
+{
+  BOOL ws_only;
+  return get_dq_param(target, source, ws_only);
 } /* get_dq_param */
 
 /*
@@ -379,19 +629,13 @@ get_ballanced_br_param(std::string &target, const char *source)
   target.clear();
   source_len = strlen(source);
 
-//  fprintf(stderr, "complete string=|%s|\n", source);
+  DM_DBG(DM_N(5), "complete string=|%s|\n", source);
   
   for(i = 0; (c = gc()) != '\0'; i++) {
-//    fprintf(stderr, "'%c'; bslash=%d, string=%d\n", c, bslash, string);
+    DM_DBG(DM_N(5), "'%c'; bslash=%d, string=%d\n", c, bslash, string);
     if(c == '\\' && bslash) {
       /* two backslashes => no quoting */
       bslash = FALSE;
-      target.push_back(c);
-      continue;
-    }
-
-    if(c == '"') {
-      string = string? FALSE: TRUE;
       target.push_back(c);
       continue;
     }
@@ -402,8 +646,12 @@ get_ballanced_br_param(std::string &target, const char *source)
     }
     
     if(!brackets) {
-//      fprintf(stderr, "|%s|; col=|%d|\n", target.c_str(), col);
+      DM_DBG(DM_N(5), "|%s|; col=|%d|\n", target.c_str(), col);
       return col;	/* found a string terminator */
+    }
+
+    if(c == '"') {
+      string = string? FALSE: TRUE;
     }
 
     target.push_back(c);

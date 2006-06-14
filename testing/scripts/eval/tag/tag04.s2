@@ -1,5 +1,12 @@
 ; $MD5{} test
+; see rfc1321.txt
 
 NOP
-&& SYSTEM out=ed076287532e86365e841e92bfc50d8c echo -n "$MD5{Hello World!}"
+&& SYSTEM out=d41d8cd98f00b204e9800998ecf8427e echo -n $MD5{}
+&& SYSTEM out=0cc175b9c0f1b6a831c399e269772661 echo -n $MD5{a}
+&& SYSTEM out=900150983cd24fb0d6963f7d28e17f72 echo -n $MD5{abc}
+&& SYSTEM out=f96b697d7cb7938d525a2f31aaf161d0 echo -n $MD5{message digest}
+&& SYSTEM out=c3fcd3d76192e4007dfb496cca67e13b echo -n $MD5{abcdefghijklmnopqrstuvwxyz}
+&& SYSTEM out=d174ab98d277d9f5a5611c2c9f419d9f echo -n $MD5{ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789}
+&& SYSTEM out=57edf4a22be3c955ac49da2e2107b67a echo -n $MD5{12345678901234567890123456789012345678901234567890123456789012345678901234567890}
 && SYSTEM echo OK

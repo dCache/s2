@@ -7,6 +7,7 @@ ProgramName=$(basename $0)
 l_CONFIG_MAK() {
   echo "
 # less standard libraries
+SRM_VERSION	:= ${SRM_VERSION}
 GLOBUS_FLAVOUR	:= gcc32dbgpthr
 LIB_GLOBUS	:= ${LIB_GLOBUS}
 LIB_GSOAP	:= ${LIB_GSOAP}
@@ -15,7 +16,8 @@ LIB_CGSI_PLUGIN	:= ${LIB_CGSI_PLUGIN}" >> ${CONFIG_MAK}
 
 l_CONFIG_H() {
 #  h_def_nl "$enable_globus_sdk" HAVE_GLOBUS "Globus SDK library"
-  h_def_nl "$enable_gsoap" HAVE_GSOAP "gSOAP library"
+  h_def_nl "$enable_srm21" HAVE_SRM21 "SRM 2.1 protocol"
+  h_def_nl "$enable_srm22" HAVE_SRM22 "SRM 2.2 protocol"
   h_def_nl "$enable_cgsi_plugin" HAVE_CGSI_PLUGIN "CGSI plugin library"
   h_def_nl "$enable_gfal" HAVE_GFAL "GFAL library"
 }
@@ -319,7 +321,8 @@ l_add_statics() {
 }
 
 l_add_enables() {
-  add_enable srm2 'srm2' 'SRM2 support' '${enable_srm2:-yes}'					# "yes" or "no"
+  add_enable srm21 'srm21' 'SRM2.1 support' '${enable_srm21:-no}'				# "yes" or "no"
+  add_enable srm22 'srm22' 'SRM2.2 support' '${enable_srm22:-no}'				# "yes" or "no"
   add_enable globus 'globus' 'Globus essentials library' '${enable_globus:-yes}'		# "yes" or "no"
 #  add_enable globus_sdk 'globus_sdk' 'Globus SDK library' '${enable_globus_sdk:-yes}'		# "yes" or "no"
   add_enable gsoap 'gsoap' 'gSOAP library' '${enable_gsoap:-yes}'				# "yes" or "no"
@@ -328,6 +331,7 @@ l_add_enables() {
 }
 
 l_set_package() {
+  SRM_VERSION=${SRM_VERSION:-""}
   GLOBUS_FLAVOUR=${GLOBUS_FLAVOUR:-gcc32dbgpthr}
   LIB_GLOBUS=${LIB_GLOBUS:-"-lglobus_gssapi_gsi_$GLOBUS_FLAVOUR -lglobus_gss_assist_$GLOBUS_FLAVOUR"}
   LIB_GLOBUS_SDK=${LIB_GLOBUS}
@@ -341,11 +345,22 @@ l_set_package() {
 
 l_set_opt_deps() {
   # option dependencies
-  if ! test x${enable_globus} = xyes || ! test x${enable_gsoap} = xyes  || ! test x${enable_srm2} = xyes ; then
-    enable_globus=no
-    enable_gsoap=no
-    enable_srm2=no
+  if test x${enable_srm21} = xyes && test x${enable_srm22} = xyes ; then
+    die 1 "Cannot enable both SRM 2.1 and SRM 2.2"
   fi
+
+  if ! test x${enable_globus} = xyes || ! test x${enable_gsoap} = xyes ; then
+    SRM_VERSION=""
+    enable_srm21=no
+    enable_srm22=no
+  fi
+
+  if test x${enable_srm21} = xyes ; then
+    SRM_VERSION=2.1
+  fi 
+  if test x${enable_srm22} = xyes ; then
+    SRM_VERSION=2.2
+  fi 
 }
 
 l_have_checks() {
@@ -373,7 +388,8 @@ l_summary() {
 #Globus SDK lib:              ${have_globus_sdk:-no}/${enable_globus_sdk:-no}
   cat >&2 <<EOF
 
-SRM2 support:                ${enable_srm2:-no}
+SRM2.1 support:              ${enable_srm21:-no}
+SRM2.2 support:              ${enable_srm22:-no}
 Globus essentials lib:       ${have_globus:-no}/${enable_globus:-no}, static: ${static_globus:-no}
 gSOAP lib:                   ${have_gsoap:-no}/${enable_gsoap:-no}, static: ${static_gsoap:-no}
 CGSI plugin:                 ${have_cgsi_plugin:-no}/${enable_cgsi_plugin:-no}, static: ${static_cgsi_plugin:-no}

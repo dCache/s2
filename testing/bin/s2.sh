@@ -96,7 +96,7 @@ main() {
     shift
   done
 
-  Which 5 src/${S2_BIN}
+  Which 7 src/${S2_BIN}
   if test $? -eq 0 ; then
     S2_BIN=${which_file}
   fi

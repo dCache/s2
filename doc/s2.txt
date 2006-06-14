@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 test client documentation
-Version:	2006-05-24
+Version:	2006-06-14
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -58,22 +58,22 @@ the ';' character and continue up to the next newline ('\n') character.
   
   <PAR_SEQ> :: ' ' | '||' | '&&'
   
-  <X> :: <I>
-; start value/constant
+  <X> :: <DQ_I>
+; repeat start value
 
-  <Y> :: <I>
-; end value/constant
+  <Y> :: <DQ_I>
+; repeat end value
 
   <BRANCH_OPT> :: <EVAL> | <TIMEOUT> | <MATCH_OPTS>
 
-  <EVAL> :: 'eval' '=' <I>
-; default <I> value is 0
+  <EVAL> :: 'eval' '=' <I_ENV>
+; default <I_ENV> value is 0, note the this must be a constant or $ENV{<VAR>}
 ; maximum exit value of <ACTION> to start the evaluation of RHS <BRANCH>
 
   <TIMEOUT> :: 'timeout' '=' <TIMEOUT_MICROSEC>
-; default <I> value is 0
+; default <TIMEOUT_MICROSEC> value is 0, note the this must be a constant or $ENV{<VAR>}
 
-  <TIMEOUT_MICROSEC> :: <N>
+  <TIMEOUT_MICROSEC> :: <N_ENV>
 
   <MATCH_OPT> :: 'match' '=' <MATCH_OPTS>
 
@@ -82,23 +82,33 @@ the ';' character and continue up to the next newline ('\n') character.
 
 1.2) Preprocessor
 ~~~~~~~~~~~~~~~~~
-  <PREPROCESSOR> :: <IF_ELSE_ENDIF> | <INCLUDE>
+  <PREPROCESSOR> :: <IF_ELSE_ENDIF> | <DEFINE> | <INCLUDE> | <REQUIRE>
 
   <IF_ELSE_ENDIF> :: <IF> '\n' <BRANCH>* (<ELSE> '\n' <BRANCH>*)? <ENDIF>
 
-  <IF> :: '#' 'if' <IF_COND>
-  
+  <IF> :: '#' 'if' <IF_COND> | '#' 'ifdef' <IFDEF_CONF> | '#' 'ifndef' <IFDEF_CONF>
+
   <ELSE> :: '#' 'else'
-  
-  <ENDIF> :: '#' ( 'endif' | 'fi' )
-  
-  <IF_COND> :: <I>
+
+  <ENDIF> :: '#' 'endif'
+
+  <IF_COND> :: <I_ENV>
+
+  <IFDEF_COND> :: <DEFINE_VAR>
+
+  <DEFINE> :: '#' 'define' <DEFINE_VAR>
+
+  <DEFINE_VAR> :: <DQ_PARAM>
 
   <INCLUDE> :: '#' 'include' <INCLUDE_FILE>
   
   <INCLUDE_FILE> :: <DQ_PARAM>
 ; Note <INCLUDE_FILE> is <DQ_PARAM>
 ; (with the exception of $ENV{<VAR>} it is not dynamically evaluated)
+
+  <REQUIRE> :: '#' 'require' <S2_VERSION>
+  
+  <S2_VERSION> :: <DQ_PARAM>
 
 1.3) Actions
 ~~~~~~~~~~~~
@@ -117,57 +127,82 @@ Syntax of the individual actions is described in the Semantics section.
   <NATURAL> :: [1-9][0-9]* | '0x'[0-9A-Fa-f]+ | 0[0-7]*
 ; a natural number (decimal, hexadecimal and    octal numbers are supported)
 
-  <DQ_PARAM> :: [^ ]* | '"' [^"]* '"'
-; a parameter optionally enclosed by double-quotes:
-; e.g.:\ this\ is\ a\ DQ_PARAM\ with\ escaped\ spaces
-; "e.g.: this is a DQ_PARAM"
-; Note: <TAG>s in <DQ_PARAM> are evaluated.
-
-  <IND_PARAM> :: [^\]]*
-; any string terminated by ']' character
+  <BR_PARAM> :: [^}]*
+; any string terminated by an unquoted '}' character (not in <BR_PARAM>)
+; <TAG>s in <BR_PARAM> are evaluated.
 
   <VAR> :: <ID>
 
   <ID> :: [A-Za-z_][A-Za-z0-9_]*
 
-  <STR> :: ( <CHAR> | <TAG> )*
+  <STR> :: <CHAR>*
 
-  <CHAR> :: [\001-\255]
+  <CHAR> :: [\x00-\xFF]
 
   <HEX_STR> :: [0-9A-F]+
 
-  <FORMAT> :: <DQ_PARAM>
-
   <ARG> :: <DQ_PARAM>
+
+1.4.1.1 <DQ_PARAM>
+~~~~~~~~~~~~~~~~~~
+  <DQ_PARAM> :: [^ \t]* | '"' [^"]* '"'
+
+; a parameter optionally enclosed by double-quotes:
+; e.g.:\ this\ is\ a\ DQ_PARAM\ with\ escaped\ spaces
+; "e.g.: this is a DQ_PARAM"
+; <TAG>s in <DQ_PARAM> are evaluated.
+
+TODO: <DQ_PARAM> syntax of unquoted TAGs, e.g.:
+  ASSIGN v $MATCH{. a}
 
 1.4.2 Dynamic
 ~~~~~~~~~~~~~
-The following non-terminals are always evaluated before the
-values are used.
+The following non-terminals appearing in <DQ_PARAM> and <BR_PARAM>
+are evaluated before the values are used.
 
-  <TAG> :: '${' <VAR> '}' | '$ENV{' <VAR> '}' | 
-           '$EXPR{' <EXPR> '}' | '$RND{' <EXPR> '}' |
-           '$DATE{' <STR> '}' | '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
-           '$MD5{' <STR> '}' | '$DEFINED{' <VAR> '}' |
-           '$MATCH{' <PATTERN> <SUBJECT> '}' | '$INT{' <EXPR> '}' |
+  <ENV> :: '$ENV{' <BR_STR> '}'
+
+  <TAG> :: '${' <BR_STR> '}' | 
+           '$ENV{' <BR_STR> '}' |
+           '$I{' <DQ_I> '}' |
+           '$EVAL{' <BR_STR> '}' |
+           '$EXPR{' <EXPR> '}' |
+           '$RND{' <EXPR> '}' |
+           '$DATE{' <BR_STR> '}' |
+           '$PRINTF{' <PRINTF_FORMAT> (' ' <PRINTF_ARG>)* '}' |
+           '$MD5{' <BR_STR> '}' |
+           '$DEFINED{' <BR_STR> '}' |
+           '$MATCH{' <PATTERN> <SUBJECT> '}' |
+           '$INT{' <EXPR> '}' |
            '$FUN{' <FUN_NAME> {<FUN_ARG> ' '}* '}' |
+           '$MAP{' <FUN_NAME> {<FUN_ARG> ' '}* '}' |
            '$SEQ{' <SEQ_FROM> <SEQ_TO> '}' |
-           
+           '$INTERLEAVE{' <INTERLEAVE_COUNT> {<INTERLEAVE_ARG> ' '}* '}' |
+           '$SPLIT{' <BR_STR> '}'
 
-  <I> :: <INTEGER> | <TAG>
-; <TAG> must evaluate to <INTEGER>
+  <I_ENV> :: <INTEGER> | <ENV>
+; <ENV> must evaluate to <INTEGER>
 
-  <N> :: <NATURAL> | <TAG>
-; <TAG> must evaluate to <NATURAL>
+  <N_ENV> :: <NATURAL> | <ENV>
+; <ENV> must evaluate to <NATURAL>
 
   <DQ_I> :: <DQ_PARAM>
-; <DQ_PARAM> must evaluate to <I>
+; <DQ_PARAM> must evaluate to <INTEGER>
 
   <DQ_N> :: <DQ_PARAM>
-; <DQ_PARAM> must evaluate to <N>
+; <DQ_PARAM> must evaluate to <NATURAL>
 
   <DQ_STR> :: <DQ_PARAM>
 ; <DQ_PARAM> always evaluates to <STR>
+
+  <BR_I> :: <BR_PARAM>
+; <BR_PARAM> must evaluate to <INTEGER>
+
+  <BR_N> :: <BR_PARAM>
+; <BR_PARAM> must evaluate to <NATURAL>
+
+  <BR_STR> :: <BR_PARAM>
+; <BR_PARAM> always evaluates to <STR>
 
 
 2 Semantics
@@ -364,7 +399,7 @@ There are several kinds of branch actions.
 
 If <VAR> is not set, assign variable <VAR> value <VAR_VAL>.  If <VAR>
 is set, assign variable <VAR> value <VAR_VAL> only if <OVERWRITE>
-is unspecified or it evaluates to non-zero.
+is unspecified or <DQ_I> evaluates to non-zero.
 
 
 2.3.2 Function definition
@@ -402,7 +437,7 @@ If this parameter is omitted, the default value 0 is used.
 
 If <VAR> is not set, assign environment variable <VAR> value <VAR_VAL>.
 If <VAR> is set, assign environment variable <VAR> value <VAR_VAL>
-only if <OVERWRITE> is unspecified or it evaluates to non-zero.
+only if <OVERWRITE> is unspecified or <DQ_I> evaluates to non-zero.
 
 
 2.3.6 SLEEP
@@ -688,18 +723,24 @@ Script variable values are accessed by a number of ways:
    variable does not exist, the tag expands as an empty string, a
    warning message is issued and the branch executes (at the very best)
    as 1, i.e. warning (see Branch execution/evaluation values section).
-   
-2) The ${<VAR>} tag refers to a local variable <VAR>.  If this variable
+
+2) The ${:<VAR>} tag refers to a variable <VAR> in parent's variable scope.
+   If this variable does not exist, parent's variable scope(s) is (are)
+   searched.  If this variable is not defined in the topmost parent's
+   variable scope, global variable scope is searched.  The behaviour
+   of this tag is then equivalent to 1), i.e. the ${::<VAR>} tag.
+
+3) The ${<VAR>} tag refers to a local variable <VAR>.  If this variable
    does not exist, parent's variable scope(s) is (are) searched.  If
    this variable is not defined in the topmost parent's variable scope,
    global variable scope is searched.  The behaviour of this tag is then
    equivalent to 1), i.e. the ${::<VAR>} tag.
 
-3) Both of the above tags can be used with a special prefix (-), which tells
+4) All of the above tags can be used with a special prefix (-), which tells
    the variable evaluation engine not to issue any warnings and not to
    change execution value of the branch.  The following is possible:
-   ${-::<VAR>}/${-<VAR>} to refer to global/local variable <VAR>
-   and ignore <VAR>'s non-existence.
+   ${-::<VAR>}/${-:<VAR>}/${-<VAR>} to refer to global/parent's/local
+   variable <VAR> and ignore <VAR>'s non-existence.
 
 2.5.2 Environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -723,19 +764,30 @@ NOP 2
 
 shall print the number 2.
 
-$I{<I>} refrerence to the internal counter of a sequential repeat operator.
-        The value is always between <X> any <Y>.  <I> denotes branch
-        nesting.  0 refers to the innermost repeat operator, 1 refers
-        to the second innermost repeat operator...  If <I> refers to
-        a non-existent repeat operator, 0 is returned and a warning message
-        issued.
+$I{<BR_I>} 
+  refrerence to the internal counter of a sequential repeat operator.
+  The value is always between <X> any <Y>.  <BR_I> denotes branch
+  nesting.  0 refers to the innermost repeat operator, 1 refers
+  to the second innermost repeat operator...  If <BR_I> refers to
+  a non-existent repeat operator, 0 is returned and a warning message
+  issued.
 
 
 2.5 Tags
 ~~~~~~~~
-2.5.1 Expression evaluation
+2.5.1 String evaluation
+~~~~~~~~~~~~~~~~~~~~~~~
+  '$EVAL{' <BR_STR> '}'
+
+<BR_STR> is evaluated twice, rather than just once if no $EVAL tag was used.
+For example, if <BR_STR> is "${v1}", the value of v1 is "${one}" and the value
+of one is "1", the result of using <BR_STR> is "${one}", whereas the result of
+using $EVAL{${v1}} is "1".
+
+
+2.5.2 Expression evaluation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-'$EXPR{' <EXPR> '}'
+  '$EXPR{' <EXPR> '}'
 
   <EXPR> :: <EXPR> '||' <EXPR> | <EXPR> '&&' <EXPR> |
             <EXPR> '|'  <EXPR> | <EXPR> '^'  <EXPR> | <EXPR> '&' <EXPR> |
@@ -745,7 +797,7 @@ $I{<I>} refrerence to the internal counter of a sequential repeat operator.
             <EXPR> '+'  <EXPR> | <EXPR> '-'  <EXPR> |
             <EXPR> '*'  <EXPR> | <EXPR> '/'  <EXPR> | <EXPR> '%' <EXPR> |
             '+' <EXPR> | '-' <EXPR> | '!' <EXPR> | '~' <EXPR> |
-            '(' <EXPR> ')' | <I>
+            '(' <EXPR> ')' | <DQ_I> | <DQ_STR>
 
 
   LOWEST
@@ -769,17 +821,17 @@ $I{<I>} refrerence to the internal counter of a sequential repeat operator.
 
 Comments can be used inside expressions, however, this usage is discouraged.
 
-2.5.2 Random number
+2.5.3 Random number
 ~~~~~~~~~~~~~~~~~~~
   '$RND{' <EXPR> '}'
 
 Returns a random number between 0 and <EXPR>-1.
 
-2.5.3 Date
+2.5.4 Date
 ~~~~~~~~~~
-  '$DATE{' <STR> '}'
+  '$DATE{' <BR_STR> '}'
 
-Interpreted sequences in <STR> are:
+Interpreted sequences in <BR_STR> are:
 
   %%     a literal %
   %C     century  (year  divided  by  100  and  truncated  to an integer)
@@ -810,28 +862,29 @@ Interpreted sequences in <STR> are:
 
 If <STR> is empty, the output is +%Y-%m-%d@%H:%M:%S.%N, where %N is cut to 6 digits.
 
-2.5.4 Formatted output
+2.5.5 Formatted output
 ~~~~~~~~~~~~~~~~~~~~~~
-  '$PRINTF{' <FORMAT> ( ',' <ARG> )* '}'
+  '$PRINTF{' <PRINTF_FORMAT> (' ' <PRINTF_ARG>)* '}'
+  <PRINTF_FORMAT> :: <DQ_STR>
+  <PRINTF_ARGS> :: <DQ_STR>
 
 The tag is replaced by a formatted output.  This tag conforms to 
 IEEE Std 1003.1-2001 (``POSIX.1'').
   
-2.5.5 MD5 sum of a string
+2.5.6 MD5 sum of a string
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-  '$MD5{' <STR> '}' 
+  '$MD5{' <BR_STR> '}'
 
-The tag is replaced by an MD5 sum of <STR>.
+The tag is replaced by an MD5 sum of <BR_STR>.
 
-
-2.5.6 Test on an existence of a variable
+2.5.7 Test on an existence of a variable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  '$DEFINED{' <VAR> '}'
+  '$DEFINED{' <BR_STR> '}'
 
-The tag is replaced by 1 if <VAR> is defined, 0 otherwise.
+The tag is replaced by 1 if variable <BR_STR> is defined, 0 otherwise.
 
 
-2.3.7 Regular expression based matching
+2.3.8 Regular expression based matching
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   '$MATCH{' <PATTERN> <SUBJECT> '}'
   <PATTERN> :: <DQ_STR>
@@ -841,21 +894,34 @@ PCRE match <SUBJECT> against <PATTERN>.  Return 1 if match succeeded,
 return 0 if matching fails.  Please refer the section dedicated to pattern
 matching for more information.
 
-2.3.8 Truncating to an integer value
+2.3.9 Truncating to an integer value
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   '$INT{' <EXPR> '}'
 
 Warning message is issued if conversion is not possible.
 
-2.3.9 In-situ function call expansion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.3.10 In-situ function call expansion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   '$FUN{' <FUN_NAME> {<FUN_ARG> ' '}* '}'
 
 Any <FUN_PARAM_REF> defined by DEFUN shall be expanded in-situ separated
 by a space ' '.
 
+2.3.11 In-situ function call multiple times
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$MAP{' <FUN_NAME> {<FUN_ARG> ' '}* '}'
 
-2.3.10 Generating a sequence of numbers
+Any <FUN_PARAM_REF> defined by DEFUN shall be expanded in-situ separated
+by a space ' '.  <FUN_NAME> is called <FUN_PARAM>s/<FUN_ARG>s times.  The
+number of arguments passed in each iteration is <FUN_PARAM>s.
+
+2.3.12 Interleaving arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$INTERLEAVE{' <INTERLEAVE_COUNT> {<INTERLEAVE_ARG> ' '}* '}'
+  <INTERLEAVE_COUNT> :: <DQ_N>
+  <INTERLEAVE_ARG> :: <DQ_STR>
+
+2.3.13 Generating a sequence of numbers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   '$SEQ{' <SEQ_FROM> <SEQ_TO> '}'
   <SEQ_FROM> :: <EXPR>
@@ -865,6 +931,14 @@ Produces a sequence of numbers from <SEQ_FROM> to <SEQ_TO> separated
 by spaces.  If <SEQ_FROM> > <SEQ_TO> it counts from <SEQ_TO> down to
 <SEQ_FROM>.  At least one number is always output, i.e. $SEQ{0 0}
 produces 0.
+
+2.3.14 Split a string into separate tokens
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  '$SPLIT{' <BR_STR> '}'
+
+<BR_STR> is evaluated in exactly the same maner if no $SPLIT was used,
+however, the result is split into separate tokens separated by whitespace.
+
 
 3 Caveats
 ~~~~~~~~~

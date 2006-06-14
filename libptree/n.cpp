@@ -51,6 +51,10 @@ Node::~Node()
 {
   DM_DBG_I;
 
+  /* free dynamically allocated data of this node first */
+  DELETE(REPEAT.X);
+  DELETE(REPEAT.Y);
+
   /* first free the children */
   if(this->child) DELETE(this->child);
 
@@ -70,8 +74,8 @@ Node::init()
   OFFSET = 0;
   COND = S2_COND_NONE;
   REPEAT.type = S2_REPEAT_NONE;
-  REPEAT.X = 0;
-  REPEAT.Y = 0;
+  REPEAT.X = NULL;
+  REPEAT.Y = NULL;
   EVAL = opts.s2_eval;
   TIMEOUT = opts.s2_timeout;
 
@@ -101,8 +105,8 @@ Node::init(Node &node)
   OFFSET = node.OFFSET;
   COND = node.COND;
   REPEAT.type = node.REPEAT.type;
-  REPEAT.X = node.REPEAT.X;
-  REPEAT.Y = node.REPEAT.Y;
+  REPEAT.X = node.REPEAT.X? new std::string(node.REPEAT.X->c_str()) : NULL;
+  REPEAT.Y = node.REPEAT.Y? new std::string(node.REPEAT.Y->c_str()) : NULL;
   EVAL = node.EVAL;
   TIMEOUT = node.TIMEOUT;
 
@@ -207,136 +211,15 @@ last_par:
   return ERR_OK;
 } /* append_node */
 
-/* 
- * Create a string parameter enclosed by double quotes depending on
- * characters in the string and its length.
- */
-std::string
-Node::dq_param(const char *s, BOOL quote)
-{
-  DM_DBG_I;
-  std::stringstream ss;
-  BOOL q;
-
-  if(!quote) RETURN(std::string(s));
-
-//#define DELIMIT_PARAM
-#ifdef DELIMIT_PARAM    /* for debugging only */
-  ss << '|';
-#endif
-
-  if(s == NULL) {
-    ss << S2_NULL_STR;
-    goto out;
-  }
-
-  q = str_char(s, ' ') != NULL ||       /* constains a space */
-      str_char(s, '\t') != NULL ||      /* constains a tabulator */
-      str_char(s, '\n') != NULL ||      /* constains a newline character */
-      str_char(s, '\r') != NULL ||      /* constains a carriage return */
-      *s == 0;                          /* empty string */
-
-  if(q) ss << '"';
-
-  ss << escape_chars(s, '"', q);
-
-  if(q) ss << '"';
-
-out:
-#ifdef DELIMIT_PARAM    /* for debugging only */
-  ss << '|';
-#endif
-
-#undef DELIMIT_PARAM    /* for debugging only */
-
-  RETURN(ss.str());
-} /* print_dq_param */
-
-std::string
-Node::dq_param(const std::string &s, BOOL quote)
-{
-  if(!quote) return s.c_str();
-
-  return dq_param(s.c_str(), quote);
-}
-
-std::string
-Node::dq_param(const std::string *s, BOOL quote)
-{
-  if(s == NULL) return std::string(S2_NULL_STR);
-
-  if(!quote) return s->c_str();
-
-  return dq_param(s->c_str(), quote);
-}
-
-std::string
-Node::dq_param(const bool b, BOOL quote)
-{
-  std::string s = b? std::string("1"): std::string("0");
-  
-  return s;
-}
-
-std::string
-Node::dq_param(const unsigned char c, BOOL quote)
-{
-  std::string s = i2str(c);
-  
-  return s;
-}
-
-/* 
- * Create a string parameter enclosed by double quotes depending on
- * characters in the string and its length.
- */
-std::string
-Node::ind_param(const char *s)
-{
-  std::stringstream ss;
-
-//#define DELIMIT_PARAM
-#ifdef DELIMIT_PARAM    /* for debugging only */
-  ss << '|';
-#endif
-
-  if(s == NULL) {
-    ss << S2_NULL_STR;
-    goto out;
-  }
-
-  ss << escape_chars(s, ']', TRUE);
-
-out:
-#ifdef DELIMIT_PARAM    /* for debugging only */
-  ss << '|';
-#endif
-
-  return ss.str();
-
-#undef DELIMIT_PARAM    /* for debugging only */
-} /* ind_param */
-
-std::string
-Node::ind_param(const std::string &s)
-{
-  return ind_param(s.c_str());
-}
-
-std::string
-Node::ind_param(const std::string *s)
-{
-  if(s == NULL) return std::string(S2_NULL_STR);
-
-  return ind_param(s->c_str());
-}
-
 std::string
 Node::nodeToString(Node *n, uint indent, Process *proc)
 {
 /* a pretty-printer macro to decide on printing default values */
 #define IS_DEFAULT(v,def_val_indicator)\
   (!(opts.show_defaults) && (v) == (def_val_indicator))
+
+#define EXPR2I(s)\
+  (proc? Process::eval_str(s, proc) : s->c_str())
 
   std::stringstream ss;
   int i;
@@ -354,11 +237,24 @@ Node::nodeToString(Node *n, uint indent, Process *proc)
   }
 
   switch(n->REPEAT.type) {
-    case S2_REPEAT_NONE:  break;
-    case S2_REPEAT_OR:    ss << '>' << n->REPEAT.X << "||" << n->REPEAT.Y; break;
-    case S2_REPEAT_AND:   ss << '>' << n->REPEAT.X << "&&" << n->REPEAT.Y; break;
-    case S2_REPEAT_PAR:   ss << '>' << n->REPEAT.X << ' '  << n->REPEAT.Y; break;
-    case S2_REPEAT_WHILE: ss << "WHILE"; break;
+    case S2_REPEAT_NONE:
+    break;
+
+    case S2_REPEAT_OR:
+      ss << '>' << EXPR2I(n->REPEAT.X) << "||" << EXPR2I(n->REPEAT.Y);
+    break;
+
+    case S2_REPEAT_AND:
+      ss << '>' << EXPR2I(n->REPEAT.X) << "&&" << EXPR2I(n->REPEAT.Y);
+    break;
+
+    case S2_REPEAT_PAR:
+      ss << '>' << EXPR2I(n->REPEAT.X) << ' '  << EXPR2I(n->REPEAT.Y);
+    break;
+
+    case S2_REPEAT_WHILE:
+      ss << "WHILE";
+    break;
   }
   if(n->REPEAT.type != S2_REPEAT_NONE) ss << ' ';
 

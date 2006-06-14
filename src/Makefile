@@ -57,8 +57,6 @@ LIB_GLOBUS		= \
   -lcrypto_$(GLOBUS_FLAVOUR)\
   -Wl,-Bdynamic
 endif
-GSOAP_LOCAL		= ../gsoap
-OBJ_GSOAP		= $(GSOAP_LOCAL)/soapC.o $(GSOAP_LOCAL)/soapClient.o
 
 PRJLIBS		:=\
   -L../libcommon\
@@ -69,10 +67,11 @@ PRJLIBS		:=\
   -lexpr\
   -lmatch
 
-ifeq ($(_enable_gsoap),yes)
+ifneq ($(SRM_VERSION),)
+SRM_DIR		:= ../protos/srm/$(SRM_VERSION)
 PRJLIBS		+=\
-  -L../libsrm2api\
-  -L../libsrm2n\
+  -L$(SRM_DIR)/api\
+  -L$(SRM_DIR)/n\
   -L$(_with_gsoapdir)/lib\
   -L$(_with_cgsi_plugindir)/lib\
   -L$(_with_globusdir)/lib\
@@ -82,7 +81,9 @@ endif
 PRJLIBS		+=\
   -lcommon
 
-ifeq ($(_enable_gsoap),yes)
+ifneq ($(SRM_VERSION),)
+GSOAP_LOCAL		= $(SRM_DIR)/gsoap
+OBJ_GSOAP		= $(GSOAP_LOCAL)/soapC.o $(GSOAP_LOCAL)/soapClient.o
 PRJLIBS		+=\
   $(OBJ_GSOAP)\
   $(LIB_GSOAP)\

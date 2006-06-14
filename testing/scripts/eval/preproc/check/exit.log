@@ -1,4 +1,5 @@
 1 (if01.sh)
+0 (if02.sh)
 2 (include-loop.sh)
 0 (include-stdin.sh)
 0 (include.sh)

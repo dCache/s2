@@ -1,0 +1,6 @@
+first=1; seq=2 3 4 5
+first=2; seq=3 4 5
+first=3; seq=4 5
+first=4; seq=5
+first=5; seq=
+OK

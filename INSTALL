@@ -62,13 +62,13 @@ If you require SRM2 protocol support, you'll also need:
   http://cern.ch/castor/DIST/CERN/savannah/CGSI_gSOAP.pkg
 
 $ ./configure --help
-$ ./configure [your_options] && make
+$ ./configure --enable-srm21 && make
 $ make install [prefix=your_prefix]
 $ make rpm
 
 Note that if you just want to play with the S2 language and do not
 want SRM2 support, use
-$ ./configure --disable-srm2
+$ ./configure
 
 
 Testing directory

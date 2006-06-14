@@ -3,3 +3,4 @@
 NOP
 && SYSTEM echo "$PRINTF{"%03x %05x" 300 500}"
 && SYSTEM echo $PRINTF{"torture}}}%s" parser}
+&& SYSTEM echo $PRINTF{}

@@ -2,3 +2,4 @@
 
 NOP
 && SYSTEM echo "$RND{100}"
+&& SYSTEM echo "$RND{}"

@@ -7,18 +7,12 @@
 ; srmStatusOfPutRequest
 
 ASSIGN srmTest PutGet01
-   #include ../include/PutCycle01.s2
-   #include ../include/GetCycle01.s2
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
 
 
-;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& ASSIGN fileToPut $ENV{FILE_TO_PUT}
-&& ASSIGN sURL $ENV{NEW_SRM_FILE}
-   FUN PutCycle01 ${fileToPut} ${sURL}
-
-;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& ASSIGN fileToGet $ENV{FILE_TO_GET}
-   FUN GetCycle01 ${fileToGet} ${sURL}
+&& FUN PutCycle $ENV{FILE_TO_PUT} $ENV{NEW_SRM_FILE} : putRequestToken
+&& FUN GetCycle $ENV{FILE_TO_GET} $ENV{NEW_SRM_FILE} : getRequestToken
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

@@ -7,12 +7,12 @@
 ; srmReleaseFiles
 
 ASSIGN srmTest Pin01
-   #include ../include/PutCycle01.s2
+   #include ../include/PutCycle.s2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& ASSIGN fileToPut $ENV{FILE_TO_PUT}
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT0}
 && ASSIGN sURL $ENV{NEW_SRM_FILE}
-   FUN PutCycle01 ${fileToPut} ${sURL}
+   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; use srmExtendFileLifeTime to try to extend the pin time for the file

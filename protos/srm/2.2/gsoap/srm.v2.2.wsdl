@@ -198,20 +198,15 @@
      <element name="surl" type="xsd:anyURI"/>
      <element name="status" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TReturnStatus"/>
      <element name="size" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="ownerPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
-     <element name="arrayOfUserPermissions" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTUserPermission"/>
-     <element name="arrayOfGroupPermissions" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTGroupPermission"/>
-     <element name="otherPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
      <element name="createdAtTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:dateTime"/>
      <element name="lastModificationTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:dateTime"/>
-     <element name="owner" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="fileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
      <element name="retentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
      <element name="fileLocality" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileLocality"/>
      <element name="arrayOfSpaceTokens" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfString"/>
      <element name="type" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileType"/>
-     <element name="lifetimeAssigned" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeLeft" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="lifetimeAssigned" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="lifetimeLeft" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="checkSumType" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="checkSumValue" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfSubPaths" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTMetaDataPathDetail"/>
@@ -231,8 +226,8 @@
      <element name="totalSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="guaranteedSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="unusedSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeAssigned" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeLeft" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="lifetimeAssigned" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="lifetimeLeft" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="ArrayOfTMetaDataSpace">
@@ -328,8 +323,8 @@
      <element name="sourceSURL" type="xsd:anyURI"/>
      <element name="fileSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="status" type="impl:TReturnStatus"/>
-     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingPinTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingPinTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="transferURL" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:anyURI"/>
      <element name="transferProtocolInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
@@ -344,8 +339,8 @@
      <element name="sourceSURL" type="xsd:anyURI"/>
      <element name="status" type="impl:TReturnStatus"/>
      <element name="fileSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingPinTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingPinTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="ArrayOfTBringOnlineRequestFileStatus">
@@ -358,9 +353,9 @@
      <element name="SURL" type="xsd:anyURI"/>
      <element name="status" type="impl:TReturnStatus"/>
      <element name="fileSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingPinLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingPinLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="transferURL" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:anyURI"/>
      <element name="transferProtocolInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
@@ -376,24 +371,13 @@
      <element name="targetSURL" type="xsd:anyURI"/>
      <element name="status" type="impl:TReturnStatus"/>
      <element name="fileSize" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedWaitTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="ArrayOfTCopyRequestFileStatus">
     <sequence>
      <element maxOccurs="unbounded" name="statusArray" type="impl:TCopyRequestFileStatus"/>
-    </sequence>
-   </complexType>
-   <complexType name="TRequestStat">
-    <sequence>
-     <element name="statusCode" type="impl:TStatusCode"/>
-     <element name="numOfFiles" type="xsd:int"/>
-    </sequence>
-   </complexType>
-   <complexType name="ArrayOfTRequestStat">
-    <sequence>
-     <element maxOccurs="unbounded" name="statArray" nillable="true" type="impl:TRequestStat"/>
     </sequence>
    </complexType>
    <complexType name="TRequestSummary">
@@ -402,7 +386,9 @@
      <element name="status" type="impl:TReturnStatus"/>
      <element name="requestType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRequestType"/>
      <element name="totalNumFilesInRequest" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
-     <element name="arrayOfRequestStats" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTRequestStat"/>
+     <element name="numOfCompletedFiles" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="numOfWaitingFiles" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="numOfFailedFiles" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="ArrayOfTRequestSummary">
@@ -414,12 +400,28 @@
     <sequence>
      <element name="surl" type="xsd:anyURI"/>
      <element name="status" type="impl:TReturnStatus"/>
-     <element name="permission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionType"/>
+     <element name="permission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
     </sequence>
    </complexType>
    <complexType name="ArrayOfTSURLPermissionReturn">
     <sequence>
      <element maxOccurs="unbounded" name="surlPermissionArray" type="impl:TSURLPermissionReturn"/>
+    </sequence>
+   </complexType>
+   <complexType name="TPermissionReturn">
+    <sequence>
+     <element name="surl" type="xsd:anyURI"/>
+     <element name="status" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TReturnStatus"/>
+     <element name="owner" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
+     <element name="ownerPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
+     <element name="arrayOfUserPermissions" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTUserPermission"/>
+     <element name="arrayOfGroupPermissions" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTGroupPermission"/>
+     <element name="otherPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
+    </sequence>
+   </complexType>
+   <complexType name="ArrayOfTPermissionReturn">
+    <sequence>
+     <element maxOccurs="unbounded" name="permissionArray" nillable="true" type="impl:TPermissionReturn"/>
     </sequence>
    </complexType>
    <complexType name="TRequestTokenReturn">
@@ -453,7 +455,7 @@
      <element name="retentionPolicyInfo" type="impl:TRetentionPolicyInfo"/>
      <element name="desiredSizeOfTotalSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="desiredSizeOfGuaranteedSpace" type="xsd:unsignedLong"/>
-     <element name="desiredLifetimeOfReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="desiredLifetimeOfReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="arrayOfExpectedFileSizes" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfUnsignedLong"/>
      <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
      <element name="transferParameters" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TTransferParameters"/>
@@ -463,11 +465,11 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="retentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
      <element name="sizeOfTotalReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="sizeOfGuaranteedReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeOfReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="lifetimeOfReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="spaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
     </sequence>
    </complexType>
@@ -481,11 +483,11 @@
    <complexType name="srmStatusOfReserveSpaceRequestResponse">
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
-     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="retentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
      <element name="sizeOfTotalReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="sizeOfGuaranteedReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeOfReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="lifetimeOfReservedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="spaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
     </sequence>
    </complexType>
@@ -510,7 +512,7 @@
      <element name="spaceToken" type="xsd:string"/>
      <element name="newSizeOfTotalSpaceDesired" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="newSizeOfGuaranteedSpaceDesired" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="newLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="newLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
@@ -520,7 +522,7 @@
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="sizeOfTotalSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="sizeOfGuaranteedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeGranted" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="lifetimeGranted" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -535,7 +537,7 @@
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="sizeOfTotalSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="sizeOfGuaranteedSpace" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="lifetimeGranted" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="lifetimeGranted" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -563,7 +565,7 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLReturnStatus"/>
     </sequence>
    </complexType>
@@ -577,7 +579,7 @@
    <complexType name="srmStatusOfChangeSpaceForFilesRequestResponse">
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
-     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="estimatedProcessingTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLReturnStatus"/>
     </sequence>
    </complexType>
@@ -587,13 +589,13 @@
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="spaceToken" type="xsd:string"/>
      <element name="arrayOfSURLs" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfAnyURI"/>
-     <element name="newLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="newLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="srmExtendFileLifeTimeInSpaceResponse">
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
-     <element name="newTimeExtended" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="newTimeExtended" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLReturnStatus"/>
     </sequence>
    </complexType>
@@ -656,6 +658,18 @@
     </sequence>
    </complexType>
 
+   <complexType name="srmGetPermissionRequest">
+    <sequence>
+     <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+    </sequence>
+   </complexType>
+   <complexType name="srmGetPermissionResponse">
+    <sequence>
+     <element name="returnStatus" type="impl:TReturnStatus"/>
+     <element name="arrayOfPermissionReturns" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTPermissionReturn"/>
+    </sequence>
+   </complexType>
 
    <complexType name="srmMkdirRequest">
     <sequence>
@@ -698,7 +712,7 @@
    <complexType name="srmLsRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
      <element name="storageSystemInfo" nillable="true" type="impl:ArrayOfTExtraInfo"/>
      <element name="fileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
      <element name="fullDetailedList" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:boolean"/>
@@ -752,8 +766,8 @@
      <element name="userRequestDescription" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
      <element name="desiredFileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
-     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="desiredPinLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="desiredPinLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="targetSpaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="targetFileRetentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
      <element name="transferParameters" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TTransferParameters"/>
@@ -764,7 +778,7 @@
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTGetRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -779,7 +793,7 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTGetRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -790,12 +804,12 @@
      <element name="userRequestDescription" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
      <element name="desiredFileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
-     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="desiredLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="desiredLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="targetSpaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="targetFileRetentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
      <element name="transferParameters" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TTransferParameters"/>
-     <element name="deferredStartTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="deferredStartTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="srmBringOnlineResponse">
@@ -803,8 +817,8 @@
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTBringOnlineRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingDeferredStartTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingDeferredStartTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -819,8 +833,8 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTBringOnlineRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="remainingDeferredStartTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="remainingDeferredStartTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -831,9 +845,9 @@
      <element name="userRequestDescription" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="overwriteOption" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TOverwriteMode"/>
      <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
-     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="desiredPinLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="desiredFileLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="desiredPinLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="desiredFileLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="desiredFileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
      <element name="targetSpaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="targetFileRetentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
@@ -845,7 +859,7 @@
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTPutRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -860,7 +874,7 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTPutRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -870,8 +884,8 @@
      <element name="arrayOfFileRequests" type="impl:ArrayOfTCopyFileRequest"/>
      <element name="userRequestDescription" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="overwriteOption" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TOverwriteMode"/>
-     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="desiredTargetSURLLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="desiredTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="desiredTargetSURLLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="targetFileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
      <element name="targetSpaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="targetFileRetentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
@@ -882,7 +896,7 @@
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTCopyRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -898,7 +912,7 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTCopyRequestFileStatus"/>
-     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="remainingTotalRequestTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
 
@@ -999,15 +1013,15 @@
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
-     <element name="newFileLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="newPinLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="newFileLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="newPinLifeTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
     </sequence>
    </complexType>
    <complexType name="srmExtendFileLifeTimeResponse">
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
-     <element name="newExtendedFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
-     <element name="newExtendedPinLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
+     <element name="newExtendedFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="newExtendedPinLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLReturnStatus"/>
     </sequence>
    </complexType>
@@ -1208,6 +1222,18 @@
    <wsdl:message name="srmCheckPermissionResponse">
 
       <wsdl:part name="srmCheckPermissionResponse" type="impl:srmCheckPermissionResponse"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="srmGetPermissionRequest">
+
+      <wsdl:part name="srmGetPermissionRequest" type="impl:srmGetPermissionRequest"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="srmGetPermissionResponse">
+
+      <wsdl:part name="srmGetPermissionResponse" type="impl:srmGetPermissionResponse"/>
 
    </wsdl:message>
 
@@ -1624,6 +1650,14 @@
          <wsdl:input message="impl:srmCheckPermissionRequest" name="srmCheckPermissionRequest"/>
 
          <wsdl:output message="impl:srmCheckPermissionResponse" name="srmCheckPermissionResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="srmGetPermission">
+
+         <wsdl:input message="impl:srmGetPermissionRequest" name="srmGetPermissionRequest"/>
+
+         <wsdl:output message="impl:srmGetPermissionResponse" name="srmGetPermissionResponse"/>
 
       </wsdl:operation>
 
@@ -2070,6 +2104,24 @@
          </wsdl:input>
 
          <wsdl:output name="srmCheckPermissionResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://srm.lbl.gov/StorageResourceManager" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="srmGetPermission">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="srmGetPermissionRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://srm.lbl.gov/StorageResourceManager" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="srmGetPermissionResponse">
 
             <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://srm.lbl.gov/StorageResourceManager" use="encoded"/>
 

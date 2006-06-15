@@ -5,12 +5,11 @@
 ; srmStatusOfPutRequest
 
 ASSIGN srmTest srmMkdir
-   #include ../include/PutCycle01.s2
+   #include ../include/PutCycle.s2
 
 && srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} storageSystemInfo=<i1> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& FUN PutCycle01 $ENV{NEW_SRM_DIR}/$ENV{cdate}.txt $ENV{FILE_TO_PUT0}
+&& FUN PutCycle $ENV{NEW_SRM_DIR}/$ENV{cdate}.txt $ENV{FILE_TO_PUT0} : putRequestToken
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

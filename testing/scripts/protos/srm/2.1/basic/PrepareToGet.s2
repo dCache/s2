@@ -5,10 +5,9 @@
 ; srmStatusOfPutRequest
 
 ASSIGN srmTest srmPrepareToGet
-   #include ../include/PutCycle01.s2
+   #include ../include/PutCycle.s2
 
-;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& FUN PutCycle01 $ENV{FILE_TO_PUT} $ENV{NEW_SRM_FILE}
+&& FUN PutCycle $ENV{FILE_TO_PUT} $ENV{NEW_SRM_FILE} : putRequestToken
 
 && srmPrepareToGet $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.SURLOrStFN[$ENV{NEW_SRM_FILE}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 

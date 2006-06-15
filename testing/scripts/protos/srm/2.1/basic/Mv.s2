@@ -3,16 +3,16 @@
 ; srmPrepareToPut
 
 ASSIGN srmTest srmMv
-   #include ../include/PutCycle01.s2
-   #include ../include/GetCycle01.s2
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
 
 ;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& FUN PutCycle01 $ENV{FILE_TO_PUT0} $ENV{NEW_SRM_FILE0}
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{NEW_SRM_FILE0} : putRequestToken
 
 && srmMv $ENV{SRM_ENDPOINT} userID=$ENV{USER} fromSURLOrStFN=$ENV{NEW_SRM_FILE0} fromStorageSystemInfo=<fromStorageSystemInfo> toSURLOrStFN=$ENV{NEW_SRM_FILE1} toStorageSystemInfo=<toStorageSystemInfo> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& FUN GetCycle01 $ENV{FILE_TO_GET1} $ENV{NEW_SRM_FILE1}
+&& FUN GetCycle $ENV{FILE_TO_GET1} $ENV{NEW_SRM_FILE1} : getRequestToken
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

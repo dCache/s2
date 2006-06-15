@@ -34,8 +34,8 @@
 ; again (this should result in failure).
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#include ../include/PutCycle02.s2
-#include ../include/GetCycle02.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
 
 NOP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -60,14 +60,14 @@ NOP
 && ASSIGN sURL1 $ENV{NEW_SRM_DIR}/f1
 && ASSIGN fileToPut0 $ENV{FILE_TO_PUT0}
 && ASSIGN fileToPut1 $ENV{FILE_TO_PUT1}
-   FUN PutCycle02 ${sURL0} ${sURL1} ${fileToPut0} ${fileToPut1}
+   FUN PutCycle "${sURL0} ${sURL1}" "${fileToPut0} ${fileToPut1}" : putRequestToken
 #endif ;TEST_SCENARIO_B
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #if $ENV{TEST_SCENARIO_C}
 && ASSIGN fileToGet0 $ENV{FILE_TO_GET0}
 && ASSIGN fileToGet1 $ENV{FILE_TO_GET1}
-   FUN GetCycle02 ${sURL0} ${sURL1} ${fileToGet0} ${fileToGet1}
+   FUN GetCycle "${sURL0} ${sURL1}" "${fileToGet0} ${fileToGet1}" : getRequestToken
 #endif ;TEST_SCENARIO_C
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

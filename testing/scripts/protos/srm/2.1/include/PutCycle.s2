@@ -20,7 +20,7 @@ DEFUN DefTransferURLs f : t
    ASSIGN t ".*returnStatus.statusCode${:c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL${:c}=(?P<transferURL${:c}>.*?)( |$)"
    && ASSIGN :c $EXPR{${:c}+1}
 
-DEFUN PutCycle filesToPut sURLs
+DEFUN PutCycle filesToPut sURLs : putRequestToken
    ; Define local variables
    ASSIGN fileToPutSizes $MAP{FileSize $SPLIT{${filesToPut}}}
    && ASSIGN storageTypes $MAP{StorageTypes $SPLIT{${filesToPut}}}

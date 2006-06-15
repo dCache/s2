@@ -19,7 +19,7 @@ DEFUN DefFileStatuses f : t
    ASSIGN t ".*returnStatus.statusCode${:c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL${:c}=(?P<transferURL${:c}>.*?)( |$)"
    && ASSIGN :c $EXPR{${:c}+1}
 
-DEFUN GetCycle filesToGet sURLs
+DEFUN GetCycle filesToGet sURLs : getRequestToken
    ; Define local variables
    ASSIGN storageTypes $MAP{StorageTypes $SPLIT{${filesToGet}}}
    && ASSIGN c 0 transferURLs ""

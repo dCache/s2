@@ -1,4 +1,4 @@
-; GetCycle with one file
+; GetCycle with multiple files
 ;
 ; @param: ${fileToGet}
 ; @param: ${sURL}

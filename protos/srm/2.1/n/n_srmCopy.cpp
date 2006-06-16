@@ -46,14 +46,6 @@ srmCopy::init()
   /* response (parser) */
   requestToken = NULL;
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmCopyResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmCopyResponse_));
-  }
 }
 
 /*
@@ -94,10 +86,19 @@ srmCopy::~srmCopy()
   DELETE(requestToken);
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmCopy::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmCopyResponse_ *resp = (srm__srmCopyResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -126,6 +127,8 @@ srmCopy::exec(Process *proc)
   EVAL_VEC_STR_CPY(arrayOfFileRequests.toStorageSystemInfo);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(Copy);
+
   Copy(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -160,7 +163,7 @@ srmCopy::exec(Process *proc)
             resp->srmCopyResponse->requestToken->value.c_str());
 
   /* arrayOfFileStatus */
-  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -180,6 +183,7 @@ srmCopy::toString(Process *proc)
 #define EVAL_VEC_STR_CPY(vec) EVAL_VEC_STR(srmCopy,vec)
   DM_DBG_I;
   
+  srm__srmCopyResponse_ *resp = proc? (srm__srmCopyResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -231,7 +235,7 @@ srmCopy::toString(Process *proc)
     DM_LOG(DM_N(1), "no request tokens returned\n");
   } else ss << " requestToken=" << dq_param(resp->srmCopyResponse->requestToken->value, quote);
     
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmCopyResponse);
 
@@ -240,10 +244,11 @@ srmCopy::toString(Process *proc)
 }
 
 std::string
-srmCopy::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmCopy::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmCopyResponse_ *resp = proc? (srm__srmCopyResponse_ *)proc->resp : NULL;
   std::stringstream ss;
   
   if(!resp || !resp->srmCopyResponse) RETURN(ss.str());

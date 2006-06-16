@@ -41,14 +41,6 @@ srmStatusOfGetRequest::init()
 
   /* response (parser) */
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmStatusOfGetRequestResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmStatusOfGetRequestResponse_));
-  }
 }
 
 /*
@@ -74,10 +66,19 @@ srmStatusOfGetRequest::~srmStatusOfGetRequest()
   /* response (parser) */
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmStatusOfGetRequest::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmStatusOfGetRequestResponse_ *resp = (srm__srmStatusOfGetRequestResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -89,6 +90,8 @@ srmStatusOfGetRequest::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmStatusOfGetRequest::surlArray);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(StatusOfGetRequest);
+
   StatusOfGetRequest(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -105,7 +108,7 @@ srmStatusOfGetRequest::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(fileStatuses, arrayOfStatusOfGetRequestResponseToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfStatusOfGetRequestResponseToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -118,6 +121,8 @@ std::string
 srmStatusOfGetRequest::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmStatusOfGetRequestResponse_ *resp = proc? (srm__srmStatusOfGetRequestResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -139,7 +144,7 @@ srmStatusOfGetRequest::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmStatusOfGetRequestResponse) RETURN(ss.str());
 
-  ss << arrayOfStatusOfGetRequestResponseToString(TRUE, quote);
+  ss << arrayOfStatusOfGetRequestResponseToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmStatusOfGetRequestResponse);
 
@@ -147,9 +152,11 @@ srmStatusOfGetRequest::toString(Process *proc)
 }
 
 std::string
-srmStatusOfGetRequest::arrayOfStatusOfGetRequestResponseToString(BOOL space, BOOL quote) const
+srmStatusOfGetRequest::arrayOfStatusOfGetRequestResponseToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmStatusOfGetRequestResponse_ *resp = proc? (srm__srmStatusOfGetRequestResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmStatusOfGetRequestResponse) RETURN(ss.str());

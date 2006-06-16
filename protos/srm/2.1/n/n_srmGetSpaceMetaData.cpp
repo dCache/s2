@@ -40,14 +40,6 @@ srmGetSpaceMetaData::init()
 
   /* response (parser) */
   spaceDetails = NULL;
-
-  /* response (API) */
-  resp = new srm__srmGetSpaceMetaDataResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmGetSpaceMetaDataResponse_));
-  }
 }
 
 /*
@@ -72,10 +64,19 @@ srmGetSpaceMetaData::~srmGetSpaceMetaData()
   /* response (parser) */
   DELETE(spaceDetails);
 
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmGetSpaceMetaData::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmGetSpaceMetaDataResponse_ *resp = (srm__srmGetSpaceMetaDataResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -87,6 +88,8 @@ srmGetSpaceMetaData::exec(Process *proc)
   std::vector <std::string *> arrayOfSpaceToken = proc->eval_vec_str(srmGetSpaceMetaData::arrayOfSpaceToken);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(GetSpaceMetaData);
+
   GetSpaceMetaData(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -104,7 +107,7 @@ srmGetSpaceMetaData::exec(Process *proc)
   }
 
   /* arrayOfSpaceDetails */
-  match = proc->e_match(spaceDetails, arrayOfSpaceDetailsToString(FALSE, FALSE).c_str());
+  match = proc->e_match(spaceDetails, arrayOfSpaceDetailsToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -117,6 +120,8 @@ std::string
 srmGetSpaceMetaData::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmGetSpaceMetaDataResponse_ *resp = proc? (srm__srmGetSpaceMetaDataResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -142,7 +147,7 @@ srmGetSpaceMetaData::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmGetSpaceMetaDataResponse) RETURN(ss.str());
 
-  ss << arrayOfSpaceDetailsToString(TRUE, quote);
+  ss << arrayOfSpaceDetailsToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmGetSpaceMetaDataResponse);
   
@@ -150,9 +155,11 @@ srmGetSpaceMetaData::toString(Process *proc)
 }
 
 std::string
-srmGetSpaceMetaData::arrayOfSpaceDetailsToString(BOOL space, BOOL quote) const
+srmGetSpaceMetaData::arrayOfSpaceDetailsToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmGetSpaceMetaDataResponse_ *resp = proc? (srm__srmGetSpaceMetaDataResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmGetSpaceMetaDataResponse) RETURN(ss.str());

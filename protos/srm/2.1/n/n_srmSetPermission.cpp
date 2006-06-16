@@ -44,14 +44,6 @@ srmSetPermission::init()
   otherPermission = NULL;
 
   /* response (parser) */
-
-  /* response (API) */
-  resp = new srm__srmSetPermissionResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmSetPermissionResponse_));
-  }
 }
 
 /*
@@ -83,10 +75,19 @@ srmSetPermission::~srmSetPermission()
 
   /* response (parser) */
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmSetPermission::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmSetPermissionResponse_ *resp = (srm__srmSetPermissionResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -106,6 +107,8 @@ srmSetPermission::exec(Process *proc)
   EVAL_VEC_STR_SP(groupPermissionArray.ID);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(SetPermission);
+
   SetPermission(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -140,6 +143,8 @@ srmSetPermission::toString(Process *proc)
 {
 #define EVAL_VEC_STR_SP(vec) EVAL_VEC_STR(srmSetPermission,vec)
   DM_DBG_I;
+
+  srm__srmSetPermissionResponse_ *resp = proc? (srm__srmSetPermissionResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
   

@@ -4,9 +4,9 @@
 
 ASSIGN srmTest srmSetPermission
 
-&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} storageSystemInfo=<i1> returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR0} storageSystemInfo=<i1> returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
-&& srmSetPermission $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} permissionType=ADD ownerPermission=RWX userPermissionArray.mode[RWX] userPermissionArray.ID[ui0] groupPermissionArray.mode[RWX] groupPermissionArray.ID[gi0] otherPermission=RWX returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmSetPermission $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR0} permissionType=ADD ownerPermission=RWX userPermissionArray.mode[RWX] userPermissionArray.ID[ui0] groupPermissionArray.mode[RWX] groupPermissionArray.ID[gi0] otherPermission=RWX returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

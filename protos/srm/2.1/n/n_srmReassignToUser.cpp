@@ -43,14 +43,6 @@ srmReassignToUser::init()
   storageSystemInfo = NULL;
 
   /* response (parser) */
-
-  /* response (API) */
-  resp = new srm__srmReassignToUserResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmReassignToUserResponse_));
-  }
 }
 
 /*
@@ -77,10 +69,19 @@ srmReassignToUser::~srmReassignToUser()
 
   /* response (parser) */
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmReassignToUser::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmReassignToUserResponse_ *resp = (srm__srmReassignToUserResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -89,6 +90,8 @@ srmReassignToUser::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(ReassignToUser);
+
   ReassignToUser(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -113,6 +116,8 @@ std::string
 srmReassignToUser::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmReassignToUserResponse_ *resp = proc? (srm__srmReassignToUserResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

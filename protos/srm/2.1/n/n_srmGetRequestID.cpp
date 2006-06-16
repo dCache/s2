@@ -41,14 +41,6 @@ srmGetRequestID::init()
 
   /* response (parser) */
   requestTokens = NULL;
-
-  /* response (API) */
-  resp = new srm__srmGetRequestIDResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmGetRequestIDResponse_));
-  }
 }
 
 /*
@@ -73,10 +65,19 @@ srmGetRequestID::~srmGetRequestID()
   /* response (parser) */
   DELETE(requestTokens);
 
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmGetRequestID::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmGetRequestIDResponse_ *resp = (srm__srmGetRequestIDResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -86,6 +87,8 @@ srmGetRequestID::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(GetRequestID);
+
   GetRequestID(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -101,7 +104,7 @@ srmGetRequestID::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(requestTokens, arrayOfRequestDetailsToString(FALSE, FALSE).c_str());
+  match = proc->e_match(requestTokens, arrayOfRequestDetailsToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -114,6 +117,8 @@ std::string
 srmGetRequestID::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmGetRequestIDResponse_ *resp = proc? (srm__srmGetRequestIDResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -130,7 +135,7 @@ srmGetRequestID::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmGetRequestIDResponse) RETURN(ss.str());
 
-  ss << arrayOfRequestDetailsToString(TRUE, quote);
+  ss << arrayOfRequestDetailsToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmGetRequestIDResponse);
 
@@ -138,9 +143,11 @@ srmGetRequestID::toString(Process *proc)
 }
 
 std::string
-srmGetRequestID::arrayOfRequestDetailsToString(BOOL space, BOOL quote) const
+srmGetRequestID::arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmGetRequestIDResponse_ *resp = proc? (srm__srmGetRequestIDResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmGetRequestIDResponse) RETURN(ss.str());

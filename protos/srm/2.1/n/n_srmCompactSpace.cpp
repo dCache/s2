@@ -43,14 +43,6 @@ srmCompactSpace::init()
 
   /* response (parser) */
   newSizeOfThisSpace = NULL;
-
-  /* response (API) */
-  resp = new srm__srmCompactSpaceResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmCompactSpaceResponse_));
-  }
 }
 
 /*
@@ -77,10 +69,19 @@ srmCompactSpace::~srmCompactSpace()
   /* response (parser) */
   DELETE(newSizeOfThisSpace);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmCompactSpace::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmCompactSpaceResponse_ *resp = (srm__srmCompactSpaceResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -90,6 +91,8 @@ srmCompactSpace::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(CompactSpace);
+
   CompactSpace(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -118,6 +121,8 @@ std::string
 srmCompactSpace::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmCompactSpaceResponse_ *resp = proc? (srm__srmCompactSpaceResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

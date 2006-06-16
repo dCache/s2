@@ -54,10 +54,10 @@ NOP
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 #if $ENV{TEST_SCENARIO_B}
-&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test B: srmMkdir: new directory $ENV{NEW_SRM_DIR} created" >> $ENV{S2_LOG}
-&& ASSIGN sURL0 $ENV{NEW_SRM_DIR}/f0
-&& ASSIGN sURL1 $ENV{NEW_SRM_DIR}/f1
+&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+   SYSTEM echo "$DATE{} SRM2 test B: srmMkdir: new directory $ENV{NEW_SRM_DIR0} created" >> $ENV{S2_LOG}
+&& ASSIGN sURL0 $ENV{NEW_SRM_DIR0}/f0
+&& ASSIGN sURL1 $ENV{NEW_SRM_DIR0}/f1
 && ASSIGN fileToPut0 $ENV{FILE_TO_PUT0}
 && ASSIGN fileToPut1 $ENV{FILE_TO_PUT1}
    FUN PutCycle "${sURL0} ${sURL1}" "${fileToPut0} ${fileToPut1}" : putRequestToken

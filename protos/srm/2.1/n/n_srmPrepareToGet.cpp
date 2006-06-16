@@ -44,14 +44,6 @@ srmPrepareToGet::init()
   /* response (parser) */
   requestToken = NULL;
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmPrepareToGetResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmPrepareToGetResponse_));
-  }
 }
 
 /*
@@ -88,10 +80,19 @@ srmPrepareToGet::~srmPrepareToGet()
   DELETE(requestToken);
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmPrepareToGet::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmPrepareToGetResponse_ *resp = (srm__srmPrepareToGetResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -118,6 +119,8 @@ srmPrepareToGet::exec(Process *proc)
   EVAL_VEC_STR_PTG(arrayOfTransferProtocols);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(PrepareToGet);
+
   PrepareToGet(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -150,7 +153,7 @@ srmPrepareToGet::exec(Process *proc)
             resp->srmPrepareToGetResponse->requestToken->value.c_str());
 
   /* arrayOfFileStatus */
-  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -169,6 +172,7 @@ srmPrepareToGet::toString(Process *proc)
 #define EVAL_VEC_STR_PTG(vec) EVAL_VEC_STR(srmPrepareToGet,vec)
   DM_DBG_I;
   
+  srm__srmPrepareToGetResponse_ *resp = proc? (srm__srmPrepareToGetResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -215,7 +219,7 @@ srmPrepareToGet::toString(Process *proc)
     DM_LOG(DM_N(1), "no request tokens returned\n");
   } else ss << " requestToken=" << dq_param(resp->srmPrepareToGetResponse->requestToken->value, quote);
     
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmPrepareToGetResponse);
 
@@ -224,10 +228,11 @@ srmPrepareToGet::toString(Process *proc)
 }
 
 std::string
-srmPrepareToGet::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmPrepareToGet::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmPrepareToGetResponse_ *resp = proc? (srm__srmPrepareToGetResponse_ *)proc->resp : NULL;
   std::stringstream ss;
   
   if(!resp || !resp->srmPrepareToGetResponse) RETURN(ss.str());

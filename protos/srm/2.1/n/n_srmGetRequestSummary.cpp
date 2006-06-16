@@ -40,14 +40,6 @@ srmGetRequestSummary::init()
 
   /* response (parser) */
   requestSummary = NULL;
-
-  /* response (API) */
-  resp = new srm__srmGetRequestSummaryResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmGetRequestSummaryResponse_));
-  }
 }
 
 /*
@@ -72,10 +64,19 @@ srmGetRequestSummary::~srmGetRequestSummary()
   /* response (parser) */
   DELETE(requestSummary);
 
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmGetRequestSummary::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmGetRequestSummaryResponse_ *resp = (srm__srmGetRequestSummaryResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -87,6 +88,8 @@ srmGetRequestSummary::exec(Process *proc)
   std::vector <std::string *> arrayOfRequestToken = proc->eval_vec_str(srmGetRequestSummary::arrayOfRequestToken);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(GetRequestSummary);
+
   GetRequestSummary(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -104,7 +107,7 @@ srmGetRequestSummary::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(requestSummary, arrayOfRequestDetailsToString(FALSE, FALSE).c_str());
+  match = proc->e_match(requestSummary, arrayOfRequestDetailsToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -117,6 +120,8 @@ std::string
 srmGetRequestSummary::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmGetRequestSummaryResponse_ *resp = proc? (srm__srmGetRequestSummaryResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -137,7 +142,7 @@ srmGetRequestSummary::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmGetRequestSummaryResponse) RETURN(ss.str());
 
-  ss << arrayOfRequestDetailsToString(TRUE, quote);
+  ss << arrayOfRequestDetailsToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmGetRequestSummaryResponse);
   
@@ -145,9 +150,11 @@ srmGetRequestSummary::toString(Process *proc)
 }
 
 std::string
-srmGetRequestSummary::arrayOfRequestDetailsToString(BOOL space, BOOL quote) const
+srmGetRequestSummary::arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmGetRequestSummaryResponse_ *resp = proc? (srm__srmGetRequestSummaryResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmGetRequestSummaryResponse) RETURN(ss.str());

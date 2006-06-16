@@ -130,6 +130,7 @@ public:
   int print_tree(uint indent, FILE *file, BOOL pp_indent, BOOL exec_eval);
 
   virtual int exec(Process *proc) { return ERR_OK; };
+  virtual void finish(Process *proc) { };
   virtual std::string toString(Process *proc) { return "Node"; };
 
 };

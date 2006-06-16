@@ -43,14 +43,6 @@ srmMv::init()
   toStorageSystemInfo = NULL;
 
   /* response (parser) */
-
-  /* response (API) */
-  resp = new srm__srmMvResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmMvResponse_));
-  }
 }
 
 /*
@@ -77,10 +69,19 @@ srmMv::~srmMv()
 
   /* response (parser) */
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmMv::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmMvResponse_ *resp = (srm__srmMvResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -89,6 +90,8 @@ srmMv::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(Mv);
+
   Mv(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -113,6 +116,8 @@ std::string
 srmMv::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmMvResponse_ *resp = proc? (srm__srmMvResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

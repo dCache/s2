@@ -41,14 +41,6 @@ srmChangeFileStorageType::init()
 
   /* response (parser) */
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmChangeFileStorageTypeResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmChangeFileStorageTypeResponse_));
-  }
 }
 
 /*
@@ -75,10 +67,19 @@ srmChangeFileStorageType::~srmChangeFileStorageType()
   /* response (parser) */
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmChangeFileStorageType::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmChangeFileStorageTypeResponse_ *resp = (srm__srmChangeFileStorageTypeResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -94,6 +95,8 @@ srmChangeFileStorageType::exec(Process *proc)
   EVAL_VEC_STR_CHT(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(ChangeFileStorageType);
+
   ChangeFileStorageType(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -113,7 +116,7 @@ srmChangeFileStorageType::exec(Process *proc)
   }
 
   /* arrayOfFileStatus */
-  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -128,7 +131,8 @@ srmChangeFileStorageType::toString(Process *proc)
 {
 #define EVAL_VEC_STR_CHT(vec) EVAL_VEC_STR(srmChangeFileStorageType,vec)
   DM_DBG_I;
-  
+
+  srm__srmChangeFileStorageTypeResponse_ *resp = proc? (srm__srmChangeFileStorageTypeResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -152,7 +156,7 @@ srmChangeFileStorageType::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmChangeFileStorageTypeResponse) RETURN(ss.str());
 
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmChangeFileStorageTypeResponse);
 
@@ -161,10 +165,11 @@ srmChangeFileStorageType::toString(Process *proc)
 }
 
 std::string
-srmChangeFileStorageType::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmChangeFileStorageType::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmChangeFileStorageTypeResponse_ *resp = proc? (srm__srmChangeFileStorageTypeResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmChangeFileStorageTypeResponse) RETURN(ss.str());

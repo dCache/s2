@@ -41,14 +41,6 @@ srmMkdir::init()
   storageSystemInfo = NULL;
 
   /* response (parser) */
-
-  /* response (API) */
-  resp = new srm__srmMkdirResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmMkdirResponse_));
-  }
 }
 
 /*
@@ -73,10 +65,19 @@ srmMkdir::~srmMkdir()
 
   /* response (parser) */
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmMkdir::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmMkdirResponse_ *resp = (srm__srmMkdirResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -85,6 +86,8 @@ srmMkdir::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(Mkdir);
+
   Mkdir(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -107,6 +110,8 @@ std::string
 srmMkdir::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmMkdirResponse_ *resp = proc? (srm__srmMkdirResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

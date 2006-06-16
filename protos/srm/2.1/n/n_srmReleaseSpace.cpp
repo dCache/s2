@@ -42,14 +42,6 @@ srmReleaseSpace::init()
   forceFileRelease = NULL;
 
   /* response (parser) */
-
-  /* response (API) */
-  resp = new srm__srmReleaseSpaceResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmReleaseSpaceResponse_));
-  }
 }
 
 /*
@@ -74,11 +66,20 @@ srmReleaseSpace::~srmReleaseSpace()
   DELETE(forceFileRelease);
 
   /* response (parser) */
-  
-  /* response (API) */
-  DELETE(resp);
 
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmReleaseSpace::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmReleaseSpaceResponse_ *resp = (srm__srmReleaseSpaceResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -87,6 +88,8 @@ srmReleaseSpace::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(ReleaseSpace);
+
   ReleaseSpace(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -110,6 +113,8 @@ std::string
 srmReleaseSpace::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmReleaseSpaceResponse_ *resp = proc? (srm__srmReleaseSpaceResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

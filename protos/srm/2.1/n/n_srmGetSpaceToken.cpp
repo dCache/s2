@@ -41,14 +41,6 @@ srmGetSpaceToken::init()
 
   /* response (parser) */
   possibleSpaceTokens = NULL;
-
-  /* response (API) */
-  resp = new srm__srmGetSpaceTokenResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmGetSpaceTokenResponse_));
-  }
 }
 
 /*
@@ -72,11 +64,20 @@ srmGetSpaceToken::~srmGetSpaceToken()
 
   /* response (parser) */
   DELETE(possibleSpaceTokens);
-  
-  /* response (API) */
-  DELETE(resp);
 
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmGetSpaceToken::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmGetSpaceTokenResponse_ *resp = (srm__srmGetSpaceTokenResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -86,6 +87,8 @@ srmGetSpaceToken::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(GetSpaceToken);
+
   GetSpaceToken(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -128,6 +131,8 @@ std::string
 srmGetSpaceToken::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmGetSpaceTokenResponse_ *resp = proc? (srm__srmGetSpaceTokenResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

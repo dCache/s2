@@ -179,6 +179,7 @@ Process::init()
   et = EVAL_NONE;
   executed = ERR_OK;
   evaluated = ERR_OK;
+  resp = NULL;
   parent = NULL;
   rpar = NULL;
   var_tab = NULL;
@@ -229,6 +230,11 @@ Process::~Process()
         * be destroying an uninitialised process;                */
        DELETE(var_tab);
      }
+
+  /* call a node-specific finish() method (e.g.: release process memory allocated by gSoap, ...) */
+  if(n)
+    /* yes, n can be NULL, see proc_fun in eval_with_timeout() */
+    n->finish(this);
 }
 
 int

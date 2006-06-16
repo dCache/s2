@@ -58,6 +58,16 @@
     }\
   }
 
+#define NEW_SRM_RESP(r)\
+  srm__srm##r##Response_ *resp = new srm__srm##r##Response_();\
+  if(resp == NULL) {\
+    DM_ERR(ERR_SYSTEM, "new failed\n");\
+    RETURN(ERR_SYSTEM);\
+  } else {\
+    memset(resp, 0, sizeof(srm__srm##r##Response_));\
+  }\
+  proc->resp = resp;
+
 /* type definitions */
 typedef struct tArrayOfCopyFileRequests_ /* <std::string *> version of tArrayOfCopyFileRequests */
 { 
@@ -141,18 +151,16 @@ struct srmAbortFiles : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmAbortFilesResponse_ *resp;
-
 public:
   srmAbortFiles();
   srmAbortFiles(Node &node);
   ~srmAbortFiles();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfAbortFilesResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfAbortFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -167,15 +175,13 @@ struct srmAbortRequest : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmAbortRequestResponse_ *resp;
-
 public:
   srmAbortRequest();
   srmAbortRequest(Node &node);
   ~srmAbortRequest();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -195,15 +201,13 @@ struct srmCompactSpace : public SRM2
   /* response (parser) */
   std::string *newSizeOfThisSpace;
 
-  /* response (API) */
-  struct srm__srmCompactSpaceResponse_ *resp;
-
 public:
   srmCompactSpace();
   srmCompactSpace(Node &node);
   ~srmCompactSpace();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -228,18 +232,16 @@ struct srmCopy : public SRM2
   std::string *requestToken;
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmCopyResponse_ *resp;
-
 public:
   srmCopy();
   srmCopy(Node &node);
   ~srmCopy();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -257,15 +259,13 @@ struct srmExtendFileLifeTime : public SRM2
   /* response (parser) */
   std::string *newTimeExtended;
 
-  /* response (API) */
-  struct srm__srmExtendFileLifeTimeResponse_ *resp;
-
 public:
   srmExtendFileLifeTime();
   srmExtendFileLifeTime(Node &node);
   ~srmExtendFileLifeTime();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -283,18 +283,16 @@ struct srmGetRequestID : public SRM2
   /* response (parser) */
   std::string *requestTokens;
 
-  /* response (API) */
-  struct srm__srmGetRequestIDResponse_ *resp;
-
 public:
   srmGetRequestID();
   srmGetRequestID(Node &node);
   ~srmGetRequestID();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfRequestDetailsToString(BOOL space, BOOL quote) const;
+  std::string arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -310,18 +308,16 @@ struct srmGetRequestSummary : public SRM2
   /* response (parser) */
   std::string *requestSummary;
 
-  /* response (API) */
-  struct srm__srmGetRequestSummaryResponse_ *resp;
-
 public:
   srmGetRequestSummary();
   srmGetRequestSummary(Node &node);
   ~srmGetRequestSummary();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfRequestDetailsToString(BOOL space, BOOL quote) const;
+  std::string arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -337,18 +333,16 @@ struct srmGetSpaceMetaData : public SRM2
   /* response (parser) */
   std::string *spaceDetails;
 
-  /* response (API) */
-  struct srm__srmGetSpaceMetaDataResponse_ *resp;
-
 public:
   srmGetSpaceMetaData();
   srmGetSpaceMetaData(Node &node);
   ~srmGetSpaceMetaData();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfSpaceDetailsToString(BOOL space, BOOL quote) const;
+  std::string arrayOfSpaceDetailsToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -364,15 +358,13 @@ struct srmGetSpaceToken : public SRM2
   /* response (parser) */
   std::string *possibleSpaceTokens;
 
-  /* response (API) */
-  struct srm__srmGetSpaceTokenResponse_ *resp;
-
 public:
   srmGetSpaceToken();
   srmGetSpaceToken(Node &node);
   ~srmGetSpaceToken();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -391,18 +383,16 @@ struct srmChangeFileStorageType : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmChangeFileStorageTypeResponse_ *resp;
-
 public:
   srmChangeFileStorageType();
   srmChangeFileStorageType(Node &node);
   ~srmChangeFileStorageType();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -419,18 +409,16 @@ struct srmCheckPermission : public SRM2
   /* response (parser) */
   std::string *permissions;
 
-  /* response (API) */
-  struct srm__srmCheckPermissionResponse_ *resp;
-
 public:
   srmCheckPermission();
   srmCheckPermission(Node &node);
   ~srmCheckPermission();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -452,19 +440,17 @@ struct srmLs : public SRM2
   /* response (parser) */
   std::string *pathDetails;
 
-  /* response (API) */
-  struct srm__srmLsResponse_ *resp;
-
 public:
   srmLs();
   srmLs(Node &node);
   ~srmLs();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
-  std::string srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+  std::string srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
 
 private:
 };
@@ -480,15 +466,13 @@ struct srmMkdir : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmMkdirResponse_ *resp;
-
 public:
   srmMkdir();
   srmMkdir(Node &node);
   ~srmMkdir();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -508,15 +492,13 @@ struct srmMv : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmMvResponse_ *resp;
-
 public:
   srmMv();
   srmMv(Node &node);
   ~srmMv();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -540,18 +522,16 @@ struct srmPrepareToGet : public SRM2
   std::string *requestToken;
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmPrepareToGetResponse_ *resp;
-
 public:
   srmPrepareToGet();
   srmPrepareToGet(Node &node);
   ~srmPrepareToGet();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -574,18 +554,16 @@ struct srmPrepareToPut : public SRM2
   std::string *requestToken;
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmPrepareToPutResponse_ *resp;
-
 public:
   srmPrepareToPut();
   srmPrepareToPut(Node &node);
   ~srmPrepareToPut();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -602,18 +580,16 @@ struct srmPutDone : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmPutDoneResponse_ *resp;
-
 public:
   srmPutDone();
   srmPutDone(Node &node);
   ~srmPutDone();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfPutDoneResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfPutDoneResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -631,15 +607,13 @@ struct srmReassignToUser : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmReassignToUserResponse_ *resp;
-
 public:
   srmReassignToUser();
   srmReassignToUser(Node &node);
   ~srmReassignToUser();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -659,18 +633,16 @@ struct srmReleaseFiles : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmReleaseFilesResponse_ *resp;
-
 public:
   srmReleaseFiles();
   srmReleaseFiles(Node &node);
   ~srmReleaseFiles();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfReleaseFilesResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfReleaseFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -687,15 +659,13 @@ struct srmReleaseSpace : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmReleaseSpaceResponse_ *resp;
-
 public:
   srmReleaseSpace();
   srmReleaseSpace(Node &node);
   ~srmReleaseSpace();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -714,18 +684,16 @@ struct srmRemoveFiles : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmRemoveFilesResponse_ *resp;
-
 public:
   srmRemoveFiles();
   srmRemoveFiles(Node &node);
   ~srmRemoveFiles();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfRemoveFilesResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfRemoveFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -750,15 +718,13 @@ struct srmReserveSpace : public SRM2
   std::string *lifetimeOfReservedSpace;
   std::string *referenceHandleOfReservedSpace;
 
-  /* response (API) */
-  struct srm__srmReserveSpaceResponse_ *resp;
-
 public:
   srmReserveSpace();
   srmReserveSpace(Node &node);
   ~srmReserveSpace();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -775,15 +741,13 @@ struct srmResumeRequest : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmResumeRequestResponse_ *resp;
-
 public:
   srmResumeRequest();
   srmResumeRequest(Node &node);
   ~srmResumeRequest();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -801,18 +765,16 @@ struct srmRm : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmRmResponse_ *resp;
-
 public:
   srmRm();
   srmRm(Node &node);
   ~srmRm();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfFileStatusToString(BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -829,15 +791,13 @@ struct srmRmdir : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmRmdirResponse_ *resp;
-
 public:
   srmRmdir();
   srmRmdir(Node &node);
   ~srmRmdir();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -860,15 +820,13 @@ struct srmSetPermission : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmSetPermissionResponse_ *resp;
-
 public:
   srmSetPermission();
   srmSetPermission(Node &node);
   ~srmSetPermission();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -888,18 +846,16 @@ struct srmStatusOfCopyRequest : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmStatusOfCopyRequestResponse_ *resp;
-
 public:
   srmStatusOfCopyRequest();
   srmStatusOfCopyRequest(Node &node);
   ~srmStatusOfCopyRequest();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfStatusOfCopyRequestResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfStatusOfCopyRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -916,18 +872,16 @@ struct srmStatusOfGetRequest : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmStatusOfGetRequestResponse_ *resp;
-
 public:
   srmStatusOfGetRequest();
   srmStatusOfGetRequest(Node &node);
   ~srmStatusOfGetRequest();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfStatusOfGetRequestResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfStatusOfGetRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -944,18 +898,16 @@ struct srmStatusOfPutRequest : public SRM2
   /* response (parser) */
   std::string *fileStatuses;
 
-  /* response (API) */
-  struct srm__srmStatusOfPutRequestResponse_ *resp;
-
 public:
   srmStatusOfPutRequest();
   srmStatusOfPutRequest(Node &node);
   ~srmStatusOfPutRequest();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string arrayOfStatusOfPutRequestResponseToString(BOOL space, BOOL quote) const;
+  std::string arrayOfStatusOfPutRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -970,15 +922,13 @@ struct srmSuspendRequest : public SRM2
 
   /* response (parser) */
 
-  /* response (API) */
-  struct srm__srmSuspendRequestResponse_ *resp;
-
 public:
   srmSuspendRequest();
   srmSuspendRequest(Node &node);
   ~srmSuspendRequest();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 
@@ -1002,15 +952,13 @@ struct srmUpdateSpace : public SRM2
   std::string *sizeOfGuaranteedSpace;
   std::string *lifetimeGranted;
 
-  /* response (API) */
-  struct srm__srmUpdateSpaceResponse_ *resp;
-
 public:
   srmUpdateSpace();
   srmUpdateSpace(Node &node);
   ~srmUpdateSpace();
 
   virtual void init();
+  virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
 

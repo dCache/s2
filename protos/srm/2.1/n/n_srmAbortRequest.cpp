@@ -41,13 +41,6 @@ srmAbortRequest::init()
 
   /* response (parser) */
 
-  /* response (API) */
-  resp = new srm__srmAbortRequestResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmAbortRequestResponse_));
-  }
 }
 
 /*
@@ -71,10 +64,19 @@ srmAbortRequest::~srmAbortRequest()
 
   /* response (parser) */
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmAbortRequest::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmAbortRequestResponse_ *resp = (srm__srmAbortRequestResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -83,6 +85,8 @@ srmAbortRequest::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(AbortRequest);
+
   AbortRequest(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -104,6 +108,8 @@ std::string
 srmAbortRequest::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmAbortRequestResponse_ *resp = proc? (srm__srmAbortRequestResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

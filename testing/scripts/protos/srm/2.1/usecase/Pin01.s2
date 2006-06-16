@@ -11,7 +11,7 @@ ASSIGN srmTest Pin01
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && ASSIGN fileToPut $ENV{FILE_TO_PUT0}
-&& ASSIGN sURL $ENV{NEW_SRM_FILE}
+&& ASSIGN sURL $ENV{NEW_SRM_FILE0}
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

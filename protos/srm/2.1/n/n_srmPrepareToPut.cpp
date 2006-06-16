@@ -45,14 +45,6 @@ srmPrepareToPut::init()
   /* response (parser) */
   requestToken = NULL;
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmPrepareToPutResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmPrepareToPutResponse_));
-  }
 }
 
 /*
@@ -88,10 +80,19 @@ srmPrepareToPut::~srmPrepareToPut()
   DELETE(requestToken);
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmPrepareToPut::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmPrepareToPutResponse_ *resp = (srm__srmPrepareToPutResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -114,6 +115,8 @@ srmPrepareToPut::exec(Process *proc)
   EVAL_VEC_STR_PTP(arrayOfTransferProtocols);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(PrepareToPut);
+
   PrepareToPut(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -147,7 +150,7 @@ srmPrepareToPut::exec(Process *proc)
             resp->srmPrepareToPutResponse->requestToken->value.c_str());
 
   /* arrayOfFileStatus */
-  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -163,7 +166,8 @@ srmPrepareToPut::toString(Process *proc)
 {
 #define EVAL_VEC_STR_PTP(vec) EVAL_VEC_STR(srmPrepareToPut,vec)
   DM_DBG_I;
-  
+
+  srm__srmPrepareToPutResponse_ *resp = proc? (srm__srmPrepareToPutResponse_ *)proc->resp: NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -202,12 +206,14 @@ srmPrepareToPut::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmPrepareToPutResponse) RETURN(ss.str());
 
+  DM_DBG(DM_N(3), "6) %p\n", resp);
+
   if(!resp->srmPrepareToPutResponse->requestToken) {
     /* no request tokens returned */
     DM_LOG(DM_N(1), "no request tokens returned\n");
   } else ss << " requestToken=" << dq_param(resp->srmPrepareToPutResponse->requestToken->value, quote);
     
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmPrepareToPutResponse);
 
@@ -216,16 +222,20 @@ srmPrepareToPut::toString(Process *proc)
 }
 
 std::string
-srmPrepareToPut::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmPrepareToPut::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmPrepareToPutResponse_ *resp = proc? (srm__srmPrepareToPutResponse_ *)proc->resp: NULL;
   std::stringstream ss;
   
   if(!resp || !resp->srmPrepareToPutResponse) RETURN(ss.str());
 
+  DM_DBG(DM_N(3), "1) %p\n", resp);
+
   if(resp->srmPrepareToPutResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
+    DM_DBG(DM_N(3), "2) %p\n", resp);
     std::vector<srm__TPutRequestFileStatus *> v = resp->srmPrepareToPutResponse->arrayOfFileStatuses->putStatusArray;
     for(uint i = 0; i < v.size(); i++) {
       SS_P_VEC_PAR_VAL(estimatedProcessingTime);
@@ -236,7 +246,9 @@ srmPrepareToPut::arrayOfFileStatusToString(BOOL space, BOOL quote) const
       SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_PAR_VAL(transferURL);
     }
+    DM_DBG(DM_N(3), "3) %p\n", resp);
   }
+  DM_DBG(DM_N(3), "4) %p\n", resp);
   
   RETURN(ss.str());
 }

@@ -40,14 +40,6 @@ srmRm::init()
 
   /* response (parser) */
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmRmResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmRmResponse_));
-  }
 }
 
 /*
@@ -73,10 +65,19 @@ srmRm::~srmRm()
   /* response (parser) */
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmRm::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmRmResponse_ *resp = (srm__srmRmResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -92,6 +93,8 @@ srmRm::exec(Process *proc)
   EVAL_VEC_STR_RM(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(Rm);
+
   Rm(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -110,7 +113,7 @@ srmRm::exec(Process *proc)
   }
 
   /* arrayOfFileStatus */
-  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -126,6 +129,7 @@ srmRm::toString(Process *proc)
 #define EVAL_VEC_STR_RM(vec) EVAL_VEC_STR(srmRm,vec)
   DM_DBG_I;
   
+  srm__srmRmResponse_ *resp = proc? (srm__srmRmResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -148,7 +152,7 @@ srmRm::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmRmResponse) RETURN(ss.str());
 
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmRmResponse);
 
@@ -157,10 +161,11 @@ srmRm::toString(Process *proc)
 }
 
 std::string
-srmRm::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmRm::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmRmResponse_ *resp = proc? (srm__srmRmResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmRmResponse) RETURN(ss.str());

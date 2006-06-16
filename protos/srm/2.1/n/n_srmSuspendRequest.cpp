@@ -40,14 +40,6 @@ srmSuspendRequest::init()
   requestToken = NULL;
 
   /* response (parser) */
-
-  /* response (API) */
-  resp = new srm__srmSuspendRequestResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmSuspendRequestResponse_));
-  }
 }
 
 /*
@@ -71,10 +63,19 @@ srmSuspendRequest::~srmSuspendRequest()
 
   /* response (parser) */
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmSuspendRequest::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmSuspendRequestResponse_ *resp = (srm__srmSuspendRequestResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -83,6 +84,8 @@ srmSuspendRequest::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(SuspendRequest);
+
   SuspendRequest(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -104,6 +107,8 @@ std::string
 srmSuspendRequest::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmSuspendRequestResponse_ *resp = proc? (srm__srmSuspendRequestResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

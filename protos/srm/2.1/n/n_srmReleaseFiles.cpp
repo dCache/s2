@@ -42,14 +42,6 @@ srmReleaseFiles::init()
 
   /* response (parser) */
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmReleaseFilesResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmReleaseFilesResponse_));
-  }
 }
 
 /*
@@ -76,10 +68,19 @@ srmReleaseFiles::~srmReleaseFiles()
   /* response (parser) */
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmReleaseFiles::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmReleaseFilesResponse_ *resp = (srm__srmReleaseFilesResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -91,6 +92,8 @@ srmReleaseFiles::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmReleaseFiles::surlArray);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(ReleaseFiles);
+
   ReleaseFiles(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -108,7 +111,7 @@ srmReleaseFiles::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(fileStatuses, arrayOfReleaseFilesResponseToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfReleaseFilesResponseToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -121,6 +124,8 @@ std::string
 srmReleaseFiles::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmReleaseFilesResponse_ *resp = proc? (srm__srmReleaseFilesResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -143,7 +148,7 @@ srmReleaseFiles::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmReleaseFilesResponse) RETURN(ss.str());
 
-  ss << arrayOfReleaseFilesResponseToString(TRUE, quote);
+  ss << arrayOfReleaseFilesResponseToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmReleaseFilesResponse);
 
@@ -151,9 +156,11 @@ srmReleaseFiles::toString(Process *proc)
 }
 
 std::string
-srmReleaseFiles::arrayOfReleaseFilesResponseToString(BOOL space, BOOL quote) const
+srmReleaseFiles::arrayOfReleaseFilesResponseToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmReleaseFilesResponse_ *resp = proc? (srm__srmReleaseFilesResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmReleaseFilesResponse) RETURN(ss.str());

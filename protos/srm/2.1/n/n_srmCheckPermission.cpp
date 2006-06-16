@@ -41,14 +41,6 @@ srmCheckPermission::init()
 
   /* response (parser) */
   permissions = NULL;
-
-  /* response (API) */
-  resp = new srm__srmCheckPermissionResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmCheckPermissionResponse_));
-  }
 }
 
 /*
@@ -75,10 +67,19 @@ srmCheckPermission::~srmCheckPermission()
   /* response (parser) */
   DELETE(permissions);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmCheckPermission::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmCheckPermissionResponse_ *resp = (srm__srmCheckPermissionResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -94,6 +95,8 @@ srmCheckPermission::exec(Process *proc)
   EVAL_VEC_STR_CHP(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(CheckPermission);
+
   CheckPermission(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -113,7 +116,7 @@ srmCheckPermission::exec(Process *proc)
   }
 
   /* arrayOfFileStatus */
-  match = proc->e_match(permissions, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(permissions, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -128,7 +131,8 @@ srmCheckPermission::toString(Process *proc)
 {
 #define EVAL_VEC_STR_CHP(vec) EVAL_VEC_STR(srmCheckPermission,vec)
   DM_DBG_I;
-  
+
+  srm__srmCheckPermissionResponse_ *resp = proc? (srm__srmCheckPermissionResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -152,7 +156,7 @@ srmCheckPermission::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmCheckPermissionResponse) RETURN(ss.str());
 
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmCheckPermissionResponse);
 
@@ -161,10 +165,11 @@ srmCheckPermission::toString(Process *proc)
 }
 
 std::string
-srmCheckPermission::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmCheckPermission::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmCheckPermissionResponse_ *resp = proc? (srm__srmCheckPermissionResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmCheckPermissionResponse) RETURN(ss.str());

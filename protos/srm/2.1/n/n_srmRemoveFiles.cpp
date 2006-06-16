@@ -41,14 +41,6 @@ srmRemoveFiles::init()
 
   /* response (parser) */
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmRemoveFilesResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmRemoveFilesResponse_));
-  }
 }
 
 /*
@@ -74,21 +66,31 @@ srmRemoveFiles::~srmRemoveFiles()
   /* response (parser) */
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmRemoveFiles::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmRemoveFilesResponse_ *resp = (srm__srmRemoveFilesResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
 srmRemoveFiles::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmRemoveFiles::surlArray);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(RemoveFiles);
+
   RemoveFiles(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -104,13 +106,6 @@ srmRemoveFiles::exec(Process *proc)
     RETURN(ERR_ERR);
   }
 
-  /* arrayOfRequestDetails */
-  match = proc->e_match(fileStatuses, arrayOfRemoveFilesResponseToString(FALSE, FALSE).c_str());
-  if(!match) {
-    DM_LOG(DM_N(1), "no match\n");
-    RETURN(ERR_ERR);
-  }
-
   RETURN(matchReturnStatus(resp->srmRemoveFilesResponse->returnStatus, proc));
 }
 
@@ -118,6 +113,8 @@ std::string
 srmRemoveFiles::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmRemoveFilesResponse_ *resp = proc? (srm__srmRemoveFilesResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -139,7 +136,7 @@ srmRemoveFiles::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmRemoveFilesResponse) RETURN(ss.str());
 
-  ss << arrayOfRemoveFilesResponseToString(TRUE, quote);
+  ss << arrayOfRemoveFilesResponseToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmRemoveFilesResponse);
 
@@ -147,9 +144,11 @@ srmRemoveFiles::toString(Process *proc)
 }
 
 std::string
-srmRemoveFiles::arrayOfRemoveFilesResponseToString(BOOL space, BOOL quote) const
+srmRemoveFiles::arrayOfRemoveFilesResponseToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmRemoveFilesResponse_ *resp = proc? (srm__srmRemoveFilesResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmRemoveFilesResponse) RETURN(ss.str());

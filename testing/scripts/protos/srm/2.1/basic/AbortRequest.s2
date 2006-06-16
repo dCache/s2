@@ -5,9 +5,9 @@
 
 ASSIGN srmTest srmAbortRequest
 
-&& srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$ENV{FILE_TO_PUT_SIZE}] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[$ENV{NEW_SRM_FILE}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+&& srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$ENV{FILE_TO_PUT0_SIZE}] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[$ENV{NEW_SRM_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
    srmAbortRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-&& srmStatusOfPutRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$ENV{NEW_SRM_FILE}] fileStatuses=".*transferURL0=(?P<transferURL0>.*)( |$)" returnStatus.explanation=(?P<statusOfPutReturnStatus_explanation>.*) returnStatus.statusCode=(?P<statusOfPutReturnStatus_statusCode>.*)
+&& srmStatusOfPutRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$ENV{NEW_SRM_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*)( |$)" returnStatus.explanation=(?P<statusOfPutReturnStatus_explanation>.*) returnStatus.statusCode=(?P<statusOfPutReturnStatus_statusCode>.*)
 
 && TEST $MATCH{"SRM_ABORTED" "${statusOfPutReturnStatus_statusCode}"}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

@@ -41,14 +41,6 @@ srmAbortFiles::init()
 
   /* response (parser) */
   fileStatuses = NULL;
-
-  /* response (API) */
-  resp = new srm__srmAbortFilesResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmAbortFilesResponse_));
-  }
 }
 
 /*
@@ -74,10 +66,19 @@ srmAbortFiles::~srmAbortFiles()
   /* response (parser) */
   DELETE(fileStatuses);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmAbortFiles::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmAbortFilesResponse_ *resp = (srm__srmAbortFilesResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -89,6 +90,8 @@ srmAbortFiles::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmAbortFiles::surlArray);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(AbortFiles);
+  
   AbortFiles(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -105,7 +108,7 @@ srmAbortFiles::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(fileStatuses, arrayOfAbortFilesResponseToString(FALSE, FALSE).c_str());
+  match = proc->e_match(fileStatuses, arrayOfAbortFilesResponseToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -118,6 +121,8 @@ std::string
 srmAbortFiles::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmAbortFilesResponse_ *resp = proc? (srm__srmAbortFilesResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -139,7 +144,7 @@ srmAbortFiles::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmAbortFilesResponse) RETURN(ss.str());
 
-  ss << arrayOfAbortFilesResponseToString(TRUE, quote);
+  ss << arrayOfAbortFilesResponseToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmAbortFilesResponse);
 
@@ -147,9 +152,11 @@ srmAbortFiles::toString(Process *proc)
 }
 
 std::string
-srmAbortFiles::arrayOfAbortFilesResponseToString(BOOL space, BOOL quote) const
+srmAbortFiles::arrayOfAbortFilesResponseToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
+
+  srm__srmAbortFilesResponse_ *resp = proc? (srm__srmAbortFilesResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmAbortFilesResponse) RETURN(ss.str());

@@ -43,14 +43,6 @@ srmExtendFileLifeTime::init()
 
   /* response (parser) */
   newTimeExtended = NULL;
-
-  /* response (API) */
-  resp = new srm__srmExtendFileLifeTimeResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmExtendFileLifeTimeResponse_));
-  }
 }
 
 /*
@@ -77,10 +69,19 @@ srmExtendFileLifeTime::~srmExtendFileLifeTime()
   /* response (parser) */
   DELETE(newTimeExtended);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmExtendFileLifeTime::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmExtendFileLifeTimeResponse_ *resp = (srm__srmExtendFileLifeTimeResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -90,6 +91,8 @@ srmExtendFileLifeTime::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(ExtendFileLifeTime);
+
   ExtendFileLifeTime(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -118,6 +121,8 @@ std::string
 srmExtendFileLifeTime::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmExtendFileLifeTimeResponse_ *resp = proc? (srm__srmExtendFileLifeTimeResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

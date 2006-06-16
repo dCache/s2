@@ -54,7 +54,7 @@ Node::~Node()
   /* free dynamically allocated data of this node first */
   DELETE(REPEAT.X);
   DELETE(REPEAT.Y);
-
+  
   /* first free the children */
   if(this->child) DELETE(this->child);
 

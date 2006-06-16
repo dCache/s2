@@ -46,14 +46,6 @@ srmLs::init()
 
   /* response (parser) */
   pathDetails = NULL;
-
-  /* response (API) */
-  resp = new srm__srmLsResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmLsResponse_));
-  }
 }
 
 /*
@@ -85,10 +77,19 @@ srmLs::~srmLs()
   /* response (parser) */
   DELETE(pathDetails);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmLs::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmLsResponse_ *resp = (srm__srmLsResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -104,6 +105,8 @@ srmLs::exec(Process *proc)
   EVAL_VEC_STR_LS(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(Ls);
+
   Ls(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -128,7 +131,7 @@ srmLs::exec(Process *proc)
   }
 
   /* arrayOfPathDetails */
-  match = proc->e_match(pathDetails, arrayOfFileStatusToString(FALSE, FALSE).c_str());
+  match = proc->e_match(pathDetails, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
   if(!match) {
     DM_LOG(DM_N(1), "no match\n");
     RETURN(ERR_ERR);
@@ -144,6 +147,7 @@ srmLs::toString(Process *proc)
 #define EVAL_VEC_STR_LS(vec) EVAL_VEC_STR(srmLs,vec)
   DM_DBG_I;
   
+  srm__srmLsResponse_ *resp = proc? (srm__srmLsResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -172,7 +176,7 @@ srmLs::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmLsResponse) RETURN(ss.str());
 
-  ss << arrayOfFileStatusToString(TRUE, quote);
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
 
   SS_P_SRM_RETSTAT(resp->srmLsResponse);
 
@@ -181,24 +185,25 @@ srmLs::toString(Process *proc)
 }
 
 std::string
-srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote) const
+srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
+  srm__srmLsResponse_ *resp = proc? (srm__srmLsResponse_ *)proc->resp : NULL;
   std::stringstream ss;
 
   if(!resp || !resp->srmLsResponse) RETURN(ss.str());
 
   if(resp->srmLsResponse->details) {
     std::vector<srm__TMetaDataPathDetail *> v = resp->srmLsResponse->details->pathDetailArray;
-    ss << arrayOfFileStatusToString(space, quote, v);
+    ss << arrayOfFileStatusToString(proc, space, quote, v);
   }
   
   RETURN(ss.str());
 }
 
 std::string
-srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote, std::vector<srm__TMetaDataPathDetail *> v) const
+srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vector<srm__TMetaDataPathDetail *> v) const
 {
   DM_DBG_I;
   
@@ -246,7 +251,7 @@ srmLs::arrayOfFileStatusToString(BOOL space, BOOL quote, std::vector<srm__TMetaD
     
     if(v[i]->subPaths) {
       std::vector<srm__TMetaDataPathDetail *> sub_v = v[i]->subPaths->pathDetailArray;
-      ss << arrayOfFileStatusToString(print_space, quote, sub_v);
+      ss << arrayOfFileStatusToString(proc, print_space, quote, sub_v);
     }
   }
   

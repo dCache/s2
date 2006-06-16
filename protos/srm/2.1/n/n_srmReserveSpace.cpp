@@ -50,14 +50,6 @@ srmReserveSpace::init()
   sizeOfGuaranteedReservedSpace = NULL;
   lifetimeOfReservedSpace = NULL;
   referenceHandleOfReservedSpace = NULL;
-
-  /* response (API) */
-  resp = new srm__srmReserveSpaceResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmReserveSpaceResponse_));
-  }
 }
 
 /*
@@ -91,10 +83,19 @@ srmReserveSpace::~srmReserveSpace()
   DELETE(lifetimeOfReservedSpace);
   DELETE(referenceHandleOfReservedSpace);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmReserveSpace::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmReserveSpaceResponse_ *resp = (srm__srmReserveSpaceResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -104,6 +105,8 @@ srmReserveSpace::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(ReserveSpace);
+
   ReserveSpace(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -155,6 +158,8 @@ std::string
 srmReserveSpace::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmReserveSpaceResponse_ *resp = proc? (srm__srmReserveSpaceResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

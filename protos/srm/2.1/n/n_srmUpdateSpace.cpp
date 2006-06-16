@@ -47,14 +47,6 @@ srmUpdateSpace::init()
   sizeOfTotalSpace = NULL;
   sizeOfGuaranteedSpace = NULL;
   lifetimeGranted = NULL;
-
-  /* response (API) */
-  resp = new srm__srmUpdateSpaceResponse_();
-  if(resp == NULL) {
-    DM_ERR(ERR_SYSTEM, "new failed\n");
-  } else {
-    memset(resp, 0, sizeof(srm__srmUpdateSpaceResponse_));
-  }
 }
 
 /*
@@ -85,10 +77,19 @@ srmUpdateSpace::~srmUpdateSpace()
   DELETE(sizeOfGuaranteedSpace);
   DELETE(lifetimeGranted);
   
-  /* response (API) */
-  DELETE(resp);
-
   DM_DBG_O;
+}
+
+/*
+ * Free process-related structures.
+ */
+void
+srmUpdateSpace::finish(Process *proc)
+{
+  DM_DBG_I;
+  srm__srmUpdateSpaceResponse_ *resp = (srm__srmUpdateSpaceResponse_ *)proc->resp;
+  
+  DELETE(resp);
 }
 
 int
@@ -98,6 +99,8 @@ srmUpdateSpace::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
+  NEW_SRM_RESP(UpdateSpace);
+
   UpdateSpace(
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
@@ -138,6 +141,8 @@ std::string
 srmUpdateSpace::toString(Process *proc)
 {
   DM_DBG_I;
+
+  srm__srmUpdateSpaceResponse_ *resp = proc? (srm__srmUpdateSpaceResponse_ *)proc->resp : NULL;
   BOOL quote = TRUE;
   std::stringstream ss;
 

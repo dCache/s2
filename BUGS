@@ -4,11 +4,11 @@ s2 version.
 
 Known problems
 ~~~~~~~~~~~~~~
-1) NPTL bugs
-~~~~~~~~~~~~
+1 NPTL bugs
+~~~~~~~~~~~
 I'm experiencing a deadlock in 1 out of 10000 consecutive runs of a
 script spawning parallel processes using nested parallel repeat loops
-with NPTL 3.2.5.  The same test was fine for 1000000 consecutive runs
+with NPTL 3.2.5.  The same test was fine for 1000000+ consecutive runs
 with the traditional LinuxThreads 0.10 library (the test took one
 week to complete).  Please use "getconf GNU_LIBPTHREAD_VERSION" to
 see which threads library you're using before reporting deadlocks.
@@ -19,3 +19,12 @@ Expected problems
 * Parallel execution, timeouts and expression evaluation
   didn't receive as much testing as they deserve and are still being
   tested.  Please report problems!
+
+2 Memory leaks
+~~~~~~~~~~~~~~
+2.1 LinuxThreads and NPTL
+~~~~~~~~~~~~~~~~~~~~~~~~~
+valgrind reports minor, constant memory leak for both libraries
+
+2.2 gSoap
+~~~~~~~~~

@@ -1,9 +1,10 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- have a process-specific data (void *data); struct with soap and resp
+  soap_delete_srm__srmSetPermissionResponse, ...
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Implement SRM 2.2
 - Testing, optimize for speed
-- Saving to global vars (?P<::Hello>.*)
 - output of TEST ${empty} == "" and simillar in e* files
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs, e.g.:

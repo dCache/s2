@@ -1027,16 +1027,51 @@ Process::e_match(const char *expected, const char *received)
   return match;
 } /* e_match */
 
+#if 1
 inline static Process *
-get_parent_scope(Process *up)
+get_parent_scope(char **name, Process *up)
 {
+  char *endptr;
+  const char *word;
+  int16_t i16;
+
+  if(name == NULL) {
+    DM_ERR_ASSERT("name == NULL\n");
+    RETURN(NULL);
+  }
+
+  word = *name;
+  i16 = get_int16(word, &endptr, FALSE);
+  if(endptr == word) {
+    DM_ERR_ASSERT("endptr == word\n");
+    RETURN(NULL);
+  }
+  *name = endptr;
+
+  while(i16--) {
+    while(up && !up->var_tab) {
+      up = up->parent;
+    }
+    if(up) up = up->parent;	/* skip */
+    else break;
+  }
+
+  return up;
+}
+#else
+inline static Process *
+get_parent_scope(char **name, Process *up)
+{
+  DM_DBG_I;
+
   while(up && !up->var_tab) {
     up = up->parent;
   }
   if(up) up = up->parent;	/* skip */
 
-  return up;
+  RETURN(up);
 }
+#endif
 
 /*
  * Manipulation with variables.
@@ -1072,7 +1107,7 @@ Process::WriteVariable(Vars_t *var_tab, const char *name, const char *value, int
 void
 Process::WriteVariable(Process *proc, const char *name, const char *value, int vlen)
 {
-  if(!proc) WriteVariable(&gl_var_tab, name, value, vlen);
+  if(!proc) return WriteVariable(&gl_var_tab, name, value, vlen);
   
   if(proc->var_tab == NULL) {
     /* we don't have a table of local variables */
@@ -1105,15 +1140,19 @@ Process::WriteVariable(const char *name, const char *value, int vlen)
 
   DM_DBG(DM_N(3), _("process=%p, process->var_tab=%p; parent=%p; parent->var_tab=%p\n"), this, this->var_tab, parent, parent? parent->var_tab : NULL);
 
-  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn + 1] == ':')
-    /* ${::<name>} or ${-::<name>} */
-    return WriteVariable(&gl_var_tab, name + no_warn + 2, value, vlen);
+  if(name_len > (no_warn + 1)) {
+    if(name[no_warn] == '0')
+      /* ${0<name>} or ${-0<name>} */
+      return WriteVariable(&gl_var_tab, name + no_warn + 1, value, vlen);
 
-  if(name_len > (no_warn + 1) && name[no_warn] == ':') {
-    /* ${:<name>} or ${-:<name>} */
-    Process *up = get_parent_scope(this);
-    DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
-    return WriteVariable(up, name + no_warn + 1, value, vlen);
+    if(IS_ASCII_DIGIT(name[no_warn])) {
+      /* ${[1-9]+<name>} or ${-[1-9]+<name>} */
+      char *true_name = (char *)(name + no_warn);
+      Process *up = get_parent_scope(&true_name, this);
+      DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
+//      return WriteVariable(up, true_name, value, vlen);
+      return WriteVariable(up, name + no_warn + 1, value, vlen);
+    }
   }
 
   WriteVariable(this, name + no_warn, value, vlen);
@@ -1195,15 +1234,19 @@ Process::ReadVariable(const char *name)
 
   DM_DBG(DM_N(3), _("process=%p, process->var_tab=%p; parent=%p; parent->var_tab=%p\n"), this, this->var_tab, parent, parent? parent->var_tab : NULL);
   
-  if(name_len > (no_warn + 2) && name[no_warn] == ':' && name[no_warn + 1] == ':')
-    /* ${::<name>} or ${-::<name>} */
-    return ReadVariable(&gl_var_tab, name + no_warn + 2);
+  if(name_len > (no_warn + 1)) {
+    if(name[no_warn] == '0')
+      /* ${0<name>} or ${-0<name>} */
+      return ReadVariable(&gl_var_tab, name + no_warn + 1);
 
-  if(name_len > (no_warn + 1) && name[no_warn] == ':') {
-    /* ${:<name>} or ${-:<name>} */
-    Process *up = get_parent_scope(this);
-    DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
-    return ReadVariable(parent, name + no_warn + 1);
+    if(IS_ASCII_DIGIT(name[no_warn])) {
+      /* ${[1-9]+<name>} or ${-[1-9]+<name>} */
+      char *true_name = (char *)(name + no_warn);
+      Process *up = get_parent_scope(&true_name, this);
+      DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
+//      return ReadVariable(parent, true_name);
+      return ReadVariable(parent, name + no_warn + 1);
+    }
   }
   
   return ReadVariable(this, name + no_warn);
@@ -1945,9 +1988,6 @@ Process::eval_str(const char *cstr, Process *proc)
                                    Process::eval_str(args[u], proc).c_str());
           }
         
-//          proc_fun.FUN_OFFSET = nDefunNode->OFFSET - proc->n->OFFSET;
-  
-//          proc_fun.et=EVAL_ALL;
           if(proc_fun.n->child) {
             /* we have a function with non-empty body */
             Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);
@@ -2083,9 +2123,6 @@ Process::eval_str(const char *cstr, Process *proc)
                                      Process::eval_str(args[u], proc).c_str());
             }
           
-//            proc_fun.FUN_OFFSET = nDefunNode->OFFSET - proc->n->OFFSET;
-    
-//            proc_fun.et=EVAL_ALL;
             if(proc_fun.n->child) {
               /* we have a function with non-empty body */
               Process proc_fun_body = Process(proc_fun.n->child, &proc_fun, NULL);

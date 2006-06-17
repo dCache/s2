@@ -15,6 +15,7 @@
 #define IS_POSIX_WHITE(c)\
                         ((c)==0x09 || (c)==0x0A || (c)==0x0B || (c)==0x0C || (c)==0x0D || (c)==' ')
 #define IS_ASCII_ALPHA(c) (((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z'))
+#define IS_ASCII_DIGIT(c) ((c) >= '0' && (c) <= '9')
 #define IS_ASCII_UPPER(c) ((c) >= 'A' && (c) <= 'Z')
 #define IS_ASCII_LOWER(c) ((c) >= 'a' && (c) <= 'z')
 

@@ -1,10 +1,10 @@
 ; Testing access to parent's process variable scope.
 
 DEFUN cnt s : r
-   TEST ${:c} == 0
+   TEST ${1c} == 0
       ASSIGN r ""
    || ASSIGN r " "
-   && ASSIGN r ${r}${s}${:c} :c $EXPR{${:c}+1}
+   && ASSIGN r ${r}${s}${1c} 1c $EXPR{${1c}+1}
 
 && ASSIGN c 0
    SYSTEM echo "$MAP{cnt a b c d}"

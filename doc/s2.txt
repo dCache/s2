@@ -124,7 +124,9 @@ Syntax of the individual actions is described in the Semantics section.
 ~~~~~~~~~~~~
   <INTEGER> :: ('-' | '+')? <NATURAL>
 
-  <NATURAL> :: [1-9][0-9]* | '0x'[0-9A-Fa-f]+ | 0[0-7]*
+  <DNATURAL> :: [1-9][0-9]*
+
+  <NATURAL> :: <DNATURAL> |  '0x'[0-9A-Fa-f]+ | 0[0-7]*
 ; a natural number (decimal, hexadecimal and    octal numbers are supported)
 
   <BR_PARAM> :: [^}]*
@@ -715,32 +717,36 @@ e.g.: ${named_regex}some_text(?P<named_regex>...)some_text${named_regex}
 Script variables are defined by the ASSIGN action, or by using
 named regular expressions as described in the previous section.
 All variables are global variables apart from variables defined in
-parallel processes and functions.
+parallel processes and functions.  A function call and a parallel
+process both create a separate local variable scope.
 
 Script variable values are accessed by a number of ways:
 
-1) The ${::<VAR>} tag refers to a global variable <VAR>.  If this
+1) The ${0<VAR>} tag refers to a global variable <VAR>.  If this
    variable does not exist, the tag expands as an empty string, a
    warning message is issued and the branch executes (at the very best)
    as 1, i.e. warning (see Branch execution/evaluation values section).
+   Also, please see 4).
 
-2) The ${:<VAR>} tag refers to a variable <VAR> in parent's variable scope.
-   If this variable does not exist, parent's variable scope(s) is (are)
-   searched.  If this variable is not defined in the topmost parent's
-   variable scope, global variable scope is searched.  The behaviour
-   of this tag is then equivalent to 1), i.e. the ${::<VAR>} tag.
-
-3) The ${<VAR>} tag refers to a local variable <VAR>.  If this variable
+2) The ${<VAR>} tag refers to a local variable <VAR>.  If this variable
    does not exist, parent's variable scope(s) is (are) searched.  If
    this variable is not defined in the topmost parent's variable scope,
    global variable scope is searched.  The behaviour of this tag is then
-   equivalent to 1), i.e. the ${::<VAR>} tag.
+   equivalent to 1), i.e. the ${0<VAR>} tag.
+
+3) The ${<DNATURAL><VAR>}.  <DNATURAL> local variable scope(s) is skipped
+   before the search for a variable <VAR> starts.  The search method is
+   then equivalent to the search method in 2). 
 
 4) All of the above tags can be used with a special prefix (-), which tells
    the variable evaluation engine not to issue any warnings and not to
    change execution value of the branch.  The following is possible:
-   ${-::<VAR>}/${-:<VAR>}/${-<VAR>} to refer to global/parent's/local
+   ${-0<VAR>}/${-<DNATURAL><VAR>}/${-<VAR>} to refer to global/parent's/local
    variable <VAR> and ignore <VAR>'s non-existence.
+
+While 1) and 3) are often useful and result in very compact
+descriptions, the reader is encouraged to use them with caution,
+sparingly and use return-by-reference function parameters/arguments.
 
 2.5.2 Environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

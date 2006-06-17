@@ -17,8 +17,8 @@
 #include ../include/FileTransPut.s2
 
 DEFUN DefTransferURLs f : t
-   ASSIGN t ".*returnStatus.statusCode${:c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL${:c}=(?P<transferURL${:c}>.*?)( |$)"
-   && ASSIGN :c $EXPR{${:c}+1}
+   ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
+   && ASSIGN 1c $EXPR{${1c}+1}
 
 DEFUN PutCycle filesToPut sURLs : putRequestToken
    ; Define local variables

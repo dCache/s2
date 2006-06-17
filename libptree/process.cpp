@@ -1027,7 +1027,6 @@ Process::e_match(const char *expected, const char *received)
   return match;
 } /* e_match */
 
-#if 1
 inline static Process *
 get_parent_scope(char **name, Process *up)
 {
@@ -1048,6 +1047,8 @@ get_parent_scope(char **name, Process *up)
   }
   *name = endptr;
 
+  DM_DBG(DM_N(3), "nesting=%d\n", i16);
+  
   while(i16--) {
     while(up && !up->var_tab) {
       up = up->parent;
@@ -1056,22 +1057,9 @@ get_parent_scope(char **name, Process *up)
     else break;
   }
 
+  DM_DBG(DM_N(3), "up=%p\n", up);
   return up;
 }
-#else
-inline static Process *
-get_parent_scope(char **name, Process *up)
-{
-  DM_DBG_I;
-
-  while(up && !up->var_tab) {
-    up = up->parent;
-  }
-  if(up) up = up->parent;	/* skip */
-
-  RETURN(up);
-}
-#endif
 
 /*
  * Manipulation with variables.
@@ -1107,7 +1095,10 @@ Process::WriteVariable(Vars_t *var_tab, const char *name, const char *value, int
 void
 Process::WriteVariable(Process *proc, const char *name, const char *value, int vlen)
 {
-  if(!proc) return WriteVariable(&gl_var_tab, name, value, vlen);
+  if(!proc) {
+    DM_DBG(DM_N(4), _("proc == NULL\n"));
+    return WriteVariable(&gl_var_tab, name, value, vlen);
+  }
   
   if(proc->var_tab == NULL) {
     /* we don't have a table of local variables */
@@ -1150,8 +1141,7 @@ Process::WriteVariable(const char *name, const char *value, int vlen)
       char *true_name = (char *)(name + no_warn);
       Process *up = get_parent_scope(&true_name, this);
       DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
-//      return WriteVariable(up, true_name, value, vlen);
-      return WriteVariable(up, name + no_warn + 1, value, vlen);
+      return WriteVariable(up, true_name, value, vlen);
     }
   }
 
@@ -1193,7 +1183,10 @@ Process::ReadVariable(Vars_t *var_tab, const char *name)
 const char*
 Process::ReadVariable(Process *proc, const char *name)
 {
-  if(!proc) return ReadVariable(&gl_var_tab, name);
+  if(!proc) {
+    DM_DBG(DM_N(4), _("proc == NULL\n"));
+    return ReadVariable(&gl_var_tab, name);
+  }
 
   if(proc->var_tab == NULL) {
     /* we don't have a table of local variables */
@@ -1244,8 +1237,7 @@ Process::ReadVariable(const char *name)
       char *true_name = (char *)(name + no_warn);
       Process *up = get_parent_scope(&true_name, this);
       DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
-//      return ReadVariable(parent, true_name);
-      return ReadVariable(parent, name + no_warn + 1);
+      return ReadVariable(up, true_name);
     }
   }
   

@@ -1,0 +1,26 @@
+; Test access to local/global variables
+
+NOP 
+  DEFUN f3
+    ASSIGN a "d"
+    && SYSTEM echo "f3: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+    && TEST $MATCH{(?P<0a>.)(?P<1a>.)(?P<2a>.) 012}
+    && SYSTEM echo "--------------------------------"
+    && SYSTEM echo "f3: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+  
+  DEFUN f2
+    ASSIGN a "c"
+    && SYSTEM echo "f2: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+    && FUN f3
+    && SYSTEM echo "f2: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+
+  DEFUN f1
+    ASSIGN a "b"
+    && SYSTEM echo "f1: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+    && FUN f2
+    && SYSTEM echo "f1: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+
+&& ASSIGN a "a"
+&& SYSTEM echo " 0: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"
+&& FUN f1
+&& SYSTEM echo " 0: a=${a}; 1a=${1a}; 2a=${2a}; 99a=${99a}; 0a=${0a}"

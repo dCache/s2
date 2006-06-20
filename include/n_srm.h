@@ -1009,6 +1009,7 @@ private:
 
 #endif	/* HAVE_SRM21 */
 
+#ifdef HAVE_SRM22
 /********************************************************************/
 struct SRM2 : public Node
 {
@@ -1030,9 +1031,6 @@ public:
   std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc);
 
 };
-
-
-#ifdef HAVE_SRM22
 
 /* type definitions */
 typedef struct tArrayOfPutFileRequests_

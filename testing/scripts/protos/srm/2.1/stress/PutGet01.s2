@@ -10,7 +10,7 @@ ASSIGN srmTest PutGet01
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
->0 20 SLEEP 0
+>0 0 SLEEP 0
    ASSIGN sURL $ENV{SRM_DIR0}/$DATE{%Y%m%d-%H%M%S}.$I{0}
    && FUN PutCycle $ENV{FILE_TO_PUT0} ${sURL} : putRequestToken
    && FUN GetCycle $ENV{FILE_TO_GET0} ${sURL} : getRequestToken

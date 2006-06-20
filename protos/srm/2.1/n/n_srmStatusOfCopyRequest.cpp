@@ -77,9 +77,8 @@ void
 srmStatusOfCopyRequest::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmStatusOfCopyRequestResponse_ *resp = (srm__srmStatusOfCopyRequestResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(StatusOfCopyRequest);
 }
 
 int
@@ -92,9 +91,10 @@ srmStatusOfCopyRequest::exec(Process *proc)
   std::vector <std::string *> toSurlArray = proc->eval_vec_str(srmStatusOfCopyRequest::toSurlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(StatusOfCopyRequest);
+  NEW_SRM_RET(StatusOfCopyRequest);
 
   StatusOfCopyRequest(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -125,7 +125,7 @@ srmStatusOfCopyRequest::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmStatusOfCopyRequestResponse_ *resp = proc? (srm__srmStatusOfCopyRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(StatusOfCopyRequest);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -163,7 +163,7 @@ srmStatusOfCopyRequest::arrayOfStatusOfCopyRequestResponseToString(Process *proc
 {
   DM_DBG_I;
 
-  srm__srmStatusOfCopyRequestResponse_ *resp = proc? (srm__srmStatusOfCopyRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(StatusOfCopyRequest);
   std::stringstream ss;
 
   if(!resp || !resp->srmStatusOfCopyRequestResponse) RETURN(ss.str());

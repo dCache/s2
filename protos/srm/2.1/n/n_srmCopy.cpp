@@ -96,9 +96,8 @@ void
 srmCopy::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmCopyResponse_ *resp = (srm__srmCopyResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(Copy);
 }
 
 int
@@ -127,9 +126,10 @@ srmCopy::exec(Process *proc)
   EVAL_VEC_STR_CPY(arrayOfFileRequests.toStorageSystemInfo);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(Copy);
+  NEW_SRM_RET(Copy);
 
   Copy(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     arrayOfFileRequests,
@@ -183,7 +183,7 @@ srmCopy::toString(Process *proc)
 #define EVAL_VEC_STR_CPY(vec) EVAL_VEC_STR(srmCopy,vec)
   DM_DBG_I;
   
-  srm__srmCopyResponse_ *resp = proc? (srm__srmCopyResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Copy);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -248,7 +248,7 @@ srmCopy::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
-  srm__srmCopyResponse_ *resp = proc? (srm__srmCopyResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Copy);
   std::stringstream ss;
   
   if(!resp || !resp->srmCopyResponse) RETURN(ss.str());

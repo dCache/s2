@@ -75,9 +75,8 @@ void
 srmGetSpaceToken::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmGetSpaceTokenResponse_ *resp = (srm__srmGetSpaceTokenResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(GetSpaceToken);
 }
 
 int
@@ -87,9 +86,10 @@ srmGetSpaceToken::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(GetSpaceToken);
+  NEW_SRM_RET(GetSpaceToken);
 
   GetSpaceToken(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(userSpaceTokenDescription),
@@ -132,7 +132,7 @@ srmGetSpaceToken::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmGetSpaceTokenResponse_ *resp = proc? (srm__srmGetSpaceTokenResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(GetSpaceToken);
   BOOL quote = TRUE;
   std::stringstream ss;
 

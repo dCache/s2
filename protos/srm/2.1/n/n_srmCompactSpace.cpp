@@ -79,9 +79,8 @@ void
 srmCompactSpace::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmCompactSpaceResponse_ *resp = (srm__srmCompactSpaceResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(CompactSpace);
 }
 
 int
@@ -91,9 +90,10 @@ srmCompactSpace::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(CompactSpace);
+  NEW_SRM_RET(CompactSpace);
 
   CompactSpace(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(spaceToken),
@@ -122,7 +122,7 @@ srmCompactSpace::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmCompactSpaceResponse_ *resp = proc? (srm__srmCompactSpaceResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(CompactSpace);
   BOOL quote = TRUE;
   std::stringstream ss;
 

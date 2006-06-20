@@ -207,6 +207,8 @@
      <element name="type" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileType"/>
      <element name="lifetimeAssigned" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="lifetimeLeft" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="owner" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
+     <element name="clientPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
      <element name="checkSumType" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="checkSumValue" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfSubPaths" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTMetaDataPathDetail"/>

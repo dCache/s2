@@ -87,9 +87,8 @@ void
 srmLs::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmLsResponse_ *resp = (srm__srmLsResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(Ls);
 }
 
 int
@@ -105,9 +104,10 @@ srmLs::exec(Process *proc)
   EVAL_VEC_STR_LS(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(Ls);
+  NEW_SRM_RET(Ls);
 
   Ls(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     path,
@@ -147,7 +147,7 @@ srmLs::toString(Process *proc)
 #define EVAL_VEC_STR_LS(vec) EVAL_VEC_STR(srmLs,vec)
   DM_DBG_I;
   
-  srm__srmLsResponse_ *resp = proc? (srm__srmLsResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Ls);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -189,7 +189,7 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
 {
   DM_DBG_I;
 
-  srm__srmLsResponse_ *resp = proc? (srm__srmLsResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Ls);
   std::stringstream ss;
 
   if(!resp || !resp->srmLsResponse) RETURN(ss.str());

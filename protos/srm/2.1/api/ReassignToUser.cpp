@@ -24,6 +24,7 @@
 /**
  * srmReassignToUser method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param assignedUser
@@ -35,7 +36,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-ReassignToUser(const char *srm_endpoint,
+ReassignToUser(struct soap *soap,
+               const char *srm_endpoint,
                const char *userID,
                const char *assignedUser,
                const int64_t *lifeTimeOfThisAssignment,
@@ -45,20 +47,20 @@ ReassignToUser(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmReassignToUserRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);
   NEW_STR_VAL(assignedUser,TUserID);
   NEW_INT64_VAL(lifeTimeOfThisAssignment,TLifeTimeInSeconds);
 
-  NOT_NULL(req.path = soap_new_srm__TSURLInfo(&soap, -1));
+  NOT_NULL(req.path = soap_new_srm__TSURLInfo(soap, -1));
   NEW_STR_VAL_OPT(req.path->SURLOrStFN, SURLOrStFN, TSURL);
   NEW_STR_VAL_OPT(req.path->storageSystemInfo, storageSystemInfo, TStorageSystemInfo);
 

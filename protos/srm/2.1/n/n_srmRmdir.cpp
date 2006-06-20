@@ -77,9 +77,8 @@ void
 srmRmdir::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmRmdirResponse_ *resp = (srm__srmRmdirResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(Rmdir);
 }
 
 int
@@ -88,9 +87,10 @@ srmRmdir::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(Rmdir);
+  NEW_SRM_RET(Rmdir);
 
   Rmdir(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(SURLOrStFN),
@@ -114,7 +114,7 @@ srmRmdir::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmRmdirResponse_ *resp = proc? (srm__srmRmdirResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Rmdir);
   BOOL quote = TRUE;
   std::stringstream ss;
 

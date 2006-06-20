@@ -74,9 +74,8 @@ void
 srmGetSpaceMetaData::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmGetSpaceMetaDataResponse_ *resp = (srm__srmGetSpaceMetaDataResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(GetSpaceMetaData);
 }
 
 int
@@ -88,9 +87,10 @@ srmGetSpaceMetaData::exec(Process *proc)
   std::vector <std::string *> arrayOfSpaceToken = proc->eval_vec_str(srmGetSpaceMetaData::arrayOfSpaceToken);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(GetSpaceMetaData);
+  NEW_SRM_RET(GetSpaceMetaData);
 
   GetSpaceMetaData(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     arrayOfSpaceToken,
@@ -121,7 +121,7 @@ srmGetSpaceMetaData::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmGetSpaceMetaDataResponse_ *resp = proc? (srm__srmGetSpaceMetaDataResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(GetSpaceMetaData);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -159,7 +159,7 @@ srmGetSpaceMetaData::arrayOfSpaceDetailsToString(Process *proc, BOOL space, BOOL
 {
   DM_DBG_I;
 
-  srm__srmGetSpaceMetaDataResponse_ *resp = proc? (srm__srmGetSpaceMetaDataResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(GetSpaceMetaData);
   std::stringstream ss;
 
   if(!resp || !resp->srmGetSpaceMetaDataResponse) RETURN(ss.str());

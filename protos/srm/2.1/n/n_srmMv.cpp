@@ -79,9 +79,8 @@ void
 srmMv::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmMvResponse_ *resp = (srm__srmMvResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(Mv);
 }
 
 int
@@ -90,9 +89,10 @@ srmMv::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(Mv);
+  NEW_SRM_RET(Mv);
 
   Mv(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(fromSURLOrStFN),
@@ -117,7 +117,7 @@ srmMv::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmMvResponse_ *resp = proc? (srm__srmMvResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Mv);
   BOOL quote = TRUE;
   std::stringstream ss;
 

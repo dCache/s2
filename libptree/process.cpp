@@ -179,7 +179,7 @@ Process::init()
   et = EVAL_NONE;
   executed = ERR_OK;
   evaluated = ERR_OK;
-  resp = NULL;
+  ret = NULL;
   parent = NULL;
   rpar = NULL;
   var_tab = NULL;

@@ -76,9 +76,8 @@ void
 srmStatusOfPutRequest::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmStatusOfPutRequestResponse_ *resp = (srm__srmStatusOfPutRequestResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(StatusOfPutRequest);
 }
 
 int
@@ -90,9 +89,10 @@ srmStatusOfPutRequest::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmStatusOfPutRequest::surlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(StatusOfPutRequest);
+  NEW_SRM_RET(StatusOfPutRequest);
 
   StatusOfPutRequest(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -122,7 +122,7 @@ srmStatusOfPutRequest::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmStatusOfPutRequestResponse_ *resp = proc? (srm__srmStatusOfPutRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(StatusOfPutRequest);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -156,7 +156,7 @@ srmStatusOfPutRequest::arrayOfStatusOfPutRequestResponseToString(Process *proc, 
 {
   DM_DBG_I;
 
-  srm__srmStatusOfPutRequestResponse_ *resp = proc? (srm__srmStatusOfPutRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(StatusOfPutRequest);
   std::stringstream ss;
 
   if(!resp || !resp->srmStatusOfPutRequestResponse) RETURN(ss.str());

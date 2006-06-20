@@ -325,6 +325,8 @@ _GET_INT(u,64);
 #if defined(HAVE_SRM21) || defined(HAVE_SRM22)
   /* SRM2 related stuff */
   int ENDPOINT(std::string **target);
+#endif
+#ifdef HAVE_SRM21
   int srmAbortFilesR(void);
   int srmAbortRequestR(void);
   int srmChangeFileStorageTypeR(void);
@@ -356,7 +358,10 @@ _GET_INT(u,64);
   int srmStatusOfPutRequestR(void);
   int srmSuspendRequestR(void);
   int srmUpdateSpaceR(void);
-#endif
+#endif	/* HAVE_SRM21 */
+#ifdef HAVE_SRM22
+  int srmPrepareToPutR(void);
+#endif	/* HAVE_SRM22 */
 };
 
 /*
@@ -1513,7 +1518,7 @@ Parser::ACTION(void)
   POPL_EAT(SYSTEM,,) else
   POPL_EAT(TEST,,) else
 
-#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
+#ifdef HAVE_SRM21
   POPL_EAT(srmAbortFiles,R,) else
   POPL_EAT(srmAbortRequest,R,) else
   POPL_EAT(srmChangeFileStorageType,R,) else
@@ -1545,8 +1550,12 @@ Parser::ACTION(void)
   POPL_EAT(srmStatusOfPutRequest,R,) else
   POPL_EAT(srmSuspendRequest,R,) else
   POPL_EAT(srmUpdateSpace,R,) else
-#endif
+#endif	/* HAVE_SRM21 */
 
+#ifdef HAVE_SRM22
+  POPL_EAT(srmPrepareToPut,R,) else
+#endif	/* HAVE_SRM22 */
+    
   POPL_ERR;
 
   /* parsing succeeded */
@@ -1872,7 +1881,9 @@ Parser::ENDPOINT(std::string **target)
   /* parsing succeeded */
   return ERR_OK;
 }
+#endif	/* HAVE_SRM21 || HAVE_SRM22 */
 
+#ifdef HAVE_SRM21
 int
 Parser::srmAbortFilesR(void)
 {
@@ -3015,7 +3026,68 @@ Parser::srmUpdateSpaceR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmUpdateSpaceR */
-#endif
+#endif	/* HAVE_SRM21 */
+
+#ifdef HAVE_SRM22
+int
+Parser::srmPrepareToPutR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmPrepareToPut *r = new srmPrepareToPut(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+
+    POPL_ARRAY("targetSURL",r->putFileRequests.targetSURL) else
+    POPL_ARRAY("expectedFileSize",r->putFileRequests.targetSURL) else
+
+    POPL_EQ_PARAM("userRequestDescription",r->userRequestDescription) else
+    POPL_EQ_PARAM("overwriteOption",r->overwriteOption) else
+
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+
+    POPL_EQ_PARAM("desiredTotalRequestTime",r->desiredTotalRequestTime) else
+    POPL_EQ_PARAM("desiredPinLifeTime",r->desiredPinLifeTime) else
+    POPL_EQ_PARAM("desiredFileLifeTime",r->desiredFileLifeTime) else
+    POPL_EQ_PARAM("desiredFileStorageType",r->desiredFileStorageType) else
+    POPL_EQ_PARAM("targetSpaceToken",r->targetSpaceToken) else
+    POPL_EQ_PARAM("retentionPolicy",r->retentionPolicy) else
+    POPL_EQ_PARAM("accessLatency",r->accessLatency) else
+    POPL_EQ_PARAM("accessPattern",r->accessPattern) else
+    POPL_EQ_PARAM("connectionType",r->connectionType) else
+
+    POPL_ARRAY("clientNetworks",r->clientNetworks) else
+    POPL_ARRAY("transferProtocols",r->transferProtocols) else
+      
+    /* response */
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+    POPL_EQ_PARAM("fileStatuses",r->fileStatuses) else
+    POPL_EQ_PARAM("remainingTotalRequestTime",r->remainingTotalRequestTime) else
+
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmPrepareToPutR */
+#endif	/* HAVE_SRM22 */
 
 /*
  * Returns

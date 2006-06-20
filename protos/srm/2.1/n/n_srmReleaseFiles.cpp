@@ -78,9 +78,8 @@ void
 srmReleaseFiles::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmReleaseFilesResponse_ *resp = (srm__srmReleaseFilesResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ReleaseFiles);
 }
 
 int
@@ -92,9 +91,10 @@ srmReleaseFiles::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmReleaseFiles::surlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ReleaseFiles);
+  NEW_SRM_RET(ReleaseFiles);
 
   ReleaseFiles(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -125,7 +125,7 @@ srmReleaseFiles::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmReleaseFilesResponse_ *resp = proc? (srm__srmReleaseFilesResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ReleaseFiles);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -160,7 +160,7 @@ srmReleaseFiles::arrayOfReleaseFilesResponseToString(Process *proc, BOOL space, 
 {
   DM_DBG_I;
 
-  srm__srmReleaseFilesResponse_ *resp = proc? (srm__srmReleaseFilesResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ReleaseFiles);
   std::stringstream ss;
 
   if(!resp || !resp->srmReleaseFilesResponse) RETURN(ss.str());

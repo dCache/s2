@@ -24,6 +24,7 @@
 /**
  * srmMv method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param fromSURLOrStFN
@@ -35,7 +36,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-Mv(const char *srm_endpoint,
+Mv(struct soap *soap,
+   const char *srm_endpoint,
    const char *userID,
    const char *fromSURLOrStFN,
    const char *fromStorageSystemInfo,
@@ -45,22 +47,22 @@ Mv(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmMvRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);
 
-  NOT_NULL(req.fromPath = soap_new_srm__TSURLInfo(&soap, -1));
+  NOT_NULL(req.fromPath = soap_new_srm__TSURLInfo(soap, -1));
   NEW_STR_VAL_OPT(req.fromPath->SURLOrStFN, fromSURLOrStFN, TSURL);
   NEW_STR_VAL_OPT(req.fromPath->storageSystemInfo, fromStorageSystemInfo, TStorageSystemInfo);
 
-  NOT_NULL(req.toPath = soap_new_srm__TSURLInfo(&soap, -1));
+  NOT_NULL(req.toPath = soap_new_srm__TSURLInfo(soap, -1));
   NEW_STR_VAL_OPT(req.toPath->SURLOrStFN, toSURLOrStFN, TSURL);
   NEW_STR_VAL_OPT(req.toPath->storageSystemInfo, toStorageSystemInfo, TStorageSystemInfo);
 

@@ -74,9 +74,8 @@ void
 srmGetRequestSummary::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmGetRequestSummaryResponse_ *resp = (srm__srmGetRequestSummaryResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(GetRequestSummary);
 }
 
 int
@@ -88,9 +87,10 @@ srmGetRequestSummary::exec(Process *proc)
   std::vector <std::string *> arrayOfRequestToken = proc->eval_vec_str(srmGetRequestSummary::arrayOfRequestToken);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(GetRequestSummary);
+  NEW_SRM_RET(GetRequestSummary);
 
   GetRequestSummary(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     arrayOfRequestToken,
@@ -121,7 +121,7 @@ srmGetRequestSummary::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmGetRequestSummaryResponse_ *resp = proc? (srm__srmGetRequestSummaryResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(GetRequestSummary);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -154,7 +154,7 @@ srmGetRequestSummary::arrayOfRequestDetailsToString(Process *proc, BOOL space, B
 {
   DM_DBG_I;
 
-  srm__srmGetRequestSummaryResponse_ *resp = proc? (srm__srmGetRequestSummaryResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(GetRequestSummary);
   std::stringstream ss;
 
   if(!resp || !resp->srmGetRequestSummaryResponse) RETURN(ss.str());

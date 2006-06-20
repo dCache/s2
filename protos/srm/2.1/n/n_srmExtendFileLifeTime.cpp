@@ -79,9 +79,8 @@ void
 srmExtendFileLifeTime::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmExtendFileLifeTimeResponse_ *resp = (srm__srmExtendFileLifeTimeResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ExtendFileLifeTime);
 }
 
 int
@@ -91,9 +90,10 @@ srmExtendFileLifeTime::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ExtendFileLifeTime);
+  NEW_SRM_RET(ExtendFileLifeTime);
 
   ExtendFileLifeTime(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -122,7 +122,7 @@ srmExtendFileLifeTime::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmExtendFileLifeTimeResponse_ *resp = proc? (srm__srmExtendFileLifeTimeResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ExtendFileLifeTime);
   BOOL quote = TRUE;
   std::stringstream ss;
 

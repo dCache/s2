@@ -42,7 +42,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-Copy(const char *srm_endpoint,
+Copy(struct soap *soap,
+     const char *srm_endpoint,
      const char *userID,
      const tArrayOfCopyFileRequests arrayOfFileRequests,
      const char *userRequestDescription,
@@ -55,25 +56,25 @@ Copy(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmCopyRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);
 
-  NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTCopyFileRequest(&soap, -1));
+  NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTCopyFileRequest(soap, -1));
   /* Create the file request */
   DM_LOG(DM_N(2), "arrayOfFileRequests.fromSURLOrStFN.size() == %d\n", arrayOfFileRequests.fromSURLOrStFN.size());
   for (uint i = 0; i < arrayOfFileRequests.fromSURLOrStFN.size(); i++) {
     srm__TCopyFileRequest *fileRequest;
-    NOT_NULL(fileRequest = soap_new_srm__TCopyFileRequest(&soap, -1));
+    NOT_NULL(fileRequest = soap_new_srm__TCopyFileRequest(soap, -1));
 
-    NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(&soap, -1));
+    NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(soap, -1));
     if(NOT_NULL_VEC(arrayOfFileRequests,allLevelRecursive)) {
       fileRequest->dirOption->allLevelRecursive = (bool *)arrayOfFileRequests.allLevelRecursive[i];
       DM_LOG(DM_N(2), "allLevelRecursive[%u] == %d\n", i, *(fileRequest->dirOption->allLevelRecursive));
@@ -102,9 +103,9 @@ Copy(const char *srm_endpoint,
       fileRequest->fileStorageType = NULL;
       DM_LOG(DM_N(2), "fileStorageType[%u] == NULL\n", i);
     }
-    NOT_NULL(fileRequest->fromSURLInfo = soap_new_srm__TSURLInfo(&soap, -1));
+    NOT_NULL(fileRequest->fromSURLInfo = soap_new_srm__TSURLInfo(soap, -1));
     if(NOT_NULL_VEC(arrayOfFileRequests,fromSURLOrStFN)) {
-      NOT_NULL(fileRequest->fromSURLInfo->SURLOrStFN = soap_new_srm__TSURL(&soap, -1));
+      NOT_NULL(fileRequest->fromSURLInfo->SURLOrStFN = soap_new_srm__TSURL(soap, -1));
       fileRequest->fromSURLInfo->SURLOrStFN->value.assign(arrayOfFileRequests.fromSURLOrStFN[i]->c_str());
       DM_LOG(DM_N(2), "fromSURLOrStFN[%u] == `%s'\n", i, fileRequest->fromSURLInfo->SURLOrStFN->value.c_str());
     } else {
@@ -112,7 +113,7 @@ Copy(const char *srm_endpoint,
       DM_LOG(DM_N(2), "fromSURLOrStFN[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,fromStorageSystemInfo)) {
-      NOT_NULL(fileRequest->fromSURLInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(&soap, -1));
+      NOT_NULL(fileRequest->fromSURLInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(soap, -1));
       fileRequest->fromSURLInfo->storageSystemInfo->value.assign(arrayOfFileRequests.fromStorageSystemInfo[i]->c_str());
       DM_LOG(DM_N(2), "fromStorageSystemInfo[%u] == `%s'\n", i, fileRequest->fromSURLInfo->storageSystemInfo->value.c_str());
     } else {
@@ -120,7 +121,7 @@ Copy(const char *srm_endpoint,
       DM_LOG(DM_N(2), "fromStorageSystemInfo[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,lifetime)) {
-      NOT_NULL(fileRequest->lifetime = soap_new_srm__TLifeTimeInSeconds(&soap, -1));
+      NOT_NULL(fileRequest->lifetime = soap_new_srm__TLifeTimeInSeconds(soap, -1));
       fileRequest->lifetime->value = *arrayOfFileRequests.lifetime[i];
       DM_LOG(DM_N(2), "lifetime[%u] == %"PRIi64"\n", i, fileRequest->lifetime->value);
     } else {
@@ -135,16 +136,16 @@ Copy(const char *srm_endpoint,
       DM_LOG(DM_N(2), "overwriteMode[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,spaceToken)) {
-      NOT_NULL(fileRequest->spaceToken = soap_new_srm__TSpaceToken(&soap, -1));
+      NOT_NULL(fileRequest->spaceToken = soap_new_srm__TSpaceToken(soap, -1));
       fileRequest->spaceToken->value.assign(arrayOfFileRequests.spaceToken[i]->c_str());
       DM_LOG(DM_N(2), "spaceToken[%u] == `%s'\n", i, fileRequest->spaceToken->value.c_str());
     } else {
       fileRequest->spaceToken = NULL;
       DM_LOG(DM_N(2), "spaceToken[%u] == NULL\n", i);
     }
-    NOT_NULL(fileRequest->toSURLInfo = soap_new_srm__TSURLInfo(&soap, -1));
+    NOT_NULL(fileRequest->toSURLInfo = soap_new_srm__TSURLInfo(soap, -1));
     if(NOT_NULL_VEC(arrayOfFileRequests,toSURLOrStFN)) {
-      NOT_NULL(fileRequest->toSURLInfo->SURLOrStFN = soap_new_srm__TSURL(&soap, -1));
+      NOT_NULL(fileRequest->toSURLInfo->SURLOrStFN = soap_new_srm__TSURL(soap, -1));
       fileRequest->toSURLInfo->SURLOrStFN->value.assign(arrayOfFileRequests.toSURLOrStFN[i]->c_str());
       DM_LOG(DM_N(2), "toSURLOrStFN[%u] == `%s'\n", i, fileRequest->toSURLInfo->SURLOrStFN->value.c_str());
     } else {
@@ -152,7 +153,7 @@ Copy(const char *srm_endpoint,
       DM_LOG(DM_N(2), "toSURLOrStFN[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,toStorageSystemInfo)) {
-      NOT_NULL(fileRequest->toSURLInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(&soap, -1));
+      NOT_NULL(fileRequest->toSURLInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(soap, -1));
       fileRequest->toSURLInfo->storageSystemInfo->value.assign(arrayOfFileRequests.toStorageSystemInfo[i]->c_str());
       DM_LOG(DM_N(2), "toStorageSystemInfo[%u] == `%s'\n", i, fileRequest->toSURLInfo->storageSystemInfo->value.c_str());
     } else {

@@ -44,7 +44,7 @@ struct Process
   EVAL_t et;			/* evaluation type */
   int executed;			/* execution value of the process (children exclusive) */
   int evaluated;		/* ``complete'' evaluation value of the process (children inclusive); ${!} */
-  void *resp;			/* pointer to a response after this process has executed */
+  void *ret;			/* pointer to data returned by executing this process */
 
   /* tree overhead (${?}, ${!}) */
   Process *parent;		/* the parent of this process; NULL if root */

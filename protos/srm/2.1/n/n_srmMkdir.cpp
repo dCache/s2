@@ -75,9 +75,8 @@ void
 srmMkdir::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmMkdirResponse_ *resp = (srm__srmMkdirResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(Mkdir);
 }
 
 int
@@ -86,9 +85,10 @@ srmMkdir::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(Mkdir);
+  NEW_SRM_RET(Mkdir);
 
   Mkdir(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(SURLOrStFN),
@@ -111,7 +111,7 @@ srmMkdir::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmMkdirResponse_ *resp = proc? (srm__srmMkdirResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(Mkdir);
   BOOL quote = TRUE;
   std::stringstream ss;
 

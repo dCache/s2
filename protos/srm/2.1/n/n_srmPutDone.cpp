@@ -76,9 +76,8 @@ void
 srmPutDone::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmPutDoneResponse_ *resp = (srm__srmPutDoneResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(PutDone);
 }
 
 int
@@ -90,9 +89,10 @@ srmPutDone::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmPutDone::surlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(PutDone);
+  NEW_SRM_RET(PutDone);
 
   PutDone(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -122,7 +122,7 @@ srmPutDone::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmPutDoneResponse_ *resp = proc? (srm__srmPutDoneResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(PutDone);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -156,7 +156,7 @@ srmPutDone::arrayOfPutDoneResponseToString(Process *proc, BOOL space, BOOL quote
 {
   DM_DBG_I;
 
-  srm__srmPutDoneResponse_ *resp = proc? (srm__srmPutDoneResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(PutDone);
   std::stringstream ss;
 
   if(!resp || !resp->srmPutDoneResponse) RETURN(ss.str());

@@ -1,1 +1,1 @@
-xsd__dateTime = | char * | char *
+#xsd__dateTime = | char * | char *

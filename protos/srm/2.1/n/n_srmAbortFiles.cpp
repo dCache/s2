@@ -76,9 +76,8 @@ void
 srmAbortFiles::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmAbortFilesResponse_ *resp = (srm__srmAbortFilesResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(AbortFiles);
 }
 
 int
@@ -90,9 +89,10 @@ srmAbortFiles::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmAbortFiles::surlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(AbortFiles);
-  
+  NEW_SRM_RET(AbortFiles);
+
   AbortFiles(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -122,7 +122,7 @@ srmAbortFiles::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmAbortFilesResponse_ *resp = proc? (srm__srmAbortFilesResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(AbortFiles);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -156,7 +156,7 @@ srmAbortFiles::arrayOfAbortFilesResponseToString(Process *proc, BOOL space, BOOL
 {
   DM_DBG_I;
 
-  srm__srmAbortFilesResponse_ *resp = proc? (srm__srmAbortFilesResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(AbortFiles);
   std::stringstream ss;
 
   if(!resp || !resp->srmAbortFilesResponse) RETURN(ss.str());

@@ -76,9 +76,8 @@ void
 srmStatusOfGetRequest::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmStatusOfGetRequestResponse_ *resp = (srm__srmStatusOfGetRequestResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(StatusOfGetRequest);
 }
 
 int
@@ -90,9 +89,10 @@ srmStatusOfGetRequest::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmStatusOfGetRequest::surlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(StatusOfGetRequest);
+  NEW_SRM_RET(StatusOfGetRequest);
 
   StatusOfGetRequest(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -122,7 +122,7 @@ srmStatusOfGetRequest::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmStatusOfGetRequestResponse_ *resp = proc? (srm__srmStatusOfGetRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(StatusOfGetRequest);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -156,7 +156,7 @@ srmStatusOfGetRequest::arrayOfStatusOfGetRequestResponseToString(Process *proc, 
 {
   DM_DBG_I;
 
-  srm__srmStatusOfGetRequestResponse_ *resp = proc? (srm__srmStatusOfGetRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(StatusOfGetRequest);
   std::stringstream ss;
 
   if(!resp || !resp->srmStatusOfGetRequestResponse) RETURN(ss.str());

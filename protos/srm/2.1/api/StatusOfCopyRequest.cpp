@@ -24,6 +24,7 @@
 /**
  * srmStatusOfCopyRequest method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param requestToken
@@ -34,7 +35,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-StatusOfCopyRequest(const char *srm_endpoint,
+StatusOfCopyRequest(struct soap *soap,
+                    const char *srm_endpoint,
                     const char *userID,
                     const char *requestToken,
                     std::vector <std::string *> arrayOfFromSURLs,
@@ -43,13 +45,13 @@ StatusOfCopyRequest(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmStatusOfCopyRequestRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
   
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);

@@ -87,9 +87,8 @@ void
 srmUpdateSpace::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmUpdateSpaceResponse_ *resp = (srm__srmUpdateSpaceResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(UpdateSpace);
 }
 
 int
@@ -99,9 +98,10 @@ srmUpdateSpace::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(UpdateSpace);
+  NEW_SRM_RET(UpdateSpace);
 
   UpdateSpace(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(spaceToken),
@@ -142,7 +142,7 @@ srmUpdateSpace::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmUpdateSpaceResponse_ *resp = proc? (srm__srmUpdateSpaceResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(UpdateSpace);
   BOOL quote = TRUE;
   std::stringstream ss;
 

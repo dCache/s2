@@ -74,9 +74,8 @@ void
 srmAbortRequest::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmAbortRequestResponse_ *resp = (srm__srmAbortRequestResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(AbortRequest);
 }
 
 int
@@ -85,9 +84,10 @@ srmAbortRequest::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(AbortRequest);
+  NEW_SRM_RET(AbortRequest);
 
   AbortRequest(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -109,7 +109,7 @@ srmAbortRequest::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmAbortRequestResponse_ *resp = proc? (srm__srmAbortRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(AbortRequest);
   BOOL quote = TRUE;
   std::stringstream ss;
 

@@ -90,9 +90,8 @@ void
 srmPrepareToPut::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmPrepareToPutResponse_ *resp = (srm__srmPrepareToPutResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(PrepareToPut);
 }
 
 int
@@ -115,9 +114,10 @@ srmPrepareToPut::exec(Process *proc)
   EVAL_VEC_STR_PTP(arrayOfTransferProtocols);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(PrepareToPut);
+  NEW_SRM_RET(PrepareToPut);
 
   PrepareToPut(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     arrayOfFileRequests,
@@ -167,7 +167,7 @@ srmPrepareToPut::toString(Process *proc)
 #define EVAL_VEC_STR_PTP(vec) EVAL_VEC_STR(srmPrepareToPut,vec)
   DM_DBG_I;
 
-  srm__srmPrepareToPutResponse_ *resp = proc? (srm__srmPrepareToPutResponse_ *)proc->resp: NULL;
+  GET_SRM_RESP(PrepareToPut);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -206,8 +206,6 @@ srmPrepareToPut::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmPrepareToPutResponse) RETURN(ss.str());
 
-  DM_DBG(DM_N(3), "6) %p\n", resp);
-
   if(!resp->srmPrepareToPutResponse->requestToken) {
     /* no request tokens returned */
     DM_LOG(DM_N(1), "no request tokens returned\n");
@@ -226,16 +224,13 @@ srmPrepareToPut::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote
 {
   DM_DBG_I;
 
-  srm__srmPrepareToPutResponse_ *resp = proc? (srm__srmPrepareToPutResponse_ *)proc->resp: NULL;
+  GET_SRM_RESP(PrepareToPut);
   std::stringstream ss;
   
   if(!resp || !resp->srmPrepareToPutResponse) RETURN(ss.str());
 
-  DM_DBG(DM_N(3), "1) %p\n", resp);
-
   if(resp->srmPrepareToPutResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
-    DM_DBG(DM_N(3), "2) %p\n", resp);
     std::vector<srm__TPutRequestFileStatus *> v = resp->srmPrepareToPutResponse->arrayOfFileStatuses->putStatusArray;
     for(uint i = 0; i < v.size(); i++) {
       SS_P_VEC_PAR_VAL(estimatedProcessingTime);
@@ -246,9 +241,7 @@ srmPrepareToPut::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote
       SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_PAR_VAL(transferURL);
     }
-    DM_DBG(DM_N(3), "3) %p\n", resp);
   }
-  DM_DBG(DM_N(3), "4) %p\n", resp);
   
   RETURN(ss.str());
 }

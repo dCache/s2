@@ -77,9 +77,8 @@ void
 srmChangeFileStorageType::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmChangeFileStorageTypeResponse_ *resp = (srm__srmChangeFileStorageTypeResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ChangeFileStorageType);
 }
 
 int
@@ -95,9 +94,10 @@ srmChangeFileStorageType::exec(Process *proc)
   EVAL_VEC_STR_CHT(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ChangeFileStorageType);
+  NEW_SRM_RET(ChangeFileStorageType);
 
   ChangeFileStorageType(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     path,
@@ -132,7 +132,7 @@ srmChangeFileStorageType::toString(Process *proc)
 #define EVAL_VEC_STR_CHT(vec) EVAL_VEC_STR(srmChangeFileStorageType,vec)
   DM_DBG_I;
 
-  srm__srmChangeFileStorageTypeResponse_ *resp = proc? (srm__srmChangeFileStorageTypeResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ChangeFileStorageType);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -169,7 +169,7 @@ srmChangeFileStorageType::arrayOfFileStatusToString(Process *proc, BOOL space, B
 {
   DM_DBG_I;
 
-  srm__srmChangeFileStorageTypeResponse_ *resp = proc? (srm__srmChangeFileStorageTypeResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ChangeFileStorageType);
   std::stringstream ss;
 
   if(!resp || !resp->srmChangeFileStorageTypeResponse) RETURN(ss.str());

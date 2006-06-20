@@ -79,9 +79,8 @@ void
 srmReassignToUser::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmReassignToUserResponse_ *resp = (srm__srmReassignToUserResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ReassignToUser);
 }
 
 int
@@ -90,9 +89,10 @@ srmReassignToUser::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ReassignToUser);
+  NEW_SRM_RET(ReassignToUser);
 
   ReassignToUser(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(assignedUser),
@@ -117,7 +117,7 @@ srmReassignToUser::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmReassignToUserResponse_ *resp = proc? (srm__srmReassignToUserResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ReassignToUser);
   BOOL quote = TRUE;
   std::stringstream ss;
 

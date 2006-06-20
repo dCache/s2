@@ -25,6 +25,7 @@
 /**
  * srmChangeFileStorageType method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param path
@@ -34,7 +35,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-ChangeFileStorageType(const char *srm_endpoint,
+ChangeFileStorageType(struct soap *soap,
+                      const char *srm_endpoint,
                       const char *userID,
                       const tSurlInfoArray path,
                       const long int desiredStorageType,
@@ -42,18 +44,18 @@ ChangeFileStorageType(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmChangeFileStorageTypeRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);
 
-  NOT_NULL(req.arrayOfPaths = soap_new_srm__ArrayOfTSURLInfo(&soap, -1));
+  NOT_NULL(req.arrayOfPaths = soap_new_srm__ArrayOfTSURLInfo(soap, -1));
   ARRAY_OF_TSURL_INFO(arrayOfPaths);
 
   req.desiredStorageType = (srm__TFileStorageType)desiredStorageType;

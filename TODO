@@ -1,7 +1,5 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- have a process-specific data (void *data); struct with soap and resp
-  soap_delete_srm__srmSetPermissionResponse, ...
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Implement SRM 2.2
 - Testing, optimize for speed
@@ -15,4 +13,5 @@ Ordered by priority
 - SEND/RECEIVE (TCP/UDP/...)?
 - Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
   investigate?  Use Apache threads instead?
-- Investigate gSoap memory leaks???
+- Investigate gSoap memory leaks???  Spent ages trying to figure out how to
+  get rid of them...

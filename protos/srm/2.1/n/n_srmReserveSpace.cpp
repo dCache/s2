@@ -93,9 +93,8 @@ void
 srmReserveSpace::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmReserveSpaceResponse_ *resp = (srm__srmReserveSpaceResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ReserveSpace);
 }
 
 int
@@ -105,9 +104,10 @@ srmReserveSpace::exec(Process *proc)
   BOOL match = FALSE;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ReserveSpace);
+  NEW_SRM_RET(ReserveSpace);
 
   ReserveSpace(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     *getTSpaceType(EVAL2CSTR(typeOfSpace)), /* getTSpaceType never returns pointer to NULL */
@@ -159,7 +159,7 @@ srmReserveSpace::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmReserveSpaceResponse_ *resp = proc? (srm__srmReserveSpaceResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ReserveSpace);
   BOOL quote = TRUE;
   std::stringstream ss;
 

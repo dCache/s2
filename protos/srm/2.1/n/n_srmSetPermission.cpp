@@ -85,9 +85,8 @@ void
 srmSetPermission::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmSetPermissionResponse_ *resp = (srm__srmSetPermissionResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(SetPermission);
 }
 
 int
@@ -107,9 +106,10 @@ srmSetPermission::exec(Process *proc)
   EVAL_VEC_STR_SP(groupPermissionArray.ID);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(SetPermission);
+  NEW_SRM_RET(SetPermission);
 
   SetPermission(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(SURLOrStFN),
@@ -144,7 +144,7 @@ srmSetPermission::toString(Process *proc)
 #define EVAL_VEC_STR_SP(vec) EVAL_VEC_STR(srmSetPermission,vec)
   DM_DBG_I;
 
-  srm__srmSetPermissionResponse_ *resp = proc? (srm__srmSetPermissionResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(SetPermission);
   BOOL quote = TRUE;
   std::stringstream ss;
   

@@ -73,9 +73,8 @@ void
 srmResumeRequest::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmResumeRequestResponse_ *resp = (srm__srmResumeRequestResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ResumeRequest);
 }
 
 int
@@ -84,9 +83,10 @@ srmResumeRequest::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ResumeRequest);
+  NEW_SRM_RET(ResumeRequest);
 
   ResumeRequest(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -108,7 +108,7 @@ srmResumeRequest::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmResumeRequestResponse_ *resp = proc? (srm__srmResumeRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ResumeRequest);
   BOOL quote = TRUE;
   std::stringstream ss;
 

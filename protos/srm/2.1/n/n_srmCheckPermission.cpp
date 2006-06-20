@@ -77,9 +77,8 @@ void
 srmCheckPermission::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmCheckPermissionResponse_ *resp = (srm__srmCheckPermissionResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(CheckPermission);
 }
 
 int
@@ -95,9 +94,10 @@ srmCheckPermission::exec(Process *proc)
   EVAL_VEC_STR_CHP(path.storageSystemInfo);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(CheckPermission);
+  NEW_SRM_RET(CheckPermission);
 
   CheckPermission(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     path,
@@ -132,7 +132,7 @@ srmCheckPermission::toString(Process *proc)
 #define EVAL_VEC_STR_CHP(vec) EVAL_VEC_STR(srmCheckPermission,vec)
   DM_DBG_I;
 
-  srm__srmCheckPermissionResponse_ *resp = proc? (srm__srmCheckPermissionResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(CheckPermission);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -169,7 +169,7 @@ srmCheckPermission::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL qu
 {
   DM_DBG_I;
 
-  srm__srmCheckPermissionResponse_ *resp = proc? (srm__srmCheckPermissionResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(CheckPermission);
   std::stringstream ss;
 
   if(!resp || !resp->srmCheckPermissionResponse) RETURN(ss.str());

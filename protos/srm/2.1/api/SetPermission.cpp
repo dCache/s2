@@ -25,6 +25,7 @@
 /**
  * srmSetPermission method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param SURLOrStFN
@@ -39,7 +40,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-SetPermission(const char *srm_endpoint,
+SetPermission(struct soap *soap,
+              const char *srm_endpoint,
               const char *userID,
               const char *SURLOrStFN,
               const char *storageSystemInfo,
@@ -52,18 +54,18 @@ SetPermission(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmSetPermissionRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);
 
-  NOT_NULL(req.path = soap_new_srm__TSURLInfo(&soap, -1));
+  NOT_NULL(req.path = soap_new_srm__TSURLInfo(soap, -1));
   NEW_STR_VAL_OPT(req.path->SURLOrStFN, SURLOrStFN, TSURL);
   NEW_STR_VAL_OPT(req.path->storageSystemInfo, storageSystemInfo, TStorageSystemInfo);
   req.permissionType = (srm__TPermissionType)permissionType;
@@ -72,14 +74,14 @@ SetPermission(const char *srm_endpoint,
 
 #define SET_PERMS(ug,UG)\
   if(ug ## PermissionArray.mode.size() != 0) {\
-    NOT_NULL(req.ug ## Permission = soap_new_srm__ArrayOfT ## UG ## Permission(&soap, -1));\
+    NOT_NULL(req.ug ## Permission = soap_new_srm__ArrayOfT ## UG ## Permission(soap, -1));\
     DM_LOG(DM_N(2), "" # ug "PermissionArray.mode.size() == %d\n", ug ## PermissionArray.mode.size());\
     for (uint i = 0; i < ug ## PermissionArray.mode.size(); i++) {\
       srm__T ## UG ## Permission *myPermission;\
 \
-      NOT_NULL(myPermission = soap_new_srm__T ## UG ## Permission(&soap, -1));\
+      NOT_NULL(myPermission = soap_new_srm__T ## UG ## Permission(soap, -1));\
       if(NOT_NULL_VEC(ug ## PermissionArray,ID)) {\
-        NOT_NULL(myPermission->ug ## ID = soap_new_srm__T ## UG ## ID(&soap, -1));\
+        NOT_NULL(myPermission->ug ## ID = soap_new_srm__T ## UG ## ID(soap, -1));\
         myPermission->ug ## ID->value.assign(ug ## PermissionArray.ID[i]->c_str());\
         DM_LOG(DM_N(2), "" # ug "ID[%u] == `%s'\n", i, myPermission->ug ## ID->value.c_str());\
       } else {\

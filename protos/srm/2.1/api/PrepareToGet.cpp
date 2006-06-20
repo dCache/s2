@@ -29,6 +29,7 @@
 /**
  * srmPrepareToGet method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param arrayOfFileRequests
@@ -41,7 +42,8 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-PrepareToGet(const char *srm_endpoint,
+PrepareToGet(struct soap *soap,
+             const char *srm_endpoint,
              const char *userID,
              const tArrayOfGetFileRequests arrayOfFileRequests,
              std::vector <std::string *> arrayOfTransferProtocols,
@@ -52,25 +54,25 @@ PrepareToGet(const char *srm_endpoint,
 {
   DM_DBG_I;
   struct srm__srmPrepareToGetRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);
 
-  NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTGetFileRequest(&soap, -1));
+  NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTGetFileRequest(soap, -1));
   /* Create the file request */
   DM_LOG(DM_N(2), "arrayOfFileRequests.SURLOrStFN.size() == %d\n", arrayOfFileRequests.SURLOrStFN.size());
   for (uint i = 0; i < arrayOfFileRequests.SURLOrStFN.size(); i++) {
     srm__TGetFileRequest *fileRequest;
-    NOT_NULL(fileRequest = soap_new_srm__TGetFileRequest(&soap, -1));
+    NOT_NULL(fileRequest = soap_new_srm__TGetFileRequest(soap, -1));
     
-    NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(&soap, -1));
+    NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(soap, -1));
     if(NOT_NULL_VEC(arrayOfFileRequests,allLevelRecursive)) {
       fileRequest->dirOption->allLevelRecursive = (bool *)arrayOfFileRequests.allLevelRecursive[i];
       DM_LOG(DM_N(2), "allLevelRecursive[%u] == %d\n", i, *(fileRequest->dirOption->allLevelRecursive));
@@ -99,9 +101,9 @@ PrepareToGet(const char *srm_endpoint,
       fileRequest->fileStorageType = NULL;
       DM_LOG(DM_N(2), "fileStorageType[%u] == NULL\n", i);
     }
-    NOT_NULL(fileRequest->fromSURLInfo = soap_new_srm__TSURLInfo(&soap, -1));
+    NOT_NULL(fileRequest->fromSURLInfo = soap_new_srm__TSURLInfo(soap, -1));
     if(NOT_NULL_VEC(arrayOfFileRequests,SURLOrStFN)) {
-      NOT_NULL(fileRequest->fromSURLInfo->SURLOrStFN = soap_new_srm__TSURL(&soap, -1));
+      NOT_NULL(fileRequest->fromSURLInfo->SURLOrStFN = soap_new_srm__TSURL(soap, -1));
       fileRequest->fromSURLInfo->SURLOrStFN->value.assign(arrayOfFileRequests.SURLOrStFN[i]->c_str());
       DM_LOG(DM_N(2), "SURLOrStFN[%u] == `%s'\n", i, fileRequest->fromSURLInfo->SURLOrStFN->value.c_str());
     } else {
@@ -109,7 +111,7 @@ PrepareToGet(const char *srm_endpoint,
       DM_LOG(DM_N(2), "SURLOrStFN[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,storageSystemInfo)) {
-      NOT_NULL(fileRequest->fromSURLInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(&soap, -1));
+      NOT_NULL(fileRequest->fromSURLInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(soap, -1));
       fileRequest->fromSURLInfo->storageSystemInfo->value.assign(arrayOfFileRequests.storageSystemInfo[i]->c_str());
       DM_LOG(DM_N(2), "storageSystemInfo[%u] == `%s'\n", i, fileRequest->fromSURLInfo->storageSystemInfo->value.c_str());
     } else {
@@ -117,7 +119,7 @@ PrepareToGet(const char *srm_endpoint,
       DM_LOG(DM_N(2), "storageSystemInfo[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,lifetime)) {
-      NOT_NULL(fileRequest->lifetime = soap_new_srm__TLifeTimeInSeconds(&soap, -1));
+      NOT_NULL(fileRequest->lifetime = soap_new_srm__TLifeTimeInSeconds(soap, -1));
       fileRequest->lifetime->value = *arrayOfFileRequests.lifetime[i];
       DM_LOG(DM_N(2), "lifetime[%u] == %"PRIi64"\n", i, fileRequest->lifetime->value);
     } else {
@@ -125,7 +127,7 @@ PrepareToGet(const char *srm_endpoint,
       DM_LOG(DM_N(2), "lifetime[%u] == NULL\n", i);
     }
     if(NOT_NULL_VEC(arrayOfFileRequests,spaceToken)) {
-      NOT_NULL(fileRequest->spaceToken = soap_new_srm__TSpaceToken(&soap, -1));
+      NOT_NULL(fileRequest->spaceToken = soap_new_srm__TSpaceToken(soap, -1));
       fileRequest->spaceToken->value.assign(arrayOfFileRequests.spaceToken[i]->c_str());
       DM_LOG(DM_N(2), "spaceToken[%u] == `%s'\n", i, fileRequest->spaceToken->value.c_str());
     } else {
@@ -136,7 +138,7 @@ PrepareToGet(const char *srm_endpoint,
     req.arrayOfFileRequests->getRequestArray.push_back(fileRequest);
   }
   
-  req.arrayOfTransferProtocols = soap_new_srm__ArrayOf_USCORExsd_USCOREstring(&soap, -1);
+  req.arrayOfTransferProtocols = soap_new_srm__ArrayOf_USCORExsd_USCOREstring(soap, -1);
   /* Fill in transfer protocols */
   DM_LOG(DM_N(2), "arrayOfTransferProtocols.size() == %d\n", arrayOfTransferProtocols.size());
   for(uint i = 0; i < arrayOfTransferProtocols.size(); i++) {

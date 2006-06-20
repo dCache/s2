@@ -76,9 +76,8 @@ void
 srmRemoveFiles::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmRemoveFilesResponse_ *resp = (srm__srmRemoveFilesResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(RemoveFiles);
 }
 
 int
@@ -89,9 +88,10 @@ srmRemoveFiles::exec(Process *proc)
   std::vector <std::string *> surlArray = proc->eval_vec_str(srmRemoveFiles::surlArray);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(RemoveFiles);
+  NEW_SRM_RET(RemoveFiles);
 
   RemoveFiles(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -114,7 +114,7 @@ srmRemoveFiles::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmRemoveFilesResponse_ *resp = proc? (srm__srmRemoveFilesResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(RemoveFiles);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -148,7 +148,7 @@ srmRemoveFiles::arrayOfRemoveFilesResponseToString(Process *proc, BOOL space, BO
 {
   DM_DBG_I;
 
-  srm__srmRemoveFilesResponse_ *resp = proc? (srm__srmRemoveFilesResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(RemoveFiles);
   std::stringstream ss;
 
   if(!resp || !resp->srmRemoveFilesResponse) RETURN(ss.str());

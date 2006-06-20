@@ -23,6 +23,7 @@
 /**
  * srmGetSpaceToken method.
  *
+ * \param soap
  * \param srm_endpoint
  * \param userID
  * \param userSpaceTokenDescription
@@ -31,20 +32,21 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-GetSpaceToken(const char *srm_endpoint,
+GetSpaceToken(struct soap *soap,
+              const char *srm_endpoint,
               const char *userID,
               const char *userSpaceTokenDescription,
               struct srm__srmGetSpaceTokenResponse_ *resp)
 {
   DM_DBG_I;
   struct srm__srmGetSpaceTokenRequest req;
-  struct soap soap;
-  soap_init(&soap);
+
+  SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK;
-  soap_register_plugin_arg (&soap, client_cgsi_plugin, &flags);
+  soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
   NEW_STR_VAL(userID,TUserID);

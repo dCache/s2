@@ -90,9 +90,8 @@ void
 srmPrepareToGet::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmPrepareToGetResponse_ *resp = (srm__srmPrepareToGetResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(PrepareToGet);
 }
 
 int
@@ -119,9 +118,10 @@ srmPrepareToGet::exec(Process *proc)
   EVAL_VEC_STR_PTG(arrayOfTransferProtocols);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(PrepareToGet);
+  NEW_SRM_RET(PrepareToGet);
 
   PrepareToGet(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     arrayOfFileRequests,
@@ -172,7 +172,7 @@ srmPrepareToGet::toString(Process *proc)
 #define EVAL_VEC_STR_PTG(vec) EVAL_VEC_STR(srmPrepareToGet,vec)
   DM_DBG_I;
   
-  srm__srmPrepareToGetResponse_ *resp = proc? (srm__srmPrepareToGetResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(PrepareToGet);
   BOOL quote = TRUE;
   std::stringstream ss;
 
@@ -232,7 +232,7 @@ srmPrepareToGet::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote
 {
   DM_DBG_I;
 
-  srm__srmPrepareToGetResponse_ *resp = proc? (srm__srmPrepareToGetResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(PrepareToGet);
   std::stringstream ss;
   
   if(!resp || !resp->srmPrepareToGetResponse) RETURN(ss.str());

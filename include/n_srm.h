@@ -5,13 +5,7 @@
 #include <stdint.h>
 #endif
 
-#if defined(HAVE_SRM21)
-
-#include "n.h"			/* Node */
-
-#define SRM2_CALL		/* disable for debug purposes */
-
-/* simple macros */
+/* macros common to all SRM methods */
 #define SS_SRM(method)\
   if(srm_endpoint == NULL) {\
     DM_ERR_ASSERT(_("srm_endpoint == NULL\n"));\
@@ -58,15 +52,63 @@
     }\
   }
 
-#define NEW_SRM_RESP(r)\
-  srm__srm##r##Response_ *resp = new srm__srm##r##Response_();\
+typedef struct tSoapCallRet
+{ 
+  struct soap *soap;	/* gSoap structure */
+  void *resp;		/* SRM response */
+} tSoapCallRet;
+
+#define NEW_SRM_RET(r)\
+  proc->ret = (tSoapCallRet *) malloc(sizeof(tSoapCallRet));\
+  if(proc->ret == NULL) {\
+    DM_ERR(ERR_SYSTEM, "malloc failed\n");\
+    RETURN(ERR_SYSTEM);\
+  }\
+  srm__srm##r##Response_ *resp = (srm__srm##r##Response_ *)((tSoapCallRet *)proc->ret)->resp = new srm__srm##r##Response_();\
+  struct soap *soap = ((tSoapCallRet *)proc->ret)->soap = soap_new();\
   if(resp == NULL) {\
     DM_ERR(ERR_SYSTEM, "new failed\n");\
     RETURN(ERR_SYSTEM);\
   } else {\
     memset(resp, 0, sizeof(srm__srm##r##Response_));\
-  }\
-  proc->resp = resp;
+  }
+
+#define GET_SRM_RESP(r)	srm__srm##r##Response_ *resp = proc && proc->ret? (srm__srm##r##Response_ *)((tSoapCallRet *)proc->ret)->resp : NULL
+#define GET_SRM_SOAP	struct soap *soap = proc && proc->ret? (struct soap *)((tSoapCallRet *)proc->ret)->soap : NULL
+#define FREE_SRM_RET(r)\
+  do {\
+    GET_SRM_SOAP;\
+    GET_SRM_RESP(r);\
+    if(soap) {\
+      DM_DBG(DM_N(1), "freeing soap=%p\n", soap);\
+      if(resp) {\
+        soap_delete_srm__srm##r##Response(soap, resp->srm##r##Response);\
+	soap_delete(soap, resp);\
+      };\
+      soap_destroy(soap);\
+      soap_end(soap);\
+      FREE(soap);\
+    };\
+    FREE((tSoapCallRet *)proc->ret);\
+  } while(0)
+
+#if 0
+  GET_SRM_RESP(r);
+  FREE(soap);
+  if(resp) soap_delete(soap, resp);
+  soap_destroy(soap);
+  soap_free(soap);
+  soap_done(soap);	/* SEGVs if CGSI plugin is used */
+#endif
+
+#include "n.h"			/* Node */
+#define SRM2_CALL		/* disable for debug purposes */
+
+
+/********************************************************************/
+#ifdef HAVE_SRM21
+
+/* simple macros */
 
 /* type definitions */
 typedef struct tArrayOfCopyFileRequests_ /* <std::string *> version of tArrayOfCopyFileRequests */
@@ -967,5 +1009,89 @@ private:
 
 #endif	/* HAVE_SRM21 */
 
+/********************************************************************/
+struct SRM2 : public Node
+{
+  std::string *srm_endpoint;
+  std::string *authorizationID;
+
+  struct tReturnStatus
+  {
+    std::string *explanation;
+    std::string *statusCode;
+  } returnStatus;
+
+public:
+  SRM2();
+  ~SRM2();
+
+  int matchReturnStatus(struct srm__TReturnStatus *returnStatus, Process *proc);
+  std::vector <const long int *> eval_vec_overwrite_mode(const std::vector <std::string *> &v, Process *proc);
+  std::vector <long int> eval_vec_permission_mode(const std::vector <std::string *> &v, Process *proc);
+
+};
+
+
+#ifdef HAVE_SRM22
+
+/* type definitions */
+typedef struct tArrayOfPutFileRequests_
+{ 
+  std::vector <std::string *> targetSURL;
+  std::vector <std::string *> expectedFileSize;
+};
+
+typedef struct tStorageSystemInfo_
+{ 
+  std::vector <std::string *> key;
+  std::vector <std::string *> value;
+};
+
+/*
+ * srmPrepareToPut request
+ */
+struct srmPrepareToPut : public SRM2
+{
+  /* request (parser/API) */
+  tArrayOfPutFileRequests_ putFileRequests;
+
+  std::string *userRequestDescription;
+  std::string *overwriteOption;
+
+  tStorageSystemInfo_ storageSystemInfo;
+
+  std::string *desiredTotalRequestTime;
+  std::string *desiredPinLifeTime;
+  std::string *desiredFileLifeTime;
+  std::string *desiredFileStorageType;
+  std::string *targetSpaceToken;
+  std::string *retentionPolicy;
+  std::string *accessLatency;
+  std::string *accessPattern;
+  std::string *connectionType;
+
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
+ 
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+
+public:
+  srmPrepareToPut();
+  srmPrepareToPut(Node &node);
+  ~srmPrepareToPut();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+#endif	/* HAVE_SRM22 */
 
 #endif /* _N_SRM_H */

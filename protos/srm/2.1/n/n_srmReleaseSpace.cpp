@@ -77,9 +77,8 @@ void
 srmReleaseSpace::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmReleaseSpaceResponse_ *resp = (srm__srmReleaseSpaceResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(ReleaseSpace);
 }
 
 int
@@ -88,9 +87,10 @@ srmReleaseSpace::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(ReleaseSpace);
+  NEW_SRM_RET(ReleaseSpace);
 
   ReleaseSpace(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(spaceToken),
@@ -114,7 +114,7 @@ srmReleaseSpace::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmReleaseSpaceResponse_ *resp = proc? (srm__srmReleaseSpaceResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(ReleaseSpace);
   BOOL quote = TRUE;
   std::stringstream ss;
 

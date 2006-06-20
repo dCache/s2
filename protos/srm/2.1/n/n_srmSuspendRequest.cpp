@@ -73,9 +73,8 @@ void
 srmSuspendRequest::finish(Process *proc)
 {
   DM_DBG_I;
-  srm__srmSuspendRequestResponse_ *resp = (srm__srmSuspendRequestResponse_ *)proc->resp;
-  
-  DELETE(resp);
+
+  FREE_SRM_RET(SuspendRequest);
 }
 
 int
@@ -84,9 +83,10 @@ srmSuspendRequest::exec(Process *proc)
   DM_DBG_I;
 
 #ifdef SRM2_CALL
-  NEW_SRM_RESP(SuspendRequest);
+  NEW_SRM_RET(SuspendRequest);
 
   SuspendRequest(
+    soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(userID),
     EVAL2CSTR(requestToken),
@@ -108,7 +108,7 @@ srmSuspendRequest::toString(Process *proc)
 {
   DM_DBG_I;
 
-  srm__srmSuspendRequestResponse_ *resp = proc? (srm__srmSuspendRequestResponse_ *)proc->resp : NULL;
+  GET_SRM_RESP(SuspendRequest);
   BOOL quote = TRUE;
   std::stringstream ss;
 

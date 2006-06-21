@@ -1,0 +1,7 @@
+This directory contains templates for the SRM2 <ACTION>s for the
+s2 language.  Its aim is to provide syntax for the SRM2 <ACTION>s
+until the grammar for these actions is created and the s2.txt document
+updated.
+
+Please look at the `../basic' and `../usecase' directories first
+which contain some real examples.

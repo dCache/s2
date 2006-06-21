@@ -33,6 +33,7 @@
 #define SS_VEC(vec)\
   if(vec.size()) {\
     ss << " "#vec << "[";\
+    DM_DBG(DM_N(4), ""# vec ".size()=%u\n", vec.size());\
     for(uint __u = 0; __u < vec.size(); __u++) {\
       if(__u) ss << " ";\
       ss << dq_param(Process::eval_str(vec[__u],proc), quote);\

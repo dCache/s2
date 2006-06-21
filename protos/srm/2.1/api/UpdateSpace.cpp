@@ -56,6 +56,8 @@ UpdateSpace(struct soap *soap,
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK;
   soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
+#else
+#warning "Compiling without CGSI plugin support, i.e. no security"
 #endif
 
   NEW_STR_VAL(userID,TUserID);

@@ -6,13 +6,13 @@
 
 /* free vector of types (e.g. ints) */
 #define FREE_VEC(vec)\
-  for (uint __i = 0; __i < vec.size(); __i++) {\
-    FREE(vec[__i]);\
+  for (uint __u = 0; __u < vec.size(); __u++) {\
+    FREE(vec[__u]);\
   }
 /* delete vector of objects (e.g. strings) */
 #define DELETE_VEC(vec)\
-  for (uint __i = 0; __i < vec.size(); __i++) {\
-    DELETE(vec[__i]);\
+  for (uint __u = 0; __u < vec.size(); __u++) {\
+    DELETE(vec[__u]);\
   }
 
 #endif /* _FREE_H */

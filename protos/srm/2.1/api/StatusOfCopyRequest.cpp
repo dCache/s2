@@ -52,6 +52,8 @@ StatusOfCopyRequest(struct soap *soap,
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
   soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
+#else
+#warning "Compiling without CGSI plugin support, i.e. no security"
 #endif
 
   NEW_STR_VAL(userID,TUserID);

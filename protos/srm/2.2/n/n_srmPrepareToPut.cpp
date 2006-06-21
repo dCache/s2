@@ -119,7 +119,8 @@ srmPrepareToPut::exec(Process *proc)
 
   tArrayOfPutFileRequests putFileRequests;
   tStorageSystemInfo storageSystemInfo;
-  std::vector <std::string *> arrayOfTransferProtocols;
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
 
   EVAL_VEC_STR_PTP(putFileRequests.targetSURL);
   EVAL_VEC_PUINT64_PTP(putFileRequests.expectedFileSize);
@@ -201,7 +202,8 @@ srmPrepareToPut::toString(Process *proc)
 
   tArrayOfPutFileRequests_ putFileRequests;
   tStorageSystemInfo_ storageSystemInfo;
-  std::vector <std::string *> arrayOfTransferProtocols;
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
 
   EVAL_VEC_STR_PTP(putFileRequests.targetSURL);
   EVAL_VEC_STR_PTP(putFileRequests.expectedFileSize);
@@ -232,7 +234,7 @@ srmPrepareToPut::toString(Process *proc)
   SS_P_DQ(connectionType);
   SS_VEC_DEL(clientNetworks);
   SS_VEC_DEL(transferProtocols);
-  
+
   /* response (parser) */
   SS_P_DQ(requestToken);
   SS_P_DQ(fileStatuses);

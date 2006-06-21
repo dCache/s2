@@ -260,11 +260,12 @@ int main(int argc, char **argv) {
 EOF
   cat $TMPC >> ${CONFIGURE_LOG}
 
+  # Make sure you don't remove -Bstatic for this check!
   for try_cgsi_plugindir in ${_with_cgsi_plugindir} ${_with_gsoapdir}
   do
     ${HAVE_SH} \
       $CC $INCLUDES -I${try_cgsi_plugindir}/include \
-      -o $TMPE $TMPC -L${try_cgsi_plugindir}/lib ${LIB_CGSI_PLUGIN} ${EXTRALIBS} \
+      -o $TMPE $TMPC -L${try_cgsi_plugindir}/lib -Wl,-Bstatic ${LIB_CGSI_PLUGIN} -Wl,-Bdynamic ${EXTRALIBS} \
       >>${CONFIGURE_LOG} 2>&1
     if test $? -eq 0 ; then
       run $TMPE && have_cgsi_plugin="yes" && break || have_cgsi_plugin="no"

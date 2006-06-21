@@ -16,6 +16,7 @@
 #include <string.h>     /* strerror(), strlen(), ... */
 #include <ctype.h>      /* isspace() */
 #include <stdlib.h>     /* free() */
+#include <limits.h>	/* (U)INT_MAX/MIN, ... */
 
 /*
  * Returns pointer to a character `c' in string `s'.
@@ -189,6 +190,8 @@ get_##sign##int##size(const char *word, char **endptr, BOOL warn)\
   return (sign##int##size##_t)value;\
 }
 
+_GET_INT(,,d,);
+_GET_INT(u,U,u,);
 _GET_INT(,,d,8);
 _GET_INT(u,U,u,8);
 _GET_INT(,,d,16);

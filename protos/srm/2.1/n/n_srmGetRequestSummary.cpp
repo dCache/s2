@@ -162,7 +162,7 @@ srmGetRequestSummary::arrayOfRequestDetailsToString(Process *proc, BOOL space, B
   if(resp->srmGetRequestSummaryResponse->arrayOfRequestSummaries) {
     BOOL print_space = FALSE;
     std::vector<srm__TRequestSummary*> v = resp->srmGetRequestSummaryResponse->arrayOfRequestSummaries->summaryArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR(isSuspended);
       SS_P_VEC_PAR(numOfFinishedRequests);
       SS_P_VEC_PAR(numOfProgressingRequests);

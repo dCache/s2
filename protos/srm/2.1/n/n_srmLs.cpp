@@ -210,21 +210,21 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
   std::stringstream ss;
   
   BOOL print_space = space;
-  for(uint i = 0; i < v.size(); i++) {
+  for(uint u = 0; u < v.size(); u++) {
     SS_P_VEC_PAR(path);
     SS_P_VEC_SRM_RETSTAT(status);
     SS_P_VEC_PAR_VAL(size);
     
     SS_P_VEC_PAR_PERMISSIONMODE(ownerPermission);
-    if(v[i]->userPermissions) {
-      std::vector<srm__TUserPermission*> perms = v[i]->userPermissions->userPermissionArray;
+    if(v[u]->userPermissions) {
+      std::vector<srm__TUserPermission*> perms = v[u]->userPermissions->userPermissionArray;
       for(uint j = 0; j < perms.size(); j++) {
         SS_VEC_SPACE;
         ss << "user[" << j << "]=" << perms[j]->userID->value << " perm[" << j << "]=" << perms[j]->mode;
       }
     }
-    if(v[i]->groupPermissions) {
-      std::vector<srm__TGroupPermission*> perms = v[i]->groupPermissions->groupPermissionArray;
+    if(v[u]->groupPermissions) {
+      std::vector<srm__TGroupPermission*> perms = v[u]->groupPermissions->groupPermissionArray;
       for(uint j = 0; j < perms.size(); j++) {
         SS_VEC_SPACE;
         ss << "group[" << j << "]=" << perms[j]->groupID->value << " perm[" << j << "]=" << perms[j]->mode;
@@ -235,13 +235,13 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
     SS_P_VEC_PAR_VAL(createdAtTime);
     SS_P_VEC_PAR_VAL(lastModificationTime);
     SS_P_VEC_PAR_VAL(owner);
-    if(v[i]->fileStorageType) {
+    if(v[u]->fileStorageType) {
       SS_VEC_SPACE;
-      ss << "fileStorageType=" << getTFileStorageType(*v[i]->fileStorageType);
+      ss << "fileStorageType=" << getTFileStorageType(*v[u]->fileStorageType);
     }
-    if(v[i]->type) {
+    if(v[u]->type) {
       SS_VEC_SPACE;
-      ss << "type=" << *(v[i]->type);
+      ss << "type=" << *(v[u]->type);
     }
     SS_P_VEC_PAR_VAL(lifetimeAssigned);
     SS_P_VEC_PAR_VAL(lifetimeLeft);
@@ -249,8 +249,8 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
     SS_P_VEC_PAR_VAL(checkSumValue);
     SS_P_VEC_PAR_VAL(originalSURL);
     
-    if(v[i]->subPaths) {
-      std::vector<srm__TMetaDataPathDetail *> sub_v = v[i]->subPaths->pathDetailArray;
+    if(v[u]->subPaths) {
+      std::vector<srm__TMetaDataPathDetail *> sub_v = v[u]->subPaths->pathDetailArray;
       ss << arrayOfFileStatusToString(proc, print_space, quote, sub_v);
     }
   }

@@ -36,16 +36,18 @@
 extern int
 PrepareToPut(struct soap *soap,
              const char *srm_endpoint,
-             std::string *authorizationID,
+             const char *authorizationID,
              const tArrayOfPutFileRequests putFileRequests,
+             const char *userRequestDescription,
+             const long *overwriteOption,
              tStorageSystemInfo storageSystemInfo,
-             std::string *desiredTotalRequestTime,
-             std::string *desiredPinLifeTime,
-             std::string *desiredFileLifeTime,
-             std::string *desiredFileStorageType,
-             std::string *targetSpaceToken,
-             std::string *retentionPolicy,
-             std::string *accessLatency,
+             int *desiredTotalRequestTime,
+             int *desiredPinLifeTime,
+             int *desiredFileLifeTime,
+             const long *desiredFileStorageType,
+             const char *targetSpaceToken,
+             const long retentionPolicy,
+             const long *accessLatency,
              const long *accessPattern,
              const long *connectionType,
              std::vector <std::string *> clientNetworks,
@@ -63,57 +65,78 @@ PrepareToPut(struct soap *soap,
   soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #endif
 
-  req.authorizationID = authorizationID;
+  MV_CSTR(req.authorizationID,authorizationID);
 
   /* Create the file request */
   NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTPutFileRequest(soap, -1));
-//           = soap_new_srm__ArrayOfAnyURI(soap, -1));
-  DM_LOG(DM_N(2), "targetSURL.size() == %d\n", putFileRequests.targetSURL.size());
-  for (uint i = 0; i < putFileRequests.targetSURL.size(); i++) {
+  for (uint u = 0; u < putFileRequests.targetSURL.size(); u++) {
+    DM_LOG(DM_N(2), "putFileRequests.targetSURL[%u]\n", u);
     srm__TPutFileRequest *fileRequest;
     NOT_NULL(fileRequest = soap_new_srm__TPutFileRequest(soap, -1));
-    fileRequest->targetSURL = putFileRequests.targetSURL[i];
 
-    DM_LOG(DM_N(2), "targetSURL.size() == %d\n", putFileRequests.targetSURL.size());
-
+    MV_PSTR(fileRequest->targetSURL,putFileRequests.targetSURL[u]);
     if(NOT_NULL_VEC(putFileRequests,expectedFileSize)) {
-      fileRequest->expectedFileSize = putFileRequests.expectedFileSize[i];
-      DM_LOG(DM_N(2), "expectedFileSize[%u] = %"PRIi64"\n", i, *(fileRequest->expectedFileSize));
+      fileRequest->expectedFileSize = putFileRequests.expectedFileSize[u];
+      DM_LOG(DM_N(2), "expectedFileSize[%u] = %"PRIi64"\n", u, *(fileRequest->expectedFileSize));
     } else {
       fileRequest->expectedFileSize = NULL;
-      DM_LOG(DM_N(2), "expectedFileSize[%u] == NULL\n", i);
+      DM_LOG(DM_N(2), "expectedFileSize[%u] == NULL\n", u);
     }
     
     req.arrayOfFileRequests->requestArray.push_back(fileRequest);
-//             
   }
-  /* TODO... */
 
+  MV_CSTR(req.userRequestDescription,userRequestDescription);
+  MV_PSOAP(OverwriteMode,req.overwriteOption,overwriteOption);
+
+  /* Storage system info */
+  NOT_NULL(req.storageSystemInfo = soap_new_srm__ArrayOfTExtraInfo(soap, -1));
+  for (uint u = 0; u < storageSystemInfo.key.size(); u++) {
+    DM_LOG(DM_N(2), "storageSystemInfo.key[%u]\n", u);
+    srm__TExtraInfo *extraInfo;
+
+    NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));
+    MV_STR(extraInfo->key,storageSystemInfo.key[u]);
+    MV_PSTR(extraInfo->value,storageSystemInfo.value[u]);
+    req.storageSystemInfo->extraInfoArray.push_back(extraInfo);
+  }
+
+  MV_PINT(req.desiredTotalRequestTime,desiredTotalRequestTime);
+  MV_PINT(req.desiredPinLifeTime,desiredPinLifeTime);
+  MV_PINT(req.desiredFileLifeTime,desiredFileLifeTime);
+  MV_PSOAP(FileStorageType,req.desiredFileStorageType,desiredFileStorageType);
+  MV_CSTR(req.targetSpaceToken,targetSpaceToken);
+  
+  /* Retention */
+  NOT_NULL(req.targetFileRetentionPolicyInfo = soap_new_srm__TRetentionPolicyInfo(soap, -1));
+  MV_SOAP(RetentionPolicy,req.targetFileRetentionPolicyInfo->retentionPolicy,retentionPolicy);
+  MV_PSOAP(AccessLatency,req.targetFileRetentionPolicyInfo->accessLatency,accessLatency);
+  
   /* Transfer parameters */
   NOT_NULL(req.transferParameters = soap_new_srm__TTransferParameters(soap, -1));
-  req.transferParameters->accessPattern = (srm__TAccessPattern *)accessPattern;
-  req.transferParameters->connectionType = (srm__TConnectionType *)connectionType;
+  MV_PSOAP(AccessPattern,req.transferParameters->accessPattern,accessPattern);
+  MV_PSOAP(ConnectionType,req.transferParameters->connectionType,connectionType);
   NOT_NULL(req.transferParameters->arrayOfClientNetworks = soap_new_srm__ArrayOfString(soap, -1));
   NOT_NULL(req.transferParameters->arrayOfTransferProtocols = soap_new_srm__ArrayOfString(soap, -1));
 
   /* Fill in client networks */
-  DM_LOG(DM_N(2), "clientNetworks.size() == %d\n", clientNetworks.size());
-  for(uint i = 0; i < clientNetworks.size(); i++) {
-    if(clientNetworks[i]) {
-      req.transferParameters->arrayOfClientNetworks->stringArray.push_back(clientNetworks[i]->c_str());
-      DM_LOG(DM_N(2), "clientNetworks[%i] == `%s'\n", i, clientNetworks[i]->c_str());
+  for(uint u = 0; u < clientNetworks.size(); u++) {
+    DM_LOG(DM_N(2), "clientNetworks[%u]\n", u);
+    if(clientNetworks[u]) {
+      req.transferParameters->arrayOfClientNetworks->stringArray.push_back(CSTR(clientNetworks[u]));
+      DM_LOG(DM_N(2), "clientNetworks[%u] == `%s'\n", u, req.transferParameters->arrayOfClientNetworks->stringArray.back().c_str());
     } else {
-      DM_LOG(DM_N(2), "clientNetworks[%i] == NULL\n", i);
+      DM_LOG(DM_N(2), "clientNetworks[%u] == NULL\n", u);
     }
   }
   /* Fill in transfer protocols */
-  DM_LOG(DM_N(2), "transferProtocols.size() == %d\n", transferProtocols.size());
-  for(uint i = 0; i < transferProtocols.size(); i++) {
-    if(transferProtocols[i]) {
-      req.transferParameters->arrayOfTransferProtocols->stringArray.push_back(transferProtocols[i]->c_str());
-      DM_LOG(DM_N(2), "transferProtocols[%i] == `%s'\n", i, transferProtocols[i]->c_str());
+  for(uint u = 0; u < transferProtocols.size(); u++) {
+    DM_LOG(DM_N(2), "transferProtocols[%u]\n", u);
+    if(transferProtocols[u]) {
+      req.transferParameters->arrayOfTransferProtocols->stringArray.push_back(CSTR(transferProtocols[u]));
+      DM_LOG(DM_N(2), "transferProtocols[%u] == `%s'\n", u, req.transferParameters->arrayOfTransferProtocols->stringArray.back().c_str());
     } else {
-      DM_LOG(DM_N(2), "transferProtocols[%i] == NULL\n", i);
+      DM_LOG(DM_N(2), "transferProtocols[%u] == NULL\n", u);
     }
   }
   

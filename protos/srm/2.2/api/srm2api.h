@@ -21,6 +21,25 @@ typedef struct tStorageSystemInfo
 };
 
 /* extern(al) function declarations */
-
+extern int
+PrepareToPut(struct soap *soap,
+             const char *srm_endpoint,
+             const char *authorizationID,
+             const tArrayOfPutFileRequests putFileRequests,
+             const char *userRequestDescription,
+             const long *overwriteOption,
+             tStorageSystemInfo storageSystemInfo,
+             int *desiredTotalRequestTime,
+             int *desiredPinLifeTime,
+             int *desiredFileLifeTime,
+             const long *desiredFileStorageType,
+             const char *targetSpaceToken,
+             const long retentionPolicy,
+             const long *accessLatency,
+             const long *accessPattern,
+             const long *connectionType,
+             std::vector <std::string *> clientNetworks,
+             std::vector <std::string *> transferProtocols,
+             struct srm__srmPrepareToPutResponse_ *resp);
 
 #endif /* _SRM2API_H */

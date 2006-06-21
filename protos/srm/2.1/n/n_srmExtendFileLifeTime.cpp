@@ -110,9 +110,9 @@ srmExtendFileLifeTime::exec(Process *proc)
   }
 
   /* newTimeExtended */
-  EAT_MATCH(resp->srmExtendFileLifeTimeResponse,
-            newTimeExtended,
-            i2str(resp->srmExtendFileLifeTimeResponse->newTimeExtended->value).c_str());
+  EAT_MATCH_3(resp->srmExtendFileLifeTimeResponse,
+              newTimeExtended,
+              i2str(resp->srmExtendFileLifeTimeResponse->newTimeExtended->value).c_str());
 
   RETURN(matchReturnStatus(resp->srmExtendFileLifeTimeResponse->returnStatus, proc));
 }

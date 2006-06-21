@@ -170,7 +170,7 @@ srmStatusOfCopyRequest::arrayOfStatusOfCopyRequestResponseToString(Process *proc
   if(resp->srmStatusOfCopyRequestResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TCopyRequestFileStatus *> v = resp->srmStatusOfCopyRequestResponse->arrayOfFileStatuses->copyStatusArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR_VAL(estimatedProcessingTime);
       SS_P_VEC_PAR_VAL(estimatedWaitTimeOnQueue);
       SS_P_VEC_PAR_VAL(fileSize);

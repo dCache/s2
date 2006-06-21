@@ -174,7 +174,7 @@ srmRm::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const
     BOOL print_space = FALSE;
 
     std::vector<srm__TSURLReturnStatus *> v = resp->srmRmResponse->arrayOfFileStatuses->surlReturnStatusArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_PAR_VAL(surl);
     }

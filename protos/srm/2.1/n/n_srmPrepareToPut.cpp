@@ -145,16 +145,12 @@ srmPrepareToPut::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH(resp->srmPrepareToPutResponse,
-            requestToken,
-            resp->srmPrepareToPutResponse->requestToken->value.c_str());
+  EAT_MATCH_3(resp->srmPrepareToPutResponse,
+              requestToken,
+              resp->srmPrepareToPutResponse->requestToken->value.c_str());
 
   /* arrayOfFileStatus */
-  match = proc->e_match(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
-  if(!match) {
-    DM_LOG(DM_N(1), "no match\n");
-    RETURN(ERR_ERR);
-  }
+  EAT_MATCH(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
   RETURN(matchReturnStatus(resp->srmPrepareToPutResponse->returnStatus, proc));
 #undef EVAL_VEC_STR_PTP
@@ -232,7 +228,7 @@ srmPrepareToPut::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote
   if(resp->srmPrepareToPutResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TPutRequestFileStatus *> v = resp->srmPrepareToPutResponse->arrayOfFileStatuses->putStatusArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR_VAL(estimatedProcessingTime);
       SS_P_VEC_PAR_VAL(estimatedWaitTimeOnQueue);
       SS_P_VEC_PAR_VAL(fileSize);

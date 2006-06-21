@@ -76,20 +76,20 @@ SetPermission(struct soap *soap,
   if(ug ## PermissionArray.mode.size() != 0) {\
     NOT_NULL(req.ug ## Permission = soap_new_srm__ArrayOfT ## UG ## Permission(soap, -1));\
     DM_LOG(DM_N(2), "" # ug "PermissionArray.mode.size() == %d\n", ug ## PermissionArray.mode.size());\
-    for (uint i = 0; i < ug ## PermissionArray.mode.size(); i++) {\
+    for (uint u = 0; u < ug ## PermissionArray.mode.size(); u++) {\
       srm__T ## UG ## Permission *myPermission;\
 \
       NOT_NULL(myPermission = soap_new_srm__T ## UG ## Permission(soap, -1));\
       if(NOT_NULL_VEC(ug ## PermissionArray,ID)) {\
         NOT_NULL(myPermission->ug ## ID = soap_new_srm__T ## UG ## ID(soap, -1));\
-        myPermission->ug ## ID->value.assign(ug ## PermissionArray.ID[i]->c_str());\
-        DM_LOG(DM_N(2), "" # ug "ID[%u] == `%s'\n", i, myPermission->ug ## ID->value.c_str());\
+        myPermission->ug ## ID->value.assign(ug ## PermissionArray.ID[u]->c_str());\
+        DM_LOG(DM_N(2), "" # ug "ID[%u] == `%s'\n", u, myPermission->ug ## ID->value.c_str());\
       } else {\
         myPermission->ug ## ID = NULL;\
-        DM_LOG(DM_N(2), "" # ug "ID[%u] == NULL\n", i);\
+        DM_LOG(DM_N(2), "" # ug "ID[%u] == NULL\n", u);\
       }\
-      myPermission->mode = (srm__TPermissionMode)ug ## PermissionArray.mode[i];\
-      DM_LOG(DM_N(2), "mode[%u] == `%s'\n", i, getTPermissionMode(myPermission->mode).c_str());\
+      myPermission->mode = (srm__TPermissionMode)ug ## PermissionArray.mode[u];\
+      DM_LOG(DM_N(2), "mode[%u] == `%s'\n", u, getTPermissionMode(myPermission->mode).c_str());\
 \
       req.ug ## Permission->ug ## PermissionArray.push_back(myPermission);\
     }\

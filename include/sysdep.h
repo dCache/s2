@@ -10,6 +10,9 @@
   typedef unsigned char BOOL;
 #endif
 
+typedef int int_t;						/* type alias */
+typedef unsigned int uint_t;					/* type alias */
+
 #ifndef TRUE
 #define TRUE (1)
 #define FALSE (0)

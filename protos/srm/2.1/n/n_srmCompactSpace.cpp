@@ -110,9 +110,9 @@ srmCompactSpace::exec(Process *proc)
   }
 
   /* newSizeOfThisSpace */
-  EAT_MATCH(resp->srmCompactSpaceResponse,
-            newSizeOfThisSpace,
-            i2str(resp->srmCompactSpaceResponse->newSizeOfThisSpace->value).c_str());
+  EAT_MATCH_3(resp->srmCompactSpaceResponse,
+              newSizeOfThisSpace,
+              i2str(resp->srmCompactSpaceResponse->newSizeOfThisSpace->value).c_str());
 
   RETURN(matchReturnStatus(resp->srmCompactSpaceResponse->returnStatus, proc));
 }

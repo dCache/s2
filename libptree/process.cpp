@@ -2320,6 +2320,7 @@ Process::eval2##u##int##s(const std::string *str)\
 \
   return get_##u##int##s(str_val.c_str(), &endptr, TRUE);\
 }
+_EVAL2INT(,);
 _EVAL2INT(,32);
 _EVAL2INT(,64);
 _EVAL2INT(u,32);
@@ -2349,6 +2350,7 @@ ret_null:\
   r.p = NULL;\
   return r;\
 }
+_EVAL2PINT(,);
 _EVAL2PINT(,32);
 _EVAL2PINT(,64);
 _EVAL2PINT(u,32);
@@ -2445,6 +2447,7 @@ Process::eval_vec_##u##int##s(const std::vector <std::string *> &v)\
   DELETE_VEC(vs);\
   return ev;\
 }
+_EVAL_VEC_INT(,,"ld");
 _EVAL_VEC_INT(,32,"ld");
 _EVAL_VEC_INT(,64,"lld");
 _EVAL_VEC_INT(u,32,"lu");
@@ -2482,6 +2485,7 @@ Process::eval_vec_p##u##int##s(const std::vector <std::string *> &v)\
   DELETE_VEC(vs);\
   return ev;\
 }
+_EVAL_VEC_PINT(,,"ld");
 _EVAL_VEC_PINT(,32,"ld");
 _EVAL_VEC_PINT(,64,"lld");
 _EVAL_VEC_PINT(u,32,"lu");

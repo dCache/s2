@@ -5,6 +5,8 @@
 #define RETURN(...) do {DM_DBG_O; return __VA_ARGS__;} while(0)
 #endif
 
+#define CSTR(s)		(s)? s->c_str(): (const char *)NULL	/* no SEGVs if s is NULL */
+
 #define SOAP_INIT(soap)\
   do {\
     if(!soap) {\
@@ -34,8 +36,9 @@
     RETURN(EXIT_FAILURE);\
   }
 
-#define NOT_NULL_VEC(v,r) (i < v.r.size() && v.r[i])
+#define NOT_NULL_VEC(v,r) (u < v.r.size() && v.r[u])
 
+/* SRM 2.1 */
 #define PINT_VAL_OPT(opt,r)\
   opt = r;\
   if(r) {\
@@ -90,17 +93,16 @@
   }
 #define NEW_PERMISSION(r,t) NEW_PERMISSION_OPT(req.r,r,t)
 
-/* arrays */
 #define NEW_ARRAY_OF_STR_VAL(v1,v2,opt,t)\
   NOT_NULL(req.v1 = soap_new_srm__ArrayOf##t(soap, -1));\
-  for(uint i = 0; i < v2.size(); i++) {\
+  for(uint u = 0; u < v2.size(); u++) {\
     srm__##t *myInfo;\
-    if(v2[i]) {\
+    if(v2[u]) {\
       NOT_NULL(myInfo = soap_new_srm__##t(soap, -1));\
-      myInfo->value.assign(v2[i]->c_str());\
-      DM_LOG(DM_N(2), ""#opt "[%u] == `%s'\n", i, myInfo->value.c_str());\
+      myInfo->value.assign(v2[u]->c_str());\
+      DM_LOG(DM_N(2), ""#opt "[%u] == `%s'\n", u, myInfo->value.c_str());\
     } else {\
-      DM_LOG(DM_N(2), ""#opt "[%u] == NULL\n", i);\
+      DM_LOG(DM_N(2), ""#opt "[%u] == NULL\n", u);\
       myInfo = NULL;\
     }\
     req.v1->opt.push_back(myInfo);\
@@ -108,28 +110,96 @@
 
 #define ARRAY_OF_TSURL_INFO(v1)\
   DM_LOG(DM_N(2), "path.SURLOrStFN.size() == %d\n", path.SURLOrStFN.size());\
-  for (uint i = 0; i < path.SURLOrStFN.size(); i++) {\
+  for (uint u = 0; u < path.SURLOrStFN.size(); u++) {\
     srm__TSURLInfo *myInfo;\
     NOT_NULL(myInfo = soap_new_srm__TSURLInfo(soap, -1));\
 \
     if(NOT_NULL_VEC(path,SURLOrStFN)) {\
       NOT_NULL(myInfo->SURLOrStFN = soap_new_srm__TSURL(soap, -1));\
-      myInfo->SURLOrStFN->value.assign(path.SURLOrStFN[i]->c_str());\
-      DM_LOG(DM_N(2), "SURLOrStFN[%u] == `%s'\n", i, myInfo->SURLOrStFN->value.c_str());\
+      myInfo->SURLOrStFN->value.assign(path.SURLOrStFN[u]->c_str());\
+      DM_LOG(DM_N(2), "SURLOrStFN[%u] == `%s'\n", u, myInfo->SURLOrStFN->value.c_str());\
     } else {\
       myInfo->SURLOrStFN = NULL;\
-      DM_LOG(DM_N(2), "SURLOrStFN[%u] == NULL\n", i);\
+      DM_LOG(DM_N(2), "SURLOrStFN[%u] == NULL\n", u);\
     }\
     if(NOT_NULL_VEC(path,storageSystemInfo)) {\
       NOT_NULL(myInfo->storageSystemInfo = soap_new_srm__TStorageSystemInfo(soap, -1));\
-      myInfo->storageSystemInfo->value.assign(path.storageSystemInfo[i]->c_str());\
-      DM_LOG(DM_N(2), "storageSystemInfo[%u] == `%s'\n", i, myInfo->storageSystemInfo->value.c_str());\
+      myInfo->storageSystemInfo->value.assign(path.storageSystemInfo[u]->c_str());\
+      DM_LOG(DM_N(2), "storageSystemInfo[%u] == `%s'\n", u, myInfo->storageSystemInfo->value.c_str());\
     } else {\
       myInfo->storageSystemInfo = NULL;\
-      DM_LOG(DM_N(2), "storageSystemInfo[%u] == NULL\n", i);\
+      DM_LOG(DM_N(2), "storageSystemInfo[%u] == NULL\n", u);\
     }\
 \
     req.v1->surlInfoArray.push_back(myInfo);\
   }
+
+/* SRM 2.2 */
+#define MV_PINT(t,s)\
+  do {\
+    t = s;\
+    if(t) {\
+      DM_LOG(DM_N(2), ""#t " == %d\n",*t);\
+    } else {\
+      DM_LOG(DM_N(2), ""#t " == NULL\n");\
+    }\
+  } while(0)
+
+#define MV_PBOOL(t,s) MV_PINT(t,s)
+
+#define MV_PINT64(t,s)\
+  do {\
+    t = s;\
+    if(t) {\
+      DM_LOG(DM_N(2), ""#t " == %"PRIi64"\n",*t);\
+    } else {\
+      DM_LOG(DM_N(2), ""#t " == NULL\n");\
+    }\
+  } while(0)
+
+#define MV_PUINT64(t,s)\
+  do {\
+    t = s;\
+    if(t) {\
+      DM_LOG(DM_N(2), ""#t " == %"PRIu64"\n",*t);\
+    } else {\
+      DM_LOG(DM_N(2), ""#t " == NULL\n");\
+    }\
+  } while(0)
+
+#define MV_CSTR(t,s)\
+  if(s) {\
+    NOT_NULL(t = soap_new_std__string(soap, -1));\
+    t->assign(s);\
+    DM_LOG(DM_N(2), ""#t " == `%s'\n",t->c_str());\
+  } else {\
+    DM_LOG(DM_N(2), ""#t " == NULL\n");\
+    t = NULL;\
+  }
+
+#define MV_STR(t,s)\
+  do {\
+    t.assign(CSTR(s));\
+    DM_LOG(DM_N(2), ""#t " == `%s'\n", t.c_str());\
+  } while(0)
+
+#define MV_PSTR(t,s)\
+  do {\
+    t = s;\
+    DM_LOG(DM_N(2), ""#t " == `%s'\n", CSTR(s));\
+  } while(0)
+
+/* SRM types */
+#define MV_SOAP(type,t,s)\
+  do {\
+    t = (srm__T##type)s;\
+    DM_LOG(DM_N(2), ""#type " == %s\n", (t)? getT##type(t).c_str() : NULL);\
+  } while(0)
+
+#define MV_PSOAP(type,t,s)\
+  do {\
+    t = (srm__T##type *)s;\
+    DM_LOG(DM_N(2), ""#type " == %s\n", (t)? getT##type(*(t)).c_str() : NULL);\
+  } while(0)
 
 #endif /* _SRM_MACROS_H */

@@ -47,25 +47,16 @@
   do { if(space || print_space) ss << ' ' ; print_space = TRUE;} while(0)
 
 #define SS_P_VEC_PAR(param)\
-  if(v[i]) {SS_VEC_SPACE; ss << ""#param << i << "=" << v[i]->param;}
+  if(v[u]) {SS_VEC_SPACE; ss << ""#param << u << "=" << v[u]->param;}
+
+#define SS_P_VEC_DPAR(param)\
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << *(v[u]->param);}
 
 #define SS_P_VEC_VAL(param)\
-  if(v[i]) {SS_VEC_SPACE; ss << ""#param << i << "=" << v[i]->value;}
+  if(v[u]) {SS_VEC_SPACE; ss << ""#param << u << "=" << v[u]->value;}
 
 #define SS_P_VEC_PAR_VAL(param)\
-  if(v[i] && v[i]->param) { SS_VEC_SPACE; ss << ""#param << i << "=" << v[i]->param->value; }
-
-#define _TYPEDEF_PINT(u,s)\
-typedef struct p##u##int##s##_t \
-{\
-  u##int##s##_t *p;\
-  u##int##s##_t v;\
-} p##u##int##s##_t;
-_TYPEDEF_PINT(,32);
-_TYPEDEF_PINT(,64);
-_TYPEDEF_PINT(u,32);
-_TYPEDEF_PINT(u,64);
-#undef _TYPEDEF_PINT
+  if(v[u] && v[u]->param) { SS_VEC_SPACE; ss << ""#param << u << "=" << v[u]->param->value; }
 
 typedef enum NODE_t {
   N_GENERAL = 0,		/* node of a general type */

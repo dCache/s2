@@ -120,19 +120,19 @@ srmUpdateSpace::exec(Process *proc)
   }
 
   /* sizeOfTotalSpace */
-  EAT_MATCH(resp->srmUpdateSpaceResponse,
-            sizeOfTotalSpace,
-            i2str(resp->srmUpdateSpaceResponse->sizeOfTotalSpace->value).c_str());
+  EAT_MATCH_3(resp->srmUpdateSpaceResponse,
+              sizeOfTotalSpace,
+              i2str(resp->srmUpdateSpaceResponse->sizeOfTotalSpace->value).c_str());
 
   /* sizeOfGuaranteedSpace */
-  EAT_MATCH(resp->srmUpdateSpaceResponse,
-            sizeOfGuaranteedSpace,
-            i2str(resp->srmUpdateSpaceResponse->sizeOfGuaranteedSpace->value).c_str());
+  EAT_MATCH_3(resp->srmUpdateSpaceResponse,
+              sizeOfGuaranteedSpace,
+              i2str(resp->srmUpdateSpaceResponse->sizeOfGuaranteedSpace->value).c_str());
 
   /* lifetimeGranted */
-  EAT_MATCH(resp->srmUpdateSpaceResponse,
-            lifetimeGranted,
-            i2str(resp->srmUpdateSpaceResponse->lifetimeGranted->value).c_str());
+  EAT_MATCH_3(resp->srmUpdateSpaceResponse,
+              lifetimeGranted,
+              i2str(resp->srmUpdateSpaceResponse->lifetimeGranted->value).c_str());
 
   RETURN(matchReturnStatus(resp->srmUpdateSpaceResponse->returnStatus, proc));
 }

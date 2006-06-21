@@ -127,29 +127,29 @@ srmReserveSpace::exec(Process *proc)
   }
 
   /* typeOfReservedSpace */
-  EAT_MATCH(resp->srmReserveSpaceResponse,
-            typeOfReservedSpace,
-            getTSpaceType(*(resp->srmReserveSpaceResponse->typeOfReservedSpace)).c_str());
+  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+              typeOfReservedSpace,
+              getTSpaceType(*(resp->srmReserveSpaceResponse->typeOfReservedSpace)).c_str());
 
   /* sizeOfTotalReservedSpace */
-  EAT_MATCH(resp->srmReserveSpaceResponse,
-            sizeOfTotalReservedSpace,
-            i2str(resp->srmReserveSpaceResponse->sizeOfTotalReservedSpace->value).c_str());
+  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+              sizeOfTotalReservedSpace,
+              i2str(resp->srmReserveSpaceResponse->sizeOfTotalReservedSpace->value).c_str());
 
   /* sizeOfGuaranteedReservedSpace */
-  EAT_MATCH(resp->srmReserveSpaceResponse,
-            sizeOfGuaranteedReservedSpace,
-            i2str(resp->srmReserveSpaceResponse->sizeOfGuaranteedReservedSpace->value).c_str());
+  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+              sizeOfGuaranteedReservedSpace,
+              i2str(resp->srmReserveSpaceResponse->sizeOfGuaranteedReservedSpace->value).c_str());
 
   /* lifetimeOfReservedSpace */
-  EAT_MATCH(resp->srmReserveSpaceResponse,
-            lifetimeOfReservedSpace,
-            i2str(resp->srmReserveSpaceResponse->lifetimeOfReservedSpace->value).c_str());
+  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+              lifetimeOfReservedSpace,
+              i2str(resp->srmReserveSpaceResponse->lifetimeOfReservedSpace->value).c_str());
 
   /* referenceHandleOfReservedSpace */
-  EAT_MATCH(resp->srmReserveSpaceResponse,
-            referenceHandleOfReservedSpace,
-            resp->srmReserveSpaceResponse->referenceHandleOfReservedSpace->value.c_str());
+  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+              referenceHandleOfReservedSpace,
+              resp->srmReserveSpaceResponse->referenceHandleOfReservedSpace->value.c_str());
 
   RETURN(matchReturnStatus(resp->srmReserveSpaceResponse->returnStatus, proc));
 }

@@ -3051,8 +3051,8 @@ Parser::srmPrepareToPutR(void)
     /* request */
     POPL_EQ_PARAM("authorizationID",r->authorizationID) else
 
-    POPL_ARRAY("targetSURL",r->putFileRequests.targetSURL) else
-    POPL_ARRAY("expectedFileSize",r->putFileRequests.targetSURL) else
+    POPL_ARRAY("putFileRequests.targetSURL",r->putFileRequests.targetSURL) else
+    POPL_ARRAY("putFileRequests.expectedFileSize",r->putFileRequests.targetSURL) else
 
     POPL_EQ_PARAM("userRequestDescription",r->userRequestDescription) else
     POPL_EQ_PARAM("overwriteOption",r->overwriteOption) else

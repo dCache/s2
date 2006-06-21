@@ -163,7 +163,7 @@ srmStatusOfGetRequest::arrayOfStatusOfGetRequestResponseToString(Process *proc, 
   if(resp->srmStatusOfGetRequestResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TGetRequestFileStatus *> v = resp->srmStatusOfGetRequestResponse->arrayOfFileStatuses->getStatusArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR_VAL(estimatedProcessingTime);
       SS_P_VEC_PAR_VAL(estimatedWaitTimeOnQueue);
       SS_P_VEC_PAR_VAL(fileSize);

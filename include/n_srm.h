@@ -6,6 +6,9 @@
 #endif
 
 /* macros common to all SRM methods */
+#define CSTR(s)		(s)? s->c_str(): (const char *)NULL		/* no SEGVs if s is NULL */
+#define PI2CSTR(s)	(s)? i2str(*(s)).c_str(): (const char *)NULL	/* no SEGVs if s is NULL */
+
 #define SS_SRM(method)\
   if(srm_endpoint == NULL) {\
     DM_ERR_ASSERT(_("srm_endpoint == NULL\n"));\
@@ -23,33 +26,41 @@
     ss << " returnStatus.statusCode=" << getTStatusCode(r->returnStatus->statusCode)
 
 #define SS_P_VEC_PAR_PERMISSIONTYPE(param)\
-  if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTPermissionType(*(v[i]->param));}
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTPermissionType(*(v[u]->param));}
 
 #define SS_P_VEC_PAR_PERMISSIONMODE(param)\
-  if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTPermissionMode(v[i]->param->mode);}
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTPermissionMode(v[u]->param->mode);}
 
 #define SS_P_VEC_PAR_PERMISSIONMODE_PTR(param)\
-  if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTPermissionMode(*(v[i]->param));}
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTPermissionMode(*(v[u]->param));}
 
 #define SS_P_VEC_PAR_REQUESTTYPE(param)\
-  if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTRequestType(*(v[i]->param));}
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTRequestType(*(v[u]->param));}
 
 #define SS_P_VEC_PAR_SPACETYPE(param)\
-  if(v[i] && v[i]->param) {SS_VEC_SPACE; ss << ""#param << i << "=" << getTSpaceType(*(v[i]->param));}
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTSpaceType(*(v[u]->param));}
 
 #define SS_P_VEC_SRM_RETSTAT(param)\
-  if(v[i] && v[i]->param && v[i]->param->explanation)\
-    {SS_VEC_SPACE; ss << "returnStatus.explanation" << i << "=" << dq_param(v[i]->param->explanation, quote);}\
-  if(v[i] && v[i]->param)\
-    {SS_VEC_SPACE; ss << "returnStatus.statusCode" << i << "=" << getTStatusCode(v[i]->param->statusCode);}
+  if(v[u] && v[u]->param && v[u]->param->explanation)\
+    {SS_VEC_SPACE; ss << "returnStatus.explanation" << u << "=" << dq_param(v[u]->param->explanation, quote);}\
+  if(v[u] && v[u]->param)\
+    {SS_VEC_SPACE; ss << "returnStatus.statusCode" << u << "=" << getTStatusCode(v[u]->param->statusCode);}
 
-#define EAT_MATCH(p,q,recv)\
-  if(p->q) {\
-    match = proc->e_match(q, recv);\
+#define EAT_MATCH(p,r)\
+  do {\
+    match = proc->e_match(p,r);\
     if(!match) {\
       DM_DBG(DM_N(1), "no match\n");\
       return ERR_ERR;\
     }\
+  } while(0)
+
+#define EAT_MATCH_3(p,q,recv) if(p->q) EAT_MATCH(q,recv)
+
+/* SRM 2.2 macros */
+#define SS_P_VEC_SRM_EXTRA_INFO(v) \
+  for(uint __u = 0; __u < v.size(); __u++) {\
+    if(v[__u]->value) ss << v[__u]->key << u << ":" << __u << "=" << dq_param(Process::eval_str(v[__u]->value,proc), quote);\
   }
 
 typedef struct tSoapCallRet
@@ -64,7 +75,8 @@ typedef struct tSoapCallRet
     DM_ERR(ERR_SYSTEM, "malloc failed\n");\
     RETURN(ERR_SYSTEM);\
   }\
-  srm__srm##r##Response_ *resp = (srm__srm##r##Response_ *)((tSoapCallRet *)proc->ret)->resp = new srm__srm##r##Response_();\
+  struct srm__srm##r##Response_ *resp = new srm__srm##r##Response_();\
+  ((tSoapCallRet *)proc->ret)->resp = resp;\
   struct soap *soap = ((tSoapCallRet *)proc->ret)->soap = soap_new();\
   if(resp == NULL) {\
     DM_ERR(ERR_SYSTEM, "new failed\n");\
@@ -89,7 +101,7 @@ typedef struct tSoapCallRet
       soap_end(soap);\
       FREE(soap);\
     };\
-    FREE((tSoapCallRet *)proc->ret);\
+    FREE(proc->ret);\
   } while(0)
 
 #if 0

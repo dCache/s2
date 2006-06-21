@@ -9,23 +9,24 @@
 #define ERR_ASSERT      4                       /* assertion failed error */
 #define ERR_SYSTEM      5                       /* system error (malloc failed, etc.) */
 
-/* limits */
-#define INT8_MAX        127
-#define INT8_MIN        (-INT8_MAX - 1)
-#define UINT8_MAX       255U
-#define UINT8_MIN       0U
-#define INT16_MAX       32767
-#define INT16_MIN       (-INT16_MAX - 1)
-#define UINT16_MAX      65535U
-#define UINT16_MIN      0U
-#define INT32_MAX       2147483647
-#define INT32_MIN       (-INT32_MAX - 1)
-#define UINT32_MAX      4294967295U
-#define UINT32_MIN      0U
-#define INT64_MAX       9223372036854775807LL
-#define INT64_MIN       (-INT64_MAX - 1LL)
-#define UINT64_MAX      18446744073709551615ULL
-#define UINT64_MIN      0ULL
+/* limits ((U)INT_MAX/MIN defined in limits.h) */
+#define UINT_MIN	0U
+#define INT8_MAX	127
+#define INT8_MIN	(-INT8_MAX - 1)
+#define UINT8_MAX	255U
+#define UINT8_MIN	0U
+#define INT16_MAX	32767
+#define INT16_MIN	(-INT16_MAX - 1)
+#define UINT16_MAX	65535U
+#define UINT16_MIN	0U
+#define INT32_MAX	2147483647
+#define INT32_MIN	(-INT32_MAX - 1)
+#define UINT32_MAX	4294967295U
+#define UINT32_MIN	0U
+#define INT64_MAX	9223372036854775807LL
+#define INT64_MIN	(-INT64_MAX - 1LL)
+#define UINT64_MAX	18446744073709551615ULL
+#define UINT64_MIN	0ULL
 
 /* S2 specific constants */
 #define S2_UNDEF_STR    "(undef)"	/* undefined */

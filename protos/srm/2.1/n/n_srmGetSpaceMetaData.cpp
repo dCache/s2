@@ -167,7 +167,7 @@ srmGetSpaceMetaData::arrayOfSpaceDetailsToString(Process *proc, BOOL space, BOOL
   if(resp->srmGetSpaceMetaDataResponse->arrayOfSpaceDetails) {
     BOOL print_space = FALSE;
     std::vector<srm__TMetaDataSpace*> v = resp->srmGetSpaceMetaDataResponse->arrayOfSpaceDetails->spaceDetailArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR_SPACETYPE(type);
       SS_P_VEC_PAR_VAL(spaceToken);
       SS_P_VEC_PAR(isValid);

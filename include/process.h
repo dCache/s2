@@ -16,6 +16,20 @@
 /* typedefs */
 typedef std::map<std::string, std::string> Vars_t;		/* name/value pair */
 
+#define _TYPEDEF_PINT(u,s)\
+typedef struct p##u##int##s##_t \
+{\
+  u##int##s##_t *p;\
+  u##int##s##_t v;\
+} p##u##int##s##_t;
+_TYPEDEF_PINT(,);
+_TYPEDEF_PINT(,32);
+_TYPEDEF_PINT(,64);
+_TYPEDEF_PINT(u,32);
+_TYPEDEF_PINT(u,64);
+#undef _TYPEDEF_PINT
+
+
 typedef enum EVAL_t {
   EVAL_NONE = 0,		/* do not evaluate anything */
   EVAL_ALL = 1,			/* evaluate all variables and tags */
@@ -94,12 +108,14 @@ public:
 #define EVAL2CSTR(str) (str)? Process::eval_str(str, proc).c_str(): (const char *)NULL
 
 #define _EVAL2INT(u,s) u##int##s##_t eval2##u##int##s(const std::string *str)
+  _EVAL2INT(,);
   _EVAL2INT(,32);
   _EVAL2INT(,64);
   _EVAL2INT(u,32);
   _EVAL2INT(u,64);
 #undef _EVAL2INT
 #define _EVAL2PINT(u,s) p##u##int##s##_t eval2p##u##int##s(const std::string *str)
+  _EVAL2PINT(,);
   _EVAL2PINT(,32);
   _EVAL2PINT(,64);
   _EVAL2PINT(u,32);
@@ -113,6 +129,7 @@ public:
 #define _EVAL_VEC_INT(u,s)\
   std::vector <u##int##s##_t> \
   eval_vec_##u##int##s(const std::vector <std::string *> &v)
+  _EVAL_VEC_INT(,);
   _EVAL_VEC_INT(,32);
   _EVAL_VEC_INT(,64);
   _EVAL_VEC_INT(u,32);
@@ -122,6 +139,7 @@ public:
 #define _EVAL_VEC_PINT(u,s)\
   std::vector <u##int##s##_t *> \
   eval_vec_p##u##int##s(const std::vector <std::string *> &v)
+  _EVAL_VEC_PINT(,);
   _EVAL_VEC_PINT(,32);
   _EVAL_VEC_PINT(,64);
   _EVAL_VEC_PINT(u,32);

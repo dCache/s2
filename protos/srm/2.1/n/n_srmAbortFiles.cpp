@@ -77,7 +77,23 @@ srmAbortFiles::finish(Process *proc)
 {
   DM_DBG_I;
 
-  FREE_SRM_RET(AbortFiles);
+//  FREE_SRM_RET(AbortFiles);
+  do {
+    GET_SRM_SOAP;
+    GET_SRM_RESP(AbortFiles);
+    if(soap) {
+      DM_DBG(DM_N(1), "freeing soap=%p\n", soap);
+      if(resp) {
+        soap_delete_srm__srmAbortFilesResponse(soap, resp->srmAbortFilesResponse);
+	soap_delete(soap, resp);
+      };
+      soap_destroy(soap);
+      soap_end(soap);
+      FREE(soap);
+    };
+    FREE(proc->ret);
+  } while(0);
+
 }
 
 int
@@ -164,7 +180,7 @@ srmAbortFiles::arrayOfAbortFilesResponseToString(Process *proc, BOOL space, BOOL
   if(resp->srmAbortFilesResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TSURLReturnStatus *> v = resp->srmAbortFilesResponse->arrayOfFileStatuses->surlReturnStatusArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_PAR_VAL(surl);
     }

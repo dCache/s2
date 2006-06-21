@@ -27,32 +27,32 @@
 extern const long * \
 getT##table(const char *string)\
 {\
-  uint i;\
+  uint u;\
 \
-  for(i = 0; string && soap_codes_srm__T##table[i].string && strcmp(string, soap_codes_srm__T##table[i].string) != 0; i++)\
+  for(u = 0; string && soap_codes_srm__T##table[u].string && strcmp(string, soap_codes_srm__T##table[u].string) != 0; u++)\
     ;\
 \
-  if(!string || soap_codes_srm__T##table[i].string == NULL)\
+  if(!string || soap_codes_srm__T##table[u].string == NULL)\
     DM_WARN(ERR_WARN, _("returning a default value `%d' for `%s'\n"), soap_codes_srm__T##table[0].code, string);\
 \
-  return &soap_codes_srm__T##table[i].code;\
+  return &soap_codes_srm__T##table[u].code;\
 }
 
 #define GET_SOAP_S(table)\
 extern std::string \
 getT##table(long code)\
 {\
-  uint i;\
+  uint u;\
   std::stringstream ss;\
 \
-  for(i = 0; soap_codes_srm__T##table[i].string && code != soap_codes_srm__T##table[i].code; i++)\
+  for(u = 0; soap_codes_srm__T##table[u].string && code != soap_codes_srm__T##table[u].code; u++)\
     ;\
 \
-  if(soap_codes_srm__T##table[i].string == NULL) {\
+  if(soap_codes_srm__T##table[u].string == NULL) {\
     ss << S2_UNDEF_STR << code;\
     DM_WARN(ERR_WARN, _("returning a default value `%s' for `%ld'\n"), ss.str().c_str(), code);\
   } else {\
-    ss << soap_codes_srm__T##table[i].string;\
+    ss << soap_codes_srm__T##table[u].string;\
   }\
 \
   return ss.str();\

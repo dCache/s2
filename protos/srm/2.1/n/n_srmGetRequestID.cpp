@@ -155,7 +155,7 @@ srmGetRequestID::arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL q
   if(resp->srmGetRequestIDResponse->arrayOfRequestTokens) {
     BOOL print_space = FALSE;
     std::vector<srm__TRequestToken*> v = resp->srmGetRequestIDResponse->arrayOfRequestTokens->requestTokenArray;
-    for(uint i = 0; i < v.size(); i++) {
+    for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_VAL(requestToken);
     }
   }

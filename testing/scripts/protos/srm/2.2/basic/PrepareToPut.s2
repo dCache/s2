@@ -1,0 +1,10 @@
+; srmPrepareToPut
+
+ASSIGN srmTest srmPrepareToPut
+
+;&& srmPrepareToPut $ENV{SRM_ENDPOINT} authorizationID=$ENV{USER} putFileRequests.targetSURL[$ENV{NEW_SRM_FILE0}] putFileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] userRequestDescription=<userRequestDescription> overwriteOption=Always storageSystemInfo.key[<k0>] storageSystemInfo.value[<v0>] desiredTotalRequestTime=60 desiredPinLifeTime=60 desiredFileLifeTime=60 desiredFileStorageType=$ENV{STORAGE_TYPE} targetSpaceToken=<targetSpaceToken> retentionPolicy=<retentionPolicy> accessLatency=<accessLatency> accessPattern=<accessPattern> connectionType=<connectionType> clientNetworks[<n0> <n1>] transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPrepareToPut $ENV{SRM_ENDPOINT} authorizationID=$ENV{USER} putFileRequests.targetSURL[$ENV{NEW_SRM_FILE0}] putFileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

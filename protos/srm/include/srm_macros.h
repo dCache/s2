@@ -38,7 +38,7 @@
 
 #define NOT_NULL_VEC(v,r) (u < v.r.size() && v.r[u])
 
-/* SRM 2.1 */
+#ifdef HAVE_SRM21
 #define PINT_VAL_OPT(opt,r)\
   opt = r;\
   if(r) {\
@@ -133,8 +133,9 @@
 \
     req.v1->surlInfoArray.push_back(myInfo);\
   }
+#endif	/* HAVE_SRM21 */
 
-/* SRM 2.2 */
+#ifdef HAVE_SRM22
 #define MV_PINT(t,s)\
   do {\
     t = s;\
@@ -167,7 +168,7 @@
     }\
   } while(0)
 
-#define MV_CSTR(t,s)\
+#define MV_CSTR2PSTR(t,s)\
   if(s) {\
     NOT_NULL(t = soap_new_std__string(soap, -1));\
     t->assign(s);\
@@ -177,13 +178,13 @@
     t = NULL;\
   }
 
-#define MV_STR(t,s)\
+#define MV_CSTR2STR(t,s)\
   do {\
-    t.assign(CSTR(s));\
+    t.assign(s);\
     DM_LOG(DM_N(2), ""#t " == `%s'\n", t.c_str());\
   } while(0)
 
-#define MV_PSTR(t,s)\
+#define MV_PSTR2PSTR(t,s)\
   do {\
     t = s;\
     DM_LOG(DM_N(2), ""#t " == `%s'\n", CSTR(s));\
@@ -201,5 +202,19 @@
     t = (srm__T##type *)s;\
     DM_LOG(DM_N(2), ""#type " == %s\n", (t)? getT##type(*(t)).c_str() : NULL);\
   } while(0)
+
+#define NEW_ARRAY_OF_STR_VAL(v1,v2,opt,t)\
+  NOT_NULL(v1 = soap_new_srm__ArrayOf##t(soap, -1));\
+  for(uint u = 0; u < v2.size(); u++) {\
+    if(v2[u]) {\
+      DM_LOG(DM_N(2), ""#opt "[%u] == `%s'\n", u, v2[u]->c_str());\
+      v1->opt.push_back(v2[u]->c_str());\
+    } else {\
+      DM_LOG(DM_N(2), ""#opt "[%u] == NULL\n", u);\
+      v1->opt.push_back("");\
+    }\
+  }
+
+#endif	/* HAVE_SRM22 */
 
 #endif /* _SRM_MACROS_H */

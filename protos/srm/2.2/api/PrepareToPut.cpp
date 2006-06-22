@@ -37,7 +37,7 @@ extern int
 PrepareToPut(struct soap *soap,
              const char *srm_endpoint,
              const char *authorizationID,
-             const tArrayOfPutFileRequests putFileRequests,
+             const tArrayOfPutFileRequests fileRequests,
              const char *userRequestDescription,
              const long *overwriteOption,
              tStorageSystemInfo storageSystemInfo,
@@ -67,18 +67,18 @@ PrepareToPut(struct soap *soap,
 #warning "Compiling without CGSI plugin support, i.e. no security"
 #endif
 
-  MV_CSTR(req.authorizationID,authorizationID);
+  MV_CSTR2PSTR(req.authorizationID,authorizationID);
 
   /* Create the file request */
   NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTPutFileRequest(soap, -1));
-  for (uint u = 0; u < putFileRequests.targetSURL.size(); u++) {
-    DM_LOG(DM_N(2), "putFileRequests.targetSURL[%u]\n", u);
+  for (uint u = 0; u < fileRequests.targetSURL.size(); u++) {
+    DM_LOG(DM_N(2), "fileRequests.targetSURL[%u]\n", u);
     srm__TPutFileRequest *fileRequest;
     NOT_NULL(fileRequest = soap_new_srm__TPutFileRequest(soap, -1));
 
-    MV_PSTR(fileRequest->targetSURL,putFileRequests.targetSURL[u]);
-    if(NOT_NULL_VEC(putFileRequests,expectedFileSize)) {
-      fileRequest->expectedFileSize = putFileRequests.expectedFileSize[u];
+    MV_PSTR2PSTR(fileRequest->targetSURL,fileRequests.targetSURL[u]);
+    if(NOT_NULL_VEC(fileRequests,expectedFileSize)) {
+      fileRequest->expectedFileSize = fileRequests.expectedFileSize[u];
       DM_LOG(DM_N(2), "expectedFileSize[%u] = %"PRIi64"\n", u, *(fileRequest->expectedFileSize));
     } else {
       fileRequest->expectedFileSize = NULL;
@@ -88,7 +88,7 @@ PrepareToPut(struct soap *soap,
     req.arrayOfFileRequests->requestArray.push_back(fileRequest);
   }
 
-  MV_CSTR(req.userRequestDescription,userRequestDescription);
+  MV_CSTR2PSTR(req.userRequestDescription,userRequestDescription);
   MV_PSOAP(OverwriteMode,req.overwriteOption,overwriteOption);
 
   /* Storage system info */
@@ -98,8 +98,8 @@ PrepareToPut(struct soap *soap,
     srm__TExtraInfo *extraInfo;
 
     NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));
-    MV_STR(extraInfo->key,storageSystemInfo.key[u]);
-    MV_PSTR(extraInfo->value,storageSystemInfo.value[u]);
+    MV_CSTR2STR(extraInfo->key,CSTR(storageSystemInfo.key[u]));
+    MV_PSTR2PSTR(extraInfo->value,storageSystemInfo.value[u]);
     req.storageSystemInfo->extraInfoArray.push_back(extraInfo);
   }
 
@@ -107,7 +107,7 @@ PrepareToPut(struct soap *soap,
   MV_PINT(req.desiredPinLifeTime,desiredPinLifeTime);
   MV_PINT(req.desiredFileLifeTime,desiredFileLifeTime);
   MV_PSOAP(FileStorageType,req.desiredFileStorageType,desiredFileStorageType);
-  MV_CSTR(req.targetSpaceToken,targetSpaceToken);
+  MV_CSTR2PSTR(req.targetSpaceToken,targetSpaceToken);
   
   /* Retention */
   NOT_NULL(req.targetFileRetentionPolicyInfo = soap_new_srm__TRetentionPolicyInfo(soap, -1));

@@ -8,6 +8,14 @@
 #include "soapH.h"              /* srm__*Response_, srm__TStatusCode, srm__TSpaceType__Volatile, ... */
 
 /* type definitions */
+typedef struct tArrayOfGetFileRequests
+{ 
+  std::vector <std::string *> sourceSURL;
+  std::vector <int> isSourceADirectory;
+  std::vector <int *> allLevelRecursive;
+  std::vector <int *> numOfLevels;
+};
+
 typedef struct tArrayOfPutFileRequests
 { 
   std::vector <std::string *> targetSURL;
@@ -41,5 +49,21 @@ PrepareToPut(struct soap *soap,
              std::vector <std::string *> clientNetworks,
              std::vector <std::string *> transferProtocols,
              struct srm__srmPrepareToPutResponse_ *resp);
+
+extern int
+PutDone(struct soap *soap,
+        const char *srm_endpoint,
+        const char *authorizationID,
+        const char *requestToken,
+        std::vector <std::string *> arrayOfSURLs,
+        struct srm__srmPutDoneResponse_ *resp);
+
+extern int
+StatusOfPutRequest(struct soap *soap,
+                   const char *srm_endpoint,
+                   const char *authorizationID,
+                   const char *requestToken,
+                   std::vector <std::string *> arrayOfTargetSURLs,
+                   struct srm__srmStatusOfPutRequestResponse_ *resp);
 
 #endif /* _SRM2API_H */

@@ -1045,6 +1045,14 @@ public:
 };
 
 /* type definitions */
+typedef struct tArrayOfGetFileRequests_
+{ 
+  std::vector <std::string *> sourceSURL;
+  std::vector <std::string *> isSourceADirectory;
+  std::vector <std::string *> allLevelRecursive;
+  std::vector <std::string *> numOfLevels;
+};
+
 typedef struct tArrayOfPutFileRequests_
 { 
   std::vector <std::string *> targetSURL;
@@ -1055,6 +1063,48 @@ typedef struct tStorageSystemInfo_
 { 
   std::vector <std::string *> key;
   std::vector <std::string *> value;
+};
+
+/*
+ * srmPrepareToGet request
+ */
+struct srmPrepareToGet : public SRM2
+{
+  /* request (parser/API) */
+  tArrayOfGetFileRequests_ fileRequests;
+
+  std::string *userRequestDescription;
+
+  tStorageSystemInfo_ storageSystemInfo;
+  std::string *desiredFileStorageType;
+  std::string *desiredTotalRequestTime;
+  std::string *desiredPinLifeTime;
+  std::string *targetSpaceToken;
+  std::string *retentionPolicy;
+  std::string *accessLatency;
+  std::string *accessPattern;
+  std::string *connectionType;
+  
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
+  
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+
+public:
+  srmPrepareToGet();
+  srmPrepareToGet(Node &node);
+  ~srmPrepareToGet();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
 };
 
 /*
@@ -1098,6 +1148,59 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmPutDone request
+ */
+struct srmPutDone : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>urlArray;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+
+public:
+  srmPutDone();
+  srmPutDone(Node &node);
+  ~srmPutDone();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfPutDoneResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmStatusOfPutRequest request
+ */
+struct srmStatusOfPutRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>urlArray;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+
+public:
+  srmStatusOfPutRequest();
+  srmStatusOfPutRequest(Node &node);
+  ~srmStatusOfPutRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfStatusOfPutRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };

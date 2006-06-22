@@ -275,6 +275,8 @@ srmPrepareToPut::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote
   if(resp->srmPrepareToPutResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TPutRequestFileStatus *> v = resp->srmPrepareToPutResponse->arrayOfFileStatuses->statusArray;
+
+    /* exactly the same code as in srmStatusOfPutRequest */
     for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR(SURL);
       SS_P_VEC_SRM_RETSTAT(status);

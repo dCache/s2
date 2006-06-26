@@ -1,0 +1,3 @@
+; srmStatusOfCopyRequest
+
+srmStatusOfCopyRequest $ENV{SRM_ENDPOINT} authorizationID=$ENV{USER} requestToken=<requestToken> sourceUrlArray[<s0> <s1>] targetUrlArray[<t0> <t1>] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

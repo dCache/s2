@@ -16,6 +16,7 @@ NS			= $(call CLIMB,$1,$2,cat)
 
 
 # HTML generation functions
+#HTML_IF_FILE_HREF	 = $(if $(findstring yes,$(shell test -f $1 && echo yes)),<A HREF=$1>$2</A>,n/a)
 HTML_IF_FILE_HREF	 = $(if $(findstring yes,$(shell test -f $1 && echo yes)),<A HREF=$1>$2</A>,n/a)
 
 HTML_HEAD		= \
@@ -51,6 +52,7 @@ HTML_TABLE_TAIL		= \
 
 s_file_log		= \
 	echo -n "  <TD VALIGN=top ALIGN=center>" >> $1;\
+	echo -n "|$2|$3|";\
 	if test -s "$2" ; then\
 	  echo -en "$3" >> $1;\
 	else\
@@ -60,15 +62,15 @@ s_file_log		= \
 
 HTML_TABLE_ROW		= \
 echo -e "<TR>" >> $1;\
-$(call s_file_log,$1,$2.s2,<A HREF=$2.s2>$2</A>,n/a);\
-$(call s_file_log,$1,$2.e2,<A HREF=$2.e2>$3</A>,n/a);\
-$(call s_file_log,$1,$2.e0,<A HREF=$2.e0>before exec</A>,n/a);\
-$(call s_file_log,$1,$2.e1,<A HREF=$2.e1>after exec</A>,n/a);\
-$(call s_file_log,$1,$2.out,<A HREF=$2.out>stdout</A>,n/a);\
-$(call s_file_log,$1,$2.err,<A HREF=$2.err>stderr</A>,n/a);\
-$(call s_file_log,$1,$2.l,<A HREF=$2.l>log</A>,n/a);\
-$(call s_file_log,$1,$2.d,<A HREF=$2.l>debug</A>,n/a);\
-$(call s_file_log,$1,$2.log,<A HREF=$2.l>custom log</A>,n/a);\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.s2" ; then echo -en "<A HREF=$$s2_bare.s2>$$s2_bare</A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.e2" ; then echo -en "<A HREF=$$s2_bare.e2>$$err</A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.e0" ; then echo -en "<A HREF=$$s2_bare.e0>before exec</A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.e1" ; then echo -en "<A HREF=$$s2_bare.e1>after exec</A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.out" ; then echo -en "<A HREF=$$s2_bare.out>stdout<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.err" ; then echo -en "<A HREF=$$s2_bare.err>stderr<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.l" ; then echo -en "<A HREF=$$s2_bare.l>log<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.d" ; then echo -en "<A HREF=$$s2_bare.d>debug<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
+echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.log" ; then echo -en "<A HREF=$$s2_bare.log>custom log<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
 echo -e "</TR>" >> $1
 
 

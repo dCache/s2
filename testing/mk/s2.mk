@@ -28,7 +28,7 @@ test: ln
 	  ./$$s2_sh;\
           err=$$?;\
 	  echo "$$err ($$s2_sh)" >> $(S2_EXIT_LOG);\
-	  $(call HTML_TABLE_ROW,$(S2_HTML_LOG),$$s2_bare,$$err);\
+	  $(call HTML_TABLE_ROW,$(S2_HTML_LOG));\
 	  if test -f $(CHECK_DIR)/$(S2_EXIT_LOG) ; then \
 	    grep "^[^ ]* ($$s2_sh)$$" "$(CHECK_DIR)/$(S2_EXIT_LOG)" >/dev/null 2>&1 ;\
 	    if test $$? -ne 0 ; then \

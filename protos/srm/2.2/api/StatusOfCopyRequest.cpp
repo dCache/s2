@@ -1,7 +1,7 @@
 /**
- * \file StatusOfPutRequest.cpp
+ * \file StatusOfCopyRequest.cpp
  *
- * Implements the SRM2 StatusOfPutRequest method.
+ * Implements the SRM2 StatusOfCopyRequest method.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -23,27 +23,27 @@
 #include "srm_soap27.h"
 
 /**
- * srmStatusOfPutRequest method.
+ * srmStatusOfCopyRequest method.
  *
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- * \param requestToken
  *
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-StatusOfPutRequest(struct soap *soap,
-                   const char *srm_endpoint,
-                   const char *authorizationID,
-                   const char *requestToken,
-                   std::vector <std::string *> targetSURLs,
-                   struct srm__srmStatusOfPutRequestResponse_ *resp)
+StatusOfCopyRequest(struct soap *soap,
+                    const char *srm_endpoint,
+                    const char *authorizationID,
+                    const char *requestToken,
+                    std::vector <std::string *> sourceSURLs,
+                    std::vector <std::string *> targetSURLs,
+                    struct srm__srmStatusOfCopyRequestResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmStatusOfPutRequestRequest req;
+  struct srm__srmStatusOfCopyRequestRequest req;
 
   SOAP_INIT(soap);
 
@@ -60,10 +60,11 @@ StatusOfPutRequest(struct soap *soap,
   /* Create the file request */
   MV_CSTR2STR(req.requestToken,requestToken);
   
+  MV_ARRAY_OF_STR_VAL(req.arrayOfSourceSURLs,sourceSURLs,urlArray,AnyURI);
   MV_ARRAY_OF_STR_VAL(req.arrayOfTargetSURLs,targetSURLs,urlArray,AnyURI);
 
   /* To send the request ... */
-  SOAP_CALL_SRM(StatusOfPutRequest);
+  SOAP_CALL_SRM(StatusOfCopyRequest);
 
   RETURN(EXIT_SUCCESS);
 }

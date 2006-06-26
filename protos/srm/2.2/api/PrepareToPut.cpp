@@ -92,16 +92,7 @@ PrepareToPut(struct soap *soap,
   MV_PSOAP(OverwriteMode,req.overwriteOption,overwriteOption);
 
   /* Storage system info */
-  NOT_NULL(req.storageSystemInfo = soap_new_srm__ArrayOfTExtraInfo(soap, -1));
-  for (uint u = 0; u < storageSystemInfo.key.size(); u++) {
-    DM_LOG(DM_N(2), "storageSystemInfo.key[%u]\n", u);
-    srm__TExtraInfo *extraInfo;
-
-    NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));
-    MV_CSTR2STR(extraInfo->key,CSTR(storageSystemInfo.key[u]));
-    MV_PSTR2PSTR(extraInfo->value,storageSystemInfo.value[u]);
-    req.storageSystemInfo->extraInfoArray.push_back(extraInfo);
-  }
+  MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);
 
   MV_PINT(req.desiredTotalRequestTime,desiredTotalRequestTime);
   MV_PINT(req.desiredPinLifeTime,desiredPinLifeTime);

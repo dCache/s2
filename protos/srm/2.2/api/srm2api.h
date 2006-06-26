@@ -8,6 +8,12 @@
 #include "soapH.h"              /* srm__*Response_, srm__TStatusCode, srm__TSpaceType__Volatile, ... */
 
 /* type definitions */
+typedef struct tStorageSystemInfo
+{ 
+  std::vector <std::string *> key;
+  std::vector <std::string *> value;
+};
+
 typedef struct tArrayOfGetFileRequests
 { 
   std::vector <std::string *> sourceSURL;
@@ -22,13 +28,67 @@ typedef struct tArrayOfPutFileRequests
   std::vector <uint64_t *> expectedFileSize;
 };
 
-typedef struct tStorageSystemInfo
-{ 
-  std::vector <std::string *> key;
-  std::vector <std::string *> value;
-};
-
 /* extern(al) function declarations */
+extern int
+Copy(struct soap *soap,
+     const char *srm_endpoint,
+     const char *authorizationID,
+     std::vector <std::string *> source,
+     std::vector <std::string *> target,
+     std::vector <int> isSourceADirectory,
+     std::vector <int *> allLevelRecursive,
+     std::vector <int *> numOfLevels,
+     const char *userRequestDescription,
+     const long *overwriteOption,
+     int *desiredTotalRequestTime,
+     int *desiredTargetSURLLifeTime,
+     const long *targetFileStorageType,
+     const char *targetSpaceToken,
+     const long retentionPolicy,
+     const long *accessLatency,
+     tStorageSystemInfo sourceStorageSystemInfo,
+     tStorageSystemInfo targetStorageSystemInfo,
+     struct srm__srmCopyResponse_ *resp);
+
+extern int
+Ls(struct soap *soap,
+   const char *srm_endpoint,
+   const char *authorizationID,
+   std::vector <std::string *> SURL,
+   tStorageSystemInfo storageSystemInfo,
+   const long *fileStorageType,
+   bool *fullDetailedList,
+   bool *allLevelRecursive,
+   int *numOfLevels,
+   int *offset,
+   int *count,
+   struct srm__srmLsResponse_ *resp);
+
+extern int
+Ping(struct soap *soap,
+     const char *srm_endpoint,
+     const char *authorizationID,
+     struct srm__srmPingResponse_ *resp);
+
+extern int
+PrepareToGet(struct soap *soap,
+             const char *srm_endpoint,
+             const char *authorizationID,
+             const tArrayOfGetFileRequests fileRequests,
+             const char *userRequestDescription,
+             const tStorageSystemInfo storageSystemInfo,
+             const long *desiredFileStorageType,
+             int *desiredTotalRequestTime,
+             int *desiredPinLifeTime,
+             const char *targetSpaceToken,
+             const long retentionPolicy,
+             const long *accessLatency,
+             const long *accessPattern,
+             const long *connectionType,
+             std::vector <std::string *> clientNetworks,
+             std::vector <std::string *> transferProtocols,
+             struct srm__srmPrepareToGetResponse_ *resp);
+
 extern int
 PrepareToPut(struct soap *soap,
              const char *srm_endpoint,
@@ -59,11 +119,37 @@ PutDone(struct soap *soap,
         struct srm__srmPutDoneResponse_ *resp);
 
 extern int
+StatusOfCopyRequest(struct soap *soap,
+                    const char *srm_endpoint,
+                    const char *authorizationID,
+                    const char *requestToken,
+                    std::vector <std::string *> sourceSURLs,
+                    std::vector <std::string *> targetSURLs,
+                    struct srm__srmStatusOfCopyRequestResponse_ *resp);
+
+extern int
+StatusOfGetRequest(struct soap *soap,
+                   const char *srm_endpoint,
+                   const char *authorizationID,
+                   const char *requestToken,
+                   std::vector <std::string *> sourceSURLs,
+                   struct srm__srmStatusOfGetRequestResponse_ *resp);
+
+extern int
+StatusOfLsRequest(struct soap *soap,
+                  const char *srm_endpoint,
+                  const char *authorizationID,
+                  const char *requestToken,
+                  int *offset,
+                  int *count,
+                  struct srm__srmStatusOfLsRequestResponse_ *resp);
+
+extern int
 StatusOfPutRequest(struct soap *soap,
                    const char *srm_endpoint,
                    const char *authorizationID,
                    const char *requestToken,
-                   std::vector <std::string *> arrayOfTargetSURLs,
+                   std::vector <std::string *> targetSURLs,
                    struct srm__srmStatusOfPutRequestResponse_ *resp);
 
 #endif /* _SRM2API_H */

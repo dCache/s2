@@ -44,13 +44,13 @@ PrepareToGet(struct soap *soap,
              const char *userRequestDescription,
              const tStorageSystemInfo storageSystemInfo,
              const long *desiredFileStorageType,
-             std::string *desiredTotalRequestTime,
-             std::string *desiredPinLifeTime,
-             std::string *targetSpaceToken,
-             std::string *retentionPolicy,
-             std::string *accessLatency,
-             std::string *accessPattern,
-             std::string *connectionType,
+             int *desiredTotalRequestTime,
+             int *desiredPinLifeTime,
+             const char *targetSpaceToken,
+             const long retentionPolicy,
+             const long *accessLatency,
+             const long *accessPattern,
+             const long *connectionType,
              std::vector <std::string *> clientNetworks,
              std::vector <std::string *> transferProtocols,
              struct srm__srmPrepareToGetResponse_ *resp)
@@ -79,6 +79,7 @@ PrepareToGet(struct soap *soap,
     MV_CSTR2STR(fileRequest->sourceSURL,CSTR(fileRequests.sourceSURL[u]));
     NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(soap, -1));
     
+    /* dirOption */
     if(NOT_NULL_VEC(fileRequests,isSourceADirectory)) {
       fileRequest->dirOption->isSourceADirectory = fileRequests.isSourceADirectory[u];
       DM_LOG(DM_N(2), "isSourceADirectory[%u] = %d\n", u, fileRequest->dirOption->isSourceADirectory);
@@ -104,7 +105,19 @@ PrepareToGet(struct soap *soap,
   }
   
   MV_CSTR2PSTR(req.userRequestDescription,userRequestDescription);
-  /* TODO... */
+
+  /* Storage system info */
+  MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);
+
+  MV_PSOAP(FileStorageType,req.desiredFileStorageType,desiredFileStorageType);
+  MV_PINT(req.desiredTotalRequestTime,desiredTotalRequestTime);
+  MV_PINT(req.desiredPinLifeTime,desiredPinLifeTime);
+  MV_CSTR2PSTR(req.targetSpaceToken,targetSpaceToken);
+
+  /* Retention */
+  NOT_NULL(req.targetFileRetentionPolicyInfo = soap_new_srm__TRetentionPolicyInfo(soap, -1));
+  MV_SOAP(RetentionPolicy,req.targetFileRetentionPolicyInfo->retentionPolicy,retentionPolicy);
+  MV_PSOAP(AccessLatency,req.targetFileRetentionPolicyInfo->accessLatency,accessLatency);
 
   /* Fill in client networks */
   for(uint u = 0; u < clientNetworks.size(); u++) {

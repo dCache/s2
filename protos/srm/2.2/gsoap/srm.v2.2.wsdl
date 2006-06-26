@@ -3,7 +3,8 @@
 <wsdl:documentation>
 
 	srm.v2.2.wsdl
-    Tue Jun 13 09:42:15 PDT 2006
+	Tue Jun 20 07:21:54 PDT 2006  - FINALIZED
+    Mon Jun 19 09:45:38 PDT 2006
 
     Created by Junmin Gu, Alex Sim
     Lawrence Berkeley National Laboratory 
@@ -193,6 +194,24 @@
      <element name="status" type="impl:TReturnStatus"/>
     </sequence>
    </complexType>
+   <complexType name="ArrayOfTSURLReturnStatus">
+    <sequence>
+     <element maxOccurs="unbounded" name="statusArray" nillable="true" type="impl:TSURLReturnStatus"/>
+    </sequence>
+   </complexType>
+   <complexType name="TSURLLifetimeReturnStatus">
+    <sequence>
+     <element name="surl" type="xsd:anyURI"/>
+     <element name="status" type="impl:TReturnStatus"/>
+     <element name="fileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+     <element name="pinLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
+    </sequence>
+   </complexType>
+   <complexType name="ArrayOfTSURLLifetimeReturnStatus">
+    <sequence>
+     <element maxOccurs="unbounded" name="statusArray" nillable="true" type="impl:TSURLLifetimeReturnStatus"/>
+    </sequence>
+   </complexType>
    <complexType name="TMetaDataPathDetail">
     <sequence>
      <element name="surl" type="xsd:anyURI"/>
@@ -261,17 +280,6 @@
      <element maxOccurs="unbounded" name="urlArray" nillable="true" type="xsd:anyURI"/>
     </sequence>
    </complexType>
-   <complexType name="TSURLInfo">
-    <sequence>
-     <element name="SURL" type="xsd:anyURI"/>
-     <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
-    </sequence>
-   </complexType>
-   <complexType name="ArrayOfTSURLInfo">
-    <sequence>
-     <element maxOccurs="unbounded" name="surlInfoArray" nillable="true" type="impl:TSURLInfo"/>
-    </sequence>
-   </complexType>
    <complexType name="TTransferParameters">
     <sequence>
      <element name="accessPattern" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TAccessPattern"/>
@@ -305,19 +313,14 @@
    </complexType>
    <complexType name="TCopyFileRequest">
     <sequence>
-     <element name="sourceSURLInfo" type="impl:TSURLInfo"/>
-     <element name="targetSURLInfo" type="impl:TSURLInfo"/>
+     <element name="sourceSURL" type="xsd:anyURI"/>
+     <element name="targetSURL" type="xsd:anyURI"/>
      <element name="dirOption" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TDirOption"/>
     </sequence>
    </complexType>
    <complexType name="ArrayOfTCopyFileRequest">
     <sequence>
      <element maxOccurs="unbounded" name="requestArray" nillable="true" type="impl:TCopyFileRequest"/>
-    </sequence>
-   </complexType>
-   <complexType name="ArrayOfTSURLReturnStatus">
-    <sequence>
-     <element maxOccurs="unbounded" name="statusArray" nillable="true" type="impl:TSURLReturnStatus"/>
     </sequence>
    </complexType>
    <complexType name="TGetRequestFileStatus">
@@ -559,8 +562,9 @@
    <complexType name="srmChangeSpaceForFilesRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
      <element name="targetSpaceToken" type="xsd:string"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmChangeSpaceForFilesResponse">
@@ -598,15 +602,16 @@
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
      <element name="newTimeExtended" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
-     <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLReturnStatus"/>
+     <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLLifetimeReturnStatus"/>
     </sequence>
    </complexType>
 
    <complexType name="srmPurgeFromSpaceRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
      <element name="spaceToken" type="xsd:string"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmPurgeFromSpaceResponse">
@@ -633,12 +638,13 @@
    <complexType name="srmSetPermissionRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="SURL" type="impl:TSURLInfo"/>
+     <element name="SURL" type="xsd:anyURI"/>
      <element name="permissionType" type="impl:TPermissionType"/>
      <element name="ownerPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
      <element name="arrayOfUserPermissions" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTUserPermission"/>
      <element name="arrayOfGroupPermissions" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTGroupPermission"/>
      <element name="otherPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmSetPermissionResponse">
@@ -649,8 +655,9 @@
 
    <complexType name="srmCheckPermissionRequest">
     <sequence>
-     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmCheckPermissionResponse">
@@ -663,7 +670,8 @@
    <complexType name="srmGetPermissionRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmGetPermissionResponse">
@@ -676,7 +684,8 @@
    <complexType name="srmMkdirRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="directoryPath" type="impl:TSURLInfo"/>
+     <element name="directoryPath" type="xsd:anyURI"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmMkdirResponse">
@@ -688,7 +697,8 @@
    <complexType name="srmRmdirRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="directoryPath" type="impl:TSURLInfo"/>
+     <element name="directoryPath" type="xsd:anyURI"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
      <element name="recursive" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:boolean"/>
     </sequence>
    </complexType>
@@ -701,7 +711,8 @@
    <complexType name="srmRmRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="arrayOfSURLs" type="impl:ArrayOfTSURLInfo"/>
+     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmRmResponse">
@@ -750,8 +761,9 @@
    <complexType name="srmMvRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="fromSURL" type="impl:TSURLInfo"/>
-     <element name="toSURL" type="impl:TSURLInfo"/>
+     <element name="fromSURL" type="xsd:anyURI"/>
+     <element name="toSURL" type="xsd:anyURI"/>
+	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmMvResponse">
@@ -891,6 +903,8 @@
      <element name="targetFileStorageType" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileStorageType"/>
      <element name="targetSpaceToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="targetFileRetentionPolicyInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TRetentionPolicyInfo"/>
+     <element name="sourceStorageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
+     <element name="targetStorageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
    <complexType name="srmCopyResponse">
@@ -1022,9 +1036,7 @@
    <complexType name="srmExtendFileLifeTimeResponse">
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
-     <element name="newExtendedFileLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
-     <element name="newExtendedPinLifetime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
-     <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLReturnStatus"/>
+     <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLLifetimeReturnStatus"/>
     </sequence>
    </complexType>
 

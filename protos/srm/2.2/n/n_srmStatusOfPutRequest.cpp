@@ -103,17 +103,19 @@ srmStatusOfPutRequest::exec(Process *proc)
   );
 #endif
 
+  DELETE_VEC(urlArray);
+
   /* matching */
   if(!resp || !resp->srmStatusOfPutRequestResponse) {
     DM_LOG(DM_N(1), "no SRM response\n");
     RETURN(ERR_ERR);
   }
 
-  /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmStatusOfPutRequestResponse, remainingTotalRequestTime, PI2CSTR(resp->srmStatusOfPutRequestResponse->remainingTotalRequestTime));
-
   /* arrayOfRequestDetails */
   EAT_MATCH(fileStatuses, arrayOfStatusOfPutRequestResponseToString(proc, FALSE, FALSE).c_str());
+
+  /* remainingTotalRequestTime */
+  EAT_MATCH_3(resp->srmStatusOfPutRequestResponse, remainingTotalRequestTime, PI2CSTR(resp->srmStatusOfPutRequestResponse->remainingTotalRequestTime));
 
   RETURN(matchReturnStatus(resp->srmStatusOfPutRequestResponse->returnStatus, proc));
 }
@@ -165,6 +167,7 @@ srmStatusOfPutRequest::arrayOfStatusOfPutRequestResponseToString(Process *proc, 
   if(resp->srmStatusOfPutRequestResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TPutRequestFileStatus *> v = resp->srmStatusOfPutRequestResponse->arrayOfFileStatuses->statusArray;
+
     /* exactly the same code as in srmPrepareToPut */
     for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR(SURL);
@@ -177,7 +180,7 @@ srmStatusOfPutRequest::arrayOfStatusOfPutRequestResponseToString(Process *proc, 
       
       if(v[u] && v[u]->transferProtocolInfo) {
         std::vector<srm__TExtraInfo *> extraInfoArray = v[u]->transferProtocolInfo->extraInfoArray;
-        SS_P_VEC_SRM_EXTRA_INFO(extraInfoArray);
+        SS_P_VEC_SRM_EXTRA_INFOu(extraInfoArray);
       }
     }
   }

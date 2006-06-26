@@ -2,6 +2,7 @@ Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
 - SRM2 test scenarios and testing (storage system info/description as testing)!
 - Implement SRM 2.2
+- sed 's/^n_srm//'
 - Testing, optimize for speed
 - output of TEST ${empty} == "" and simillar in e* files
 - ECHO (vs. SYSTEM echo --- performance considerations)

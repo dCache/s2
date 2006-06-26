@@ -31,7 +31,7 @@
 #define SS_P_VEC_PAR_PERMISSIONMODE(param)\
   if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTPermissionMode(v[u]->param->mode);}
 
-#define SS_P_VEC_PAR_PERMISSIONMODE_PTR(param)\
+#define SS_P_VEC_DPAR_PERMISSIONMODE(param)\
   if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getTPermissionMode(*(v[u]->param));}
 
 #define SS_P_VEC_PAR_REQUESTTYPE(param)\
@@ -58,10 +58,22 @@
 #define EAT_MATCH_3(p,q,recv) if(p->q) EAT_MATCH(q,recv)
 
 /* SRM 2.2 macros */
+#define SS_P_VEC_SRM_EXTRA_INFOu(v) \
+  for(uint __u = 0; __u < v.size(); __u++) {\
+    if(v[__u]->value) {SS_VEC_SPACE; ss << v[__u]->key << u << ":" << __u << "=" << dq_param(Process::eval_str(v[__u]->value,proc), quote);}\
+  }
+
 #define SS_P_VEC_SRM_EXTRA_INFO(v) \
   for(uint __u = 0; __u < v.size(); __u++) {\
-    if(v[__u]->value) ss << v[__u]->key << u << ":" << __u << "=" << dq_param(Process::eval_str(v[__u]->value,proc), quote);\
+    if(v[__u]->value) {SS_VEC_SPACE; ss << v[__u]->key << ":" << __u << "=" << dq_param(Process::eval_str(v[__u]->value,proc), quote);}\
   }
+
+#define SS_P_VEC_PAR_GSOAP(t,param)\
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getT##t((v[u]->param));}
+
+#define SS_P_VEC_DPAR_GSOAP(t,param)\
+  if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getT##t(*(v[u]->param));}
+
 
 typedef struct tSoapCallRet
 { 
@@ -504,7 +516,7 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
-  std::string srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
 
 private:
 };
@@ -1045,6 +1057,12 @@ public:
 };
 
 /* type definitions */
+typedef struct tStorageSystemInfo_
+{ 
+  std::vector <std::string *> key;
+  std::vector <std::string *> value;
+};
+
 typedef struct tArrayOfGetFileRequests_
 { 
   std::vector <std::string *> sourceSURL;
@@ -1059,12 +1077,109 @@ typedef struct tArrayOfPutFileRequests_
   std::vector <std::string *> expectedFileSize;
 };
 
-typedef struct tStorageSystemInfo_
-{ 
-  std::vector <std::string *> key;
-  std::vector <std::string *> value;
+/*
+ * srmCopy request
+ */
+struct srmCopy : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> sourceSURL;
+  std::vector <std::string *> targetSURL;
+
+  std::vector <std::string *> isSourceADirectory;
+  std::vector <std::string *> allLevelRecursive;
+  std::vector <std::string *> numOfLevels;
+
+  std::string *userRequestDescription;
+  std::string *overwriteOption;
+  std::string *desiredTotalRequestTime;
+  std::string *desiredTargetSURLLifeTime;
+  std::string *targetFileStorageType;
+  std::string *targetSpaceToken;
+  std::string *targetFileRetentionPolicyInfo;
+  std::string *retentionPolicy;
+  std::string *accessLatency;
+
+  tStorageSystemInfo_ sourceStorageSystemInfo;
+  tStorageSystemInfo_ targetStorageSystemInfo;
+
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+
+public:
+  srmCopy();
+  srmCopy(Node &node);
+  ~srmCopy();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
 };
 
+/*
+ * srmLs request
+ */
+struct srmLs : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> SURL;
+  tStorageSystemInfo_ storageSystemInfo;
+  
+  std::string *fileStorageType;
+  std::string *fullDetailedList;
+  std::string *allLevelRecursive;
+  std::string *numOfLevels;
+  std::string *offset;
+  std::string *count;
+  
+  /* response (parser) */
+  std::string *pathDetails;
+
+public:
+  srmLs();
+  srmLs(Node &node);
+  ~srmLs();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
+
+private:
+};
+
+/*
+ * srmPing request
+ */
+struct srmPing : public SRM2
+{
+  /* request (parser/API) */
+
+  /* response (parser) */
+  std::string *versionInfo;
+  std::string *otherInfo;
+
+public:
+  srmPing();
+  srmPing(Node &node);
+  ~srmPing();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfOtherInfoToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
 /*
  * srmPrepareToGet request
  */
@@ -1113,7 +1228,7 @@ private:
 struct srmPrepareToPut : public SRM2
 {
   /* request (parser/API) */
-  tArrayOfPutFileRequests_ putFileRequests;
+  tArrayOfPutFileRequests_ fileRequests;
 
   std::string *userRequestDescription;
   std::string *overwriteOption;
@@ -1174,6 +1289,89 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfPutDoneResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmStatusOfCopyRequest request
+ */
+struct srmStatusOfCopyRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>sourceUrlArray;
+  std::vector <std::string *>targetUrlArray;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+
+public:
+  srmStatusOfCopyRequest();
+  srmStatusOfCopyRequest(Node &node);
+  ~srmStatusOfCopyRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfStatusOfCopyRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmStatusOfGetRequest request
+ */
+struct srmStatusOfGetRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>urlArray;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+
+public:
+  srmStatusOfGetRequest();
+  srmStatusOfGetRequest(Node &node);
+  ~srmStatusOfGetRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfStatusOfGetRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmStatusOfLsRequest request
+ */
+struct srmStatusOfLsRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::string *offset;
+  std::string *count;
+
+  /* response (parser) */
+  std::string *pathDetails;
+
+public:
+  srmStatusOfLsRequest();
+  srmStatusOfLsRequest(Node &node);
+  ~srmStatusOfLsRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vector<struct srm__TMetaDataPathDetail *> details) const;
 
 private:
 };

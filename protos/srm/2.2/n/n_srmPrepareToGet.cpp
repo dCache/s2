@@ -38,12 +38,19 @@ srmPrepareToGet::init()
 {
   /* request (parser/API) */
   userRequestDescription = NULL;
-  storageSystemInfo = NULL;
-  totalRetryTime = NULL;
+  desiredFileStorageType = NULL;
+  desiredTotalRequestTime = NULL;
+  desiredPinLifeTime = NULL;
+  targetSpaceToken = NULL;
+  retentionPolicy = NULL;
+  accessLatency = NULL;
+  accessPattern = NULL;
+  connectionType = NULL;
 
   /* response (parser) */
   requestToken = NULL;
   fileStatuses = NULL;
+  remainingTotalRequestTime = NULL;
 }
 
 /*
@@ -63,22 +70,28 @@ srmPrepareToGet::~srmPrepareToGet()
   DM_DBG_I;
 
   /* request (parser/API) */
-  DELETE_VEC(arrayOfFileRequests.allLevelRecursive);
-  DELETE_VEC(arrayOfFileRequests.isSourceADirectory);
-  DELETE_VEC(arrayOfFileRequests.numOfLevels);
-  DELETE_VEC(arrayOfFileRequests.fileStorageType);
-  DELETE_VEC(arrayOfFileRequests.SURLOrStFN);
-  DELETE_VEC(arrayOfFileRequests.storageSystemInfo);
-  DELETE_VEC(arrayOfFileRequests.lifetime);
-  DELETE_VEC(arrayOfFileRequests.spaceToken);
-  DELETE_VEC(arrayOfTransferProtocols);
+  DELETE_VEC(fileRequests.sourceSURL);
+  DELETE_VEC(fileRequests.isSourceADirectory);
+  DELETE_VEC(fileRequests.numOfLevels);
+  DELETE_VEC(fileRequests.allLevelRecursive);
   DELETE(userRequestDescription);
-  DELETE(storageSystemInfo);
-  DELETE(totalRetryTime);
+  DELETE_VEC(storageSystemInfo.key);
+  DELETE_VEC(storageSystemInfo.value);
+  DELETE(desiredFileStorageType);
+  DELETE(desiredTotalRequestTime);
+  DELETE(desiredPinLifeTime);
+  DELETE(targetSpaceToken);
+  DELETE(retentionPolicy);
+  DELETE(accessLatency);
+  DELETE(accessPattern);
+  DELETE(connectionType);
+  DELETE_VEC(clientNetworks);
+  DELETE_VEC(transferProtocols);
 
   /* response (parser) */
   DELETE(requestToken);
   DELETE(fileStatuses);
+  DELETE(remainingTotalRequestTime);
   
   DM_DBG_O;
 }
@@ -98,24 +111,26 @@ int
 srmPrepareToGet::exec(Process *proc)
 {
 #define EVAL_VEC_STR_PTG(vec) vec = proc->eval_vec_str(srmPrepareToGet::vec)
-#define EVAL_VEC_INT32_PTG(vec) vec = proc->eval_vec_int32(srmPrepareToGet::vec)
-#define EVAL_VEC_PINT32_PTG(vec) vec = proc->eval_vec_pint32(srmPrepareToGet::vec)
-#define EVAL_VEC_PINT64_PTG(vec) vec = proc->eval_vec_pint64(srmPrepareToGet::vec)
+#define EVAL_VEC_INT_PTG(vec) vec = proc->eval_vec_int(srmPrepareToGet::vec)
+#define EVAL_VEC_PINT_PTG(vec) vec = proc->eval_vec_pint(srmPrepareToGet::vec)
   DM_DBG_I;
   BOOL match = FALSE;
 
-  tArrayOfGetFileRequests arrayOfFileRequests;
-  std::vector <std::string *> arrayOfTransferProtocols;
+  tArrayOfGetFileRequests fileRequests;
+  tStorageSystemInfo storageSystemInfo;
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
 
-  EVAL_VEC_PINT32_PTG(arrayOfFileRequests.allLevelRecursive);
-  EVAL_VEC_INT32_PTG(arrayOfFileRequests.isSourceADirectory);
-  EVAL_VEC_INT32_PTG(arrayOfFileRequests.numOfLevels);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.fileStorageType);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.SURLOrStFN);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.storageSystemInfo);
-  EVAL_VEC_PINT64_PTG(arrayOfFileRequests.lifetime);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.spaceToken);
-  EVAL_VEC_STR_PTG(arrayOfTransferProtocols);
+  EVAL_VEC_STR_PTG(fileRequests.sourceSURL);
+  EVAL_VEC_INT_PTG(fileRequests.isSourceADirectory);
+  EVAL_VEC_PINT_PTG(fileRequests.numOfLevels);
+  EVAL_VEC_PINT_PTG(fileRequests.allLevelRecursive);
+
+  EVAL_VEC_STR_PTG(storageSystemInfo.key);
+  EVAL_VEC_STR_PTG(storageSystemInfo.value);
+
+  EVAL_VEC_STR_PTG(clientNetworks);
+  EVAL_VEC_STR_PTG(transferProtocols);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(PrepareToGet);
@@ -124,22 +139,32 @@ srmPrepareToGet::exec(Process *proc)
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
-    arrayOfFileRequests,
-    arrayOfTransferProtocols,
+    fileRequests,
     EVAL2CSTR(userRequestDescription),
-    EVAL2CSTR(storageSystemInfo),
-    proc->eval2pint64(totalRetryTime).p,
+    storageSystemInfo,
+    getTFileStorageType(EVAL2CSTR(desiredFileStorageType)),
+    proc->eval2pint(desiredTotalRequestTime).p,
+    proc->eval2pint(desiredPinLifeTime).p,
+    EVAL2CSTR(targetSpaceToken),
+    *getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),	/* getT* never returns pointer to NULL */
+    getTAccessLatency(EVAL2CSTR(accessLatency)),
+    getTAccessPattern(EVAL2CSTR(accessPattern)),
+    getTConnectionType(EVAL2CSTR(connectionType)),
+    clientNetworks,
+    transferProtocols,
     resp
   );
 #endif
 
-  FREE_VEC(arrayOfFileRequests.allLevelRecursive);
-  DELETE_VEC(arrayOfFileRequests.fileStorageType);
-  DELETE_VEC(arrayOfFileRequests.SURLOrStFN);
-  DELETE_VEC(arrayOfFileRequests.storageSystemInfo);
-  FREE_VEC(arrayOfFileRequests.lifetime);
-  DELETE_VEC(arrayOfFileRequests.spaceToken);
-  DELETE_VEC(arrayOfTransferProtocols);
+  DELETE_VEC(fileRequests.sourceSURL);
+  FREE_VEC(fileRequests.numOfLevels);
+  FREE_VEC(fileRequests.allLevelRecursive);
+  
+  DELETE_VEC(storageSystemInfo.key);
+  DELETE_VEC(storageSystemInfo.value);
+
+  DELETE_VEC(clientNetworks);
+  DELETE_VEC(transferProtocols);
 
   /* matching */
   if(!resp || !resp->srmPrepareToGetResponse) {
@@ -150,16 +175,20 @@ srmPrepareToGet::exec(Process *proc)
   /* requestToken */
   EAT_MATCH_3(resp->srmPrepareToGetResponse,
               requestToken,
-              resp->srmPrepareToGetResponse->requestToken->value.c_str());
+              CSTR(resp->srmPrepareToGetResponse->requestToken));
 
   /* arrayOfFileStatus */
   EAT_MATCH(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
+  /* remainingTotalRequestTime */
+  EAT_MATCH_3(resp->srmPrepareToGetResponse,
+              remainingTotalRequestTime,
+              PI2CSTR(resp->srmPrepareToGetResponse->remainingTotalRequestTime));
+  
   RETURN(matchReturnStatus(resp->srmPrepareToGetResponse->returnStatus, proc));
 #undef EVAL_VEC_STR_PTG
-#undef EVAL_VEC_INT32_PTG
-#undef EVAL_VEC_PINT32_PTG
-#undef EVAL_VEC_PINT64_PTG
+#undef EVAL_VEC_INT_PTG
+#undef EVAL_VEC_PINT_PTG
 }
 
 std::string
@@ -167,43 +196,52 @@ srmPrepareToGet::toString(Process *proc)
 {
 #define EVAL_VEC_STR_PTG(vec) EVAL_VEC_STR(srmPrepareToGet,vec)
   DM_DBG_I;
-  
+
   GET_SRM_RESP(PrepareToGet);
   BOOL quote = TRUE;
   std::stringstream ss;
 
-  tArrayOfGetFileRequests_ arrayOfFileRequests;
-  std::vector <std::string *> arrayOfTransferProtocols;
+  tArrayOfGetFileRequests_ fileRequests;
+  tStorageSystemInfo_ storageSystemInfo;
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
 
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.allLevelRecursive);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.isSourceADirectory);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.numOfLevels);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.fileStorageType);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.SURLOrStFN);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.storageSystemInfo);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.lifetime);
-  EVAL_VEC_STR_PTG(arrayOfFileRequests.spaceToken);
-  EVAL_VEC_STR_PTG(arrayOfTransferProtocols);
+  EVAL_VEC_STR_PTG(fileRequests.sourceSURL);
+  EVAL_VEC_STR_PTG(fileRequests.isSourceADirectory);
+  EVAL_VEC_STR_PTG(fileRequests.numOfLevels);
+  EVAL_VEC_STR_PTG(fileRequests.allLevelRecursive);
+
+  EVAL_VEC_STR_PTG(storageSystemInfo.key);
+  EVAL_VEC_STR_PTG(storageSystemInfo.value);
+
+  EVAL_VEC_STR_PTG(clientNetworks);
+  EVAL_VEC_STR_PTG(transferProtocols);
 
   /* request */  
   SS_SRM("srmPrepareToGet");
   SS_P_DQ(authorizationID);
-  SS_VEC_DEL(arrayOfFileRequests.allLevelRecursive);
-  SS_VEC_DEL(arrayOfFileRequests.isSourceADirectory);
-  SS_VEC_DEL(arrayOfFileRequests.numOfLevels);
-  SS_VEC_DEL(arrayOfFileRequests.fileStorageType);
-  SS_VEC_DEL(arrayOfFileRequests.SURLOrStFN);
-  SS_VEC_DEL(arrayOfFileRequests.storageSystemInfo);
-  SS_VEC_DEL(arrayOfFileRequests.lifetime);
-  SS_VEC_DEL(arrayOfFileRequests.spaceToken);
-  SS_VEC_DEL(arrayOfTransferProtocols);
+  SS_VEC_DEL(fileRequests.sourceSURL);
+  SS_VEC_DEL(fileRequests.isSourceADirectory);
+  SS_VEC_DEL(fileRequests.numOfLevels);
+  SS_VEC_DEL(fileRequests.allLevelRecursive);
   SS_P_DQ(userRequestDescription);
-  SS_P_DQ(storageSystemInfo);
-  SS_P_DQ(totalRetryTime);
+  SS_VEC_DEL(storageSystemInfo.key);
+  SS_VEC_DEL(storageSystemInfo.value);
+  SS_P_DQ(desiredFileStorageType);
+  SS_P_DQ(desiredTotalRequestTime);
+  SS_P_DQ(desiredPinLifeTime);
+  SS_P_DQ(targetSpaceToken);
+  SS_P_DQ(retentionPolicy);
+  SS_P_DQ(accessLatency);
+  SS_P_DQ(accessPattern);
+  SS_P_DQ(connectionType);
+  SS_VEC_DEL(clientNetworks);
+  SS_VEC_DEL(transferProtocols);
 
   /* response (parser) */
   SS_P_DQ(requestToken);
   SS_P_DQ(fileStatuses);
+  SS_P_DQ(remainingTotalRequestTime);
   SS_P_DQ(returnStatus.explanation);
   SS_P_DQ(returnStatus.statusCode);
 
@@ -211,12 +249,16 @@ srmPrepareToGet::toString(Process *proc)
   if(!resp || !resp->srmPrepareToGetResponse) RETURN(ss.str());
 
   if(!resp->srmPrepareToGetResponse->requestToken) {
-    /* no request tokens returned */
     DM_LOG(DM_N(1), "no request tokens returned\n");
-  } else ss << " requestToken=" << dq_param(resp->srmPrepareToGetResponse->requestToken->value, quote);
-    
-  ss << arrayOfFileStatusToString(proc, TRUE, quote);
+  } else ss << " requestToken=" << dq_param(resp->srmPrepareToGetResponse->requestToken, quote);
 
+  ss << arrayOfFileStatusToString(proc, TRUE, quote);
+  
+  /* remainingTotalRequestTime */
+  if(!resp->srmPrepareToGetResponse->remainingTotalRequestTime) {
+    DM_LOG(DM_N(1), "no remainingTotalRequestTime returned\n");
+  } else ss << " remainingTotalRequestTime=" << dq_param(PI2CSTR(resp->srmPrepareToGetResponse->remainingTotalRequestTime), quote);
+  
   SS_P_SRM_RETSTAT(resp->srmPrepareToGetResponse);
 
   RETURN(ss.str());
@@ -230,22 +272,28 @@ srmPrepareToGet::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote
 
   GET_SRM_RESP(PrepareToGet);
   std::stringstream ss;
-  
+
   if(!resp || !resp->srmPrepareToGetResponse) RETURN(ss.str());
 
   if(resp->srmPrepareToGetResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TGetRequestFileStatus *> v = resp->srmPrepareToGetResponse->arrayOfFileStatuses->statusArray;
+
+    /* exactly the same code as in srmStatusOfGetRequest */
     for(uint u = 0; u < v.size(); u++) {
-      SS_P_VEC_PAR_VAL(estimatedProcessingTime);
-      SS_P_VEC_PAR_VAL(estimatedWaitTimeOnQueue);
-      SS_P_VEC_PAR_VAL(fileSize);
-      SS_P_VEC_PAR_VAL(fromSURLInfo);
-      SS_P_VEC_PAR_VAL(remainingPinTime);
+      SS_P_VEC_PAR(sourceSURL);
+      SS_P_VEC_DPAR(fileSize);
       SS_P_VEC_SRM_RETSTAT(status);
-      SS_P_VEC_PAR_VAL(transferURL);
+      SS_P_VEC_DPAR(estimatedWaitTime);
+      SS_P_VEC_DPAR(remainingPinTime);
+      SS_P_VEC_DPAR(transferURL);
+
+      if(v[u] && v[u]->transferProtocolInfo) {
+        std::vector<srm__TExtraInfo *> extraInfoArray = v[u]->transferProtocolInfo->extraInfoArray;
+        SS_P_VEC_SRM_EXTRA_INFOu(extraInfoArray);
+      }
     }
   }
-  
+
   RETURN(ss.str());
 }

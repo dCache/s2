@@ -37,6 +37,7 @@
   }
 
 #define NOT_NULL_VEC(v,r) (u < v.r.size() && v.r[u])
+#define NOT_NULL_VEC1(v)  (u < v.size() && v[u])
 
 #ifdef HAVE_SRM21
 #define PINT_VAL_OPT(opt,r)\
@@ -203,7 +204,7 @@
     DM_LOG(DM_N(2), ""#type " == %s\n", (t)? getT##type(*(t)).c_str() : NULL);\
   } while(0)
 
-#define NEW_ARRAY_OF_STR_VAL(v1,v2,opt,t)\
+#define MV_ARRAY_OF_STR_VAL(v1,v2,opt,t)\
   NOT_NULL(v1 = soap_new_srm__ArrayOf##t(soap, -1));\
   for(uint u = 0; u < v2.size(); u++) {\
     if(v2[u]) {\
@@ -213,6 +214,17 @@
       DM_LOG(DM_N(2), ""#opt "[%u] == NULL\n", u);\
       v1->opt.push_back("");\
     }\
+  }
+
+#define MV_STORAGE_SYSTEM_INFO(v1,v2)\
+  NOT_NULL(v1 = soap_new_srm__ArrayOfTExtraInfo(soap, -1));\
+  for (uint u = 0; u < v2.key.size(); u++) {\
+    DM_LOG(DM_N(2), "storageSystemInfo.key[%u]\n", u);\
+    srm__TExtraInfo *extraInfo;\
+    NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));\
+    MV_CSTR2STR(extraInfo->key,CSTR(v2.key[u]));\
+    MV_PSTR2PSTR(extraInfo->value,v2.value[u]);\
+    v1->extraInfoArray.push_back(extraInfo);\
   }
 
 #endif	/* HAVE_SRM22 */

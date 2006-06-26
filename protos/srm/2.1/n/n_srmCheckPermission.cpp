@@ -181,7 +181,7 @@ srmCheckPermission::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL qu
     for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_PAR_VAL(surl);
-      SS_P_VEC_PAR_PERMISSIONMODE_PTR(userPermission);
+      SS_P_VEC_DPAR_PERMISSIONMODE(userPermission);
     }
   }
   

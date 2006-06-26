@@ -29,24 +29,27 @@ test: ln
           err=$$?;\
 	  echo "$$err ($$s2_sh)" >> $(S2_EXIT_LOG);\
 	  $(call HTML_TABLE_ROW,$(S2_HTML_LOG),$$s2_bare,$$err);\
+	  if test -f $(CHECK_DIR)/$(S2_EXIT_LOG) ; then \
+	    grep "^[^ ]* ($$s2_sh)$$" "$(CHECK_DIR)/$(S2_EXIT_LOG)" >/dev/null 2>&1 ;\
+	    if test $$? -ne 0 ; then \
+	      echo "Warning: exit code check not performed for $$s2_sh, please update $(CHECK_DIR)/$(S2_EXIT_LOG)" >&2 ;\
+	    else\
+	      grep "^$$err ($$s2_sh)$$" "$(CHECK_DIR)/$(S2_EXIT_LOG)" >/dev/null 2>&1 ;\
+	      if test $$? -ne 0 ; then \
+	        echo "Error: exit code check failed for $$s2_sh, S2 bug?  Please investigate ($$s2_out) and report." >&2 ; exit $$err;\
+	      fi\
+	    fi\
+	  fi;\
 	  if test -f $(CHECK_DIR)/$$s2_out ; then \
 	    diff $$s2_out $(CHECK_DIR)/$$s2_out >/dev/null ;\
 	    err=$$?;\
 	    if test $$err -ne 0 ; then \
-	      echo "Output check failed!  S2 bug?  Please investigate ($$s2_out) and report." >&2 ; exit $$err;\
+	      echo "Error: output check failed!  S2 bug?  Please investigate ($$s2_out) and report." >&2 ; exit $$err;\
 	    fi\
 	  fi;\
-	done;\
-	if test -f $(CHECK_DIR)/$(S2_EXIT_LOG) ; then \
-	  diff -U0 $(S2_EXIT_LOG) $(CHECK_DIR)/$(S2_EXIT_LOG) ;\
-	  err=$$?;\
-	  if test $$err -ne 0 ; then \
-	    echo "Exit code check(s) failed!  S2 bug?  Please compare $(S2_EXIT_LOG), $(CHECK_DIR)/$(S2_EXIT_LOG) and report." >&2 ; exit $$err;\
-	  fi\
-	fi
+	done
 	@echo -e "$(call HTML_TABLE_TAIL)" >> $(S2_HTML_LOG)
 	@echo -e "$(call HTML_TAIL)" >> $(S2_HTML_LOG)
-
 
 install:
 

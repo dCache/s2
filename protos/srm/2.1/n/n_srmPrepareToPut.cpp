@@ -145,7 +145,7 @@ srmPrepareToPut::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH_3(resp->srmPrepareToPutResponse,
+  EAT_MATCH_C(resp->srmPrepareToPutResponse->requestToken,
               requestToken,
               resp->srmPrepareToPutResponse->requestToken->value.c_str());
 

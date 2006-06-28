@@ -914,10 +914,6 @@ typedef struct dg_callback {
     unsigned int level;
 } dg_callback;
 
-#ifdef HAVE_PTHREAD
-extern pthread_mutex_t dg_print_mtx;
-#endif
-
 /* general aliases */
 #define DM_PGMNAME_GET(...)
 #define DM_PGMNAME_SET(...)

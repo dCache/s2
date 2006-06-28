@@ -40,7 +40,7 @@ srmBringOnline::init()
   userRequestDescription = NULL;
   desiredFileStorageType = NULL;
   desiredTotalRequestTime = NULL;
-  desiredPinLifeTime = NULL;
+  desiredLifeTime = NULL;
   targetSpaceToken = NULL;
   retentionPolicy = NULL;
   accessLatency = NULL;
@@ -51,6 +51,7 @@ srmBringOnline::init()
   requestToken = NULL;
   fileStatuses = NULL;
   remainingTotalRequestTime = NULL;
+  remainingDeferredStartTime = NULL;
 }
 
 /*
@@ -79,7 +80,7 @@ srmBringOnline::~srmBringOnline()
   DELETE_VEC(storageSystemInfo.value);
   DELETE(desiredFileStorageType);
   DELETE(desiredTotalRequestTime);
-  DELETE(desiredPinLifeTime);
+  DELETE(desiredLifeTime);
   DELETE(targetSpaceToken);
   DELETE(retentionPolicy);
   DELETE(accessLatency);
@@ -92,6 +93,7 @@ srmBringOnline::~srmBringOnline()
   DELETE(requestToken);
   DELETE(fileStatuses);
   DELETE(remainingTotalRequestTime);
+  DELETE(remainingDeferredStartTime);
   
   DM_DBG_O;
 }
@@ -144,7 +146,7 @@ srmBringOnline::exec(Process *proc)
     storageSystemInfo,
     getTFileStorageType(EVAL2CSTR(desiredFileStorageType)),
     proc->eval2pint(desiredTotalRequestTime).p,
-    proc->eval2pint(desiredPinLifeTime).p,
+    proc->eval2pint(desiredLifeTime).p,
     EVAL2CSTR(targetSpaceToken),
     *getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),	/* getT* never returns pointer to NULL */
     getTAccessLatency(EVAL2CSTR(accessLatency)),
@@ -152,6 +154,7 @@ srmBringOnline::exec(Process *proc)
     getTConnectionType(EVAL2CSTR(connectionType)),
     clientNetworks,
     transferProtocols,
+    proc->eval2pint(deferredStartTime).p,
     resp
   );
 #endif
@@ -173,7 +176,7 @@ srmBringOnline::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH_3(resp->srmBringOnlineResponse,
+  EAT_MATCH_C(resp->srmBringOnlineResponse->requestToken,
               requestToken,
               CSTR(resp->srmBringOnlineResponse->requestToken));
 
@@ -181,9 +184,14 @@ srmBringOnline::exec(Process *proc)
   EAT_MATCH(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
   /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmBringOnlineResponse,
+  EAT_MATCH_C(resp->srmBringOnlineResponse->remainingTotalRequestTime,
               remainingTotalRequestTime,
               PI2CSTR(resp->srmBringOnlineResponse->remainingTotalRequestTime));
+  
+  /* remainingTotalRequestTime */
+  EAT_MATCH_C(resp->srmBringOnlineResponse->remainingDeferredStartTime,
+              remainingDeferredStartTime,
+              PI2CSTR(resp->srmBringOnlineResponse->remainingDeferredStartTime));
   
   RETURN(matchReturnStatus(resp->srmBringOnlineResponse->returnStatus, proc));
 #undef EVAL_VEC_STR_PTG
@@ -229,7 +237,7 @@ srmBringOnline::toString(Process *proc)
   SS_VEC_DEL(storageSystemInfo.value);
   SS_P_DQ(desiredFileStorageType);
   SS_P_DQ(desiredTotalRequestTime);
-  SS_P_DQ(desiredPinLifeTime);
+  SS_P_DQ(desiredLifeTime);
   SS_P_DQ(targetSpaceToken);
   SS_P_DQ(retentionPolicy);
   SS_P_DQ(accessLatency);
@@ -242,22 +250,29 @@ srmBringOnline::toString(Process *proc)
   SS_P_DQ(requestToken);
   SS_P_DQ(fileStatuses);
   SS_P_DQ(remainingTotalRequestTime);
+  SS_P_DQ(remainingDeferredStartTime);
   SS_P_DQ(returnStatus.explanation);
   SS_P_DQ(returnStatus.statusCode);
 
   /* response (API) */
   if(!resp || !resp->srmBringOnlineResponse) RETURN(ss.str());
 
-  if(!resp->srmBringOnlineResponse->requestToken) {
-    DM_LOG(DM_N(1), "no request tokens returned\n");
-  } else ss << " requestToken=" << dq_param(resp->srmBringOnlineResponse->requestToken, quote);
+  /* requestToken */
+  SS_P_DQ_C(resp->srmBringOnlineResponse->requestToken,
+            requestToken,
+            CSTR(resp->srmBringOnlineResponse->requestToken));
 
   ss << arrayOfFileStatusToString(proc, TRUE, quote);
   
   /* remainingTotalRequestTime */
-  if(!resp->srmBringOnlineResponse->remainingTotalRequestTime) {
-    DM_LOG(DM_N(1), "no remainingTotalRequestTime returned\n");
-  } else ss << " remainingTotalRequestTime=" << dq_param(PI2CSTR(resp->srmBringOnlineResponse->remainingTotalRequestTime), quote);
+  SS_P_DQ_C(resp->srmBringOnlineResponse->remainingTotalRequestTime,
+            remainingTotalRequestTime,
+            PI2CSTR(resp->srmBringOnlineResponse->remainingTotalRequestTime));
+  
+  /* remainingTotalRequestTime */
+  SS_P_DQ_C(resp->srmBringOnlineResponse->remainingDeferredStartTime,
+            remainingDeferredStartTime,
+            PI2CSTR(resp->srmBringOnlineResponse->remainingDeferredStartTime));
   
   SS_P_SRM_RETSTAT(resp->srmBringOnlineResponse);
 
@@ -277,21 +292,15 @@ srmBringOnline::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote)
 
   if(resp->srmBringOnlineResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
-    std::vector<srm__TGetRequestFileStatus *> v = resp->srmBringOnlineResponse->arrayOfFileStatuses->statusArray;
+    std::vector<srm__TBringOnlineRequestFileStatus *> v = resp->srmBringOnlineResponse->arrayOfFileStatuses->statusArray;
 
-    /* exactly the same code as in srmStatusOfGetRequest */
+    /* exactly the same code as in srmStatusOfBringOnlineRequest */
     for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR(sourceSURL);
+      SS_P_VEC_SRM_RETSTAT(status);	/* status <--> fileSize for consistency with PrepareToGet */
       SS_P_VEC_DPAR(fileSize);
-      SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_DPAR(estimatedWaitTime);
       SS_P_VEC_DPAR(remainingPinTime);
-      SS_P_VEC_DPAR(transferURL);
-
-      if(v[u] && v[u]->transferProtocolInfo) {
-        std::vector<srm__TExtraInfo *> extraInfoArray = v[u]->transferProtocolInfo->extraInfoArray;
-        SS_P_VEC_SRM_EXTRA_INFOu(extraInfoArray);
-      }
     }
   }
 

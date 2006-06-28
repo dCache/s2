@@ -132,7 +132,7 @@ srmGetRequestSummary::toString(Process *proc)
   /* request */  
   SS_SRM("srmGetRequestSummary");
   SS_P_DQ(userID);
-  SS_VEC(arrayOfRequestToken); if(proc) DELETE_VEC(arrayOfRequestToken);
+  SS_VEC_DEL(arrayOfRequestToken);
 
   /* response (parser) */
   SS_P_DQ(requestSummary);

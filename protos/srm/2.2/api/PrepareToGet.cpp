@@ -103,7 +103,7 @@ PrepareToGet(struct soap *soap,
     }
     req.arrayOfFileRequests->requestArray.push_back(fileRequest);
   }
-  
+
   MV_CSTR2PSTR(req.userRequestDescription,userRequestDescription);
 
   /* Storage system info */
@@ -119,7 +119,12 @@ PrepareToGet(struct soap *soap,
   MV_SOAP(RetentionPolicy,req.targetFileRetentionPolicyInfo->retentionPolicy,retentionPolicy);
   MV_PSOAP(AccessLatency,req.targetFileRetentionPolicyInfo->accessLatency,accessLatency);
 
-  /* Fill in client networks */
+  /* Transfer parameters */
+  NOT_NULL(req.transferParameters = soap_new_srm__TTransferParameters(soap, -1));
+  MV_PSOAP(AccessPattern,req.transferParameters->accessPattern,accessPattern);
+  MV_PSOAP(ConnectionType,req.transferParameters->connectionType,connectionType);
+  /*   client networks */
+  NOT_NULL(req.transferParameters->arrayOfClientNetworks = soap_new_srm__ArrayOfString(soap, -1));
   for(uint u = 0; u < clientNetworks.size(); u++) {
     DM_LOG(DM_N(2), "clientNetworks[%u]\n", u);
     if(clientNetworks[u]) {
@@ -129,7 +134,8 @@ PrepareToGet(struct soap *soap,
       DM_LOG(DM_N(2), "clientNetworks[%u] == NULL\n", u);
     }
   }
-  /* Fill in transfer protocols */
+  /*   transfer protocols */
+  NOT_NULL(req.transferParameters->arrayOfTransferProtocols = soap_new_srm__ArrayOfString(soap, -1));
   for(uint u = 0; u < transferProtocols.size(); u++) {
     DM_LOG(DM_N(2), "transferProtocols[%u]\n", u);
     if(transferProtocols[u]) {

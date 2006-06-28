@@ -119,7 +119,9 @@ srmStatusOfCopyRequest::exec(Process *proc)
   EAT_MATCH(fileStatuses, arrayOfStatusOfCopyRequestResponseToString(proc, FALSE, FALSE).c_str());
 
   /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmStatusOfCopyRequestResponse, remainingTotalRequestTime, PI2CSTR(resp->srmStatusOfCopyRequestResponse->remainingTotalRequestTime));
+  EAT_MATCH_C(resp->srmStatusOfCopyRequestResponse->remainingTotalRequestTime,
+              remainingTotalRequestTime,
+              PI2CSTR(resp->srmStatusOfCopyRequestResponse->remainingTotalRequestTime));
 
   RETURN(matchReturnStatus(resp->srmStatusOfCopyRequestResponse->returnStatus, proc));
 }
@@ -145,8 +147,8 @@ srmStatusOfCopyRequest::toString(Process *proc)
   SS_SRM("srmStatusOfCopyRequest");
   SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC(sourceUrlArray); if(proc) DELETE_VEC(sourceUrlArray);
-  SS_VEC(targetUrlArray); if(proc) DELETE_VEC(targetUrlArray);
+  SS_VEC_DEL(sourceUrlArray);
+  SS_VEC_DEL(targetUrlArray);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);
@@ -158,6 +160,11 @@ srmStatusOfCopyRequest::toString(Process *proc)
   if(!resp || !resp->srmStatusOfCopyRequestResponse) RETURN(ss.str());
 
   ss << arrayOfStatusOfCopyRequestResponseToString(proc, TRUE, quote);
+
+  /* remainingTotalRequestTime */
+  SS_P_DQ_C(resp->srmStatusOfCopyRequestResponse->remainingTotalRequestTime,
+            remainingTotalRequestTime,
+            PI2CSTR(resp->srmStatusOfCopyRequestResponse->remainingTotalRequestTime));
 
   SS_P_SRM_RETSTAT(resp->srmStatusOfCopyRequestResponse);
 

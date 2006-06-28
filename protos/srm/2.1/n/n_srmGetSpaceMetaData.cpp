@@ -137,7 +137,7 @@ srmGetSpaceMetaData::toString(Process *proc)
   /* request */  
   SS_SRM("srmGetSpaceMetaData");
   SS_P_DQ(userID);
-  SS_VEC(arrayOfSpaceToken); if(proc) DELETE_VEC(arrayOfSpaceToken);
+  SS_VEC_DEL(arrayOfSpaceToken);
 
   /* response (parser) */
   SS_P_DQ(spaceDetails);

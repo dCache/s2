@@ -1,6 +1,6 @@
 ./configure --enable-srm21 --prefix=/usr --static-globus
 make
-sed 's/^ENDPOINT=.*/ENDPOINT=999/' < testing/scripts/protos/srm/s2.env >testing/scripts/protos/srm/s2.new && mv -f testing/scripts/protos/srm/s2.new testing/scripts/protos/srm/s2.env
+sed 's/^e=.*/e=999/' < testing/scripts/protos/srm/s2.env >testing/scripts/protos/srm/s2.new && mv -f testing/scripts/protos/srm/s2.new testing/scripts/protos/srm/s2.env
 rm -rf testing/scripts/protos/srm/2.1/dpm
 #make install prefix="`rpm --eval '%_topdir'`/INSTALL/s2-`cat VERSION`"
 make rpm

@@ -7,9 +7,9 @@
 ASSIGN srmTest srmMkdir
    #include ../include/PutCycle.s2
 
-&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR0} storageSystemInfo=<i1> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmMkdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{SRM_NEW_DIR0} storageSystemInfo=<i1> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& FUN PutCycle $ENV{NEW_SRM_DIR0}/$ENV{cdate}.txt $ENV{FILE_TO_PUT0} : putRequestToken
+&& FUN PutCycle $ENV{SRM_NEW_DIR0}/$ENV{cdate}.txt $ENV{FILE_TO_PUT0} : putRequestToken
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

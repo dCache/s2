@@ -1,3 +1,3 @@
 ; srmMkdir
 
-srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=<SURLOrStFN> storageSystemInfo=<storageSystemInfo> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+srmMkdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=<SURLOrStFN> storageSystemInfo=<storageSystemInfo> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

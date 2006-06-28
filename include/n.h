@@ -27,6 +27,13 @@
 #define SS_P_DQ(param)\
   if(param) ss << " "#param << "=" << dq_param(Process::eval_str(param,proc), quote)
 
+#define SS_P_DQ_C(c,p,v)\
+  if(c) {\
+    ss << " "#p << "=" << dq_param(v, quote);\
+  } else {\
+    DM_LOG(DM_N(1), "no "#c "\n");\
+  }
+
 #define SS_P_VALUE(r,param)\
   if(r->param) ss << " "#param << "=" << r->param->value;
 

@@ -4,8 +4,8 @@
 
 ASSIGN srmTest srmRmdir
 
-&& srmMkdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR0} storageSystemInfo=<i1> returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   srmRmdir $ENV{SRM_ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{NEW_SRM_DIR0} storageSystemInfo=<i1> recursive=0 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmMkdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{SRM_NEW_DIR0} storageSystemInfo=<i1> returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+   srmRmdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{SRM_NEW_DIR0} storageSystemInfo=<i1> recursive=0 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

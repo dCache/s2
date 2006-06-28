@@ -134,7 +134,7 @@ srmPutDone::toString(Process *proc)
   SS_SRM("srmPutDone");
   SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC(urlArray); if(proc) DELETE_VEC(urlArray);
+  SS_VEC_DEL(urlArray);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);

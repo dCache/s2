@@ -8,19 +8,19 @@
 
 ASSIGN srmTest srmRm
    #include ../include/PutCycle.s2
-   #include ../include/FileTransGet.s2
+   #include ../../include/FileTransGet.s2
 
 ;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{NEW_SRM_FILE0} : putRequestToken
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-&& srmRm $ENV{SRM_ENDPOINT} userID=$ENV{USER} path.SURLOrStFN[$ENV{NEW_SRM_FILE0}] path.storageSystemInfo[<i0>] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmRm $ENV{ENDPOINT} userID=$ENV{USER} path.SURLOrStFN[$ENV{SRM_NEW_FILE0}] path.storageSystemInfo[<i0>] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && NOP 
-   srmPrepareToGet $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.SURLOrStFN[$ENV{NEW_SRM_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=".*returnStatus.statusCode0=SRM_REQUEST_QUEUED.*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+   srmPrepareToGet $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.SURLOrStFN[$ENV{SRM_NEW_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=".*returnStatus.statusCode0=SRM_REQUEST_QUEUED.*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
       SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
       && SLEEP $ENV{SLEEP_SOR}
-         >1||3 srmStatusOfGetRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} surlArray[$ENV{NEW_SRM_FILE0}] fileStatuses="(?P<fileStatuses>.*)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_INVALID_PATH)
+         >1||3 srmStatusOfGetRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} surlArray[$ENV{SRM_NEW_FILE0}] fileStatuses="(?P<fileStatuses>.*)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_INVALID_PATH)
             SYSTEM echo "srmStatusOfGetRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
       && NOP
          FUN FileTransGet $ENV{FILE_TO_GET0} ${transferURL0} 

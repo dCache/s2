@@ -158,7 +158,7 @@ srmCopy::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH_3(resp->srmCopyResponse,
+  EAT_MATCH_C(resp->srmCopyResponse->requestToken,
               requestToken,
               resp->srmCopyResponse->requestToken->value.c_str());
 

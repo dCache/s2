@@ -140,8 +140,8 @@ srmStatusOfCopyRequest::toString(Process *proc)
   SS_SRM("srmStatusOfCopyRequest");
   SS_P_DQ(userID);
   SS_P_DQ(requestToken);
-  SS_VEC(fromSurlArray); if(proc) DELETE_VEC(fromSurlArray);
-  SS_VEC(toSurlArray); if(proc) DELETE_VEC(toSurlArray);
+  SS_VEC_DEL(fromSurlArray);
+  SS_VEC_DEL(toSurlArray);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);

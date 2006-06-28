@@ -134,7 +134,7 @@ srmStatusOfGetRequest::toString(Process *proc)
   SS_SRM("srmStatusOfGetRequest");
   SS_P_DQ(userID);
   SS_P_DQ(requestToken);
-  SS_VEC(surlArray); if(proc) DELETE_VEC(surlArray);
+  SS_VEC_DEL(surlArray);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);

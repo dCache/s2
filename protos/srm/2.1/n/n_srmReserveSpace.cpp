@@ -127,27 +127,27 @@ srmReserveSpace::exec(Process *proc)
   }
 
   /* typeOfReservedSpace */
-  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+  EAT_MATCH_C(resp->srmReserveSpaceResponse->typeOfReservedSpace,
               typeOfReservedSpace,
               getTSpaceType(*(resp->srmReserveSpaceResponse->typeOfReservedSpace)).c_str());
 
   /* sizeOfTotalReservedSpace */
-  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+  EAT_MATCH_C(resp->srmReserveSpaceResponse->sizeOfTotalReservedSpace,
               sizeOfTotalReservedSpace,
               i2str(resp->srmReserveSpaceResponse->sizeOfTotalReservedSpace->value).c_str());
 
   /* sizeOfGuaranteedReservedSpace */
-  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+  EAT_MATCH_C(resp->srmReserveSpaceResponse->sizeOfGuaranteedReservedSpace,
               sizeOfGuaranteedReservedSpace,
               i2str(resp->srmReserveSpaceResponse->sizeOfGuaranteedReservedSpace->value).c_str());
 
   /* lifetimeOfReservedSpace */
-  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+  EAT_MATCH_C(resp->srmReserveSpaceResponse->lifetimeOfReservedSpace,
               lifetimeOfReservedSpace,
               i2str(resp->srmReserveSpaceResponse->lifetimeOfReservedSpace->value).c_str());
 
   /* referenceHandleOfReservedSpace */
-  EAT_MATCH_3(resp->srmReserveSpaceResponse,
+  EAT_MATCH_C(resp->srmReserveSpaceResponse->referenceHandleOfReservedSpace,
               referenceHandleOfReservedSpace,
               resp->srmReserveSpaceResponse->referenceHandleOfReservedSpace->value.c_str());
 

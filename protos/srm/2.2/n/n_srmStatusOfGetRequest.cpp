@@ -115,7 +115,9 @@ srmStatusOfGetRequest::exec(Process *proc)
   EAT_MATCH(fileStatuses, arrayOfStatusOfGetRequestResponseToString(proc, FALSE, FALSE).c_str());
 
   /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmStatusOfGetRequestResponse, remainingTotalRequestTime, PI2CSTR(resp->srmStatusOfGetRequestResponse->remainingTotalRequestTime));
+  EAT_MATCH_C(resp->srmStatusOfGetRequestResponse->remainingTotalRequestTime,
+              remainingTotalRequestTime,
+              PI2CSTR(resp->srmStatusOfGetRequestResponse->remainingTotalRequestTime));
 
   RETURN(matchReturnStatus(resp->srmStatusOfGetRequestResponse->returnStatus, proc));
 }
@@ -137,7 +139,7 @@ srmStatusOfGetRequest::toString(Process *proc)
   SS_SRM("srmStatusOfGetRequest");
   SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC(urlArray); if(proc) DELETE_VEC(urlArray);
+  SS_VEC_DEL(urlArray);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);
@@ -149,6 +151,11 @@ srmStatusOfGetRequest::toString(Process *proc)
   if(!resp || !resp->srmStatusOfGetRequestResponse) RETURN(ss.str());
 
   ss << arrayOfStatusOfGetRequestResponseToString(proc, TRUE, quote);
+
+  /* remainingTotalRequestTime */
+  SS_P_DQ_C(resp->srmStatusOfGetRequestResponse->remainingTotalRequestTime,
+            remainingTotalRequestTime,
+            PI2CSTR(resp->srmStatusOfGetRequestResponse->remainingTotalRequestTime));
 
   SS_P_SRM_RETSTAT(resp->srmStatusOfGetRequestResponse);
 

@@ -115,7 +115,9 @@ srmStatusOfPutRequest::exec(Process *proc)
   EAT_MATCH(fileStatuses, arrayOfStatusOfPutRequestResponseToString(proc, FALSE, FALSE).c_str());
 
   /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmStatusOfPutRequestResponse, remainingTotalRequestTime, PI2CSTR(resp->srmStatusOfPutRequestResponse->remainingTotalRequestTime));
+  EAT_MATCH_C(resp->srmStatusOfPutRequestResponse->remainingTotalRequestTime,
+              remainingTotalRequestTime,
+              PI2CSTR(resp->srmStatusOfPutRequestResponse->remainingTotalRequestTime));
 
   RETURN(matchReturnStatus(resp->srmStatusOfPutRequestResponse->returnStatus, proc));
 }
@@ -137,7 +139,7 @@ srmStatusOfPutRequest::toString(Process *proc)
   SS_SRM("srmStatusOfPutRequest");
   SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC(urlArray); if(proc) DELETE_VEC(urlArray);
+  SS_VEC_DEL(urlArray);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);

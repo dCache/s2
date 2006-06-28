@@ -136,11 +136,7 @@ srmLs::exec(Process *proc)
   }
 
   /* arrayOfPathDetails */
-  match = proc->e_match(pathDetails, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
-  if(!match) {
-    DM_LOG(DM_N(1), "no match\n");
-    RETURN(ERR_ERR);
-  }
+  EAT_MATCH(pathDetails, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
   RETURN(matchReturnStatus(resp->srmLsResponse->returnStatus, proc));
 #undef EVAL_VEC_STR_LS
@@ -226,7 +222,7 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
     
     SS_P_VEC_DPAR(createdAtTime);
     SS_P_VEC_DPAR(lastModificationTime);
-    SS_P_VEC_DPAR_GSOAP(FileStorageType,fileStorageType);
+    SS_P_VEC_DPAR_SOAP(FileStorageType,fileStorageType);
 
     if(v[u] && v[u]->retentionPolicyInfo) {
       SS_VEC_SPACE; 
@@ -237,7 +233,7 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
       }
     }
 
-    SS_P_VEC_DPAR_GSOAP(FileLocality,fileLocality);
+    SS_P_VEC_DPAR_SOAP(FileLocality,fileLocality);
 
     if(v[u] && v[u]->arrayOfSpaceTokens) {
       for(uint j = 0; v[u]->arrayOfSpaceTokens->stringArray.size(); j++) {
@@ -246,12 +242,12 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
       }
     }
 
-    SS_P_VEC_DPAR_GSOAP(FileType,type);
+    SS_P_VEC_DPAR_SOAP(FileType,type);
     
     SS_P_VEC_DPAR(lifetimeAssigned);
     SS_P_VEC_DPAR(lifetimeLeft);
     SS_P_VEC_DPAR(owner);
-    SS_P_VEC_DPAR_GSOAP(PermissionMode,clientPermission);
+    SS_P_VEC_DPAR_SOAP(PermissionMode,clientPermission);
     
     SS_P_VEC_DPAR(checkSumType);
     SS_P_VEC_DPAR(checkSumValue);

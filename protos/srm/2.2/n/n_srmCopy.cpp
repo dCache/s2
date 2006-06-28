@@ -184,7 +184,7 @@ srmCopy::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH_3(resp->srmCopyResponse,
+  EAT_MATCH_C(resp->srmCopyResponse->requestToken,
               requestToken,
               CSTR(resp->srmCopyResponse->requestToken));
 
@@ -192,9 +192,10 @@ srmCopy::exec(Process *proc)
   EAT_MATCH(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
   /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmCopyResponse,
+  EAT_MATCH_C(resp->srmCopyResponse->remainingTotalRequestTime,
               remainingTotalRequestTime,
               PI2CSTR(resp->srmCopyResponse->remainingTotalRequestTime));
+
   RETURN(matchReturnStatus(resp->srmCopyResponse->returnStatus, proc));
 #undef EVAL_VEC_STR_PTP
 #undef EVAL_VEC_INT_PTP
@@ -264,16 +265,17 @@ srmCopy::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmCopyResponse) RETURN(ss.str());
 
-  if(!resp->srmCopyResponse->requestToken) {
-    DM_LOG(DM_N(1), "no request tokens returned\n");
-  } else ss << " requestToken=" << dq_param(resp->srmCopyResponse->requestToken, quote);
+  /* requestToken */
+  SS_P_DQ_C(resp->srmCopyResponse->requestToken,
+            requestToken,
+            CSTR(resp->srmCopyResponse->requestToken));
 
   ss << arrayOfFileStatusToString(proc, TRUE, quote);
   
   /* remainingTotalRequestTime */
-  if(!resp->srmCopyResponse->remainingTotalRequestTime) {
-    DM_LOG(DM_N(1), "no remainingTotalRequestTime returned\n");
-  } else ss << " remainingTotalRequestTime=" << dq_param(PI2CSTR(resp->srmCopyResponse->remainingTotalRequestTime), quote);
+  SS_P_DQ_C(resp->srmCopyResponse->remainingTotalRequestTime,
+            remainingTotalRequestTime,
+            PI2CSTR(resp->srmCopyResponse->remainingTotalRequestTime));
   
   SS_P_SRM_RETSTAT(resp->srmCopyResponse);
 

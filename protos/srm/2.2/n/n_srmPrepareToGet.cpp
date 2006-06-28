@@ -173,7 +173,7 @@ srmPrepareToGet::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH_3(resp->srmPrepareToGetResponse,
+  EAT_MATCH_C(resp->srmPrepareToGetResponse->requestToken,
               requestToken,
               CSTR(resp->srmPrepareToGetResponse->requestToken));
 
@@ -181,7 +181,7 @@ srmPrepareToGet::exec(Process *proc)
   EAT_MATCH(fileStatuses, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
   /* remainingTotalRequestTime */
-  EAT_MATCH_3(resp->srmPrepareToGetResponse,
+  EAT_MATCH_C(resp->srmPrepareToGetResponse->remainingTotalRequestTime,
               remainingTotalRequestTime,
               PI2CSTR(resp->srmPrepareToGetResponse->remainingTotalRequestTime));
   
@@ -248,16 +248,17 @@ srmPrepareToGet::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmPrepareToGetResponse) RETURN(ss.str());
 
-  if(!resp->srmPrepareToGetResponse->requestToken) {
-    DM_LOG(DM_N(1), "no request tokens returned\n");
-  } else ss << " requestToken=" << dq_param(resp->srmPrepareToGetResponse->requestToken, quote);
+  /* requestToken */
+  SS_P_DQ_C(resp->srmPrepareToGetResponse->requestToken,
+            requestToken,
+            CSTR(resp->srmPrepareToGetResponse->requestToken));
 
   ss << arrayOfFileStatusToString(proc, TRUE, quote);
   
   /* remainingTotalRequestTime */
-  if(!resp->srmPrepareToGetResponse->remainingTotalRequestTime) {
-    DM_LOG(DM_N(1), "no remainingTotalRequestTime returned\n");
-  } else ss << " remainingTotalRequestTime=" << dq_param(PI2CSTR(resp->srmPrepareToGetResponse->remainingTotalRequestTime), quote);
+  SS_P_DQ_C(resp->srmPrepareToGetResponse->remainingTotalRequestTime,
+            remainingTotalRequestTime,
+            PI2CSTR(resp->srmPrepareToGetResponse->remainingTotalRequestTime));
   
   SS_P_SRM_RETSTAT(resp->srmPrepareToGetResponse);
 

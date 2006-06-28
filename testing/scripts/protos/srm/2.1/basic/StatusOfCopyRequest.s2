@@ -9,12 +9,12 @@
 ASSIGN srmTest srmStatusOfCopyRequest
    #include ../include/PutCycle.s2
 
-&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{NEW_SRM_FILE0} : putRequestToken
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 ;;; Copy cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-&& srmCopy $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.allLevelRecursive[0] arrayOfFileRequests.isSourceADirectory[0] arrayOfFileRequests.numOfLevels[0] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.fromSURLOrStFN[$ENV{NEW_SRM_FILE0}] arrayOfFileRequests.fromStorageSystemInfo[<i0>] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.overwriteMode[Always] arrayOfFileRequests.spaceToken[<t0>] arrayOfFileRequests.toSURLOrStFN[$ENV{NEW_SRM_FILE1}] arrayOfFileRequests.toStorageSystemInfo[<i0>] userRequestDescription=<userRequestDescription> overwriteOption=Always removeSourceFiles=0 storageSystemInfo=<storageSystemInfo> totalRetryTime=0 requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+&& srmCopy $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.allLevelRecursive[0] arrayOfFileRequests.isSourceADirectory[0] arrayOfFileRequests.numOfLevels[0] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.fromSURLOrStFN[$ENV{SRM_NEW_FILE0}] arrayOfFileRequests.fromStorageSystemInfo[<i0>] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.overwriteMode[Always] arrayOfFileRequests.spaceToken[<t0>] arrayOfFileRequests.toSURLOrStFN[$ENV{SRM_NEW_FILE1}] arrayOfFileRequests.toStorageSystemInfo[<i0>] userRequestDescription=<userRequestDescription> overwriteOption=Always removeSourceFiles=0 storageSystemInfo=<storageSystemInfo> totalRetryTime=0 requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
    SLEEP $ENV{SLEEP_SOR}
-      >1||3 srmStatusOfCopyRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} fromSurlArray[$ENV{NEW_SRM_FILE0}] toSurlArray[$ENV{NEW_SRM_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      >1||3 srmStatusOfCopyRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} fromSurlArray[$ENV{SRM_NEW_FILE0}] toSurlArray[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          SYSTEM echo "srmStatusOfCopyRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}

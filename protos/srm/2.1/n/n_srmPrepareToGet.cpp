@@ -148,7 +148,7 @@ srmPrepareToGet::exec(Process *proc)
   }
 
   /* requestToken */
-  EAT_MATCH_3(resp->srmPrepareToGetResponse,
+  EAT_MATCH_C(resp->srmPrepareToGetResponse->requestToken,
               requestToken,
               resp->srmPrepareToGetResponse->requestToken->value.c_str());
 

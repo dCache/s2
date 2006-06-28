@@ -4,10 +4,10 @@
 
 ASSIGN srmTest srmStatusOfPutRequest
 
-&& srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$ENV{FILE_TO_PUT0_SIZE}] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[$ENV{NEW_SRM_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+&& srmPrepareToPut $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$ENV{FILE_TO_PUT0_SIZE}] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[$ENV{SRM_NEW_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
    SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
    && SLEEP $ENV{SLEEP_SOR}
-      >1||3 srmStatusOfPutRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$ENV{NEW_SRM_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      >1||3 srmStatusOfPutRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          SYSTEM echo "srmStatusOfPutRequest: transferURL0=${transferURL0}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}

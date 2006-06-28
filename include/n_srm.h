@@ -55,7 +55,7 @@
     }\
   } while(0)
 
-#define EAT_MATCH_3(p,q,recv) if(p->q) EAT_MATCH(q,recv)
+#define EAT_MATCH_C(c,p,r) if(c) EAT_MATCH(p,r)
 
 /* SRM 2.2 macros */
 #define SS_P_VEC_SRM_EXTRA_INFOu(v) \
@@ -68,10 +68,10 @@
     if(v[__u]->value) {SS_VEC_SPACE; ss << v[__u]->key << ":" << __u << "=" << dq_param(Process::eval_str(v[__u]->value,proc), quote);}\
   }
 
-#define SS_P_VEC_PAR_GSOAP(t,param)\
+#define SS_P_VEC_PAR_SOAP(t,param)\
   if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getT##t((v[u]->param));}
 
-#define SS_P_VEC_DPAR_GSOAP(t,param)\
+#define SS_P_VEC_DPAR_SOAP(t,param)\
   if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getT##t(*(v[u]->param));}
 
 
@@ -1078,6 +1078,51 @@ typedef struct tArrayOfPutFileRequests_
 };
 
 /*
+ * srmBringOnline request
+ */
+struct srmBringOnline : public SRM2
+{
+  /* request (parser/API) */
+  tArrayOfGetFileRequests_ fileRequests;
+
+  std::string *userRequestDescription;
+
+  tStorageSystemInfo_ storageSystemInfo;
+  std::string *desiredFileStorageType;
+  std::string *desiredTotalRequestTime;
+  std::string *desiredLifeTime;
+  std::string *targetSpaceToken;
+  std::string *retentionPolicy;
+  std::string *accessLatency;
+  std::string *accessPattern;
+  std::string *connectionType;
+  
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
+
+  std::string *deferredStartTime;
+  
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+  std::string *remainingDeferredStartTime;
+
+public:
+  srmBringOnline();
+  srmBringOnline(Node &node);
+  ~srmBringOnline();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmCopy request
  */
 struct srmCopy : public SRM2
@@ -1180,6 +1225,7 @@ public:
 
 private:
 };
+
 /*
  * srmPrepareToGet request
  */
@@ -1289,6 +1335,77 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfPutDoneResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmReserveSpace request
+ */
+struct srmReserveSpace : public SRM2
+{
+  /* request (parser/API) */
+  std::string *userSpaceTokenDescription;
+  std::string *retentionPolicy;
+  std::string *accessLatency;
+  std::string *desiredSizeOfTotalSpace;
+  std::string *desiredSizeOfGuaranteedSpace;
+  std::string *desiredLifetimeOfReservedSpace;
+  std::vector <std::string *> expectedFileSizes;
+  tStorageSystemInfo_ storageSystemInfo;
+  std::string *accessPattern;
+  std::string *connectionType;
+  
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
+
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *estimatedProcessingTime;
+  std::string *respRetentionPolicy;
+  std::string *respAccessLatency;
+  std::string *sizeOfTotalReservedSpace;
+  std::string *sizeOfGuaranteedReservedSpace;
+  std::string *lifetimeOfReservedSpace;
+  std::string *spaceToken;
+
+public:
+  srmReserveSpace();
+  srmReserveSpace(Node &node);
+  ~srmReserveSpace();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
+ * srmStatusOfBringOnlineRequest request
+ */
+struct srmStatusOfBringOnlineRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>urlArray;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+  std::string *remainingTotalRequestTime;
+  std::string *remainingDeferredStartTime;
+
+public:
+  srmStatusOfBringOnlineRequest();
+  srmStatusOfBringOnlineRequest(Node &node);
+  ~srmStatusOfBringOnlineRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfStatusOfBringOnlineRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };

@@ -5,10 +5,10 @@
 
 ASSIGN srmTest srmResumeRequest
 
-&& srmPrepareToPut $ENV{SRM_ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$ENV{FILE_TO_PUT0_SIZE}] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[$ENV{NEW_SRM_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
-   srmSuspendRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+&& srmPrepareToPut $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.knownSizeOfThisFile[$ENV{FILE_TO_PUT0_SIZE}] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.SURLOrStFN[$ENV{SRM_NEW_FILE0}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] overwriteOption=Always requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
+   srmSuspendRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
-&& srmResumeRequest $ENV{SRM_ENDPOINT} userID=$ENV{USER} requestToken=${requestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmResumeRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${requestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

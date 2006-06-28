@@ -137,11 +137,45 @@
 #endif	/* HAVE_SRM21 */
 
 #ifdef HAVE_SRM22
+#define MV_INT(t,s)\
+  do {\
+    t = s;\
+    DM_LOG(DM_N(2), ""#t " == %d\n",t);\
+  } while(0)
+
+#define MV_UINT(t,s)\
+  do {\
+    t = s;\
+    DM_LOG(DM_N(2), ""#t " == %u\n",t);\
+  } while(0)
+
+#define MV_INT64(t,s)\
+  do {\
+    t = s;\
+    DM_LOG(DM_N(2), ""#t " == %"PRIi64"\n",t);\
+  } while(0)
+
+#define MV_UINT64(t,s)\
+  do {\
+    t = s;\
+    DM_LOG(DM_N(2), ""#t " == %"PRIu64"\n",t);\
+  } while(0)
+
 #define MV_PINT(t,s)\
   do {\
     t = s;\
     if(t) {\
       DM_LOG(DM_N(2), ""#t " == %d\n",*t);\
+    } else {\
+      DM_LOG(DM_N(2), ""#t " == NULL\n");\
+    }\
+  } while(0)
+
+#define MV_PUINT(t,s)\
+  do {\
+    t = s;\
+    if(t) {\
+      DM_LOG(DM_N(2), ""#t " == %u\n",*t);\
     } else {\
       DM_LOG(DM_N(2), ""#t " == NULL\n");\
     }\
@@ -169,6 +203,12 @@
     }\
   } while(0)
 
+#define MV_CSTR2STR(t,s)\
+  do {\
+    t.assign(s);\
+    DM_LOG(DM_N(2), ""#t " == `%s'\n", t.c_str());\
+  } while(0)
+
 #define MV_CSTR2PSTR(t,s)\
   if(s) {\
     NOT_NULL(t = soap_new_std__string(soap, -1));\
@@ -178,12 +218,6 @@
     DM_LOG(DM_N(2), ""#t " == NULL\n");\
     t = NULL;\
   }
-
-#define MV_CSTR2STR(t,s)\
-  do {\
-    t.assign(s);\
-    DM_LOG(DM_N(2), ""#t " == `%s'\n", t.c_str());\
-  } while(0)
 
 #define MV_PSTR2PSTR(t,s)\
   do {\

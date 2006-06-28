@@ -30,6 +30,26 @@ typedef struct tArrayOfPutFileRequests
 
 /* extern(al) function declarations */
 extern int
+BringOnline(struct soap *soap,
+            const char *srm_endpoint,
+            const char *authorizationID,
+            const tArrayOfGetFileRequests fileRequests,
+            const char *userRequestDescription,
+            const tStorageSystemInfo storageSystemInfo,
+            const long *desiredFileStorageType,
+            int *desiredTotalRequestTime,
+            int *desiredLifeTime,
+            const char *targetSpaceToken,
+            const long retentionPolicy,
+            const long *accessLatency,
+            const long *accessPattern,
+            const long *connectionType,
+            std::vector <std::string *> clientNetworks,
+            std::vector <std::string *> transferProtocols,
+            int *deferredStartTime,
+            struct srm__srmBringOnlineResponse_ *resp);
+
+extern int
 Copy(struct soap *soap,
      const char *srm_endpoint,
      const char *authorizationID,
@@ -117,6 +137,30 @@ PutDone(struct soap *soap,
         const char *requestToken,
         std::vector <std::string *> arrayOfSURLs,
         struct srm__srmPutDoneResponse_ *resp);
+
+extern int
+ReserveSpace(struct soap *soap,
+             const char *srm_endpoint,
+             const char *authorizationID,
+             const char *userSpaceTokenDescription,
+             const long retentionPolicy,
+             const long *accessLatency,
+             uint64_t *desiredSizeOfTotalSpace,
+             const uint64_t desiredSizeOfGuaranteedSpace,
+             int *desiredLifetimeOfReservedSpace,
+             std::vector <uint64_t> arrayOfExpectedFileSizes,
+             tStorageSystemInfo storageSystemInfo,
+             const long *accessPattern,
+             const long *connectionType,
+             struct srm__srmReserveSpaceResponse_ *resp);
+
+extern int
+StatusOfBringOnlineRequest(struct soap *soap,
+                           const char *srm_endpoint,
+                           const char *authorizationID,
+                           const char *requestToken,
+                           std::vector <std::string *> sourceSURLs,
+                           struct srm__srmStatusOfBringOnlineRequestResponse_ *resp);
 
 extern int
 StatusOfCopyRequest(struct soap *soap,

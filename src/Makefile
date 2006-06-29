@@ -92,7 +92,7 @@ PRJLIBS		+=\
   $(LIB_GLOBUS)
 endif
 
-EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)
+EXTRALIBS	 += $(PRJLIBS)
 
 
 # Extra libraries ####################################################

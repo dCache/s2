@@ -123,7 +123,7 @@ srmReleaseSpace::exec(Process *proc)
 std::string
 srmReleaseSpace::toString(Process *proc)
 {
-#define EVAL_VEC_STR_RS(vec) EVAL_VEC_STR(srmBringOnline,vec)
+#define EVAL_VEC_STR_RS(vec) EVAL_VEC_STR(srmReleaseSpace,vec)
   DM_DBG_I;
 
   GET_SRM_RESP(ReleaseSpace);

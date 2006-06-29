@@ -221,4 +221,15 @@ StatusOfPutRequest(struct soap *soap,
                    std::vector <std::string *> targetSURLs,
                    struct srm__srmStatusOfPutRequestResponse_ *resp);
 
+extern int
+UpdateSpace(struct soap *soap,
+            const char *srm_endpoint,
+            const char *authorizationID,
+            const char *spaceToken,
+            uint64_t *newSizeOfTotalSpaceDesired,
+            uint64_t *newSizeOfGuaranteedSpaceDesired,
+            int *newLifeTime,
+            tStorageSystemInfo storageSystemInfo,
+            struct srm__srmUpdateSpaceResponse_ *resp);
+
 #endif /* _SRM2API_H */

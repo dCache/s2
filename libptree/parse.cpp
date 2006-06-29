@@ -376,6 +376,7 @@ _GET_INT(u,64);
   int srmStatusOfGetRequestR(void);
   int srmStatusOfLsRequestR(void);
   int srmStatusOfPutRequestR(void);
+  int srmUpdateSpaceR(void);
 #endif	/* HAVE_SRM22 */
 };
 
@@ -1584,6 +1585,7 @@ Parser::ACTION(void)
   POPL_EAT(srmStatusOfGetRequest,R,) else
   POPL_EAT(srmStatusOfLsRequest,R,) else
   POPL_EAT(srmStatusOfPutRequest,R,) else
+  POPL_EAT(srmUpdateSpace,R,) else
 #endif	/* HAVE_SRM22 */
     
   POPL_ERR;
@@ -3728,6 +3730,47 @@ Parser::srmStatusOfPutRequestR(void)
   return ERR_OK;
 } /* srmStatusOfPutRequestR */
 
+int
+Parser::srmUpdateSpaceR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmUpdateSpace *r = new srmUpdateSpace(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("spaceToken",r->spaceToken) else
+    POPL_EQ_PARAM("newSizeOfTotalSpaceDesired",r->newSizeOfTotalSpaceDesired) else
+    POPL_EQ_PARAM("newSizeOfGuaranteedSpaceDesired",r->newSizeOfGuaranteedSpaceDesired) else
+    POPL_EQ_PARAM("newLifeTime",r->newLifeTime) else
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+
+    /* response */
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+    POPL_EQ_PARAM("sizeOfTotalSpace",r->sizeOfTotalSpace) else
+    POPL_EQ_PARAM("sizeOfGuaranteedSpace",r->sizeOfGuaranteedSpace) else
+    POPL_EQ_PARAM("lifetimeGranted",r->lifetimeGranted) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmUpdateSpaceR */
 #endif	/* HAVE_SRM22 */
 
 /*

@@ -1607,6 +1607,37 @@ public:
 private:
 };
 
+/*
+ * srmUpdateSpace request
+ */
+struct srmUpdateSpace : public SRM2
+{
+  /* request (parser/API) */
+  std::string *spaceToken;
+  std::string *newSizeOfTotalSpaceDesired;
+  std::string *newSizeOfGuaranteedSpaceDesired;
+  std::string *newLifeTime;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *sizeOfTotalSpace;
+  std::string *sizeOfGuaranteedSpace;
+  std::string *lifetimeGranted;
+
+public:
+  srmUpdateSpace();
+  srmUpdateSpace(Node &node);
+  ~srmUpdateSpace();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
 #endif	/* HAVE_SRM22 */
 
 #endif /* _N_SRM_H */

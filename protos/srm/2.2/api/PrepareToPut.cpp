@@ -106,31 +106,7 @@ PrepareToPut(struct soap *soap,
   MV_PSOAP(AccessLatency,req.targetFileRetentionPolicyInfo->accessLatency,accessLatency);
   
   /* Transfer parameters */
-  NOT_NULL(req.transferParameters = soap_new_srm__TTransferParameters(soap, -1));
-  MV_PSOAP(AccessPattern,req.transferParameters->accessPattern,accessPattern);
-  MV_PSOAP(ConnectionType,req.transferParameters->connectionType,connectionType);
-  /*   client networks */
-  NOT_NULL(req.transferParameters->arrayOfClientNetworks = soap_new_srm__ArrayOfString(soap, -1));
-  for(uint u = 0; u < clientNetworks.size(); u++) {
-    DM_LOG(DM_N(2), "clientNetworks[%u]\n", u);
-    if(clientNetworks[u]) {
-      req.transferParameters->arrayOfClientNetworks->stringArray.push_back(CSTR(clientNetworks[u]));
-      DM_LOG(DM_N(2), "clientNetworks[%u] == `%s'\n", u, req.transferParameters->arrayOfClientNetworks->stringArray.back().c_str());
-    } else {
-      DM_LOG(DM_N(2), "clientNetworks[%u] == NULL\n", u);
-    }
-  }
-  /*   transfer protocols */
-  NOT_NULL(req.transferParameters->arrayOfTransferProtocols = soap_new_srm__ArrayOfString(soap, -1));
-  for(uint u = 0; u < transferProtocols.size(); u++) {
-    DM_LOG(DM_N(2), "transferProtocols[%u]\n", u);
-    if(transferProtocols[u]) {
-      req.transferParameters->arrayOfTransferProtocols->stringArray.push_back(CSTR(transferProtocols[u]));
-      DM_LOG(DM_N(2), "transferProtocols[%u] == `%s'\n", u, req.transferParameters->arrayOfTransferProtocols->stringArray.back().c_str());
-    } else {
-      DM_LOG(DM_N(2), "transferProtocols[%u] == NULL\n", u);
-    }
-  }
+  MV_TRANSFER_PARAMETERS(req.transferParameters);
   
   /* To send the request ... */
   SOAP_CALL_SRM(PrepareToPut);

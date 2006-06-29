@@ -31,10 +31,18 @@
   DM_DBG(DM_N(1),"soap call: srm"#func "() --->\n");
   
 #define NOT_NULL(par)\
-  if((par) == NULL) {\
-    perror("memory allocation failed");\
-    RETURN(EXIT_FAILURE);\
-  }
+  do {\
+    if((par) == NULL) {\
+      perror("memory allocation failed");\
+      RETURN(EXIT_FAILURE);\
+    }\
+  } while(0)
+
+#define NOT_0(v,par,n)\
+  do {\
+    if(!v.size()) par = NULL;\
+    else NOT_NULL(par = n);\
+  } while(0)
 
 #define NOT_NULL_VEC(v,r) (u < v.r.size() && v.r[u])
 #define NOT_NULL_VEC1(v)  (u < v.size() && v[u])
@@ -229,37 +237,74 @@
 #define MV_SOAP(type,t,s)\
   do {\
     t = (srm__T##type)s;\
-    DM_LOG(DM_N(2), ""#type " == %s\n", (t)? getT##type(t).c_str() : NULL);\
+    DM_LOG(DM_N(2), ""#t " == %s\n", (t)? getT##type(t).c_str() : NULL);\
   } while(0)
 
 #define MV_PSOAP(type,t,s)\
   do {\
     t = (srm__T##type *)s;\
-    DM_LOG(DM_N(2), ""#type " == %s\n", (t)? getT##type(*(t)).c_str() : NULL);\
+    DM_LOG(DM_N(2), ""#t " == %s\n", (t)? getT##type(*(t)).c_str() : NULL);\
   } while(0)
 
 #define MV_ARRAY_OF_STR_VAL(v1,v2,opt,t)\
-  NOT_NULL(v1 = soap_new_srm__ArrayOf##t(soap, -1));\
-  for(uint u = 0; u < v2.size(); u++) {\
-    if(v2[u]) {\
-      DM_LOG(DM_N(2), ""#opt "[%u] == `%s'\n", u, v2[u]->c_str());\
-      v1->opt.push_back(v2[u]->c_str());\
-    } else {\
-      DM_LOG(DM_N(2), ""#opt "[%u] == NULL\n", u);\
-      v1->opt.push_back("");\
+  do {\
+    NOT_0(v2,v1,soap_new_srm__ArrayOf##t(soap, -1));\
+    for(uint u = 0; u < v2.size(); u++) {\
+      if(v2[u]) {\
+        DM_LOG(DM_N(2), ""#opt "[%u] == `%s'\n", u, v2[u]->c_str());\
+        v1->opt.push_back(v2[u]->c_str());\
+      } else {\
+        DM_LOG(DM_N(2), ""#opt "[%u] == NULL\n", u);\
+        v1->opt.push_back("");\
+      }\
     }\
-  }
+  } while(0)
 
 #define MV_STORAGE_SYSTEM_INFO(v1,v2)\
-  NOT_NULL(v1 = soap_new_srm__ArrayOfTExtraInfo(soap, -1));\
-  for (uint u = 0; u < v2.key.size(); u++) {\
-    DM_LOG(DM_N(2), "storageSystemInfo.key[%u]\n", u);\
-    srm__TExtraInfo *extraInfo;\
-    NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));\
-    MV_CSTR2STR(extraInfo->key,CSTR(v2.key[u]));\
-    MV_PSTR2PSTR(extraInfo->value,v2.value[u]);\
-    v1->extraInfoArray.push_back(extraInfo);\
-  }
+  do {\
+    NOT_0(v2.key,v1,soap_new_srm__ArrayOfTExtraInfo(soap, -1));\
+    for (uint u = 0; u < v2.key.size(); u++) {\
+      DM_LOG(DM_N(2), "storageSystemInfo.key[%u]\n", u);\
+      srm__TExtraInfo *extraInfo;\
+      NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));\
+      MV_CSTR2STR(extraInfo->key,CSTR(v2.key[u]));\
+      MV_PSTR2PSTR(extraInfo->value,v2.value[u]);\
+      v1->extraInfoArray.push_back(extraInfo);\
+    }\
+  } while(0)
+
+#define MV_TRANSFER_PARAMETERS(r)\
+  /* Transfer parameters */\
+  do {\
+    if(!accessPattern && !connectionType && !clientNetworks.size() && !transferProtocols.size()) r = NULL;\
+    else {\
+      NOT_NULL(r = soap_new_srm__TTransferParameters(soap, -1));\
+      MV_PSOAP(AccessPattern,r->accessPattern,accessPattern);\
+      MV_PSOAP(ConnectionType,r->connectionType,connectionType);\
+      /*   client networks */\
+      NOT_0(clientNetworks,r->arrayOfClientNetworks,soap_new_srm__ArrayOfString(soap, -1));\
+      for(uint u = 0; u < clientNetworks.size(); u++) {\
+        DM_LOG(DM_N(2), "clientNetworks[%u]\n", u);\
+        if(clientNetworks[u]) {\
+          r->arrayOfClientNetworks->stringArray.push_back(CSTR(clientNetworks[u]));\
+          DM_LOG(DM_N(2), "clientNetworks[%u] == `%s'\n", u, r->arrayOfClientNetworks->stringArray.back().c_str());\
+        } else {\
+          DM_LOG(DM_N(2), "clientNetworks[%u] == NULL\n", u);\
+        }\
+      }\
+      /*   transfer protocols */\
+      NOT_0(transferProtocols,r->arrayOfTransferProtocols,soap_new_srm__ArrayOfString(soap, -1));\
+      for(uint u = 0; u < transferProtocols.size(); u++) {\
+        DM_LOG(DM_N(2), "transferProtocols[%u]\n", u);\
+        if(transferProtocols[u]) {\
+          r->arrayOfTransferProtocols->stringArray.push_back(CSTR(transferProtocols[u]));\
+          DM_LOG(DM_N(2), "transferProtocols[%u] == `%s'\n", u, r->arrayOfTransferProtocols->stringArray.back().c_str());\
+        } else {\
+          DM_LOG(DM_N(2), "transferProtocols[%u] == NULL\n", u);\
+        }\
+      }\
+    }\
+  } while(0)
 
 #endif	/* HAVE_SRM22 */
 

@@ -38,23 +38,23 @@
  */
 extern int
 BringOnline(struct soap *soap,
-             const char *srm_endpoint,
-             const char *authorizationID,
-             const tArrayOfGetFileRequests fileRequests,
-             const char *userRequestDescription,
-             const tStorageSystemInfo storageSystemInfo,
-             const long *desiredFileStorageType,
-             int *desiredTotalRequestTime,
-             int *desiredLifeTime,
-             const char *targetSpaceToken,
-             const long retentionPolicy,
-             const long *accessLatency,
-             const long *accessPattern,
-             const long *connectionType,
-             std::vector <std::string *> clientNetworks,
-             std::vector <std::string *> transferProtocols,
-             int *deferredStartTime,
-             struct srm__srmBringOnlineResponse_ *resp)
+            const char *srm_endpoint,
+            const char *authorizationID,
+            const tArrayOfGetFileRequests fileRequests,
+            const char *userRequestDescription,
+            const tStorageSystemInfo storageSystemInfo,
+            const long *desiredFileStorageType,
+            int *desiredTotalRequestTime,
+            int *desiredLifeTime,
+            const char *targetSpaceToken,
+            const long retentionPolicy,
+            const long *accessLatency,
+            const long *accessPattern,
+            const long *connectionType,
+            std::vector <std::string *> clientNetworks,
+            std::vector <std::string *> transferProtocols,
+            int *deferredStartTime,
+            struct srm__srmBringOnlineResponse_ *resp)
 {
   DM_DBG_I;
   struct srm__srmBringOnlineRequest req;
@@ -121,31 +121,7 @@ BringOnline(struct soap *soap,
   MV_PSOAP(AccessLatency,req.targetFileRetentionPolicyInfo->accessLatency,accessLatency);
 
   /* Transfer parameters */
-  NOT_NULL(req.transferParameters = soap_new_srm__TTransferParameters(soap, -1));
-  MV_PSOAP(AccessPattern,req.transferParameters->accessPattern,accessPattern);
-  MV_PSOAP(ConnectionType,req.transferParameters->connectionType,connectionType);
-  /*   client networks */
-  NOT_NULL(req.transferParameters->arrayOfClientNetworks = soap_new_srm__ArrayOfString(soap, -1));
-  for(uint u = 0; u < clientNetworks.size(); u++) {
-    DM_LOG(DM_N(2), "clientNetworks[%u]\n", u);
-    if(clientNetworks[u]) {
-      req.transferParameters->arrayOfClientNetworks->stringArray.push_back(CSTR(clientNetworks[u]));
-      DM_LOG(DM_N(2), "clientNetworks[%u] == `%s'\n", u, req.transferParameters->arrayOfClientNetworks->stringArray.back().c_str());
-    } else {
-      DM_LOG(DM_N(2), "clientNetworks[%u] == NULL\n", u);
-    }
-  }
-  /*   transfer protocols */
-  NOT_NULL(req.transferParameters->arrayOfTransferProtocols = soap_new_srm__ArrayOfString(soap, -1));
-  for(uint u = 0; u < transferProtocols.size(); u++) {
-    DM_LOG(DM_N(2), "transferProtocols[%u]\n", u);
-    if(transferProtocols[u]) {
-      req.transferParameters->arrayOfTransferProtocols->stringArray.push_back(CSTR(transferProtocols[u]));
-      DM_LOG(DM_N(2), "transferProtocols[%u] == `%s'\n", u, req.transferParameters->arrayOfTransferProtocols->stringArray.back().c_str());
-    } else {
-      DM_LOG(DM_N(2), "transferProtocols[%u] == NULL\n", u);
-    }
-  }
+  MV_TRANSFER_PARAMETERS(req.transferParameters);
 
   MV_PINT(req.desiredTotalRequestTime,desiredTotalRequestTime);
   

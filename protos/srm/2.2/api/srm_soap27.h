@@ -129,6 +129,7 @@ static const struct soap_code_map soap_codes_srm__TFileStorageType[] =
 /* extern(al) function declarations */
 #define GET_SOAP(table)\
   extern const long *getT##table(const char *string);\
+  extern const long getT##table(const char *string, char warn);\
   extern std::string getT##table(long code);
 
 GET_SOAP(StatusCode);
@@ -144,6 +145,5 @@ GET_SOAP(RetentionPolicy);
 GET_SOAP(FileType);
 GET_SOAP(FileStorageType);
 #undef GET_SOAP
-
 
 #endif /* _SRM_SOAP27_H */

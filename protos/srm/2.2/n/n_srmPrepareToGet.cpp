@@ -146,7 +146,7 @@ srmPrepareToGet::exec(Process *proc)
     proc->eval2pint(desiredTotalRequestTime).p,
     proc->eval2pint(desiredPinLifeTime).p,
     EVAL2CSTR(targetSpaceToken),
-    *getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),	/* getT* never returns pointer to NULL */
+    getTRetentionPolicy(EVAL2CSTR(retentionPolicy),TRUE),	/* one-parameter getT* returns pointer to NULL in 2.2 */
     getTAccessLatency(EVAL2CSTR(accessLatency)),
     getTAccessPattern(EVAL2CSTR(accessPattern)),
     getTConnectionType(EVAL2CSTR(connectionType)),

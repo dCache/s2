@@ -3,6 +3,7 @@
 #ifndef _BASIC_FUN_
 #define _BASIC_FUN_
 
+; String manipulation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DEFUN RemoveTrailing s : r
    TEST $MATCH{"(?P<r>.*?)[\t ]*$" ${s}}
 
@@ -12,7 +13,11 @@ DEFUN RemoveLeading s : r
 DEFUN car list : car cdr
    TEST $MATCH{"(?P<car>[^ ]+)([ ]+|$)(?P<cdr>.*)" ${list}}
 
+; File manipulation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DEFUN FileSize f : r
    match=-c SYSTEM out="^([^ ]+[ ]+){4,4}(?P<r>.*? )" ls -l ${f}
+
+DEFUN DiskUsage f : r
+   match=-c SYSTEM out="^(?P<r>[0-9]+)" du -b ${f}
 
 #endif	; _BASIC_FUN_

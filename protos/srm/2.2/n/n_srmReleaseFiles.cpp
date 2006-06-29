@@ -38,7 +38,7 @@ srmReleaseFiles::init()
 {
   /* request (parser/API) */
   requestToken = NULL;
-  keepFiles = NULL;
+  doRemove = NULL;
 
   /* response (parser) */
   fileStatuses = NULL;
@@ -62,8 +62,8 @@ srmReleaseFiles::~srmReleaseFiles()
 
   /* request (parser/API) */
   DELETE(requestToken);
-  DELETE_VEC(surlArray);
-  DELETE(keepFiles);
+  DELETE_VEC(urlArray);
+  DELETE(doRemove);
 
   /* response (parser) */
   DELETE(fileStatuses);
@@ -88,7 +88,7 @@ srmReleaseFiles::exec(Process *proc)
   DM_DBG_I;
   BOOL match = FALSE;
 
-  std::vector <std::string *> surlArray = proc->eval_vec_str(srmReleaseFiles::surlArray);
+  std::vector <std::string *> urlArray = proc->eval_vec_str(srmReleaseFiles::urlArray);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(ReleaseFiles);
@@ -96,15 +96,15 @@ srmReleaseFiles::exec(Process *proc)
   ReleaseFiles(
     soap,
     EVAL2CSTR(srm_endpoint),
-    EVAL2CSTR(userID),
+    EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
-    surlArray,
-    (bool *)proc->eval2pint64(keepFiles).p,
+    urlArray,
+    (bool *)proc->eval2pint(doRemove).p,
     resp
   );
 #endif
 
-  DELETE_VEC(surlArray);
+  DELETE_VEC(urlArray);
 
   /* matching */
   if(!resp || !resp->srmReleaseFilesResponse) {
@@ -113,11 +113,7 @@ srmReleaseFiles::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(fileStatuses, arrayOfReleaseFilesResponseToString(proc, FALSE, FALSE).c_str());
-  if(!match) {
-    DM_LOG(DM_N(1), "no match\n");
-    RETURN(ERR_ERR);
-  }
+  EAT_MATCH(fileStatuses, arrayOfReleaseFilesResponseToString(proc, FALSE, FALSE).c_str());
 
   RETURN(matchReturnStatus(resp->srmReleaseFilesResponse->returnStatus, proc));
 }
@@ -131,16 +127,16 @@ srmReleaseFiles::toString(Process *proc)
   BOOL quote = TRUE;
   std::stringstream ss;
 
-  std::vector <std::string *> surlArray =
-    proc? proc->eval_vec_str(srmReleaseFiles::surlArray):
-          srmReleaseFiles::surlArray;
+  std::vector <std::string *> urlArray =
+    proc? proc->eval_vec_str(srmReleaseFiles::urlArray):
+          srmReleaseFiles::urlArray;
   
   /* request */  
   SS_SRM("srmReleaseFiles");
-  SS_P_DQ(userID);
+  SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC_DEL(surlArray);
-  SS_P_DQ(keepFiles);
+  SS_VEC_DEL(urlArray);
+  SS_P_DQ(doRemove);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);
@@ -169,10 +165,10 @@ srmReleaseFiles::arrayOfReleaseFilesResponseToString(Process *proc, BOOL space, 
 
   if(resp->srmReleaseFilesResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
-    std::vector<srm__TSURLReturnStatus *> v = resp->srmReleaseFilesResponse->arrayOfFileStatuses->surlReturnStatusArray;
+    std::vector<srm__TSURLReturnStatus *> v = resp->srmReleaseFilesResponse->arrayOfFileStatuses->statusArray;
     for(uint u = 0; u < v.size(); u++) {
+      SS_P_VEC_PAR(surl);
       SS_P_VEC_SRM_RETSTAT(status);
-      SS_P_VEC_PAR_VAL(surl);
     }
   }
   RETURN(ss.str());

@@ -71,6 +71,13 @@ Copy(struct soap *soap,
      struct srm__srmCopyResponse_ *resp);
 
 extern int
+GetSpaceMetaData(struct soap *soap,
+                 const char *srm_endpoint,
+                 const char *authorizationID,
+                 std::vector <std::string *> spaceTokens,
+                 struct srm__srmGetSpaceMetaDataResponse_ *resp);
+
+extern int
 Ls(struct soap *soap,
    const char *srm_endpoint,
    const char *authorizationID,
@@ -137,6 +144,15 @@ PutDone(struct soap *soap,
         const char *requestToken,
         std::vector <std::string *> arrayOfSURLs,
         struct srm__srmPutDoneResponse_ *resp);
+
+extern int
+ReleaseFiles(struct soap *soap,
+             const char *srm_endpoint,
+             const char *authorizationID,
+             const char *requestToken,
+             std::vector <std::string *> SURLs,
+             bool *doRemove,
+             struct srm__srmReleaseFilesResponse_ *resp);
 
 extern int
 ReserveSpace(struct soap *soap,

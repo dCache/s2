@@ -70,7 +70,6 @@ Note that if you just want to play with the S2 language and do not
 want SRM2 support, use
 $ ./configure
 
-
 Testing directory
 ~~~~~~~~~~~~~~~~~
 A simple test framework was created in the testing directory.

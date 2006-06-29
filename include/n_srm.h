@@ -46,6 +46,16 @@
   if(v[u] && v[u]->param)\
     {SS_VEC_SPACE; ss << "returnStatus.statusCode" << u << "=" << getTStatusCode(v[u]->param->statusCode);}
 
+#define SS_P_VEC_SRM_RETENTION_POLICY(par)\
+  if(v[u] && v[u]->par) {\
+    SS_VEC_SPACE;\
+    ss << "retentionPolicy" << u << "=" << getTRetentionPolicy((v[u]->par->retentionPolicy));\
+    if(v[u]->par->accessLatency) {\
+      SS_VEC_SPACE;\
+      ss << "accessLatency" << u << "=" << getTRetentionPolicy(*(v[u]->par->accessLatency));\
+    }\
+  }
+
 #define EAT_MATCH(p,r)\
   do {\
     match = proc->e_match(p,r);\
@@ -1168,6 +1178,31 @@ private:
 };
 
 /*
+ * srmGetSpaceMetaData request
+ */
+struct srmGetSpaceMetaData : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> spaceTokens;
+
+  /* response (parser) */
+  std::string *spaceDetails;
+
+public:
+  srmGetSpaceMetaData();
+  srmGetSpaceMetaData(Node &node);
+  ~srmGetSpaceMetaData();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfSpaceDetailsToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmLs request
  */
 struct srmLs : public SRM2
@@ -1335,6 +1370,58 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfPutDoneResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmReleaseFiles request
+ */
+struct srmReleaseFiles : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>urlArray;
+  std::string *doRemove;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+
+public:
+  srmReleaseFiles();
+  srmReleaseFiles(Node &node);
+  ~srmReleaseFiles();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfReleaseFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmReleaseSpace request
+ */
+struct srmReleaseSpace : public SRM2
+{
+  /* request (parser/API) */
+  std::string *spaceToken;
+  tStorageSystemInfo_ storageSystemInfo;
+  std::string *forceFileRelease;
+
+  /* response (parser) */
+
+public:
+  srmReleaseSpace();
+  srmReleaseSpace(Node &node);
+  ~srmReleaseSpace();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };

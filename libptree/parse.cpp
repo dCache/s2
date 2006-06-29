@@ -362,11 +362,14 @@ _GET_INT(u,64);
 #ifdef HAVE_SRM22
   int srmBringOnlineR(void);
   int srmCopyR(void);
+  int srmGetSpaceMetaDataR(void);
   int srmLsR(void);
   int srmPingR(void);
   int srmPrepareToGetR(void);
   int srmPrepareToPutR(void);
   int srmPutDoneR(void);
+  int srmReleaseFilesR(void);
+  int srmReleaseSpaceR(void);
   int srmReserveSpaceR(void);
   int srmStatusOfBringOnlineRequestR(void);
   int srmStatusOfCopyRequestR(void);
@@ -1567,11 +1570,14 @@ Parser::ACTION(void)
 #ifdef HAVE_SRM22
   POPL_EAT(srmBringOnline,R,) else
   POPL_EAT(srmCopy,R,) else
+  POPL_EAT(srmGetSpaceMetaData,R,) else
   POPL_EAT(srmLs,R,) else
   POPL_EAT(srmPing,R,) else
   POPL_EAT(srmPrepareToGet,R,) else
   POPL_EAT(srmPrepareToPut,R,) else
   POPL_EAT(srmPutDone,R,) else
+  POPL_EAT(srmReleaseFiles,R,) else
+  POPL_EAT(srmReleaseSpace,R,) else
   POPL_EAT(srmReserveSpace,R,) else
   POPL_EAT(srmStatusOfBringOnlineRequest,R,) else
   POPL_EAT(srmStatusOfCopyRequest,R,) else
@@ -3167,6 +3173,40 @@ Parser::srmCopyR(void)
 } /* srmCopyR */
 
 int
+Parser::srmGetSpaceMetaDataR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmGetSpaceMetaData *r = new srmGetSpaceMetaData(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_ARRAY("spaceTokens",r->spaceTokens) else
+
+    /* response */
+    POPL_EQ_PARAM("spaceDetails",r->spaceDetails) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmGetSpaceMetaDataR */
+
+int
 Parser::srmLsR(void)
 {
   int rval;
@@ -3382,6 +3422,78 @@ Parser::srmPutDoneR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmPutDoneR */
+
+int
+Parser::srmReleaseFilesR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmReleaseFiles *r = new srmReleaseFiles(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+    POPL_ARRAY("urlArray",r->urlArray) else
+    POPL_EQ_PARAM("doRemove",r->doRemove) else
+
+    /* response */
+    POPL_EQ_PARAM("fileStatuses",r->fileStatuses) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmReleaseFilesR */
+
+int
+Parser::srmReleaseSpaceR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmReleaseSpace *r = new srmReleaseSpace(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("spaceToken",r->spaceToken) else
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+    POPL_EQ_PARAM("forceFileRelease",r->forceFileRelease) else
+
+    /* response */
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmReleaseSpaceR */
 
 int
 Parser::srmReserveSpaceR(void)

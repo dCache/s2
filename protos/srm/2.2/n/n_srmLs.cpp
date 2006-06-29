@@ -223,16 +223,7 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
     SS_P_VEC_DPAR(createdAtTime);
     SS_P_VEC_DPAR(lastModificationTime);
     SS_P_VEC_DPAR_SOAP(FileStorageType,fileStorageType);
-
-    if(v[u] && v[u]->retentionPolicyInfo) {
-      SS_VEC_SPACE; 
-      ss << "retentionPolicy" << u << "=" << getTRetentionPolicy((v[u]->retentionPolicyInfo->retentionPolicy));
-      if(v[u]->retentionPolicyInfo->accessLatency) {
-        SS_VEC_SPACE; 
-        ss << "accessLatency" << u << "=" << getTRetentionPolicy(*(v[u]->retentionPolicyInfo->accessLatency));
-      }
-    }
-
+    SS_P_VEC_SRM_RETENTION_POLICY(retentionPolicyInfo);
     SS_P_VEC_DPAR_SOAP(FileLocality,fileLocality);
 
     if(v[u] && v[u]->arrayOfSpaceTokens) {

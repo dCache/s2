@@ -1203,6 +1203,31 @@ private:
 };
 
 /*
+ * srmGetSpaceTokens request
+ */
+struct srmGetSpaceTokens : public SRM2
+{
+  /* request (parser/API) */
+  std::string *userSpaceTokenDescription;
+
+  /* response (parser) */
+  std::string *spaceTokens;
+
+public:
+  srmGetSpaceTokens();
+  srmGetSpaceTokens(Node &node);
+  ~srmGetSpaceTokens();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfSpaceTokensToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmLs request
  */
 struct srmLs : public SRM2

@@ -78,6 +78,13 @@ GetSpaceMetaData(struct soap *soap,
                  struct srm__srmGetSpaceMetaDataResponse_ *resp);
 
 extern int
+GetSpaceTokens(struct soap *soap,
+               const char *srm_endpoint,
+               const char *authorizationID,
+               const char *userSpaceTokenDescription,
+               struct srm__srmGetSpaceTokensResponse_ *resp);
+
+extern int
 Ls(struct soap *soap,
    const char *srm_endpoint,
    const char *authorizationID,

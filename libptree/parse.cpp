@@ -363,6 +363,7 @@ _GET_INT(u,64);
   int srmBringOnlineR(void);
   int srmCopyR(void);
   int srmGetSpaceMetaDataR(void);
+  int srmGetSpaceTokensR(void);
   int srmLsR(void);
   int srmPingR(void);
   int srmPrepareToGetR(void);
@@ -1572,6 +1573,7 @@ Parser::ACTION(void)
   POPL_EAT(srmBringOnline,R,) else
   POPL_EAT(srmCopy,R,) else
   POPL_EAT(srmGetSpaceMetaData,R,) else
+  POPL_EAT(srmGetSpaceTokens,R,) else
   POPL_EAT(srmLs,R,) else
   POPL_EAT(srmPing,R,) else
   POPL_EAT(srmPrepareToGet,R,) else
@@ -3207,6 +3209,40 @@ Parser::srmGetSpaceMetaDataR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmGetSpaceMetaDataR */
+
+int
+Parser::srmGetSpaceTokensR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmGetSpaceTokens *r = new srmGetSpaceTokens(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("userSpaceTokenDescription",r->userSpaceTokenDescription) else
+
+    /* response */
+    POPL_EQ_PARAM("spaceTokens",r->spaceTokens) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmGetSpaceTokensR */
 
 int
 Parser::srmLsR(void)

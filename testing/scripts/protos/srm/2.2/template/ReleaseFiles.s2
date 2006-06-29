@@ -1,0 +1,3 @@
+; srmReleaseFiles
+
+srmReleaseFiles $ENV{ENDPOINT} authorizationID=$ENV{USER} requestToken=<requestToken> urlArray[<s0> <s1>] doRemove=0 fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

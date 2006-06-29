@@ -155,6 +155,15 @@ ReleaseFiles(struct soap *soap,
              struct srm__srmReleaseFilesResponse_ *resp);
 
 extern int
+ReleaseSpace(struct soap *soap,
+             const char *srm_endpoint,
+             const char *authorizationID,
+             const char *spaceToken,
+             tStorageSystemInfo storageSystemInfo,
+             bool *forceFileRelease,
+             struct srm__srmReleaseSpaceResponse_ *resp);
+
+extern int
 ReserveSpace(struct soap *soap,
              const char *srm_endpoint,
              const char *authorizationID,

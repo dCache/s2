@@ -38,7 +38,6 @@ srmReleaseSpace::init()
 {
   /* request (parser/API) */
   spaceToken = NULL;
-  storageSystemInfo = NULL;
   forceFileRelease = NULL;
 
   /* response (parser) */
@@ -62,7 +61,8 @@ srmReleaseSpace::~srmReleaseSpace()
 
   /* request (parser/API) */
   DELETE(spaceToken);
-  DELETE(storageSystemInfo);
+  DELETE_VEC(storageSystemInfo.key);
+  DELETE_VEC(storageSystemInfo.value);
   DELETE(forceFileRelease);
 
   /* response (parser) */
@@ -84,7 +84,13 @@ srmReleaseSpace::finish(Process *proc)
 int
 srmReleaseSpace::exec(Process *proc)
 {
+#define EVAL_VEC_STR_RS(vec) vec = proc->eval_vec_str(srmReleaseSpace::vec)
   DM_DBG_I;
+
+  tStorageSystemInfo storageSystemInfo;
+  
+  EVAL_VEC_STR_RS(storageSystemInfo.key);
+  EVAL_VEC_STR_RS(storageSystemInfo.value);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(ReleaseSpace);
@@ -94,11 +100,14 @@ srmReleaseSpace::exec(Process *proc)
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(spaceToken),
-    EVAL2CSTR(storageSystemInfo),
+    storageSystemInfo,
     (bool *)proc->eval2pint32(forceFileRelease).p,
     resp
   );
 #endif
+
+  DELETE_VEC(storageSystemInfo.key);
+  DELETE_VEC(storageSystemInfo.value);
 
   /* matching */
   if(!resp || !resp->srmReleaseSpaceResponse) {
@@ -107,23 +116,31 @@ srmReleaseSpace::exec(Process *proc)
   }
 
   RETURN(matchReturnStatus(resp->srmReleaseSpaceResponse->returnStatus, proc));
+
+#undef EVAL_VEC_STR_RS
 }
 
 std::string
 srmReleaseSpace::toString(Process *proc)
 {
+#define EVAL_VEC_STR_RS(vec) EVAL_VEC_STR(srmBringOnline,vec)
   DM_DBG_I;
 
   GET_SRM_RESP(ReleaseSpace);
   BOOL quote = TRUE;
   std::stringstream ss;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  EVAL_VEC_STR_RS(storageSystemInfo.key);
+  EVAL_VEC_STR_RS(storageSystemInfo.value);
 
   /* request */  
   SS_SRM("srmReleaseSpace");
 
   SS_P_DQ(authorizationID);
   SS_P_DQ(spaceToken);
-  SS_P_DQ(storageSystemInfo);
+  SS_VEC_DEL(storageSystemInfo.key);
+  SS_VEC_DEL(storageSystemInfo.value);
   SS_P_DQ(forceFileRelease);
 
   /* response (parser) */
@@ -136,4 +153,6 @@ srmReleaseSpace::toString(Process *proc)
   SS_P_SRM_RETSTAT(resp->srmReleaseSpaceResponse);
 
   RETURN(ss.str());
+
+#undef EVAL_VEC_STR_RS
 }

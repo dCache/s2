@@ -39,7 +39,7 @@ ReleaseSpace(struct soap *soap,
              const char *srm_endpoint,
              const char *authorizationID,
              const char *spaceToken,
-             const char *storageSystemInfo,
+             tStorageSystemInfo storageSystemInfo,
              bool *forceFileRelease,
              struct srm__srmReleaseSpaceResponse_ *resp)
 {
@@ -56,10 +56,13 @@ ReleaseSpace(struct soap *soap,
 #warning "Compiling without CGSI plugin support, i.e. no security"
 #endif
 
-  NEW_STR_VAL(authorizationID,TUserID);
-  NEW_STR_VAL(spaceToken,TSpaceToken);
-  NEW_STR_VAL(storageSystemInfo,TStorageSystemInfo);
-  PBOOL_VAL(forceFileRelease);
+  MV_CSTR2PSTR(req.authorizationID,authorizationID);
+  MV_CSTR2STR(req.spaceToken,spaceToken);
+
+  /* Storage system info */
+  MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);
+
+  MV_PBOOL(req.forceFileRelease,forceFileRelease);
 
   /* To send the request ... */
   SOAP_CALL_SRM(ReleaseSpace);

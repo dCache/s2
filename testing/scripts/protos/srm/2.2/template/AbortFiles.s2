@@ -1,0 +1,3 @@
+; srmAbortFiles
+
+srmAbortFiles $ENV{ENDPOINT} authorizationID=$ENV{USER} requestToken=<requestToken> SURL[<s0> <s1>] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

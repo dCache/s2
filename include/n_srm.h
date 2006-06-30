@@ -1087,6 +1087,32 @@ typedef struct tArrayOfPutFileRequests_
 };
 
 /*
+ * srmAbortFiles request
+ */
+struct srmAbortFiles : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *>SURL;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+
+public:
+  srmAbortFiles();
+  srmAbortFiles(Node &node);
+  ~srmAbortFiles();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfAbortFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmBringOnline request
  */
 struct srmBringOnline : public SRM2

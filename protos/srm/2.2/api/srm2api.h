@@ -30,6 +30,14 @@ typedef struct tArrayOfPutFileRequests
 
 /* extern(al) function declarations */
 extern int
+AbortFiles(struct soap *soap,
+           const char *srm_endpoint,
+           const char *authorizationID,
+           const char *requestToken,
+           std::vector <std::string *> SURL,
+           struct srm__srmAbortFilesResponse_ *resp);
+
+extern int
 BringOnline(struct soap *soap,
             const char *srm_endpoint,
             const char *authorizationID,

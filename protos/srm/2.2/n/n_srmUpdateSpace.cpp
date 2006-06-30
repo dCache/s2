@@ -98,7 +98,6 @@ srmUpdateSpace::exec(Process *proc)
 {
 #define EVAL_VEC_STR_US(vec) vec = proc->eval_vec_str(srmUpdateSpace::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
 
   tStorageSystemInfo storageSystemInfo;
 

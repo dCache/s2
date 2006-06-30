@@ -50,6 +50,14 @@ BringOnline(struct soap *soap,
             struct srm__srmBringOnlineResponse_ *resp);
 
 extern int
+ChangeSpaceForFiles(struct soap *soap,
+                    const char *srm_endpoint,
+                    const char *authorizationID,
+                    const char *spaceToken,
+                    tStorageSystemInfo storageSystemInfo,
+                    struct srm__srmChangeSpaceForFilesResponse_ *resp);
+
+extern int
 Copy(struct soap *soap,
      const char *srm_endpoint,
      const char *authorizationID,

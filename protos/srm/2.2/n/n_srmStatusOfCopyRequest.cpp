@@ -87,7 +87,6 @@ int
 srmStatusOfCopyRequest::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> sourceUrlArray = proc->eval_vec_str(srmStatusOfCopyRequest::sourceUrlArray);
   std::vector <std::string *> targetUrlArray = proc->eval_vec_str(srmStatusOfCopyRequest::targetUrlArray);

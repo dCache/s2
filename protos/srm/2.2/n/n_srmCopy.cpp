@@ -115,7 +115,6 @@ srmCopy::exec(Process *proc)
 #define EVAL_VEC_INT_PTP(vec) vec = proc->eval_vec_int(srmCopy::vec)
 #define EVAL_VEC_PINT_PTP(vec) vec = proc->eval_vec_pint(srmCopy::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> sourceSURL;
   std::vector <std::string *> targetSURL;

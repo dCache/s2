@@ -116,7 +116,6 @@ srmBringOnline::exec(Process *proc)
 #define EVAL_VEC_INT_PTG(vec) vec = proc->eval_vec_int(srmBringOnline::vec)
 #define EVAL_VEC_PINT_PTG(vec) vec = proc->eval_vec_pint(srmBringOnline::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
 
   tArrayOfGetFileRequests fileRequests;
   tStorageSystemInfo storageSystemInfo;

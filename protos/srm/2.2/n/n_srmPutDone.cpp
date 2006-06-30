@@ -84,7 +84,6 @@ int
 srmPutDone::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> urlArray = proc->eval_vec_str(srmPutDone::urlArray);
 
@@ -108,11 +107,7 @@ srmPutDone::exec(Process *proc)
   }
 
   /* arrayOfRequestDetails */
-  match = proc->e_match(fileStatuses, arrayOfPutDoneResponseToString(proc, FALSE, FALSE).c_str());
-  if(!match) {
-    DM_LOG(DM_N(1), "no match\n");
-    RETURN(ERR_ERR);
-  }
+  EAT_MATCH(fileStatuses, arrayOfPutDoneResponseToString(proc, FALSE, FALSE).c_str());
 
   RETURN(matchReturnStatus(resp->srmPutDoneResponse->returnStatus, proc));
 }

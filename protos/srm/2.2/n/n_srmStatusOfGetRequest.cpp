@@ -86,7 +86,6 @@ int
 srmStatusOfGetRequest::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> urlArray = proc->eval_vec_str(srmStatusOfGetRequest::urlArray);
 

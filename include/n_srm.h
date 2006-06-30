@@ -58,8 +58,7 @@
 
 #define EAT_MATCH(p,r)\
   do {\
-    match = proc->e_match(p,r);\
-    if(!match) {\
+    if(!proc->e_match(p,r)) {\
       DM_DBG(DM_N(1), "no match\n");\
       return ERR_ERR;\
     }\
@@ -1173,6 +1172,35 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmChangeSpaceForFiles request
+ */
+struct srmChangeSpaceForFiles : public SRM2
+{
+  /* request (parser/API) */
+  std::string *spaceToken;
+  tStorageSystemInfo_ storageSystemInfo;
+  std::vector <std::string *> urlArray;
+
+  /* response (parser) */
+  std::string *requestToken;
+  std::string *estimatedProcessingTime;
+  std::string *fileStatuses;
+
+public:
+  srmChangeSpaceForFiles();
+  srmChangeSpaceForFiles(Node &node);
+  ~srmChangeSpaceForFiles();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string srmChangeSpaceForFiles::arrayOfChangeSpaceForFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };

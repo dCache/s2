@@ -83,7 +83,6 @@ int
 srmPing::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(Ping);
@@ -108,7 +107,7 @@ srmPing::exec(Process *proc)
   /* arrayOfFileStatus */
   EAT_MATCH(otherInfo, arrayOfOtherInfoToString(proc, FALSE, FALSE).c_str());
   
-  return match;
+  return ERR_OK;
 }
 
 std::string

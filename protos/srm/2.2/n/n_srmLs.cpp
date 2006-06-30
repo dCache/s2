@@ -97,7 +97,6 @@ srmLs::exec(Process *proc)
 {
 #define EVAL_VEC_STR_LS(vec) vec = proc->eval_vec_str(srmLs::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> SURL;
   tStorageSystemInfo storageSystemInfo;

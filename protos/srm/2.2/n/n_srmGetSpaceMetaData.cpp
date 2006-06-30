@@ -82,7 +82,6 @@ int
 srmGetSpaceMetaData::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
   std::vector <std::string *> spaceTokens = proc->eval_vec_str(srmGetSpaceMetaData::spaceTokens);
 

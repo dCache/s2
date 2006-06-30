@@ -118,7 +118,6 @@ srmReserveSpace::exec(Process *proc)
 #define EVAL_VEC_UINT64_RS(vec) vec = proc->eval_vec_uint64(srmReserveSpace::vec)
 #define EVAL_VEC_STR_RS(vec) vec = proc->eval_vec_str(srmReserveSpace::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
   
   std::vector <uint64_t> expectedFileSizes;
   tStorageSystemInfo storageSystemInfo;

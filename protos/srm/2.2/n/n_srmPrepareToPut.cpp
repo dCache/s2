@@ -72,7 +72,7 @@ srmPrepareToPut::~srmPrepareToPut()
   DM_DBG_I;
 
   /* request (parser/API) */
-  DELETE_VEC(fileRequests.targetSURL);
+  DELETE_VEC(fileRequests.SURL);
   DELETE_VEC(fileRequests.expectedFileSize);
   DELETE(userRequestDescription);
   DELETE(overwriteOption);
@@ -121,7 +121,7 @@ srmPrepareToPut::exec(Process *proc)
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
 
-  EVAL_VEC_STR_PTP(fileRequests.targetSURL);
+  EVAL_VEC_STR_PTP(fileRequests.SURL);
   EVAL_VEC_PUINT64_PTP(fileRequests.expectedFileSize);
 
   EVAL_VEC_STR_PTP(storageSystemInfo.key);
@@ -156,7 +156,7 @@ srmPrepareToPut::exec(Process *proc)
   );
 #endif
 
-  DELETE_VEC(fileRequests.targetSURL);
+  DELETE_VEC(fileRequests.SURL);
   FREE_VEC(fileRequests.expectedFileSize);
 
   DELETE_VEC(storageSystemInfo.key);
@@ -204,7 +204,7 @@ srmPrepareToPut::toString(Process *proc)
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
 
-  EVAL_VEC_STR_PTP(fileRequests.targetSURL);
+  EVAL_VEC_STR_PTP(fileRequests.SURL);
   EVAL_VEC_STR_PTP(fileRequests.expectedFileSize);
 
   EVAL_VEC_STR_PTP(storageSystemInfo.key);
@@ -216,7 +216,7 @@ srmPrepareToPut::toString(Process *proc)
   /* request */  
   SS_SRM("srmPrepareToPut");
   SS_P_DQ(authorizationID);
-  SS_VEC_DEL(fileRequests.targetSURL);
+  SS_VEC_DEL(fileRequests.SURL);
   SS_VEC_DEL(fileRequests.expectedFileSize);
   SS_P_DQ(userRequestDescription);
   SS_P_DQ(overwriteOption);

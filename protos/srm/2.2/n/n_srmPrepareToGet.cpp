@@ -70,7 +70,7 @@ srmPrepareToGet::~srmPrepareToGet()
   DM_DBG_I;
 
   /* request (parser/API) */
-  DELETE_VEC(fileRequests.sourceSURL);
+  DELETE_VEC(fileRequests.SURL);
   DELETE_VEC(fileRequests.isSourceADirectory);
   DELETE_VEC(fileRequests.numOfLevels);
   DELETE_VEC(fileRequests.allLevelRecursive);
@@ -120,7 +120,7 @@ srmPrepareToGet::exec(Process *proc)
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
 
-  EVAL_VEC_STR_PTG(fileRequests.sourceSURL);
+  EVAL_VEC_STR_PTG(fileRequests.SURL);
   EVAL_VEC_INT_PTG(fileRequests.isSourceADirectory);
   EVAL_VEC_PINT_PTG(fileRequests.numOfLevels);
   EVAL_VEC_PINT_PTG(fileRequests.allLevelRecursive);
@@ -155,7 +155,7 @@ srmPrepareToGet::exec(Process *proc)
   );
 #endif
 
-  DELETE_VEC(fileRequests.sourceSURL);
+  DELETE_VEC(fileRequests.SURL);
   FREE_VEC(fileRequests.numOfLevels);
   FREE_VEC(fileRequests.allLevelRecursive);
   
@@ -205,7 +205,7 @@ srmPrepareToGet::toString(Process *proc)
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
 
-  EVAL_VEC_STR_PTG(fileRequests.sourceSURL);
+  EVAL_VEC_STR_PTG(fileRequests.SURL);
   EVAL_VEC_STR_PTG(fileRequests.isSourceADirectory);
   EVAL_VEC_STR_PTG(fileRequests.numOfLevels);
   EVAL_VEC_STR_PTG(fileRequests.allLevelRecursive);
@@ -219,7 +219,7 @@ srmPrepareToGet::toString(Process *proc)
   /* request */  
   SS_SRM("srmPrepareToGet");
   SS_P_DQ(authorizationID);
-  SS_VEC_DEL(fileRequests.sourceSURL);
+  SS_VEC_DEL(fileRequests.SURL);
   SS_VEC_DEL(fileRequests.isSourceADirectory);
   SS_VEC_DEL(fileRequests.numOfLevels);
   SS_VEC_DEL(fileRequests.allLevelRecursive);

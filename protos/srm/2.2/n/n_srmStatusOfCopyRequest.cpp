@@ -62,8 +62,8 @@ srmStatusOfCopyRequest::~srmStatusOfCopyRequest()
 
   /* request (parser/API) */
   DELETE(requestToken);
-  DELETE_VEC(sourceUrlArray);
-  DELETE_VEC(targetUrlArray);
+  DELETE_VEC(sourceSURL);
+  DELETE_VEC(targetSURL);
 
   /* response (parser) */
   DELETE(fileStatuses);
@@ -88,8 +88,8 @@ srmStatusOfCopyRequest::exec(Process *proc)
 {
   DM_DBG_I;
 
-  std::vector <std::string *> sourceUrlArray = proc->eval_vec_str(srmStatusOfCopyRequest::sourceUrlArray);
-  std::vector <std::string *> targetUrlArray = proc->eval_vec_str(srmStatusOfCopyRequest::targetUrlArray);
+  std::vector <std::string *> sourceSURL = proc->eval_vec_str(srmStatusOfCopyRequest::sourceSURL);
+  std::vector <std::string *> targetSURL = proc->eval_vec_str(srmStatusOfCopyRequest::targetSURL);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(StatusOfCopyRequest);
@@ -99,14 +99,14 @@ srmStatusOfCopyRequest::exec(Process *proc)
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
-    sourceUrlArray,
-    targetUrlArray,
+    sourceSURL,
+    targetSURL,
     resp
   );
 #endif
   
-  DELETE_VEC(sourceUrlArray);
-  DELETE_VEC(targetUrlArray);
+  DELETE_VEC(sourceSURL);
+  DELETE_VEC(targetSURL);
 
   /* matching */
   if(!resp || !resp->srmStatusOfCopyRequestResponse) {
@@ -134,20 +134,20 @@ srmStatusOfCopyRequest::toString(Process *proc)
   BOOL quote = TRUE;
   std::stringstream ss;
 
-  std::vector <std::string *> sourceUrlArray =
-    proc? proc->eval_vec_str(srmStatusOfCopyRequest::sourceUrlArray):
-          srmStatusOfCopyRequest::sourceUrlArray;
+  std::vector <std::string *> sourceSURL =
+    proc? proc->eval_vec_str(srmStatusOfCopyRequest::sourceSURL):
+          srmStatusOfCopyRequest::sourceSURL;
   
-  std::vector <std::string *> targetUrlArray =
-    proc? proc->eval_vec_str(srmStatusOfCopyRequest::targetUrlArray):
-          srmStatusOfCopyRequest::targetUrlArray;
+  std::vector <std::string *> targetSURL =
+    proc? proc->eval_vec_str(srmStatusOfCopyRequest::targetSURL):
+          srmStatusOfCopyRequest::targetSURL;
   
   /* request */  
   SS_SRM("srmStatusOfCopyRequest");
   SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC_DEL(sourceUrlArray);
-  SS_VEC_DEL(targetUrlArray);
+  SS_VEC_DEL(sourceSURL);
+  SS_VEC_DEL(targetSURL);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);

@@ -62,7 +62,7 @@ srmStatusOfPutRequest::~srmStatusOfPutRequest()
 
   /* request (parser/API) */
   DELETE(requestToken);
-  DELETE_VEC(urlArray);
+  DELETE_VEC(SURL);
 
   /* response (parser) */
   DELETE(fileStatuses);
@@ -87,7 +87,7 @@ srmStatusOfPutRequest::exec(Process *proc)
 {
   DM_DBG_I;
 
-  std::vector <std::string *> urlArray = proc->eval_vec_str(srmStatusOfPutRequest::urlArray);
+  std::vector <std::string *> SURL = proc->eval_vec_str(srmStatusOfPutRequest::SURL);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(StatusOfPutRequest);
@@ -97,12 +97,12 @@ srmStatusOfPutRequest::exec(Process *proc)
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
-    urlArray,
+    SURL,
     resp
   );
 #endif
 
-  DELETE_VEC(urlArray);
+  DELETE_VEC(SURL);
 
   /* matching */
   if(!resp || !resp->srmStatusOfPutRequestResponse) {
@@ -130,15 +130,15 @@ srmStatusOfPutRequest::toString(Process *proc)
   BOOL quote = TRUE;
   std::stringstream ss;
 
-  std::vector <std::string *> urlArray =
-    proc? proc->eval_vec_str(srmStatusOfPutRequest::urlArray):
-          srmStatusOfPutRequest::urlArray;
+  std::vector <std::string *> SURL =
+    proc? proc->eval_vec_str(srmStatusOfPutRequest::SURL):
+          srmStatusOfPutRequest::SURL;
   
   /* request */  
   SS_SRM("srmStatusOfPutRequest");
   SS_P_DQ(authorizationID);
   SS_P_DQ(requestToken);
-  SS_VEC_DEL(urlArray);
+  SS_VEC_DEL(SURL);
 
   /* response (parser) */
   SS_P_DQ(fileStatuses);

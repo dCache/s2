@@ -1,7 +1,7 @@
 /**
- * \file ReleaseFiles.cpp
+ * \file ExtendFileLifeTimeInSpace.cpp
  *
- * Implements the SRM2 ReleaseFiles method.  SRM2 spec p.19.
+ * Implements the SRM2 ExtendFileLifeTimeInSpace method.  SRM2 spec p.12.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,47 +22,44 @@
 #include "srm_macros.h"
 
 /**
- * srmReleaseFiles method.
+ * srmExtendFileLifeTimeInSpace method.
  *
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- * \param requestToken
- * \param siteURLs
- * \param doRemove
+ * \param spaceToken
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-ReleaseFiles(struct soap *soap,
-             const char *srm_endpoint,
-             const char *authorizationID,
-             const char *requestToken,
-             std::vector <std::string *> SURL,
-             bool *doRemove,
-             struct srm__srmReleaseFilesResponse_ *resp)
+ExtendFileLifeTimeInSpace(struct soap *soap,
+                          const char *srm_endpoint,
+                          const char *authorizationID,
+                          const char *spaceToken,
+                          std::vector <std::string *> SURL,
+                          struct srm__srmExtendFileLifeTimeInSpaceResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmReleaseFilesRequest req;
+  struct srm__srmExtendFileLifeTimeInSpaceRequest req;
 
   SOAP_INIT(soap);
-  
+
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
-  flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
+  flags = CGSI_OPT_DISABLE_NAME_CHECK;
   soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #else
 #warning "Compiling without CGSI plugin support, i.e. no security"
 #endif
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
-  MV_CSTR2PSTR(req.requestToken,requestToken);
+  MV_CSTR2STR(req.spaceToken,spaceToken);
+
   MV_ARRAY_OF_STR_VAL(req.arrayOfSURLs,SURL,urlArray,AnyURI);
-  MV_PBOOL(req.doRemove,doRemove);
 
   /* To send the request ... */
-  SOAP_CALL_SRM(ReleaseFiles); 
-
+  SOAP_CALL_SRM(ExtendFileLifeTimeInSpace);
+  
   RETURN(EXIT_SUCCESS);
 }

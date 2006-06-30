@@ -39,6 +39,7 @@ ChangeSpaceForFiles(struct soap *soap,
                     const char *authorizationID,
                     const char *spaceToken,
                     tStorageSystemInfo storageSystemInfo,
+                    std::vector <std::string *> SURL,
                     struct srm__srmChangeSpaceForFilesResponse_ *resp)
 {
   DM_DBG_I;
@@ -56,6 +57,8 @@ ChangeSpaceForFiles(struct soap *soap,
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
   MV_CSTR2STR(req.targetSpaceToken,spaceToken);
+
+  MV_ARRAY_OF_STR_VAL(req.arrayOfSURLs,SURL,urlArray,AnyURI);
 
   /* Storage system info */
   MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);

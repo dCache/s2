@@ -73,11 +73,11 @@ BringOnline(struct soap *soap,
 
   /* Create the file request */
   NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTGetFileRequest(soap, -1));
-  for (uint u = 0; u < fileRequests.sourceSURL.size(); u++) {
-    DM_LOG(DM_N(2), "fileRequests.sourceSURL[%u]\n", u);
+  for (uint u = 0; u < fileRequests.SURL.size(); u++) {
+    DM_LOG(DM_N(2), "fileRequests.SURL[%u]\n", u);
     srm__TGetFileRequest *fileRequest;
     NOT_NULL(fileRequest = soap_new_srm__TGetFileRequest(soap, -1));
-    MV_CSTR2STR(fileRequest->sourceSURL,CSTR(fileRequests.sourceSURL[u]));
+    MV_CSTR2STR(fileRequest->sourceSURL,CSTR(fileRequests.SURL[u]));
     NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(soap, -1));
     
     /* dirOption */

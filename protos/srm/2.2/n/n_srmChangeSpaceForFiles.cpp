@@ -92,11 +92,11 @@ srmChangeSpaceForFiles::exec(Process *proc)
   DM_DBG_I;
 
   tStorageSystemInfo storageSystemInfo;
-  std::vector <std::string *> urlArray;
+  std::vector <std::string *> SURL;
   
   EVAL_VEC_STR_CSFF(storageSystemInfo.key);
   EVAL_VEC_STR_CSFF(storageSystemInfo.value);
-  EVAL_VEC_STR_CSFF(urlArray);
+  EVAL_VEC_STR_CSFF(SURL);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(ChangeSpaceForFiles);
@@ -107,13 +107,14 @@ srmChangeSpaceForFiles::exec(Process *proc)
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(spaceToken),
     storageSystemInfo,
+    SURL,
     resp
   );
 #endif
 
   DELETE_VEC(storageSystemInfo.key);
   DELETE_VEC(storageSystemInfo.value);
-  DELETE_VEC(urlArray);
+  DELETE_VEC(SURL);
 
   /* matching */
   if(!resp || !resp->srmChangeSpaceForFilesResponse) {
@@ -150,11 +151,11 @@ srmChangeSpaceForFiles::toString(Process *proc)
   std::stringstream ss;
 
   tStorageSystemInfo_ storageSystemInfo;
-  std::vector <std::string *> urlArray;
+  std::vector <std::string *> SURL;
 
   EVAL_VEC_STR_CSFF(storageSystemInfo.key);
   EVAL_VEC_STR_CSFF(storageSystemInfo.value);
-  EVAL_VEC_STR_CSFF(urlArray);
+  EVAL_VEC_STR_CSFF(SURL);
 
   /* request */  
   SS_SRM("srmChangeSpaceForFiles");
@@ -163,7 +164,7 @@ srmChangeSpaceForFiles::toString(Process *proc)
   SS_P_DQ(spaceToken);
   SS_VEC_DEL(storageSystemInfo.key);
   SS_VEC_DEL(storageSystemInfo.value);
-  SS_VEC_DEL(urlArray);
+  SS_VEC_DEL(SURL);
 
   /* response (parser) */
   SS_P_DQ(requestToken);

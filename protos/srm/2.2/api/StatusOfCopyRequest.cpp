@@ -38,8 +38,8 @@ StatusOfCopyRequest(struct soap *soap,
                     const char *srm_endpoint,
                     const char *authorizationID,
                     const char *requestToken,
-                    std::vector <std::string *> sourceSURLs,
-                    std::vector <std::string *> targetSURLs,
+                    std::vector <std::string *> sourceSURL,
+                    std::vector <std::string *> targetSURL,
                     struct srm__srmStatusOfCopyRequestResponse_ *resp)
 {
   DM_DBG_I;
@@ -60,8 +60,8 @@ StatusOfCopyRequest(struct soap *soap,
   /* Create the file request */
   MV_CSTR2STR(req.requestToken,requestToken);
   
-  MV_ARRAY_OF_STR_VAL(req.arrayOfSourceSURLs,sourceSURLs,urlArray,AnyURI);
-  MV_ARRAY_OF_STR_VAL(req.arrayOfTargetSURLs,targetSURLs,urlArray,AnyURI);
+  MV_ARRAY_OF_STR_VAL(req.arrayOfSourceSURLs,sourceSURL,urlArray,AnyURI);
+  MV_ARRAY_OF_STR_VAL(req.arrayOfTargetSURLs,targetSURL,urlArray,AnyURI);
 
   /* To send the request ... */
   SOAP_CALL_SRM(StatusOfCopyRequest);

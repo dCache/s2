@@ -16,7 +16,7 @@ typedef struct tStorageSystemInfo
 
 typedef struct tArrayOfGetFileRequests
 { 
-  std::vector <std::string *> sourceSURL;
+  std::vector <std::string *> SURL;
   std::vector <int> isSourceADirectory;
   std::vector <int *> allLevelRecursive;
   std::vector <int *> numOfLevels;
@@ -24,7 +24,7 @@ typedef struct tArrayOfGetFileRequests
 
 typedef struct tArrayOfPutFileRequests
 { 
-  std::vector <std::string *> targetSURL;
+  std::vector <std::string *> SURL;
   std::vector <uint64_t *> expectedFileSize;
 };
 
@@ -55,6 +55,7 @@ ChangeSpaceForFiles(struct soap *soap,
                     const char *authorizationID,
                     const char *spaceToken,
                     tStorageSystemInfo storageSystemInfo,
+                    std::vector <std::string *> SURLs,
                     struct srm__srmChangeSpaceForFilesResponse_ *resp);
 
 extern int
@@ -77,6 +78,14 @@ Copy(struct soap *soap,
      tStorageSystemInfo sourceStorageSystemInfo,
      tStorageSystemInfo targetStorageSystemInfo,
      struct srm__srmCopyResponse_ *resp);
+
+extern int
+ExtendFileLifeTimeInSpace(struct soap *soap,
+                          const char *srm_endpoint,
+                          const char *authorizationID,
+                          const char *spaceToken,
+                          std::vector <std::string *> SURL,
+                          struct srm__srmExtendFileLifeTimeInSpaceResponse_ *resp);
 
 extern int
 GetSpaceMetaData(struct soap *soap,

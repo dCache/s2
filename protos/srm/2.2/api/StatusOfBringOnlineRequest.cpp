@@ -38,7 +38,7 @@ StatusOfBringOnlineRequest(struct soap *soap,
                            const char *srm_endpoint,
                            const char *authorizationID,
                            const char *requestToken,
-                           std::vector <std::string *> sourceSURLs,
+                           std::vector <std::string *> SURL,
                            struct srm__srmStatusOfBringOnlineRequestResponse_ *resp)
 {
   DM_DBG_I;
@@ -59,7 +59,7 @@ StatusOfBringOnlineRequest(struct soap *soap,
   /* Create the file request */
   MV_CSTR2STR(req.requestToken,requestToken);
   
-  MV_ARRAY_OF_STR_VAL(req.arrayOfSourceSURLs,sourceSURLs,urlArray,AnyURI);
+  MV_ARRAY_OF_STR_VAL(req.arrayOfSourceSURLs,SURL,urlArray,AnyURI);
 
   /* To send the request ... */
   SOAP_CALL_SRM(StatusOfBringOnlineRequest);

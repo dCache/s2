@@ -72,7 +72,7 @@ Ls(struct soap *soap,
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
   
-  /* SURLs */
+  /* SURL */
   MV_ARRAY_OF_STR_VAL(req.arrayOfSURLs,SURL,urlArray,AnyURI);
 
   /* Storage system info */

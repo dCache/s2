@@ -1,0 +1,3 @@
+; srmChangeSpaceForFiles
+
+srmChangeSpaceForFiles $ENV{ENDPOINT} authorizationID=$ENV{USER} spaceToken=<spaceToken> storageSystemInfo.key[<k0> <k1>] storageSystemInfo.value[<v0> <v1>] SURL[<s0> <s1>] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) fileStatuses=(?<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

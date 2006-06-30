@@ -1,3 +1,0 @@
-; srmExtendFileLifeTime
-
-srmExtendFileLifeTime $ENV{ENDPOINT} authorizationID=$ENV{USER} requestToken=<requestToken> siteURL=<siteURL> newLifeTime=0 newTimeExtended=(?P<newTimeExtended>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

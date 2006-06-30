@@ -1074,7 +1074,7 @@ typedef struct tStorageSystemInfo_
 
 typedef struct tArrayOfGetFileRequests_
 { 
-  std::vector <std::string *> sourceSURL;
+  std::vector <std::string *> SURL;
   std::vector <std::string *> isSourceADirectory;
   std::vector <std::string *> allLevelRecursive;
   std::vector <std::string *> numOfLevels;
@@ -1082,7 +1082,7 @@ typedef struct tArrayOfGetFileRequests_
 
 typedef struct tArrayOfPutFileRequests_
 { 
-  std::vector <std::string *> targetSURL;
+  std::vector <std::string *> SURL;
   std::vector <std::string *> expectedFileSize;
 };
 
@@ -1184,7 +1184,7 @@ struct srmChangeSpaceForFiles : public SRM2
   /* request (parser/API) */
   std::string *spaceToken;
   tStorageSystemInfo_ storageSystemInfo;
-  std::vector <std::string *> urlArray;
+  std::vector <std::string *> SURL;
 
   /* response (parser) */
   std::string *requestToken;
@@ -1201,6 +1201,34 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string srmChangeSpaceForFiles::arrayOfChangeSpaceForFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmExtendFileLifeTimeInSpace request
+ */
+struct srmExtendFileLifeTimeInSpace : public SRM2
+{
+  /* request (parser/API) */
+  std::string *spaceToken;
+  std::vector <std::string *> SURL;
+  std::string *newLifeTime;
+
+  /* response (parser) */
+  std::string *newTimeExtended;
+  std::string *fileStatuses;
+
+public:
+  srmExtendFileLifeTimeInSpace();
+  srmExtendFileLifeTimeInSpace(Node &node);
+  ~srmExtendFileLifeTimeInSpace();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string srmExtendFileLifeTimeInSpace::arrayOfExtendFileLifeTimeInSpaceResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -1408,7 +1436,7 @@ struct srmPutDone : public SRM2
 {
   /* request (parser/API) */
   std::string *requestToken;
-  std::vector <std::string *>urlArray;
+  std::vector <std::string *> SURL;
 
   /* response (parser) */
   std::string *fileStatuses;
@@ -1434,7 +1462,7 @@ struct srmReleaseFiles : public SRM2
 {
   /* request (parser/API) */
   std::string *requestToken;
-  std::vector <std::string *>urlArray;
+  std::vector <std::string *> SURL;
   std::string *doRemove;
 
   /* response (parser) */
@@ -1529,7 +1557,7 @@ struct srmStatusOfBringOnlineRequest : public SRM2
 {
   /* request (parser/API) */
   std::string *requestToken;
-  std::vector <std::string *>urlArray;
+  std::vector <std::string *> SURL;
 
   /* response (parser) */
   std::string *fileStatuses;
@@ -1557,8 +1585,8 @@ struct srmStatusOfCopyRequest : public SRM2
 {
   /* request (parser/API) */
   std::string *requestToken;
-  std::vector <std::string *>sourceUrlArray;
-  std::vector <std::string *>targetUrlArray;
+  std::vector <std::string *> sourceSURL;
+  std::vector <std::string *> targetSURL;
 
   /* response (parser) */
   std::string *fileStatuses;
@@ -1585,7 +1613,7 @@ struct srmStatusOfGetRequest : public SRM2
 {
   /* request (parser/API) */
   std::string *requestToken;
-  std::vector <std::string *>urlArray;
+  std::vector <std::string *> SURL;
 
   /* response (parser) */
   std::string *fileStatuses;
@@ -1640,7 +1668,7 @@ struct srmStatusOfPutRequest : public SRM2
 {
   /* request (parser/API) */
   std::string *requestToken;
-  std::vector <std::string *>urlArray;
+  std::vector <std::string *> SURL;
 
   /* response (parser) */
   std::string *fileStatuses;

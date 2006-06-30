@@ -1579,6 +1579,33 @@ private:
 };
 
 /*
+ * srmStatusOfChangeSpaceForFilesRequest request
+ */
+struct srmStatusOfChangeSpaceForFilesRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *spaceToken;
+  std::string *requestToken;
+
+  /* response (parser) */
+  std::string *estimatedProcessingTime;
+  std::string *fileStatuses;
+
+public:
+  srmStatusOfChangeSpaceForFilesRequest();
+  srmStatusOfChangeSpaceForFilesRequest(Node &node);
+  ~srmStatusOfChangeSpaceForFilesRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfStatusOfChangeSpaceForFilesRequestResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmStatusOfCopyRequest request
  */
 struct srmStatusOfCopyRequest : public SRM2

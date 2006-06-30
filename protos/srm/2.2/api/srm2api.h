@@ -212,6 +212,13 @@ StatusOfBringOnlineRequest(struct soap *soap,
                            struct srm__srmStatusOfBringOnlineRequestResponse_ *resp);
 
 extern int
+StatusOfChangeSpaceForFilesRequest(struct soap *soap,
+                                   const char *srm_endpoint,
+                                   const char *authorizationID,
+                                   const char *requestToken,
+                                   struct srm__srmStatusOfChangeSpaceForFilesRequestResponse_ *resp);
+
+extern int
 StatusOfCopyRequest(struct soap *soap,
                     const char *srm_endpoint,
                     const char *authorizationID,

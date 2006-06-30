@@ -1,7 +1,7 @@
 /**
- * \file StatusOfChangeSpaceForFilesRequest.cpp
+ * \file StatusOfReserveSpaceRequest.cpp
  *
- * Implements the SRM2 StatusOfChangeSpaceForFilesRequest method.  SRM2 spec p.12.
+ * Implements the SRM2 StatusOfReserveSpaceRequest method.  SRM2 spec p.10.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -20,9 +20,10 @@
 
 #include "srm2api.h"
 #include "srm_macros.h"
+#include "srm_soap27.h"
 
 /**
- * srmStatusOfChangeSpaceForFilesRequest method.
+ * srmStatusOfReserveSpaceRequest method.
  *
  * \param soap
  * \param srm_endpoint
@@ -33,20 +34,20 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-StatusOfChangeSpaceForFilesRequest(struct soap *soap,
-                                   const char *srm_endpoint,
-                                   const char *authorizationID,
-                                   const char *requestToken,
-                                   struct srm__srmStatusOfChangeSpaceForFilesRequestResponse_ *resp)
+StatusOfReserveSpaceRequest(struct soap *soap,
+                            const char *srm_endpoint,
+                            const char *authorizationID,
+                            const char *requestToken,
+                            struct srm__srmStatusOfReserveSpaceRequestResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmStatusOfChangeSpaceForFilesRequestRequest req;
+  struct srm__srmStatusOfReserveSpaceRequestRequest req;
 
   SOAP_INIT(soap);
-
+  
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
-  flags = CGSI_OPT_DISABLE_NAME_CHECK;
+  flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;
   soap_register_plugin_arg (soap, client_cgsi_plugin, &flags);
 #else
 #warning "Compiling without CGSI plugin support, i.e. no security"
@@ -56,7 +57,7 @@ StatusOfChangeSpaceForFilesRequest(struct soap *soap,
   MV_CSTR2STR(req.requestToken,requestToken);
 
   /* To send the request ... */
-  SOAP_CALL_SRM(StatusOfChangeSpaceForFilesRequest);
-  
+  SOAP_CALL_SRM(StatusOfReserveSpaceRequest); 
+
   RETURN(EXIT_SUCCESS);
 }

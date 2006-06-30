@@ -1,7 +1,7 @@
 /**
- * \file StatusOfChangeSpaceForFilesRequest.cpp
+ * \file StatusOfUpdateSpaceRequest.cpp
  *
- * Implements the SRM2 StatusOfChangeSpaceForFilesRequest method.  SRM2 spec p.12.
+ * Implements the SRM2 StatusOfUpdateSpaceRequest method.  SRM2 spec p.11.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,7 +22,7 @@
 #include "srm_macros.h"
 
 /**
- * srmStatusOfChangeSpaceForFilesRequest method.
+ * srmStatusOfUpdateSpaceRequest method.
  *
  * \param soap
  * \param srm_endpoint
@@ -33,14 +33,14 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-StatusOfChangeSpaceForFilesRequest(struct soap *soap,
-                                   const char *srm_endpoint,
-                                   const char *authorizationID,
-                                   const char *requestToken,
-                                   struct srm__srmStatusOfChangeSpaceForFilesRequestResponse_ *resp)
+StatusOfUpdateSpaceRequest(struct soap *soap,
+                           const char *srm_endpoint,
+                           const char *authorizationID,
+                           const char *requestToken,
+                           struct srm__srmStatusOfUpdateSpaceRequestResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmStatusOfChangeSpaceForFilesRequestRequest req;
+  struct srm__srmStatusOfUpdateSpaceRequestRequest req;
 
   SOAP_INIT(soap);
 
@@ -56,7 +56,7 @@ StatusOfChangeSpaceForFilesRequest(struct soap *soap,
   MV_CSTR2STR(req.requestToken,requestToken);
 
   /* To send the request ... */
-  SOAP_CALL_SRM(StatusOfChangeSpaceForFilesRequest);
+  SOAP_CALL_SRM(StatusOfUpdateSpaceRequest);
   
   RETURN(EXIT_SUCCESS);
 }

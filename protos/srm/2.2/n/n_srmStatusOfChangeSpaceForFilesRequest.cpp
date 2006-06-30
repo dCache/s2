@@ -173,6 +173,7 @@ srmStatusOfChangeSpaceForFilesRequest::arrayOfStatusOfChangeSpaceForFilesRequest
   if(resp->srmStatusOfChangeSpaceForFilesRequestResponse->arrayOfFileStatuses) {
     BOOL print_space = FALSE;
     std::vector<srm__TSURLReturnStatus *> v = resp->srmStatusOfChangeSpaceForFilesRequestResponse->arrayOfFileStatuses->statusArray;
+    /* same code as srmChangeSpaceForFiles */
     for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR(surl);
       SS_P_VEC_SRM_RETSTAT(status);

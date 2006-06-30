@@ -380,6 +380,8 @@ _GET_INT(u,64);
   int srmStatusOfGetRequestR(void);
   int srmStatusOfLsRequestR(void);
   int srmStatusOfPutRequestR(void);
+  int srmStatusOfReserveSpaceRequestR(void);
+  int srmStatusOfUpdateSpaceRequestR(void);
   int srmUpdateSpaceR(void);
 #endif	/* HAVE_SRM22 */
 };
@@ -1593,6 +1595,8 @@ Parser::ACTION(void)
   POPL_EAT(srmStatusOfGetRequest,R,) else
   POPL_EAT(srmStatusOfLsRequest,R,) else
   POPL_EAT(srmStatusOfPutRequest,R,) else
+  POPL_EAT(srmStatusOfReserveSpaceRequest,R,) else
+  POPL_EAT(srmStatusOfUpdateSpaceRequest,R,) else
   POPL_EAT(srmUpdateSpace,R,) else
 #endif	/* HAVE_SRM22 */
     
@@ -3882,6 +3886,82 @@ Parser::srmStatusOfPutRequestR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmStatusOfPutRequestR */
+
+int
+Parser::srmStatusOfReserveSpaceRequestR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmStatusOfReserveSpaceRequest *r = new srmStatusOfReserveSpaceRequest(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+
+    /* response */
+    POPL_EQ_PARAM("estimatedProcessingTime",r->estimatedProcessingTime) else
+    POPL_EQ_PARAM("respRetentionPolicy",r->respRetentionPolicy) else
+    POPL_EQ_PARAM("respAccessLatency",r->respAccessLatency) else
+    POPL_EQ_PARAM("sizeOfTotalReservedSpace",r->sizeOfTotalReservedSpace) else
+    POPL_EQ_PARAM("sizeOfGuaranteedReservedSpace",r->sizeOfGuaranteedReservedSpace) else
+    POPL_EQ_PARAM("lifetimeOfReservedSpace",r->lifetimeOfReservedSpace) else
+    POPL_EQ_PARAM("spaceToken",r->spaceToken) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmStatusOfReserveSpaceRequestR */
+
+int
+Parser::srmStatusOfUpdateSpaceRequestR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmStatusOfUpdateSpaceRequest *r = new srmStatusOfUpdateSpaceRequest(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+
+    /* response */
+    POPL_EQ_PARAM("sizeOfTotalSpace",r->sizeOfTotalSpace) else
+    POPL_EQ_PARAM("sizeOfGuaranteedSpace",r->sizeOfGuaranteedSpace) else
+    POPL_EQ_PARAM("lifetimeGranted",r->lifetimeGranted) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmStatusOfUpdateSpaceRequestR */
 
 int
 Parser::srmUpdateSpaceR(void)

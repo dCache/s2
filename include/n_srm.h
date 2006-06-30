@@ -1716,6 +1716,62 @@ private:
 };
 
 /*
+ * srmStatusOfReserveSpaceRequest request
+ */
+struct srmStatusOfReserveSpaceRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+
+  /* response (parser) */
+  std::string *estimatedProcessingTime;
+  std::string *respRetentionPolicy;
+  std::string *respAccessLatency;
+  std::string *sizeOfTotalReservedSpace;
+  std::string *sizeOfGuaranteedReservedSpace;
+  std::string *lifetimeOfReservedSpace;
+  std::string *spaceToken;
+
+public:
+  srmStatusOfReserveSpaceRequest();
+  srmStatusOfReserveSpaceRequest(Node &node);
+  ~srmStatusOfReserveSpaceRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
+ * srmStatusOfUpdateSpaceRequest request
+ */
+struct srmStatusOfUpdateSpaceRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+
+  /* response (parser) */
+  std::string *sizeOfTotalSpace;
+  std::string *sizeOfGuaranteedSpace;
+  std::string *lifetimeGranted;
+
+public:
+  srmStatusOfUpdateSpaceRequest();
+  srmStatusOfUpdateSpaceRequest(Node &node);
+  ~srmStatusOfUpdateSpaceRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
  * srmUpdateSpace request
  */
 struct srmUpdateSpace : public SRM2

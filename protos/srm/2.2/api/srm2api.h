@@ -253,6 +253,20 @@ StatusOfPutRequest(struct soap *soap,
                    struct srm__srmStatusOfPutRequestResponse_ *resp);
 
 extern int
+StatusOfReserveSpaceRequest(struct soap *soap,
+                            const char *srm_endpoint,
+                            const char *authorizationID,
+                            const char *requestToken,
+                            struct srm__srmStatusOfReserveSpaceRequestResponse_ *resp);
+
+extern int
+StatusOfUpdateSpaceRequest(struct soap *soap,
+                           const char *srm_endpoint,
+                           const char *authorizationID,
+                           const char *requestToken,
+                           struct srm__srmStatusOfUpdateSpaceRequestResponse_ *resp);
+
+extern int
 UpdateSpace(struct soap *soap,
             const char *srm_endpoint,
             const char *authorizationID,

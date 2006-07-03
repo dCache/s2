@@ -38,6 +38,13 @@ AbortFiles(struct soap *soap,
            struct srm__srmAbortFilesResponse_ *resp);
 
 extern int
+AbortRequest(struct soap *soap,
+             const char *srm_endpoint,
+             const char *authorizationID,
+             const char *requestToken,
+             struct srm__srmAbortRequestResponse_ *resp);
+
+extern int
 BringOnline(struct soap *soap,
             const char *srm_endpoint,
             const char *authorizationID,
@@ -221,6 +228,13 @@ ReserveSpace(struct soap *soap,
              struct srm__srmReserveSpaceResponse_ *resp);
 
 extern int
+ResumeRequest(struct soap *soap,
+              const char *srm_endpoint,
+              const char *authorizationID,
+              const char *requestToken,
+              struct srm__srmResumeRequestResponse_ *resp);
+
+extern int
 Mkdir(struct soap *soap,
       const char *srm_endpoint,
       const char *authorizationID,
@@ -316,6 +330,13 @@ StatusOfUpdateSpaceRequest(struct soap *soap,
                            const char *authorizationID,
                            const char *requestToken,
                            struct srm__srmStatusOfUpdateSpaceRequestResponse_ *resp);
+
+extern int
+SuspendRequest(struct soap *soap,
+               const char *srm_endpoint,
+               const char *authorizationID,
+               const char *requestToken,
+               struct srm__srmSuspendRequestResponse_ *resp);
 
 extern int
 UpdateSpace(struct soap *soap,

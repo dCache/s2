@@ -1113,6 +1113,29 @@ private:
 };
 
 /*
+ * srmAbortRequest request
+ */
+struct srmAbortRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+
+  /* response (parser) */
+
+public:
+  srmAbortRequest();
+  srmAbortRequest(Node &node);
+  ~srmAbortRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
  * srmBringOnline request
  */
 struct srmBringOnline : public SRM2
@@ -1653,6 +1676,29 @@ private:
 };
 
 /*
+ * srmResumeRequest request
+ */
+struct srmResumeRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+
+  /* response (parser) */
+
+public:
+  srmResumeRequest();
+  srmResumeRequest(Node &node);
+  ~srmResumeRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
  * srmRm request
  */
 struct srmRm : public SRM2
@@ -1915,6 +1961,29 @@ public:
   srmStatusOfUpdateSpaceRequest();
   srmStatusOfUpdateSpaceRequest(Node &node);
   ~srmStatusOfUpdateSpaceRequest();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
+ * srmSuspendRequest request
+ */
+struct srmSuspendRequest : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+
+  /* response (parser) */
+
+public:
+  srmSuspendRequest();
+  srmSuspendRequest(Node &node);
+  ~srmSuspendRequest();
 
   virtual void init();
   virtual void finish(Process *proc);

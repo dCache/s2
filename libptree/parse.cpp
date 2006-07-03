@@ -360,6 +360,8 @@ _GET_INT(u,64);
   int srmUpdateSpaceR(void);
 #endif	/* HAVE_SRM21 */
 #ifdef HAVE_SRM22
+  int srmAbortFilesR(void);
+  int srmAbortRequestR(void);
   int srmBringOnlineR(void);
   int srmCopyR(void);
   int srmExtendFileLifeTimeInSpaceR(void);
@@ -377,6 +379,7 @@ _GET_INT(u,64);
   int srmReleaseFilesR(void);
   int srmReleaseSpaceR(void);
   int srmReserveSpaceR(void);
+  int srmResumeRequestR(void);
   int srmRmR(void);
   int srmRmdirR(void);
   int srmStatusOfBringOnlineRequestR(void);
@@ -387,6 +390,7 @@ _GET_INT(u,64);
   int srmStatusOfPutRequestR(void);
   int srmStatusOfReserveSpaceRequestR(void);
   int srmStatusOfUpdateSpaceRequestR(void);
+  int srmSuspendRequestR(void);
   int srmUpdateSpaceR(void);
 #endif	/* HAVE_SRM22 */
 };
@@ -1580,6 +1584,8 @@ Parser::ACTION(void)
 #endif	/* HAVE_SRM21 */
 
 #ifdef HAVE_SRM22
+  POPL_EAT(srmAbortFiles,R,) else
+  POPL_EAT(srmAbortRequest,R,) else
   POPL_EAT(srmBringOnline,R,) else
   POPL_EAT(srmChangeSpaceForFiles,R,) else
   POPL_EAT(srmCopy,R,) else
@@ -1597,6 +1603,7 @@ Parser::ACTION(void)
   POPL_EAT(srmReleaseFiles,R,) else
   POPL_EAT(srmReleaseSpace,R,) else
   POPL_EAT(srmReserveSpace,R,) else
+  POPL_EAT(srmResumeRequest,R,) else
   POPL_EAT(srmRm,R,) else
   POPL_EAT(srmRmdir,R,) else
   POPL_EAT(srmStatusOfBringOnlineRequest,R,) else
@@ -1607,6 +1614,7 @@ Parser::ACTION(void)
   POPL_EAT(srmStatusOfPutRequest,R,) else
   POPL_EAT(srmStatusOfReserveSpaceRequest,R,) else
   POPL_EAT(srmStatusOfUpdateSpaceRequest,R,) else
+  POPL_EAT(srmSuspendRequest,R,) else
   POPL_EAT(srmUpdateSpace,R,) else
 #endif	/* HAVE_SRM22 */
 
@@ -3084,6 +3092,74 @@ Parser::srmUpdateSpaceR(void)
 
 #ifdef HAVE_SRM22
 int
+Parser::srmAbortFilesR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmAbortFiles *r = new srmAbortFiles(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+    POPL_ARRAY("SURL",r->SURL) else
+
+    /* response */
+    POPL_EQ_PARAM("fileStatuses",r->fileStatuses) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmAbortFilesR */
+
+int
+Parser::srmAbortRequestR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmAbortRequest *r = new srmAbortRequest(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+
+    /* response */
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmAbortRequestR */
+
+int
 Parser::srmBringOnlineR(void)
 {
   int rval;
@@ -3789,6 +3865,39 @@ Parser::srmReserveSpaceR(void)
 } /* srmReserveSpaceR */
 
 int
+Parser::srmResumeRequestR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmResumeRequest *r = new srmResumeRequest(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+
+    /* response */
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmResumeRequestR */
+
+int
 Parser::srmRmR(void)
 {
   int rval;
@@ -4153,6 +4262,39 @@ Parser::srmStatusOfUpdateSpaceRequestR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmStatusOfUpdateSpaceRequestR */
+
+int
+Parser::srmSuspendRequestR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmSuspendRequest *r = new srmSuspendRequest(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
+
+    /* response */
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmSuspendRequestR */
 
 int
 Parser::srmUpdateSpaceR(void)

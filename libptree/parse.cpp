@@ -370,6 +370,7 @@ _GET_INT(u,64);
   int srmPingR(void);
   int srmPrepareToGetR(void);
   int srmPrepareToPutR(void);
+  int srmPurgeFromSpaceR(void);
   int srmPutDoneR(void);
   int srmReleaseFilesR(void);
   int srmReleaseSpaceR(void);
@@ -1585,6 +1586,7 @@ Parser::ACTION(void)
   POPL_EAT(srmPing,R,) else
   POPL_EAT(srmPrepareToGet,R,) else
   POPL_EAT(srmPrepareToPut,R,) else
+  POPL_EAT(srmPurgeFromSpace,R,) else
   POPL_EAT(srmPutDone,R,) else
   POPL_EAT(srmReleaseFiles,R,) else
   POPL_EAT(srmReleaseSpace,R,) else
@@ -3511,6 +3513,43 @@ Parser::srmPrepareToPutR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmPrepareToPutR */
+
+int
+Parser::srmPurgeFromSpaceR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmPurgeFromSpace *r = new srmPurgeFromSpace(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_ARRAY("SURL",r->SURL) else
+    POPL_EQ_PARAM("spaceToken",r->spaceToken) else
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+
+    /* response */
+    POPL_EQ_PARAM("fileStatuses",r->fileStatuses) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmPurgeFromSpaceR */
 
 int
 Parser::srmPutDoneR(void)

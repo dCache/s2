@@ -170,6 +170,15 @@ PrepareToPut(struct soap *soap,
              struct srm__srmPrepareToPutResponse_ *resp);
 
 extern int
+PurgeFromSpace(struct soap *soap,
+               const char *srm_endpoint,
+               const char *authorizationID,
+               std::vector <std::string *> SURL,
+               const char *spaceToken,
+               tStorageSystemInfo storageSystemInfo,
+               struct srm__srmPurgeFromSpaceResponse_ *resp);
+
+extern int
 PutDone(struct soap *soap,
         const char *srm_endpoint,
         const char *authorizationID,

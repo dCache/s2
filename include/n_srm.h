@@ -1482,6 +1482,33 @@ private:
 };
 
 /*
+ * srmPurgeFromSpace request
+ */
+struct srmPurgeFromSpace : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> SURL;
+  std::string *spaceToken;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+
+public:
+  srmPurgeFromSpace();
+  srmPurgeFromSpace(Node &node);
+  ~srmPurgeFromSpace();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfPurgeFromSpaceResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmReleaseFiles request
  */
 struct srmReleaseFiles : public SRM2

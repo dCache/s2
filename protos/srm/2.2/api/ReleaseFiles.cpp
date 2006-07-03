@@ -47,7 +47,7 @@ ReleaseFiles(struct soap *soap,
   struct srm__srmReleaseFilesRequest req;
 
   SOAP_INIT(soap);
-  
+
 #ifdef HAVE_CGSI_PLUGIN
   int flags;
   flags = CGSI_OPT_DISABLE_NAME_CHECK|CGSI_OPT_DELEG_FLAG;

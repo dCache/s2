@@ -17,7 +17,7 @@
 #include ../../include/FileTransPut.s2
 
 DEFUN DefTransferURLs f : t
-   ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
+   ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE|SRM_SPACE_AVAILABLE) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
    && ASSIGN 1c $EXPR{${1c}+1}
 
 DEFUN PutCycle filesToPut sURLs : putRequestToken
@@ -30,7 +30,7 @@ DEFUN PutCycle filesToPut sURLs : putRequestToken
 ;   && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] fileRequests.expectedFileSize[$SPLIT{${fileToPutSizes}}] retentionPolicy=$ENV{RETENTION_POLICY} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<ptpFileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
       SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
       && >1||3 SLEEP $ENV{SLEEP_SOR}
-         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_INPROGRESS)
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
          || SYSTEM echo "srmStatusOfPutRequest failed" >> $ENV{S2_LOG} && exit 2
 
       ; The actual physical transfer

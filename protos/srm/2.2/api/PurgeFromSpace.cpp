@@ -1,7 +1,7 @@
 /**
- * \file ReleaseSpace.cpp
+ * \file PurgeFromSpace.cpp
  *
- * Implements the SRM2 ReleaseSpace method.  SRM2 spec p.12.
+ * Implements the SRM2 PurgeFromSpace method.  SRM2 spec p.12.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,29 +22,29 @@
 #include "srm_macros.h"
 
 /**
- * srmReleaseSpace method.
+ * srmPurgeFromSpace method.
  *
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
+ * \param SURL
  * \param spaceToken
  * \param storageSystemInfo
- * \param forceFileRelease
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-ReleaseSpace(struct soap *soap,
-             const char *srm_endpoint,
-             const char *authorizationID,
-             const char *spaceToken,
-             tStorageSystemInfo storageSystemInfo,
-             bool *forceFileRelease,
-             struct srm__srmReleaseSpaceResponse_ *resp)
+PurgeFromSpace(struct soap *soap,
+               const char *srm_endpoint,
+               const char *authorizationID,
+               std::vector <std::string *> SURL,
+               const char *spaceToken,
+               tStorageSystemInfo storageSystemInfo,
+               struct srm__srmPurgeFromSpaceResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmReleaseSpaceRequest req;
+  struct srm__srmPurgeFromSpaceRequest req;
 
   SOAP_INIT(soap);
 
@@ -57,15 +57,17 @@ ReleaseSpace(struct soap *soap,
 #endif
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
+
+  /* SURL */
+  MV_ARRAY_OF_STR_VAL(req.arrayOfSURLs,SURL,urlArray,AnyURI);
+
   MV_CSTR2STR(req.spaceToken,spaceToken);
 
   /* Storage system info */
   MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);
 
-  MV_PBOOL(req.forceFileRelease,forceFileRelease);
-
   /* To send the request ... */
-  SOAP_CALL_SRM(ReleaseSpace);
+  SOAP_CALL_SRM(PurgeFromSpace);
   
   RETURN(EXIT_SUCCESS);
 }

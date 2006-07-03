@@ -1,7 +1,7 @@
 /**
- * \file ExtendFileLifeTimeInSpace.cpp
+ * \file ExtendFileLifeTime.cpp
  *
- * Implements the SRM2 ExtendFileLifeTimeInSpace method.  SRM2 spec p.12.
+ * Implements the SRM2 ExtendFileLifeTime method.  SRM2 spec p.23.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,27 +22,31 @@
 #include "srm_macros.h"
 
 /**
- * srmExtendFileLifeTimeInSpace method.
+ * srmExtendFileLifeTime method.
  *
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- * \param spaceToken
+ * \param requestToken
  * \param SURL
+ * \param newFileLifeTime
+ * \param newPinLifeTime
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-ExtendFileLifeTimeInSpace(struct soap *soap,
-                          const char *srm_endpoint,
-                          const char *authorizationID,
-                          const char *spaceToken,
-                          std::vector <std::string *> SURL,
-                          struct srm__srmExtendFileLifeTimeInSpaceResponse_ *resp)
+ExtendFileLifeTime(struct soap *soap,
+                   const char *srm_endpoint,
+                   const char *authorizationID,
+                   const char *requestToken,
+                   std::vector <std::string *> SURL,
+                   int *newFileLifeTime,
+                   int *newPinLifeTime,
+                   struct srm__srmExtendFileLifeTimeResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmExtendFileLifeTimeInSpaceRequest req;
+  struct srm__srmExtendFileLifeTimeRequest req;
 
   SOAP_INIT(soap);
 
@@ -55,12 +59,14 @@ ExtendFileLifeTimeInSpace(struct soap *soap,
 #endif
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
-  MV_CSTR2STR(req.spaceToken,spaceToken);
+  MV_CSTR2PSTR(req.requestToken,requestToken);
 
   MV_ARRAY_OF_STR_VAL(req.arrayOfSURLs,SURL,urlArray,AnyURI);
+  MV_PINT(req.newFileLifeTime,newFileLifeTime);
+  MV_PINT(req.newPinLifeTime,newPinLifeTime);
 
   /* To send the request ... */
-  SOAP_CALL_SRM(ExtendFileLifeTimeInSpace);
-  
+  SOAP_CALL_SRM(ExtendFileLifeTime);
+
   RETURN(EXIT_SUCCESS);
 }

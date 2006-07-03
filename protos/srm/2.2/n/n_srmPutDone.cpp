@@ -100,6 +100,8 @@ srmPutDone::exec(Process *proc)
   );
 #endif
 
+  DELETE_VEC(SURL);
+
   /* matching */
   if(!resp || !resp->srmPutDoneResponse) {
     DM_LOG(DM_N(1), "no SRM response\n");

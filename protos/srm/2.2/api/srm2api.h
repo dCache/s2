@@ -95,6 +95,16 @@ Copy(struct soap *soap,
      struct srm__srmCopyResponse_ *resp);
 
 extern int
+ExtendFileLifeTime(struct soap *soap,
+                   const char *srm_endpoint,
+                   const char *authorizationID,
+                   const char *requestToken,
+                   std::vector <std::string *> SURL,
+                   int *newFileLifeTime,
+                   int *newPinLifeTime,
+                   struct srm__srmExtendFileLifeTimeResponse_ *resp);
+
+extern int
 ExtendFileLifeTimeInSpace(struct soap *soap,
                           const char *srm_endpoint,
                           const char *authorizationID,

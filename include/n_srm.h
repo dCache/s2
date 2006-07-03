@@ -1249,7 +1249,35 @@ public:
   virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string srmChangeSpaceForFiles::arrayOfChangeSpaceForFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
+  std::string arrayOfChangeSpaceForFilesResponseToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmExtendFileLifeTime request
+ */
+struct srmExtendFileLifeTime : public SRM2
+{
+  /* request (parser/API) */
+  std::string *requestToken;
+  std::vector <std::string *> SURL;
+  std::string *newFileLifeTime;
+  std::string *newPinLifeTime;
+
+  /* response (parser) */
+  std::string *fileStatuses;
+
+public:
+  srmExtendFileLifeTime();
+  srmExtendFileLifeTime(Node &node);
+  ~srmExtendFileLifeTime();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfExtendFileLifeTimeResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };

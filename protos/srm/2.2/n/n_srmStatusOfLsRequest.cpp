@@ -96,8 +96,8 @@ srmStatusOfLsRequest::exec(Process *proc)
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
-    proc->eval2pint32(offset).p,
-    proc->eval2pint32(count).p,
+    proc->eval2pint(offset).p,
+    proc->eval2pint(count).p,
     resp
   );
 #endif

@@ -221,6 +221,14 @@ ReserveSpace(struct soap *soap,
              struct srm__srmReserveSpaceResponse_ *resp);
 
 extern int
+Mkdir(struct soap *soap,
+      const char *srm_endpoint,
+      const char *authorizationID,
+      const char *directoryPath,
+      const tStorageSystemInfo storageSystemInfo,
+      struct srm__srmMkdirResponse_ *resp);
+
+extern int
 Mv(struct soap *soap,
    const char *srm_endpoint,
    const char *authorizationID,
@@ -236,6 +244,15 @@ Rm(struct soap *soap,
    std::vector <std::string *> SURL,
    tStorageSystemInfo storageSystemInfo,
    struct srm__srmRmResponse_ *resp);
+
+extern int
+Rmdir(struct soap *soap,
+      const char *srm_endpoint,
+      const char *authorizationID,
+      const char *directoryPath,
+      const tStorageSystemInfo storageSystemInfo,
+      bool *recursive,
+      struct srm__srmRmdirResponse_ *resp);
 
 extern int
 StatusOfBringOnlineRequest(struct soap *soap,

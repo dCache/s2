@@ -361,12 +361,13 @@ _GET_INT(u,64);
 #endif	/* HAVE_SRM21 */
 #ifdef HAVE_SRM22
   int srmBringOnlineR(void);
-  int srmChangeSpaceForFilesR(void);
   int srmCopyR(void);
   int srmExtendFileLifeTimeInSpaceR(void);
   int srmGetSpaceMetaDataR(void);
   int srmGetSpaceTokensR(void);
+  int srmChangeSpaceForFilesR(void);
   int srmLsR(void);
+  int srmMkdirR(void);
   int srmMvR(void);
   int srmPingR(void);
   int srmPrepareToGetR(void);
@@ -377,10 +378,11 @@ _GET_INT(u,64);
   int srmReleaseSpaceR(void);
   int srmReserveSpaceR(void);
   int srmRmR(void);
+  int srmRmdirR(void);
   int srmStatusOfBringOnlineRequestR(void);
-  int srmStatusOfChangeSpaceForFilesRequestR(void);
   int srmStatusOfCopyRequestR(void);
   int srmStatusOfGetRequestR(void);
+  int srmStatusOfChangeSpaceForFilesRequestR(void);
   int srmStatusOfLsRequestR(void);
   int srmStatusOfPutRequestR(void);
   int srmStatusOfReserveSpaceRequestR(void);
@@ -1585,6 +1587,7 @@ Parser::ACTION(void)
   POPL_EAT(srmGetSpaceMetaData,R,) else
   POPL_EAT(srmGetSpaceTokens,R,) else
   POPL_EAT(srmLs,R,) else
+  POPL_EAT(srmMkdir,R,) else
   POPL_EAT(srmMv,R,) else
   POPL_EAT(srmPing,R,) else
   POPL_EAT(srmPrepareToGet,R,) else
@@ -1595,9 +1598,10 @@ Parser::ACTION(void)
   POPL_EAT(srmReleaseSpace,R,) else
   POPL_EAT(srmReserveSpace,R,) else
   POPL_EAT(srmRm,R,) else
+  POPL_EAT(srmRmdir,R,) else
   POPL_EAT(srmStatusOfBringOnlineRequest,R,) else
-  POPL_EAT(srmStatusOfChangeSpaceForFilesRequest,R,) else
   POPL_EAT(srmStatusOfCopyRequest,R,) else
+  POPL_EAT(srmStatusOfChangeSpaceForFilesRequest,R,) else
   POPL_EAT(srmStatusOfGetRequest,R,) else
   POPL_EAT(srmStatusOfLsRequest,R,) else
   POPL_EAT(srmStatusOfPutRequest,R,) else
@@ -1605,7 +1609,7 @@ Parser::ACTION(void)
   POPL_EAT(srmStatusOfUpdateSpaceRequest,R,) else
   POPL_EAT(srmUpdateSpace,R,) else
 #endif	/* HAVE_SRM22 */
-    
+
   POPL_ERR;
 
   /* parsing succeeded */
@@ -1621,7 +1625,7 @@ Parser::ASSIGN(void)
   char *opt;
   char *end = NULL;
   std::string _val;
-  
+
   nAssign *r = new nAssign(parser_node);
   new_node = r;
 
@@ -3337,6 +3341,41 @@ Parser::srmGetSpaceTokensR(void)
 } /* srmGetSpaceTokensR */
 
 int
+Parser::srmMkdirR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmMkdir *r = new srmMkdir(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("directoryPath",r->directoryPath) else
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+
+    /* response */
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmMkdirR */
+
+int
 Parser::srmMvR(void)
 {
   int rval;
@@ -3784,6 +3823,43 @@ Parser::srmRmR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmRmR */
+
+int
+Parser::srmRmdirR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmRmdir *r = new srmRmdir(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_EQ_PARAM("directoryPath",r->directoryPath) else
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+    POPL_EQ_PARAM("recursive",r->recursive) else
+
+    /* response */
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmRmdirR */
+
 
 int
 Parser::srmStatusOfBringOnlineRequestR(void)

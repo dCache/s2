@@ -23,50 +23,50 @@
 using namespace std;
 
 /*
- * srmReleaseSpace request constuctor
+ * srmRmdir request constuctor
  */
-srmReleaseSpace::srmReleaseSpace()
+srmRmdir::srmRmdir()
 {
   init();
 }
 
 /*
- * Initialise srmReleaseSpace request
+ * Initialise srmRmdir request
  */
 void
-srmReleaseSpace::init()
+srmRmdir::init()
 {
   /* request (parser/API) */
-  spaceToken = NULL;
-  forceFileRelease = NULL;
+  directoryPath = NULL;
+  recursive = NULL;
 
   /* response (parser) */
 }
 
 /*
- * srmReleaseSpace request copy constuctor
+ * srmRmdir request copy constuctor
  */
-srmReleaseSpace::srmReleaseSpace(Node &node)
+srmRmdir::srmRmdir(Node &node)
 {
   init();
   Node::init(node);
 }
 
 /*
- * srmReleaseSpace request destructor
+ * srmRmdir request destructor
  */
-srmReleaseSpace::~srmReleaseSpace()
+srmRmdir::~srmRmdir()
 {
   DM_DBG_I;
 
   /* request (parser/API) */
-  DELETE(spaceToken);
+  DELETE(directoryPath);
   DELETE_VEC(storageSystemInfo.key);
   DELETE_VEC(storageSystemInfo.value);
-  DELETE(forceFileRelease);
+  DELETE(recursive);
 
   /* response (parser) */
-
+  
   DM_DBG_O;
 }
 
@@ -74,85 +74,83 @@ srmReleaseSpace::~srmReleaseSpace()
  * Free process-related structures.
  */
 void
-srmReleaseSpace::finish(Process *proc)
+srmRmdir::finish(Process *proc)
 {
   DM_DBG_I;
 
-  FREE_SRM_RET(ReleaseSpace);
+  FREE_SRM_RET(Rmdir);
 }
 
 int
-srmReleaseSpace::exec(Process *proc)
+srmRmdir::exec(Process *proc)
 {
-#define EVAL_VEC_STR_RS(vec) vec = proc->eval_vec_str(srmReleaseSpace::vec)
+#define EVAL_VEC_STR_MK(vec) vec = proc->eval_vec_str(srmRmdir::vec)
   DM_DBG_I;
 
   tStorageSystemInfo storageSystemInfo;
-  
-  EVAL_VEC_STR_RS(storageSystemInfo.key);
-  EVAL_VEC_STR_RS(storageSystemInfo.value);
+
+  EVAL_VEC_STR_MK(storageSystemInfo.key);
+  EVAL_VEC_STR_MK(storageSystemInfo.value);
 
 #ifdef SRM2_CALL
-  NEW_SRM_RET(ReleaseSpace);
+  NEW_SRM_RET(Rmdir);
 
-  ReleaseSpace(
+  Rmdir(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
-    EVAL2CSTR(spaceToken),
+    EVAL2CSTR(directoryPath),
     storageSystemInfo,
-    (bool *)proc->eval2pint(forceFileRelease).p,
+    (bool *)proc->eval2pint(recursive).p,
     resp
   );
 #endif
 
   DELETE_VEC(storageSystemInfo.key);
   DELETE_VEC(storageSystemInfo.value);
-
+  
   /* matching */
-  if(!resp || !resp->srmReleaseSpaceResponse) {
+  if(!resp || !resp->srmRmdirResponse) {
     DM_LOG(DM_N(1), "no SRM response\n");
     RETURN(ERR_ERR);
   }
 
-  RETURN(matchReturnStatus(resp->srmReleaseSpaceResponse->returnStatus, proc));
-
-#undef EVAL_VEC_STR_RS
+  RETURN(matchReturnStatus(resp->srmRmdirResponse->returnStatus, proc));
+#undef EVAL_VEC_STR_MK
 }
 
 std::string
-srmReleaseSpace::toString(Process *proc)
+srmRmdir::toString(Process *proc)
 {
-#define EVAL_VEC_STR_RS(vec) EVAL_VEC_STR(srmReleaseSpace,vec)
+#define EVAL_VEC_STR_MK(vec) EVAL_VEC_STR(srmRmdir,vec)
   DM_DBG_I;
 
-  GET_SRM_RESP(ReleaseSpace);
+  GET_SRM_RESP(Rmdir);
   BOOL quote = TRUE;
   std::stringstream ss;
+
   tStorageSystemInfo_ storageSystemInfo;
 
-  EVAL_VEC_STR_RS(storageSystemInfo.key);
-  EVAL_VEC_STR_RS(storageSystemInfo.value);
+  EVAL_VEC_STR_MK(storageSystemInfo.key);
+  EVAL_VEC_STR_MK(storageSystemInfo.value);
 
   /* request */  
-  SS_SRM("srmReleaseSpace");
-
+  SS_SRM("srmRmdir");
   SS_P_DQ(authorizationID);
-  SS_P_DQ(spaceToken);
-  SS_VEC_DEL(storageSystemInfo.key);
-  SS_VEC_DEL(storageSystemInfo.value);
-  SS_P_DQ(forceFileRelease);
+  SS_P_DQ(directoryPath);
+  DELETE_VEC(storageSystemInfo.key);
+  DELETE_VEC(storageSystemInfo.value);
+  SS_P_DQ(recursive);
 
   /* response (parser) */
   SS_P_DQ(returnStatus.explanation);
   SS_P_DQ(returnStatus.statusCode);
 
   /* response (API) */
-  if(!resp || !resp->srmReleaseSpaceResponse) RETURN(ss.str());
+  if(!resp || !resp->srmRmdirResponse) RETURN(ss.str());
 
-  SS_P_SRM_RETSTAT(resp->srmReleaseSpaceResponse);
+  SS_P_SRM_RETSTAT(resp->srmRmdirResponse);
 
   RETURN(ss.str());
-
-#undef EVAL_VEC_STR_RS
+#undef EVAL_VEC_STR_MK
 }

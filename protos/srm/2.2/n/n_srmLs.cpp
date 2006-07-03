@@ -115,11 +115,11 @@ srmLs::exec(Process *proc)
     SURL,
     storageSystemInfo,
     getTFileStorageType(EVAL2CSTR(fileStorageType)),
-    (bool *)proc->eval2pint32(fullDetailedList).p,
-    (bool *)proc->eval2pint32(allLevelRecursive).p,
-    proc->eval2pint32(numOfLevels).p,
-    proc->eval2pint32(offset).p,
-    proc->eval2pint32(count).p,
+    (bool *)proc->eval2pint(fullDetailedList).p,
+    (bool *)proc->eval2pint(allLevelRecursive).p,
+    proc->eval2pint(numOfLevels).p,
+    proc->eval2pint(offset).p,
+    proc->eval2pint(count).p,
     resp
   );
 #endif

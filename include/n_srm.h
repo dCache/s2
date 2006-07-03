@@ -1344,6 +1344,30 @@ private:
 };
 
 /*
+ * srmMkdir request
+ */
+struct srmMkdir : public SRM2
+{
+  /* request (parser/API) */
+  std::string *directoryPath;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+
+public:
+  srmMkdir();
+  srmMkdir(Node &node);
+  ~srmMkdir();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
  * srmMv request
  */
 struct srmMv : public SRM2
@@ -1650,6 +1674,31 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmRmdir request
+ */
+struct srmRmdir : public SRM2
+{
+  /* request (parser/API) */
+  std::string *directoryPath;
+  tStorageSystemInfo_ storageSystemInfo;
+  std::string *recursive;
+
+  /* response (parser) */
+
+public:
+  srmRmdir();
+  srmRmdir(Node &node);
+  ~srmRmdir();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
 
 private:
 };

@@ -221,6 +221,23 @@ ReserveSpace(struct soap *soap,
              struct srm__srmReserveSpaceResponse_ *resp);
 
 extern int
+Mv(struct soap *soap,
+   const char *srm_endpoint,
+   const char *authorizationID,
+   const char *fromSURL,
+   const char *toSURL,
+   const tStorageSystemInfo storageSystemInfo,
+   struct srm__srmMvResponse_ *resp);
+
+extern int
+Rm(struct soap *soap,
+   const char *srm_endpoint,
+   const char *authorizationID,
+   std::vector <std::string *> SURL,
+   tStorageSystemInfo storageSystemInfo,
+   struct srm__srmRmResponse_ *resp);
+
+extern int
 StatusOfBringOnlineRequest(struct soap *soap,
                            const char *srm_endpoint,
                            const char *authorizationID,

@@ -1344,6 +1344,31 @@ private:
 };
 
 /*
+ * srmMv request
+ */
+struct srmMv : public SRM2
+{
+  /* request (parser/API) */
+  std::string *fromSURL;
+  std::string *toSURL;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+
+public:
+  srmMv();
+  srmMv(Node &node);
+  ~srmMv();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
  * srmPing request
  */
 struct srmPing : public SRM2
@@ -1599,6 +1624,32 @@ public:
   virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
+
+private:
+};
+
+/*
+ * srmRm request
+ */
+struct srmRm : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> SURL;
+  tStorageSystemInfo_ storageSystemInfo;
+  
+  /* response (parser) */
+  std::string *fileStatuses;
+
+public:
+  srmRm();
+  srmRm(Node &node);
+  ~srmRm();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };

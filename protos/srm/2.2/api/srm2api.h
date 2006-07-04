@@ -113,6 +113,14 @@ ExtendFileLifeTimeInSpace(struct soap *soap,
                           struct srm__srmExtendFileLifeTimeInSpaceResponse_ *resp);
 
 extern int
+GetPermission(struct soap *soap,
+              const char *srm_endpoint,
+              const char *authorizationID,
+              std::vector <std::string *> SURL,
+              tStorageSystemInfo storageSystemInfo,
+              struct srm__srmGetPermissionResponse_ *resp);
+
+extern int
 GetSpaceMetaData(struct soap *soap,
                  const char *srm_endpoint,
                  const char *authorizationID,

@@ -1311,6 +1311,32 @@ private:
 };
 
 /*
+ * srmGetPermission request
+ */
+struct srmGetPermission : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> SURL;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+  std::string *permissionArray;
+
+public:
+  srmGetPermission();
+  srmGetPermission(Node &node);
+  ~srmGetPermission();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmGetSpaceMetaData request
  */
 struct srmGetSpaceMetaData : public SRM2

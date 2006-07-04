@@ -366,6 +366,7 @@ _GET_INT(u,64);
   int srmCopyR(void);
   int srmExtendFileLifeTimeR(void);
   int srmExtendFileLifeTimeInSpaceR(void);
+  int srmGetPermissionR(void);
   int srmGetSpaceMetaDataR(void);
   int srmGetSpaceTokensR(void);
   int srmChangeSpaceForFilesR(void);
@@ -1592,6 +1593,7 @@ Parser::ACTION(void)
   POPL_EAT(srmCopy,R,) else
   POPL_EAT(srmExtendFileLifeTime,R,) else
   POPL_EAT(srmExtendFileLifeTimeInSpace,R,) else
+  POPL_EAT(srmGetPermission,R,) else
   POPL_EAT(srmGetSpaceMetaData,R,) else
   POPL_EAT(srmGetSpaceTokens,R,) else
   POPL_EAT(srmLs,R,) else
@@ -3386,6 +3388,42 @@ Parser::srmExtendFileLifeTimeInSpaceR(void)
   /* parsing succeeded */
   return ERR_OK;
 } /* srmExtendFileLifeTimeInSpaceR */
+
+int
+Parser::srmGetPermissionR(void)
+{
+  int rval;
+  char *opt;
+  char *end = NULL;
+  std::string _val;
+  
+  srmGetPermission *r = new srmGetPermission(parser_node);
+  new_node = r;
+
+  EAT(ENDPOINT, &r->srm_endpoint);
+
+  while(col < llen) {
+    _val.clear();
+
+    WS_COMMENT; /* allow whitespace, leave if comment char hit */
+    AZaz_dot(opt = line + col, &end);   /* get options */
+
+    /* request */
+    POPL_EQ_PARAM("authorizationID",r->authorizationID) else
+    POPL_ARRAY("SURL",r->SURL) else
+    POPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
+    POPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
+
+    /* response */
+    POPL_EQ_PARAM("permissionArray",r->permissionArray) else
+    POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
+    POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
+    POPL_ERR;
+  }
+
+  /* parsing succeeded */
+  return ERR_OK;
+} /* srmLsR */
 
 int
 Parser::srmGetSpaceMetaDataR(void)

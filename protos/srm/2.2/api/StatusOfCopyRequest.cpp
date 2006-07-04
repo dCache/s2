@@ -28,7 +28,9 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- *
+ * \param requestToken
+ * \param sourceSURL
+ * \param targetSURL
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)

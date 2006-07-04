@@ -28,6 +28,16 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
+ * \param userSpaceTokenDescription
+ * \param retentionPolicy
+ * \param accessLatency
+ * \param desiredSizeOfTotalSpace
+ * \param desiredSizeOfGuaranteedSpace
+ * \param desiredLifetimeOfReservedSpace
+ * \param arrayOfExpectedFileSizes
+ * \param storageSystemInfo
+ * \param accessPattern
+ * \param connectionType
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)

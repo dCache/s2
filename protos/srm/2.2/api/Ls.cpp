@@ -32,7 +32,8 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- * \param path
+ * \param SURL
+ * \param storageSystemInfo
  * \param fileStorageType
  * \param fullDetailedList
  * \param allLevelRecursive

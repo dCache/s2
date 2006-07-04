@@ -31,8 +31,8 @@
  * \param SURL
  * \param permissionType
  * \param ownerPermission
- * \param userPermissionArray
- * \param groupPermissionArray
+ * \param userPermissions
+ * \param groupPermissions
  * \param otherPermission
  * \param storageSystemInfo
  * \param resp request response

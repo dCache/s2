@@ -29,6 +29,7 @@
  * \param authorizationID
  * \param spaceToken
  * \param storageSystemInfo
+ * \param SURL
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)

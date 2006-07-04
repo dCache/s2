@@ -32,6 +32,21 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
+ * \param sourceSURL
+ * \param targetSURL
+ * \param isSourceADirectory
+ * \param allLevelRecursive
+ * \param numOfLevels
+ * \param userRequestDescription
+ * \param overwriteOption
+ * \param desiredTotalRequestTime
+ * \param desiredTargetSURLLifeTime
+ * \param targetFileStorageType
+ * \param targetSpaceToken
+ * \param retentionPolicy
+ * \param accessLatency
+ * \param sourceStorageSystemInfo
+ * \param targetStorageSystemInfo
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)

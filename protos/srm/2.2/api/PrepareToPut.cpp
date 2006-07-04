@@ -28,7 +28,21 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- *
+ * \param fileRequests
+ * \param userRequestDescription
+ * \param overwriteOption
+ * \param storageSystemInfo
+ * \param desiredTotalRequestTime
+ * \param desiredPinLifeTime
+ * \param desiredFileLifeTime
+ * \param desiredFileStorageType
+ * \param targetSpaceToken
+ * \param retentionPolicy
+ * \param accessLatency
+ * \param accessPattern
+ * \param connectionType
+ * \param clientNetworks
+ * \param transferProtocols
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)

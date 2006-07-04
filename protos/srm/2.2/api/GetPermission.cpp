@@ -33,7 +33,7 @@
  * \param srm_endpoint
  * \param authorizationID
  * \param SURL
- * \param fileStorageType
+ * \param storageSystemInfo
  * \param resp request response
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)

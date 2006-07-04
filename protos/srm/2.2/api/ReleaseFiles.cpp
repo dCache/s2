@@ -28,7 +28,7 @@
  * \param srm_endpoint
  * \param authorizationID
  * \param requestToken
- * \param siteURLs
+ * \param SURL
  * \param doRemove
  * \param resp request response
  *

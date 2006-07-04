@@ -187,7 +187,7 @@ typedef struct tSurlInfoArray_ /* <std::string *> version of tSurlInfoArray */
   std::vector <std::string *> storageSystemInfo;
 } tSurlInfoArray_;
 
-typedef struct tPermissionArray_ /* <std::string *> version of tPermissionArray_ */
+typedef struct tPermissionArray_ /* <std::string *> version of tPermissionArray */
 { 
   std::vector <std::string *> mode;
   std::vector <std::string *> ID;
@@ -1086,6 +1086,12 @@ typedef struct tArrayOfPutFileRequests_
   std::vector <std::string *> expectedFileSize;
 };
 
+typedef struct tPermissionArray_
+{ 
+  std::vector <std::string *> ID;
+  std::vector <std::string *> mode;
+} tPermissionArray_;
+
 /*
  * srmAbortFiles request
  */
@@ -1363,6 +1369,56 @@ private:
 };
 
 /*
+ * srmGetRequestSummary request
+ */
+struct srmGetRequestSummary : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> requestToken;
+
+  /* response (parser) */
+  std::string *requestSummary;
+
+public:
+  srmGetRequestSummary();
+  srmGetRequestSummary(Node &node);
+  ~srmGetRequestSummary();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmGetRequestTokens request
+ */
+struct srmGetRequestTokens : public SRM2
+{
+  /* request (parser/API) */
+  std::string *userRequestDescription;
+
+  /* response (parser) */
+  std::string *requestTokens;
+
+public:
+  srmGetRequestTokens();
+  srmGetRequestTokens(Node &node);
+  ~srmGetRequestTokens();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmGetSpaceMetaData request
  */
 struct srmGetSpaceMetaData : public SRM2
@@ -1408,6 +1464,30 @@ public:
   int exec(Process *proc);
   std::string toString(Process *proc);
   std::string arrayOfSpaceTokensToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
+ * srmGetTransferProtocols request
+ */
+struct srmGetTransferProtocols : public SRM2
+{
+  /* request (parser/API) */
+
+  /* response (parser) */
+  std::string *transferProtocols;
+
+public:
+  srmGetTransferProtocols();
+  srmGetTransferProtocols(Node &node);
+  ~srmGetTransferProtocols();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfRequestDetailsToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };
@@ -1820,6 +1900,35 @@ public:
   srmRmdir();
   srmRmdir(Node &node);
   ~srmRmdir();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+
+private:
+};
+
+/*
+ * srmSetPermission request
+ */
+struct srmSetPermission : public SRM2
+{
+  /* request (parser/API) */
+  std::string *SURL;
+  std::string *permissionType;
+  std::string *ownerPermission;
+  tPermissionArray_ userPermission;
+  tPermissionArray_ groupPermission;
+  std::string *otherPermission;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+
+public:
+  srmSetPermission();
+  srmSetPermission(Node &node);
+  ~srmSetPermission();
 
   virtual void init();
   virtual void finish(Process *proc);

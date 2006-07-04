@@ -28,6 +28,12 @@ typedef struct tArrayOfPutFileRequests
   std::vector <uint64_t *> expectedFileSize;
 };
 
+typedef struct tPermissionArray
+{ 
+  std::vector <std::string *> ID;
+  std::vector <long int> mode;          /* enum */
+} tPermissionArray;
+
 /* extern(al) function declarations */
 extern int
 AbortFiles(struct soap *soap,
@@ -129,6 +135,20 @@ GetPermission(struct soap *soap,
               struct srm__srmGetPermissionResponse_ *resp);
 
 extern int
+GetRequestSummary(struct soap *soap,
+                  const char *srm_endpoint,
+                  const char *authorizationID,
+                  std::vector <std::string *> requestTokens,
+                  struct srm__srmGetRequestSummaryResponse_ *resp);
+
+extern int
+GetRequestTokens(struct soap *soap,
+                 const char *srm_endpoint,
+                 const char *authorizationID,
+                 const char *userRequestDescription,
+                 struct srm__srmGetRequestTokensResponse_ *resp);
+
+extern int
 GetSpaceMetaData(struct soap *soap,
                  const char *srm_endpoint,
                  const char *authorizationID,
@@ -141,6 +161,12 @@ GetSpaceTokens(struct soap *soap,
                const char *authorizationID,
                const char *userSpaceTokenDescription,
                struct srm__srmGetSpaceTokensResponse_ *resp);
+
+extern int
+GetTransferProtocols(struct soap *soap,
+                     const char *srm_endpoint,
+                     const char *authorizationID,
+                     struct srm__srmGetTransferProtocolsResponse_ *resp);
 
 extern int
 Ls(struct soap *soap,
@@ -293,6 +319,19 @@ Rmdir(struct soap *soap,
       const tStorageSystemInfo storageSystemInfo,
       bool *recursive,
       struct srm__srmRmdirResponse_ *resp);
+
+extern int
+SetPermission(struct soap *soap,
+              const char *srm_endpoint,
+              const char *authorizationID,
+              const char *SURL,
+              const long int permissionType,
+              const long int *ownerPermission,
+              tPermissionArray userPermissions,
+              tPermissionArray groupPermissions,
+              const long int *otherPermission,
+              tStorageSystemInfo storageSystemInfo,
+              struct srm__srmSetPermissionResponse_ *resp);
 
 extern int
 StatusOfBringOnlineRequest(struct soap *soap,

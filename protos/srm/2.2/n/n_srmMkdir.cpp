@@ -135,8 +135,8 @@ srmMkdir::toString(Process *proc)
   SS_SRM("srmMkdir");
   SS_P_DQ(authorizationID);
   SS_P_DQ(directoryPath);
-  DELETE_VEC(storageSystemInfo.key);
-  DELETE_VEC(storageSystemInfo.value);
+  SS_VEC_DEL(storageSystemInfo.key);
+  SS_VEC_DEL(storageSystemInfo.value);
 
   /* response (parser) */
   SS_P_DQ(returnStatus.explanation);

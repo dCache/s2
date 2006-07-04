@@ -27,6 +27,6 @@ FORCE: ;
 ### Cleanup ##########################################################
 .PHONY: clean distclean mclean
 
-clean distclean mclean: clean
+clean distclean mclean:
 	-rm -rf $(LOG_DIR) *.html
 	-rm -rf $(BUILD_DIR)

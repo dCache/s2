@@ -27,7 +27,7 @@ DEFUN GetCycle filesToGet sURLs : getRequestToken
    && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] desiredFileStorageType=$ENV{STORAGE_TYPE} retentionPolicy=$ENV{RETENTION_POLICY} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
 ;   && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] retentionPolicy=$ENV{RETENTION_POLICY} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
       SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
-      && >1||3 SLEEP $ENV{SLEEP_SOR}
+      && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${fileStatuses}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_INPROGRESS)
          || SYSTEM echo "srmStatusOfGetRequest failed" >> $ENV{S2_LOG} && exit 2
 

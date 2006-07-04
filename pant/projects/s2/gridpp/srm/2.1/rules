@@ -1,4 +1,4 @@
-./configure --enable-srm21 --prefix=/opt/gridpp --package-prefix="gridpp-"
+./configure  --static-globus --prefix=/opt/gridpp --package-prefix="gridpp-" --enable-srm21 --package-suffix="-srm-2.1"
 make
 sed 's/^e=.*/e=999/' < testing/scripts/protos/srm/s2.env >testing/scripts/protos/srm/s2.new && mv -f testing/scripts/protos/srm/s2.new testing/scripts/protos/srm/s2.env
 rm -rf testing/scripts/protos/srm/2.1/dpm

@@ -1,7 +1,7 @@
 /**
  * \file PutDone.cpp
  *
- * Implements the SRM2 PutDone method.  SRM2 spec p.20.
+ * Implements the SRM2 PutDone method.
  */
 
 #ifdef HAVE_CONFIG_H

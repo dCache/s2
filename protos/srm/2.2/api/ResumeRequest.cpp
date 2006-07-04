@@ -1,7 +1,7 @@
 /**
  * \file ResumeRequest.cpp
  *
- * Implements the SRM2 ResumeRequest method.  SRM2 spec p.21.
+ * Implements the SRM2 ResumeRequest method.
  */
 
 #ifdef HAVE_CONFIG_H

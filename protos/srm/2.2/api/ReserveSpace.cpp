@@ -1,7 +1,7 @@
 /**
  * \file ReserveSpace.cpp
  *
- * Implements the SRM2 ReserveSpace method.  SRM2 spec p.10.
+ * Implements the SRM2 ReserveSpace method.
  */
 
 #ifdef HAVE_CONFIG_H

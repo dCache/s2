@@ -1,7 +1,7 @@
 /**
  * \file Mkdir.cpp
  *
- * Implements the SRM2 Mkdir method.  SRM2 spec p.16.
+ * Implements the SRM2 Mkdir method.
  */
 
 #ifdef HAVE_CONFIG_H

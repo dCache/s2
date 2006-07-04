@@ -1,7 +1,7 @@
 /**
  * \file ReleaseSpace.cpp
  *
- * Implements the SRM2 ReleaseSpace method.  SRM2 spec p.12.
+ * Implements the SRM2 ReleaseSpace method.
  */
 
 #ifdef HAVE_CONFIG_H

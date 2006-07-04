@@ -1,7 +1,7 @@
 /**
  * \file ChangeSpaceForFiles.cpp
  *
- * Implements the SRM2 ChangeSpaceForFiles method.  SRM2 spec p.12.
+ * Implements the SRM2 ChangeSpaceForFiles method.
  */
 
 #ifdef HAVE_CONFIG_H

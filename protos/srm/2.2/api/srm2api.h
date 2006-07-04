@@ -74,6 +74,14 @@ ChangeSpaceForFiles(struct soap *soap,
                     struct srm__srmChangeSpaceForFilesResponse_ *resp);
 
 extern int
+CheckPermission(struct soap *soap,
+                const char *srm_endpoint,
+                const char *authorizationID,
+                std::vector <std::string *> SURL,
+                tStorageSystemInfo storageSystemInfo,
+                struct srm__srmCheckPermissionResponse_ *resp);
+
+extern int
 Copy(struct soap *soap,
      const char *srm_endpoint,
      const char *authorizationID,

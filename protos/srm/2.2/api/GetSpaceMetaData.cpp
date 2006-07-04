@@ -1,7 +1,7 @@
 /**
  * \file GetSpaceMetaData.cpp
  *
- * Implements the SRM2 GetSpaceMetaData method.  SRM2 spec p.12.
+ * Implements the SRM2 GetSpaceMetaData method.
  */
 
 #ifdef HAVE_CONFIG_H

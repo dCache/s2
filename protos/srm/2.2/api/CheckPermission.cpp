@@ -1,7 +1,7 @@
 /**
- * \file Rm.cpp
+ * \file CheckPermission.cpp
  *
- * Implements the SRM2 Rm method.
+ * Implements the SRM2 CheckPermission method.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -27,7 +27,7 @@
 #include "srm_soap27.h"
 
 /**
- * srmRm method.
+ * srmLs method.
  *
  * \param soap
  * \param srm_endpoint
@@ -39,15 +39,15 @@
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
 extern int
-Rm(struct soap *soap,
-   const char *srm_endpoint,
-   const char *authorizationID,
-   std::vector <std::string *> SURL,
-   tStorageSystemInfo storageSystemInfo,
-   struct srm__srmRmResponse_ *resp)
+CheckPermission(struct soap *soap,
+                const char *srm_endpoint,
+                const char *authorizationID,
+                std::vector <std::string *> SURL,
+                tStorageSystemInfo storageSystemInfo,
+                struct srm__srmCheckPermissionResponse_ *resp)
 {
   DM_DBG_I;
-  struct srm__srmRmRequest req;
+  struct srm__srmCheckPermissionRequest req;
 
   SOAP_INIT(soap);
 
@@ -68,7 +68,7 @@ Rm(struct soap *soap,
   MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);
   
   /* To send the request ... */
-  SOAP_CALL_SRM(Rm); 
+  SOAP_CALL_SRM(CheckPermission); 
 
   RETURN(EXIT_SUCCESS);
 }

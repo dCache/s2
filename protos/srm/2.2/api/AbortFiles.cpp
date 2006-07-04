@@ -1,7 +1,7 @@
 /**
  * \file AbortFiles.cpp
  *
- * Implements the SRM2 AbortFiles method.  SRM2 spec p.20.
+ * Implements the SRM2 AbortFiles method.
  */
 
 #ifdef HAVE_CONFIG_H

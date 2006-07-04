@@ -1,7 +1,7 @@
 /**
  * \file AbortRequest.cpp
  *
- * Implements the SRM2 AbortRequest method.  SRM2 spec p.21.
+ * Implements the SRM2 AbortRequest method.
  */
 
 #ifdef HAVE_CONFIG_H

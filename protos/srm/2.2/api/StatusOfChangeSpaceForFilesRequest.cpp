@@ -1,7 +1,7 @@
 /**
  * \file StatusOfChangeSpaceForFilesRequest.cpp
  *
- * Implements the SRM2 StatusOfChangeSpaceForFilesRequest method.  SRM2 spec p.12.
+ * Implements the SRM2 StatusOfChangeSpaceForFilesRequest method.
  */
 
 #ifdef HAVE_CONFIG_H

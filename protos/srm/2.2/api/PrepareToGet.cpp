@@ -1,7 +1,7 @@
 /**
  * \file PrepareToGet.cpp
  *
- * Implements the SRM2 PrepareToGet method.  SRM2 spec p.17.
+ * Implements the SRM2 PrepareToGet method.
  */
 
 #ifdef HAVE_CONFIG_H

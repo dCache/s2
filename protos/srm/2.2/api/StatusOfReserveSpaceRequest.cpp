@@ -1,7 +1,7 @@
 /**
  * \file StatusOfReserveSpaceRequest.cpp
  *
- * Implements the SRM2 StatusOfReserveSpaceRequest method.  SRM2 spec p.10.
+ * Implements the SRM2 StatusOfReserveSpaceRequest method.
  */
 
 #ifdef HAVE_CONFIG_H

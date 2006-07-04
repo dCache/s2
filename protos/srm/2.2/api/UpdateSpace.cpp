@@ -1,7 +1,7 @@
 /**
  * \file UpdateSpace.cpp
  *
- * Implements the SRM2 UpdateSpace method.  SRM2 spec p.11.
+ * Implements the SRM2 UpdateSpace method.
  */
 
 #ifdef HAVE_CONFIG_H

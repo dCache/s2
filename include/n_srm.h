@@ -1181,6 +1181,32 @@ private:
 };
 
 /*
+ * srmCheckPermission request
+ */
+struct srmCheckPermission : public SRM2
+{
+  /* request (parser/API) */
+  std::vector <std::string *> SURL;
+  tStorageSystemInfo_ storageSystemInfo;
+
+  /* response (parser) */
+  std::string *permissionArray;
+
+public:
+  srmCheckPermission();
+  srmCheckPermission(Node &node);
+  ~srmCheckPermission();
+
+  virtual void init();
+  virtual void finish(Process *proc);
+  int exec(Process *proc);
+  std::string toString(Process *proc);
+  std::string arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL quote) const;
+
+private:
+};
+
+/*
  * srmCopy request
  */
 struct srmCopy : public SRM2

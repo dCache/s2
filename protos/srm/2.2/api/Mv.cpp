@@ -1,7 +1,7 @@
 /**
  * \file Mv.cpp
  *
- * Implements the SRM2 Mv method.  SRM2 spec p.16.
+ * Implements the SRM2 Mv method.
  */
 
 #ifdef HAVE_CONFIG_H

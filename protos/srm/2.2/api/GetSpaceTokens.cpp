@@ -1,7 +1,7 @@
 /**
  * \file GetSpaceTokens.cpp
  *
- * Implements the SRM2 GetSpaceTokens method.  SRM2 spec p.13.
+ * Implements the SRM2 GetSpaceTokens method.
  */
 
 #ifdef HAVE_CONFIG_H

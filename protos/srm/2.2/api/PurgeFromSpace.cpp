@@ -1,7 +1,7 @@
 /**
  * \file PurgeFromSpace.cpp
  *
- * Implements the SRM2 PurgeFromSpace method.  SRM2 spec p.12.
+ * Implements the SRM2 PurgeFromSpace method.
  */
 
 #ifdef HAVE_CONFIG_H

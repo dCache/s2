@@ -1,7 +1,7 @@
 /**
- * \file Ls.cpp
+ * \file GetPermission.cpp
  *
- * Implements the SRM2 Ls method.  SRM2 spec p.17.
+ * Implements the SRM2 GetPermission method.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -62,7 +62,7 @@ GetPermission(struct soap *soap,
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
   
   /* SURL */
-  MV_ARRAY_OF_STR_VAL(req.arrayOfSURGetPermission,SURL,urlArray,AnyURI);
+  MV_ARRAY_OF_STR_VAL(req.arrayOfSURLs,SURL,urlArray,AnyURI);
 
   /* Storage system info */
   MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);

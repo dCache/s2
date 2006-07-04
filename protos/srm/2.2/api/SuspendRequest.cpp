@@ -1,7 +1,7 @@
 /**
  * \file SuspendRequest.cpp
  *
- * Implements the SRM2 SuspendRequest method.  SRM2 spec p.21.
+ * Implements the SRM2 SuspendRequest method.
  */
 
 #ifdef HAVE_CONFIG_H

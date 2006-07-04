@@ -1,7 +1,7 @@
 /**
  * \file Rmdir.cpp
  *
- * Implements the SRM2 Rmdir method.  SRM2 spec p.16.
+ * Implements the SRM2 Rmdir method.
  */
 
 #ifdef HAVE_CONFIG_H

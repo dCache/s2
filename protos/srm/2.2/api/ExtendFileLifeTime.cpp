@@ -1,7 +1,7 @@
 /**
  * \file ExtendFileLifeTime.cpp
  *
- * Implements the SRM2 ExtendFileLifeTime method.  SRM2 spec p.23.
+ * Implements the SRM2 ExtendFileLifeTime method.
  */
 
 #ifdef HAVE_CONFIG_H

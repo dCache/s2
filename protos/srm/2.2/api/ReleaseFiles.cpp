@@ -1,7 +1,7 @@
 /**
  * \file ReleaseFiles.cpp
  *
- * Implements the SRM2 ReleaseFiles method.  SRM2 spec p.19.
+ * Implements the SRM2 ReleaseFiles method.
  */
 
 #ifdef HAVE_CONFIG_H

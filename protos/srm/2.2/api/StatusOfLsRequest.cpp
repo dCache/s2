@@ -1,7 +1,7 @@
 /**
  * \file StatusOfLsRequest.cpp
  *
- * Implements the SRM2 StatusOfLsRequest method.  SRM2 spec p.17.
+ * Implements the SRM2 StatusOfLsRequest method.
  */
 
 #ifdef HAVE_CONFIG_H

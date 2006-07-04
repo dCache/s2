@@ -87,7 +87,6 @@ int
 srmCompactSpace::exec(Process *proc)
 {
   DM_DBG_I;
-  BOOL match = FALSE;
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(CompactSpace);

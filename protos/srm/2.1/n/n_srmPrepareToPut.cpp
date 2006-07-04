@@ -100,7 +100,6 @@ srmPrepareToPut::exec(Process *proc)
 #define EVAL_VEC_STR_PTP(vec) vec = proc->eval_vec_str(srmPrepareToPut::vec)
 #define EVAL_VEC_PINT64_PTP(vec) vec = proc->eval_vec_pint64(srmPrepareToPut::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
 
   tArrayOfPutFileRequests arrayOfFileRequests;
   std::vector <std::string *> arrayOfTransferProtocols;

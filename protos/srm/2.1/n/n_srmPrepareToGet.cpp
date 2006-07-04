@@ -102,7 +102,6 @@ srmPrepareToGet::exec(Process *proc)
 #define EVAL_VEC_PINT32_PTG(vec) vec = proc->eval_vec_pint32(srmPrepareToGet::vec)
 #define EVAL_VEC_PINT64_PTG(vec) vec = proc->eval_vec_pint64(srmPrepareToGet::vec)
   DM_DBG_I;
-  BOOL match = FALSE;
 
   tArrayOfGetFileRequests arrayOfFileRequests;
   std::vector <std::string *> arrayOfTransferProtocols;

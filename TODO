@@ -1,7 +1,6 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- SRM2 test scenarios and testing (storage system info/description as testing)!
-- Implement SRM 2.2
+- SRM 2.2 test scenarios and testing (storage system info/description as testing)!
 - sed 's/^n_srm//'
 - Testing, optimize for speed
 - output of TEST ${empty} == "" and simillar in e* files
@@ -10,7 +9,6 @@ Ordered by priority
   * $FILE{<eval> <file>} (read in contents from <file> and optionally <eval>uate tags it contains)
   * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...
 - Plugin architecture to make adding of new protocols simple?
-  API change to call return &soap and leave deallocation up to the client: soap_end(&soap)?
 - SEND/RECEIVE (TCP/UDP/...)?
 - Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
   investigate?  Use Apache threads instead?

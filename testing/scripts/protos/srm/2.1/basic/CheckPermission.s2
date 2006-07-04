@@ -14,7 +14,7 @@ ASSIGN srmTest srmCheckPermission
    ; check if any permissions were returned (substring matching with -c)
    match=-c TEST $MATCH{userPermission ${permissions}}
    || SYSTEM echo "srmCheckPermission: no permissions returned" >> $ENV{S2_LOG}
-&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
 

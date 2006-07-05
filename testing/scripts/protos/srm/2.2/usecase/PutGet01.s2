@@ -10,8 +10,7 @@ ASSIGN srmTest PutGet01
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
-
-&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+&& timeout=1 FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 && FUN GetCycle $ENV{FILE_TO_GET0} $ENV{SRM_NEW_FILE0} : getRequestToken
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

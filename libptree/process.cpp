@@ -305,8 +305,8 @@ Process::eval()
 
     /* check for parallel execution and create new requests if parallel branches found */
     for(ptr_node = n->par; ptr_node; ptr_node = ptr_node->par) {
-      BOOL can_enqueue;
-      can_enqueue = FALSE;
+      BOOL enqueued;
+      enqueued = FALSE;
 
       if(ptr_node->COND == S2_COND_NONE) {
         if(ptr_node->REPEAT.type == S2_REPEAT_PAR) {
@@ -324,12 +324,7 @@ Process::eval()
             DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
             if(tp_sync.total < opts.tp_size) {
               tp_sync.total++;
-              can_enqueue = TRUE;
-            }
-            DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
-            S_V(&tp_sync.total_mtx);
-
-          if(can_enqueue) {
+              
               Process *proc = new Process(ptr_node, parent, NULL);
               proc->I = i;
               vProc.push_back(proc);
@@ -338,10 +333,15 @@ Process::eval()
                 DM_ERR(ERR_SYSTEM, _("branch %u: failed to create new thread: %s\n"), ptr_node->row, strerror(errno));
               } else {
                 /* number of sub-requests */
+                enqueued = TRUE;
                 sreqs++;
                 DM_DBG(DM_N(3), "branch %u: subrequests=%d\n", ptr_node->row, sreqs);
               }
-            } else {
+            }
+            DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
+            S_V(&tp_sync.total_mtx);
+            
+            if(!enqueued) {
               /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
                  => evaluate sequentially */
               Process proc = Process(ptr_node, parent, NULL);
@@ -359,12 +359,6 @@ Process::eval()
         DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
         if(tp_sync.total < opts.tp_size) {
           tp_sync.total++;
-          can_enqueue = TRUE;
-        }
-        DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
-        S_V(&tp_sync.total_mtx);
-        
-        if(can_enqueue) {
           Process *proc = new Process(ptr_node, parent, NULL);
           vProc.push_back(proc);
           DM_DBG(DM_N(1), FBRANCH"enqueing a request\n", n->row, executed, evaluated);
@@ -372,10 +366,15 @@ Process::eval()
             DM_ERR(ERR_SYSTEM, _(FBRANCH"failed to create new thread: %s\n"), n->row, executed, evaluated, strerror(errno));
           } else {
             /* number of sub-requests */
+            enqueued = TRUE;
             sreqs++;
             DM_DBG(DM_N(3), FBRANCH"subrequests=%d\n", n->row, executed, evaluated, sreqs);
           }
-        } else {
+        }
+        DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
+        S_V(&tp_sync.total_mtx);
+        
+        if(!enqueued) {
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
           Process proc = Process(ptr_node, parent, NULL);
@@ -464,19 +463,16 @@ seq:
       do {
         i += step;
         DM_DBG(DM_N(1), FBRANCH"parallel repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
-        BOOL can_enqueue;
-        can_enqueue = FALSE;
+        BOOL enqueued;
+        enqueued = FALSE;
         
         S_P(&tp_sync.total_mtx);
         DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
+
         if(tp_sync.total < opts.tp_size) {
           tp_sync.total++;
-          can_enqueue = TRUE;
-        }
-        DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
-        S_V(&tp_sync.total_mtx);
 
-        if(can_enqueue) {
+          /* enqueue the request */
           DM_DBG(DM_N(1), "parallel repeat "FBRANCH"enqueing a request\n", n->row, executed, evaluated);
           Process *proc = new Process(n, parent, NULL);
           proc->I = i;
@@ -485,13 +481,20 @@ seq:
             DM_ERR(ERR_SYSTEM, _(FBRANCH"failed to create new thread: %s\n"), n->row, executed, evaluated, strerror(errno));
           } else {
             /* number of sub-requests */
+            enqueued = TRUE;
             sreqs++;
             DM_DBG(DM_N(3), FBRANCH"subrequests=%d\n", n->row, executed, evaluated, sreqs);
           }
-        } else {
+        }
+
+        DM_DBG(DM_N(3), FBRANCH"total_mtx >>>\n", n->row, executed, evaluated);
+        S_V(&tp_sync.total_mtx);
+
+        if(!enqueued) {
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
           I = i;
+          fprintf(stderr, FBRANCH"3) too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, tp_sync.total, opts.tp_size);//dMan
           DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, tp_sync.total, opts.tp_size);
           repeats_eval = eval_with_timeout();
           UPDATE_MAX(evaluated, repeats_eval);
@@ -703,10 +706,14 @@ static void
 pthread_timeout_handler(void *proc)
 {
   DM_DBG_I;
-  pthread_t tid = pthread_self();	/* thread identifying number */
-  Process *p = (Process *)proc;
 
-  DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
+  /* put it all in a diagnostics block => no warnings when compiling without libdiagnose */
+  DM_BLOCK(DBG, DM_N(3),
+    pthread_t tid = pthread_self();	/* thread identifying number */
+    Process *p = (Process *)proc;
+
+    DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
+  );
 
   S_V(&tp_sync.total_mtx);
 

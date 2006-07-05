@@ -5,6 +5,8 @@
 #include <stdint.h>
 #endif
 
+#include <stdio.h>              /* FILE */
+
 #include "sysdep.h"	/* BOOL, STD_BUF, ... */
 
 #define PGMNAME         "s2"

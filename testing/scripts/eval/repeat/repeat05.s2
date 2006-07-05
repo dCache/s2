@@ -1,4 +1,4 @@
-; Parallel repeat connected in parallel
+; Parallel repeat connected in parallel; sometimes deadlocks with NPTL 3.2.5, see BUGS
 
 >1 5 SYSTEM echo "$I{0}:-:-:-"
    >1 5 SYSTEM echo "$I{0}:$I{1}:-:-"

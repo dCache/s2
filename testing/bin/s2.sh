@@ -121,6 +121,7 @@ main() {
     rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_ERR} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
     echo -e "${S2_TEST_FILE}:"
     time ${S2_BIN}\
+      --threads=63\
       --pp-out-file=${S2_P}\
       --dbg-file=${S2_D}\
       --err-file=${S2_E}\

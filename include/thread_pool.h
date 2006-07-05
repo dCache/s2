@@ -28,7 +28,8 @@
 
 #define TP_THREADS_MAX	128		/* maximum number of threads in the threadpool */
 #define TP_THREADS_MIN	1		/* minimum number of threads in the threadpool */
-#define TP_THREADS_DEF	63		/* default number of threads in the threadpool */
+//#define TP_THREADS_DEF	63		/* default number of threads in the threadpool */
+#define TP_THREADS_DEF	3		/* default number of threads in the threadpool */
 
 /* format of a single request. */
 typedef struct tp_request {

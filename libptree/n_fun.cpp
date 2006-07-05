@@ -118,8 +118,7 @@ nFun::exec(Process *proc, Process &proc_fun)
   
   /* pass arguments to the function by value (evaluate the arguments) */
   for(uint u = 0; u < args_size; u++) {
-    const char *arg_cstr=Process::eval_str(args[u], proc).c_str();
-    DM_DBG(DM_N(3), "FUN arg[%u]=|%s|\n", u, arg_cstr);
+    DM_DBG(DM_N(3), "FUN arg[%u]=|%s|\n", u, Process::eval_str(args[u], proc).c_str());
     proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
                            Process::eval_str(args[u], proc).c_str());
   }

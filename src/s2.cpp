@@ -42,10 +42,14 @@ uint exit_val = 0;                      /* exit value (diagnose library: error-r
 /* private function declarations */
 static int parse_cmd_opts(int argc, char **argv);
 static int handle_option(const char* short_name);
-static void WarnCB(dg_callback cbData);
-static void ErrCB(dg_callback cbData);
 static int f_open(const char* fname, FILE **file);
 static int f_close(const char* fname, FILE **file);
+#if defined(DG_WARN) && defined(DG_DIAGNOSE)
+static void WarnCB(dg_callback cbData);
+#endif
+#if defined(DG_ERR) && defined(DG_DIAGNOSE)
+static void ErrCB(dg_callback cbData);
+#endif
 
 /********************************************************************
  * Constants
@@ -187,6 +191,8 @@ init_s2(void)
   DM_DBG_OPEN(opts.dbg_fname);
   DM_WARN_OPEN(opts.warn_fname);
   DM_ERR_OPEN(opts.err_fname);
+  /* no debug (apart 0-level messages), environment variable DG_DBG takes preference over this */
+  DM_DBG_SET_L(0);
 
   /* callback functions */
   DM_WARN_CB(WarnCB);

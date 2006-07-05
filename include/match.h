@@ -9,6 +9,8 @@
 #include <pcre.h>
 #endif
 
+#include <stdio.h>              /* FILE */
+
 #include "sysdep.h"             /* BOOL */
 
 #include "constants.h"

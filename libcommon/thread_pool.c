@@ -238,7 +238,9 @@ request_loop_handler(void *p_tp_tid)
 
   int rc;				/* return code of pthreads functions */
   tp_request *request;			/* pointer to a request */
+#if defined(DG_DBG) && defined(DG_DIAGNOSE)
   pthread_t tid = pthread_self();	/* thread identifying number */
+#endif
   int tp_tid;				/* thread-pool related thread's identifying number */
   
   if(p_tp_tid == NULL) {
@@ -267,7 +269,7 @@ request_loop_handler(void *p_tp_tid)
 
       if (request) {			/* got a request - handle it and free it */
 	/* unlock mutex - so other threads would be able to handle */
-	/* other reqeusts waiting in the queue paralelly */
+	/* other requests waiting in the queue paralelly */
 	rc = S_V(&request_mtx);
 
         DM_DBG(DM_N(3), FTHREAD"handling request (%d/%p)\n", tp_tid, tid, request->tp_tid, request);

@@ -301,6 +301,10 @@ l_add_opts() {
   $_NOP
 }
 
+l_set_dirs_and_options() {
+  $_NOP
+}
+
 l_add_withdirs() {
   # compile-time directories
   add_withdir globus 'Globus' '${_with_globusdir:-${_prefix}/globus}'

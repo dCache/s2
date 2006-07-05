@@ -85,21 +85,26 @@ PrepareToPut(struct soap *soap,
 
   /* Create the file request */
   NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTPutFileRequest(soap, -1));
-  for (uint u = 0; u < fileRequests.SURL.size(); u++) {
-    DM_LOG(DM_N(2), "fileRequests.SURL[%u]\n", u);
-    srm__TPutFileRequest *fileRequest;
-    NOT_NULL(fileRequest = soap_new_srm__TPutFileRequest(soap, -1));
-
-    MV_PSTR2PSTR(fileRequest->targetSURL,fileRequests.SURL[u]);
-    if(NOT_NULL_VEC(fileRequests,expectedFileSize)) {
-      fileRequest->expectedFileSize = fileRequests.expectedFileSize[u];
-      DM_LOG(DM_N(2), "expectedFileSize[%u] = %"PRIi64"\n", u, *(fileRequest->expectedFileSize));
-    } else {
-      fileRequest->expectedFileSize = NULL;
-      DM_LOG(DM_N(2), "expectedFileSize[%u] == NULL\n", u);
+  if(fileRequests.SURL.size() != 0) {
+    for (uint u = 0; u < fileRequests.SURL.size(); u++) {
+      DM_LOG(DM_N(2), "fileRequests.SURL[%u]\n", u);
+      srm__TPutFileRequest *fileRequest;
+      NOT_NULL(fileRequest = soap_new_srm__TPutFileRequest(soap, -1));
+  
+      MV_PSTR2PSTR(fileRequest->targetSURL,fileRequests.SURL[u]);
+      if(NOT_NULL_VEC(fileRequests,expectedFileSize)) {
+        fileRequest->expectedFileSize = fileRequests.expectedFileSize[u];
+        DM_LOG(DM_N(2), "expectedFileSize[%u] = %"PRIi64"\n", u, *(fileRequest->expectedFileSize));
+      } else {
+        fileRequest->expectedFileSize = NULL;
+        DM_LOG(DM_N(2), "expectedFileSize[%u] == NULL\n", u);
+      }
+      
+      req.arrayOfFileRequests->requestArray.push_back(fileRequest);
     }
-    
-    req.arrayOfFileRequests->requestArray.push_back(fileRequest);
+  } else {
+    /* not a required parameter */
+    req.arrayOfFileRequests = NULL;
   }
 
   MV_CSTR2PSTR(req.userRequestDescription,userRequestDescription);

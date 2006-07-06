@@ -277,6 +277,8 @@ ReserveSpace(struct soap *soap,
              tStorageSystemInfo storageSystemInfo,
              const long *accessPattern,
              const long *connectionType,
+             std::vector <std::string *> clientNetworks,
+             std::vector <std::string *> transferProtocols,
              struct srm__srmReserveSpaceResponse_ *resp);
 
 extern int

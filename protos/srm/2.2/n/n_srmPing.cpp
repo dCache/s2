@@ -132,7 +132,7 @@ srmPing::toString(Process *proc)
   /* response (API) */
   if(!resp || !resp->srmPingResponse) RETURN(ss.str());
 
-  ss << resp->srmPingResponse->versionInfo;
+  ss << " versionInfo=" << resp->srmPingResponse->versionInfo;
   ss << arrayOfOtherInfoToString(proc, TRUE, quote);
   
   RETURN(ss.str());

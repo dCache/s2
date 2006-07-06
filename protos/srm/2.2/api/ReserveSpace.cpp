@@ -39,6 +39,8 @@
  * \param accessPattern
  * \param connectionType
  * \param resp request response
+ * \param clientNetworks
+ * \param transferProtocols
  *
  * \returns request exit status (EXIT_SUCCESS/EXIT_FAILURE)
  */
@@ -56,6 +58,8 @@ ReserveSpace(struct soap *soap,
              tStorageSystemInfo storageSystemInfo,
              const long *accessPattern,
              const long *connectionType,
+             std::vector <std::string *> clientNetworks,
+             std::vector <std::string *> transferProtocols,
              struct srm__srmReserveSpaceResponse_ *resp)
 {
   DM_DBG_I;
@@ -77,6 +81,9 @@ ReserveSpace(struct soap *soap,
 
   /* Retention */
   MV_RETENTION_POLICY(req.retentionPolicyInfo,retentionPolicy,accessLatency);
+
+  MV_UINT64(req.desiredSizeOfGuaranteedSpace,desiredSizeOfGuaranteedSpace);
+  MV_PINT(req.desiredLifetimeOfReservedSpace,desiredLifetimeOfReservedSpace);
   
   /* arrayOfExpectedFileSizes */
   NOT_0(arrayOfExpectedFileSizes,req.arrayOfExpectedFileSizes,soap_new_srm__ArrayOfUnsignedLong(soap, -1));
@@ -88,8 +95,8 @@ ReserveSpace(struct soap *soap,
   /* Storage system info */
   MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);
   
-  MV_PSOAP(AccessPattern,req.transferParameters->accessPattern,accessPattern);
-  MV_PSOAP(ConnectionType,req.transferParameters->connectionType,connectionType);
+  /* Transfer parameters */
+  MV_TRANSFER_PARAMETERS(req.transferParameters);
 
   /* To send the request ... */
   SOAP_CALL_SRM(ReserveSpace); 

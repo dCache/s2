@@ -1,6 +1,6 @@
 ; srmPing
 
-ASSIGN srmTest srmAbortFiles
+ASSIGN srmTest srmPing
 
 && srmPing $ENV{ENDPOINT} versionInfo=(?P<versionInfo>.*) otherInfo=(?P<otherInfo>.*)
    SYSTEM echo -e "versionInfo=${versionInfo}\notherInfo=${-otherInfo}" > $ENV{S2_LOG}

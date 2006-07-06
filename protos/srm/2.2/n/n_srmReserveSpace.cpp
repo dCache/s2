@@ -121,10 +121,15 @@ srmReserveSpace::exec(Process *proc)
   
   std::vector <uint64_t> expectedFileSizes;
   tStorageSystemInfo storageSystemInfo;
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
 
   EVAL_VEC_UINT64_RS(expectedFileSizes);
   EVAL_VEC_STR_RS(storageSystemInfo.key);
   EVAL_VEC_STR_RS(storageSystemInfo.value);
+
+  EVAL_VEC_STR_RS(clientNetworks);
+  EVAL_VEC_STR_RS(transferProtocols);
 
 #ifdef SRM2_CALL
   NEW_SRM_RET(ReserveSpace);
@@ -143,12 +148,17 @@ srmReserveSpace::exec(Process *proc)
     storageSystemInfo,
     getTAccessPattern(EVAL2CSTR(accessPattern)),
     getTConnectionType(EVAL2CSTR(connectionType)),
+    clientNetworks,
+    transferProtocols,
     resp
   );
 #endif
 
   DELETE_VEC(storageSystemInfo.key);
   DELETE_VEC(storageSystemInfo.value);
+
+  DELETE_VEC(clientNetworks);
+  DELETE_VEC(transferProtocols);
   
   /* matching */
   if(!resp || !resp->srmReserveSpaceResponse) {
@@ -214,10 +224,14 @@ srmReserveSpace::toString(Process *proc)
 
   std::vector <std::string *> expectedFileSizes;
   tStorageSystemInfo_ storageSystemInfo;
+  std::vector <std::string *> clientNetworks;
+  std::vector <std::string *> transferProtocols;
 
   EVAL_VEC_STR_RS(expectedFileSizes);
   EVAL_VEC_STR_RS(storageSystemInfo.key);
   EVAL_VEC_STR_RS(storageSystemInfo.value);
+  EVAL_VEC_STR_RS(clientNetworks);
+  EVAL_VEC_STR_RS(transferProtocols);
   
   /* request */  
   SS_SRM("srmReserveSpace");
@@ -232,6 +246,8 @@ srmReserveSpace::toString(Process *proc)
   SS_VEC_DEL(storageSystemInfo.value);
   SS_P_DQ(accessPattern);
   SS_P_DQ(connectionType);
+  SS_VEC_DEL(clientNetworks);
+  SS_VEC_DEL(transferProtocols);
 
   /* response (parser) */
   SS_P_DQ(requestToken);

@@ -1,0 +1,10 @@
+; srmGetTransferProtocols
+
+ASSIGN srmTest srmGetTransferProtocols
+
+&& srmGetTransferProtocols $ENV{ENDPOINT} transferProtocols=(?P<transferProtocols>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo -e "transferProtocols=${transferProtocols}" > $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

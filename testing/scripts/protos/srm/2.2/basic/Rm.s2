@@ -1,0 +1,27 @@
+; srmRm
+;
+; srmPrepareToGet
+; srmPrepareToPut
+; srmPutDone
+; srmStatusOfGetRequest
+; srmStatusOfPutRequest
+
+ASSIGN srmTest srmRm
+   #include ../include/PutCycle.s2
+   #include ../../include/FileTransGet.s2
+
+;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& NOP 
+   srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+      SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
+      && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses="${fileStatuses}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_INPROGRESS)
+            SYSTEM echo "srmStatusOfGetRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: KO ; srmStatusOfGetRequest succeeded on a removed file!" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode} ; removed file couldn't be retrieved" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

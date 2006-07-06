@@ -1,8 +1,9 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- NOT_0
 - SRM 2.2 test scenarios and testing (storage system info/description as testing)!
 - sed 's/^n_srm//'
-- Testing, optimize for speed
+- Testing, optimize for speed (e1, e2 evaluation only if required)
 - output of TEST ${empty} == "" and simillar in e* files
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs, e.g.:

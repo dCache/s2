@@ -306,6 +306,52 @@
     }\
   } while(0)
 
+#define MV_RETENTION_POLICY(r,rp,al)\
+  do {\
+    if(rp) {\
+      NOT_NULL(r = soap_new_srm__TRetentionPolicyInfo(soap, -1));\
+      MV_SOAP(RetentionPolicy,r->retentionPolicy,*rp);\
+      MV_PSOAP(AccessLatency,r->accessLatency,al);\
+    } {\
+      DM_LOG(DM_N(2), ""#r " == NULL\n");\
+      r = NULL;\
+    }\
+  } while(0)
+
+#define MV_DIR_OPTION_VEC(r)\
+  do {\
+    if(fileRequests.isSourceADirectory.size() != 0\
+       || fileRequests.allLevelRecursive.size() != 0\
+       || fileRequests.numOfLevels.size() != 0) {\
+      NOT_NULL(r->dirOption = soap_new_srm__TDirOption(soap, -1));\
+\
+      if(NOT_NULL_VEC(fileRequests,isSourceADirectory)) {\
+        r->dirOption->isSourceADirectory = fileRequests.isSourceADirectory[u];\
+        DM_LOG(DM_N(2), "isSourceADirectory[%u] = %d\n", u, r->dirOption->isSourceADirectory);\
+      } else {\
+        r->dirOption->isSourceADirectory = 0;\
+        DM_LOG(DM_N(2), "isSourceADirectory[%u] == 0\n", u);\
+      }\
+      if(NOT_NULL_VEC(fileRequests,allLevelRecursive)) {\
+        r->dirOption->allLevelRecursive = (bool *)fileRequests.allLevelRecursive[u];\
+        DM_LOG(DM_N(2), "allLevelRecursive[%u] = %d\n", u, *(r->dirOption->allLevelRecursive));\
+      } else {\
+        r->dirOption->allLevelRecursive = NULL;\
+        DM_LOG(DM_N(2), "allLevelRecursive[%u] == NULL\n", u);\
+      }\
+      if(NOT_NULL_VEC(fileRequests,numOfLevels)) {\
+        r->dirOption->numOfLevels = fileRequests.numOfLevels[u];\
+        DM_LOG(DM_N(2), "numOfLevels[%u] = %d\n", u, *(r->dirOption->numOfLevels));\
+      } else {\
+        r->dirOption->numOfLevels = NULL;\
+        DM_LOG(DM_N(2), "numOfLevels[%u] == NULL\n", u);\
+      }\
+    } else {\
+      DM_DBG(DM_N(3), "dirOption = NULL\n");\
+      r->dirOption = NULL;\
+    }\
+  } while(0)
+
 #endif	/* HAVE_SRM22 */
 
 #endif /* _SRM_MACROS_H */

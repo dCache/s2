@@ -47,7 +47,7 @@ ReserveSpace(struct soap *soap,
              const char *srm_endpoint,
              const char *authorizationID,
              const char *userSpaceTokenDescription,
-             const long retentionPolicy,
+             const long *retentionPolicy,
              const long *accessLatency,
              uint64_t *desiredSizeOfTotalSpace,
              const uint64_t desiredSizeOfGuaranteedSpace,
@@ -76,16 +76,10 @@ ReserveSpace(struct soap *soap,
   MV_CSTR2PSTR(req.userSpaceTokenDescription,userSpaceTokenDescription);
 
   /* Retention */
-  NOT_NULL(req.retentionPolicyInfo = soap_new_srm__TRetentionPolicyInfo(soap, -1));
-  MV_SOAP(RetentionPolicy,req.retentionPolicyInfo->retentionPolicy,retentionPolicy);
-  MV_PSOAP(AccessLatency,req.retentionPolicyInfo->accessLatency,accessLatency);
+  MV_RETENTION_POLICY(req.retentionPolicyInfo,retentionPolicy,accessLatency);
   
-  MV_PUINT64(req.desiredSizeOfTotalSpace,desiredSizeOfTotalSpace);
-  MV_UINT64(req.desiredSizeOfGuaranteedSpace,desiredSizeOfGuaranteedSpace);
-  MV_PINT(req.desiredLifetimeOfReservedSpace,desiredLifetimeOfReservedSpace);
-
   /* arrayOfExpectedFileSizes */
-  NOT_NULL(req.arrayOfExpectedFileSizes = soap_new_srm__ArrayOfUnsignedLong(soap, -1));
+  NOT_0(arrayOfExpectedFileSizes,req.arrayOfExpectedFileSizes,soap_new_srm__ArrayOfUnsignedLong(soap, -1));
   for(uint u; u < arrayOfExpectedFileSizes.size(); u++) {
     req.arrayOfExpectedFileSizes->unsignedLongArray.push_back(arrayOfExpectedFileSizes[u]);
     DM_LOG(DM_N(2), "arrayOfExpectedFileSizes[%"PRIi64"]\n", req.arrayOfExpectedFileSizes->unsignedLongArray.back());

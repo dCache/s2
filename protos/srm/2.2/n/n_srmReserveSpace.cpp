@@ -134,7 +134,7 @@ srmReserveSpace::exec(Process *proc)
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(userSpaceTokenDescription),
-    getTRetentionPolicy(EVAL2CSTR(retentionPolicy),TRUE),	/* one-parameter getT* returns pointer to NULL in 2.2 */
+    getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
     getTAccessLatency(EVAL2CSTR(accessLatency)),
     proc->eval2puint64(desiredSizeOfTotalSpace).p,
     proc->eval2uint64(desiredSizeOfGuaranteedSpace),

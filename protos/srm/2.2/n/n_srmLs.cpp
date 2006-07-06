@@ -236,8 +236,17 @@ srmLs::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL quote, std::vec
     
     SS_P_VEC_DPAR(lifetimeAssigned);
     SS_P_VEC_DPAR(lifetimeLeft);
-    SS_P_VEC_DPAR(owner);
-    SS_P_VEC_DPAR_SOAP(PermissionMode,clientPermission);
+    if(v[u] && v[u]->ownerPermission) {
+      SS_VEC_SPACE; 
+      ss << "userID" << u << "=" << v[u]->ownerPermission->userID;
+      ss << "mode"   << u << "=" << getTPermissionMode(v[u]->ownerPermission->mode);
+    }
+    if(v[u] && v[u]->groupPermission) {
+      SS_VEC_SPACE; 
+      ss << "groupID" << u << "=" << v[u]->groupPermission->groupID;
+      ss << "mode"   << u << "=" << getTPermissionMode(v[u]->groupPermission->mode);
+    }
+    SS_P_VEC_DPAR_SOAP(PermissionMode,otherPermission);
     
     SS_P_VEC_DPAR(checkSumType);
     SS_P_VEC_DPAR(checkSumValue);

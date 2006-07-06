@@ -156,7 +156,7 @@ srmCopy::exec(Process *proc)
     proc->eval2pint(desiredTargetSURLLifeTime).p,
     getTFileStorageType(EVAL2CSTR(targetFileStorageType)),
     EVAL2CSTR(targetSpaceToken),
-    getTRetentionPolicy(EVAL2CSTR(retentionPolicy),TRUE),	/* one-parameter getT* returns pointer to NULL in 2.2 */
+    getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
     getTAccessLatency(EVAL2CSTR(accessLatency)),
     sourceStorageSystemInfo,
     targetStorageSystemInfo,

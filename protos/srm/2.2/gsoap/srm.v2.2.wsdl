@@ -2,8 +2,12 @@
 <wsdl:definitions name="StorageResourceManager" targetNamespace="http://srm.lbl.gov/StorageResourceManager" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://srm.lbl.gov/StorageResourceManager" xmlns:intf="http://srm.lbl.gov/StorageResourceManager" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 <wsdl:documentation>
 
-	srm.v2.2.wsdl
-	Tue Jun 20 07:21:54 PDT 2006  - FINALIZED
+    srm.v2.2.wsdl
+
+    Mon Jul  3 09:49:53 PDT 2006
+        For TMetaDataPathDetails
+
+    Tue Jun 20 07:21:54 PDT 2006  - FINALIZED
     Mon Jun 19 09:45:38 PDT 2006
 
     Created by Junmin Gu, Alex Sim
@@ -226,8 +230,9 @@
      <element name="type" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TFileType"/>
      <element name="lifetimeAssigned" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="lifetimeLeft" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
-     <element name="owner" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="clientPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
+     <element name="ownerPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TUserPermission"/>
+     <element name="groupPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TGroupPermission"/>
+     <element name="otherPermission" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TPermissionMode"/>
      <element name="checkSumType" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="checkSumValue" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="arrayOfSubPaths" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTMetaDataPathDetail"/>

@@ -66,7 +66,7 @@ Copy(struct soap *soap,
      int *desiredTargetSURLLifeTime,
      const long *targetFileStorageType,
      const char *targetSpaceToken,
-     const long retentionPolicy,
+     const long *retentionPolicy,
      const long *accessLatency,
      tStorageSystemInfo sourceStorageSystemInfo,
      tStorageSystemInfo targetStorageSystemInfo,
@@ -88,15 +88,12 @@ Copy(struct soap *soap,
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
 
   /* Create the file request */
-  NOT_NULL(req.arrayOfFileRequests = soap_new_srm__ArrayOfTCopyFileRequest(soap, -1));
   unsigned SURLs = sourceSURL.size();
-  unsigned sourceSSI_size = sourceStorageSystemInfo.key.size();
-  unsigned targetSSI_size = targetStorageSystemInfo.key.size();
+  NOT_0(sourceSURL,req.arrayOfFileRequests,soap_new_srm__ArrayOfTCopyFileRequest(soap, -1));
   for (uint u = 0; u < SURLs; u++) {
     DM_LOG(DM_N(2), "sourceSURL[%u]\n", u);
     srm__TCopyFileRequest *fileRequest;
     NOT_NULL(fileRequest = soap_new_srm__TCopyFileRequest(soap, -1));
-    NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(soap, -1));
 
     /* source */
     MV_CSTR2STR(fileRequest->sourceSURL,CSTR(sourceSURL[u]));
@@ -105,26 +102,34 @@ Copy(struct soap *soap,
     MV_CSTR2STR(fileRequest->targetSURL,CSTR(targetSURL[u]));
 
     /* dirOption */
-    if(NOT_NULL_VEC1(isSourceADirectory)) {
-      fileRequest->dirOption->isSourceADirectory = isSourceADirectory[u];
-      DM_LOG(DM_N(2), "isSourceADirectory[%u] = %d\n", u, fileRequest->dirOption->isSourceADirectory);
+    if(isSourceADirectory.size() != 0
+       || allLevelRecursive.size() != 0
+       || numOfLevels.size() != 0) {
+      NOT_NULL(fileRequest->dirOption = soap_new_srm__TDirOption(soap, -1));
+      if(NOT_NULL_VEC1(isSourceADirectory)) {
+        fileRequest->dirOption->isSourceADirectory = isSourceADirectory[u];
+        DM_LOG(DM_N(2), "isSourceADirectory[%u] = %d\n", u, fileRequest->dirOption->isSourceADirectory);
+      } else {
+        fileRequest->dirOption->isSourceADirectory = 0;
+        DM_LOG(DM_N(2), "isSourceADirectory[%u] == 0\n", u);
+      }
+      if(NOT_NULL_VEC1(allLevelRecursive)) {
+        fileRequest->dirOption->allLevelRecursive = (bool *)allLevelRecursive[u];
+        DM_LOG(DM_N(2), "allLevelRecursive[%u] = %d\n", u, *(fileRequest->dirOption->allLevelRecursive));
+      } else {
+        fileRequest->dirOption->allLevelRecursive = NULL;
+        DM_LOG(DM_N(2), "allLevelRecursive[%u] == NULL\n", u);
+      }
+      if(NOT_NULL_VEC1(numOfLevels)) {
+        fileRequest->dirOption->numOfLevels = numOfLevels[u];
+        DM_LOG(DM_N(2), "numOfLevels[%u] = %d\n", u, *(fileRequest->dirOption->numOfLevels));
+      } else {
+        fileRequest->dirOption->numOfLevels = NULL;
+        DM_LOG(DM_N(2), "numOfLevels[%u] == NULL\n", u);
+      }
     } else {
-      fileRequest->dirOption->isSourceADirectory = 0;
-      DM_LOG(DM_N(2), "isSourceADirectory[%u] == 0\n", u);
-    }
-    if(NOT_NULL_VEC1(allLevelRecursive)) {
-      fileRequest->dirOption->allLevelRecursive = (bool *)allLevelRecursive[u];
-      DM_LOG(DM_N(2), "allLevelRecursive[%u] = %d\n", u, *(fileRequest->dirOption->allLevelRecursive));
-    } else {
-      fileRequest->dirOption->allLevelRecursive = NULL;
-      DM_LOG(DM_N(2), "allLevelRecursive[%u] == NULL\n", u);
-    }
-    if(NOT_NULL_VEC1(numOfLevels)) {
-      fileRequest->dirOption->numOfLevels = numOfLevels[u];
-      DM_LOG(DM_N(2), "numOfLevels[%u] = %d\n", u, *(fileRequest->dirOption->numOfLevels));
-    } else {
-      fileRequest->dirOption->numOfLevels = NULL;
-      DM_LOG(DM_N(2), "numOfLevels[%u] == NULL\n", u);
+      DM_DBG(DM_N(3), "dirOption = NULL\n");
+      fileRequest->dirOption = NULL;
     }
     req.arrayOfFileRequests->requestArray.push_back(fileRequest);
   }
@@ -137,14 +142,11 @@ Copy(struct soap *soap,
   MV_CSTR2PSTR(req.targetSpaceToken,targetSpaceToken);
 
   /* Retention */
-  NOT_NULL(req.targetFileRetentionPolicyInfo = soap_new_srm__TRetentionPolicyInfo(soap, -1));
-  MV_SOAP(RetentionPolicy,req.targetFileRetentionPolicyInfo->retentionPolicy,retentionPolicy);
-  MV_PSOAP(AccessLatency,req.targetFileRetentionPolicyInfo->accessLatency,accessLatency);
+  MV_RETENTION_POLICY(req.targetFileRetentionPolicyInfo,retentionPolicy,accessLatency);
 
-  NOT_NULL(req.sourceStorageSystemInfo = soap_new_srm__ArrayOfTExtraInfo(soap, -1));
-  NOT_NULL(req.targetStorageSystemInfo = soap_new_srm__ArrayOfTExtraInfo(soap, -1));
-
-  for(uint j = 0; j < sourceSSI_size; j++) {
+  /* Storage System Info */
+  NOT_0(sourceStorageSystemInfo.key,req.sourceStorageSystemInfo,soap_new_srm__ArrayOfTExtraInfo(soap, -1));
+  for(uint j = 0; j < sourceStorageSystemInfo.key.size(); j++) {
     DM_LOG(DM_N(2), "sourceStorageSystemInfo.key[%u]\n", j);
     srm__TExtraInfo *extraInfo;
     NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));
@@ -152,8 +154,8 @@ Copy(struct soap *soap,
     MV_PSTR2PSTR(extraInfo->value,sourceStorageSystemInfo.value[j]);
     req.sourceStorageSystemInfo->extraInfoArray.push_back(extraInfo);
   }
-
-  for(uint j = 0; j < targetSSI_size; j++) {
+  NOT_0(targetStorageSystemInfo.key,req.targetStorageSystemInfo,soap_new_srm__ArrayOfTExtraInfo(soap, -1));
+  for(uint j = 0; j < targetStorageSystemInfo.key.size(); j++) {
     DM_LOG(DM_N(2), "targetStorageSystemInfo.key[%u]\n", j);
     srm__TExtraInfo *extraInfo;
     NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));

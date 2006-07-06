@@ -71,27 +71,23 @@ SetPermission(struct soap *soap,
   MV_PSOAP(PermissionMode,req.ownerPermission,ownerPermission);
 
 #define SET_PERMS(ug,UG)\
-  if(ug ## Permissions.mode.size() != 0) {\
-    NOT_NULL(req.arrayOf ## UG ## Permissions = soap_new_srm__ArrayOfT ## UG ## Permission(soap, -1));\
-    DM_LOG(DM_N(2), "arrayOf" # UG "Permissions.mode.size() == %d\n", ug ## Permissions.mode.size());\
-    for (uint u = 0; u < ug ## Permissions.mode.size(); u++) {\
-      srm__T ## UG ## Permission *myPermission;\
+  NOT_0(ug ## Permissions.mode,req.arrayOf ## UG ## Permissions,soap_new_srm__ArrayOfT ## UG ## Permission(soap, -1));\
+  DM_LOG(DM_N(2), "arrayOf" # UG "Permissions.mode.size() == %d\n", ug ## Permissions.mode.size());\
+  for (uint u = 0; u < ug ## Permissions.mode.size(); u++) {\
+    srm__T ## UG ## Permission *myPermission;\
 \
-      NOT_NULL(myPermission = soap_new_srm__T ## UG ## Permission(soap, -1));\
-      if(NOT_NULL_VEC(ug ## Permissions,ID)) {\
-        myPermission->ug ## ID.assign(ug ## Permissions.ID[u]->c_str());\
-        DM_LOG(DM_N(2), "" # ug "ID[%u] == `%s'\n", u, myPermission->ug ## ID.c_str());\
-      } else {\
-        DM_LOG(DM_N(2), "" # ug "ID[%u] == NULL\n", u);\
-      }\
-      myPermission->mode = (srm__TPermissionMode)ug ## Permissions.mode[u];\
-      DM_LOG(DM_N(2), "mode[%u] == `%s'\n", u, getTPermissionMode(myPermission->mode).c_str());\
-\
-      req.arrayOf ## UG ## Permissions->ug ## PermissionArray.push_back(myPermission);\
+    NOT_NULL(myPermission = soap_new_srm__T ## UG ## Permission(soap, -1));\
+    if(NOT_NULL_VEC(ug ## Permissions,ID)) {\
+      myPermission->ug ## ID.assign(ug ## Permissions.ID[u]->c_str());\
+      DM_LOG(DM_N(2), "" # ug "ID[%u] == `%s'\n", u, myPermission->ug ## ID.c_str());\
+    } else {\
+      DM_LOG(DM_N(2), "" # ug "ID[%u] == NUL\n", u);\
     }\
-  } else {\
-    req.arrayOf ## UG ## Permissions = NULL;\
-  }
+    myPermission->mode = (srm__TPermissionMode)ug ## Permissions.mode[u];\
+    DM_LOG(DM_N(2), "mode[%u] == `%s'\n", u, getTPermissionMode(myPermission->mode).c_str());\
+\
+    req.arrayOf ## UG ## Permissions->ug ## PermissionArray.push_back(myPermission);\
+  }\
 
   SET_PERMS(user,User);
   SET_PERMS(group,Group);

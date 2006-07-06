@@ -28,7 +28,7 @@ BuildArch:	i386
 %description
 A simple general-purpose test client with the SRM 2.1 and SRM 2.2
 protocol support.  SRM 2.2 suport according to the definition
-as of 2006-06-16.
+as of 2006-07-03.
 
 
 #

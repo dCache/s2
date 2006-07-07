@@ -1509,6 +1509,7 @@ struct srmLs : public SRM2
   std::string *count;
   
   /* response (parser) */
+  std::string *requestToken;
   std::string *pathDetails;
 
 public:

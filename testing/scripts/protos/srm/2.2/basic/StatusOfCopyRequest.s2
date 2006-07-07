@@ -1,0 +1,22 @@
+; srmStatusOfCopyRequest
+
+; srmCopy
+; srmPrepareToPut
+; srmPutDone
+; srmStatusOfCopyRequest
+; srmStatusOfPutRequest
+
+ASSIGN srmTest srmStatusOfCopyRequest
+   #include ../include/PutCycle.s2
+
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+;;; Copy cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{SRM_NEW_FILE1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+   >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         SYSTEM echo "srmStatusOfCopyRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

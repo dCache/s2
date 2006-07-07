@@ -1,17 +1,14 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- Look into matching empty strings
-- SRM 2.2 test scenarios and testing (storage system info/description as testing)!
-- sed 's/^n_srm//'
+- SRM 2.2 test scenarios and testing
 - Testing, optimize for speed (e1, e2 evaluation only if required)
 - output of TEST ${empty} == "" and simillar in e* files
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs, e.g.:
   * $FILE{<eval> <file>} (read in contents from <file> and optionally <eval>uate tags it contains)
   * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...
-- Plugin architecture to make adding of new protocols simple?
+- Plugin architecture to make addition of new protocols simple?
 - SEND/RECEIVE (TCP/UDP/...)?
 - Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
   investigate?  Use Apache threads instead?
-- Investigate gSoap memory leaks???  Spent ages trying to figure out how to
-  get rid of them...
+- Investigate gSoap memory leaks yet again???

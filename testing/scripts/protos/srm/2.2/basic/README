@@ -1,4 +1,6 @@
 This directory contains some basic examples of using SRM 2.2
-functionality.
+functionality.  The aims is establish, whether a given method
+was implemented or not.
 
-Note that the tests are still far from being complete, correct, ready...
+Note that the tests are alpha, under construction, far from being
+complete, correct, ready...

@@ -13,7 +13,7 @@ ASSIGN srmTest srmMv
 ;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-&& srmMv $ENV{ENDPOINT} userID=$ENV{USER} fromSURLOrStFN=$ENV{SRM_NEW_FILE0} fromStorageSystemInfo=<fromStorageSystemInfo> toSURLOrStFN=$ENV{SRM_NEW_FILE1} toStorageSystemInfo=<toStorageSystemInfo> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE1} : getRequestToken

@@ -3300,7 +3300,7 @@ Parser::srmCheckPermissionR(void)
 
   /* parsing succeeded */
   return ERR_OK;
-} /* srmLsR */
+} /* srmCheckPermissionR */
 
 int
 Parser::srmCopyR(void)
@@ -3743,6 +3743,7 @@ Parser::srmLsR(void)
     POPL_EQ_PARAM("count",r->count) else
 
     /* response */
+    POPL_EQ_PARAM("requestToken",r->requestToken) else
     POPL_EQ_PARAM("pathDetails",r->pathDetails) else
     POPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
     POPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else

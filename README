@@ -78,7 +78,7 @@ s2.sh script output files
 *.l     log file of the s2 binary
 *.log   log file of the an s2 script
 *.out   messages sent to standard output
-*.p     pretty-printed s2 script
+*.p     "pretty-printed" s2 script
 
 
 Quick start
@@ -103,6 +103,6 @@ script-related .env files.
 Request for help
 ~~~~~~~~~~~~~~~~
 Please help improve this project by:
- * reporting s2 bugs
- * creating SRM2 test scenarios
+ * reporting s2 bugs, errors in documentation, etc.
+ * creating and contributing back SRM 2.2 test scenarios
  * providing feedback

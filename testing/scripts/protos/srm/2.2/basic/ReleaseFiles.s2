@@ -1,18 +1,15 @@
-; srmAbortFiles
+; srmReleaseFiles
 ;
 ; srmPrepareToPut
 
-ASSIGN srmTest srmAbortFiles
+ASSIGN srmTest srmReleaseFiles
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-   srmAbortFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   srmReleaseFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && SYSTEM echo "${srmTest}: fileStatuses=${-fileStatuses}" > $ENV{S2_LOG}
 
 && TEST $MATCH{"(SRM_SUCCESS|SRM_DONE)" ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
 
-; TODO
-; ~~~~
-; a proper check for the status of aborted files when some
-; SRMv2 server supports it
+; TODO: better test

@@ -3,7 +3,7 @@ maintainer.  When reporting BUGs, please verify against the latest
 s2 version.
 
 Known problems
-~~~~~~~~~~~~~~
+==============
 1 NPTL bugs
 ~~~~~~~~~~~
 I'm experiencing a deadlock in 1 out of 10000 consecutive runs of a
@@ -14,17 +14,24 @@ week to complete).  Please use "getconf GNU_LIBPTHREAD_VERSION" to
 see which threads library you're using before reporting deadlocks.
 You do not need to report them for NPTL 3.2.5.
 
-Expected problems
-~~~~~~~~~~~~~~~~~
-* Parallel execution, timeouts and expression evaluation
-  didn't receive as much testing as they deserve and are still being
-  tested.  Please report problems!
-
 2 Memory leaks
 ~~~~~~~~~~~~~~
 2.1 LinuxThreads and NPTL
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-valgrind reports minor, constant memory leak for both libraries
+valgrind reports very minor, constant memory leak for both libraries
 
 2.2 gSoap
 ~~~~~~~~~
+Quite severe linear memory leaks.  Spent at least half a day trying
+to get rid of them, I'm clueless.
+
+Expected problems
+=================
+1) SRM 2.2 implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Written in a hurry therefore please expect and report problems.
+
+2) Parallel execution, timeouts and expression evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Tested, but not as much as I'd like.  Please report problems!
+

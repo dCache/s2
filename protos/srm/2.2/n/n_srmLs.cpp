@@ -45,6 +45,7 @@ srmLs::init()
   count = NULL;
 
   /* response (parser) */
+  requestToken = NULL;
   pathDetails = NULL;
 }
 
@@ -77,6 +78,7 @@ srmLs::~srmLs()
 
   /* response (parser) */
   DELETE(pathDetails);
+  DELETE(requestToken);
   
   DM_DBG_O;
 }
@@ -134,6 +136,11 @@ srmLs::exec(Process *proc)
     RETURN(ERR_ERR);
   }
 
+  /* requestToken */
+  EAT_MATCH_C(resp->srmLsResponse->requestToken,
+              requestToken,
+              CSTR(resp->srmLsResponse->requestToken));
+
   /* arrayOfPathDetails */
   EAT_MATCH(pathDetails, arrayOfFileStatusToString(proc, FALSE, FALSE).c_str());
 
@@ -172,12 +179,18 @@ srmLs::toString(Process *proc)
   SS_P_DQ(count);
 
   /* response (parser) */
+  SS_P_DQ(requestToken);
   SS_P_DQ(pathDetails);
   SS_P_DQ(returnStatus.explanation);
   SS_P_DQ(returnStatus.statusCode);
 
   /* response (API) */
   if(!resp || !resp->srmLsResponse) RETURN(ss.str());
+
+  /* requestToken */
+  SS_P_DQ_C(resp->srmLsResponse->requestToken,
+            requestToken,
+            CSTR(resp->srmLsResponse->requestToken));
 
   ss << arrayOfFileStatusToString(proc, TRUE, quote);
 

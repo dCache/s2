@@ -46,7 +46,7 @@ You'll need:
   strongly recommended)
   http://libdiagnose.sourceforge.net
 
-If you require SRM2 protocol support, you'll also need:
+If you require SRM 2.2 protocol support, you'll also need:
 
 * vdt_globus_essentials (I used the one that comes with SL 3.0.5,
   i.e.: VDT1.2.2rh9-1)
@@ -62,7 +62,7 @@ If you require SRM2 protocol support, you'll also need:
   http://cern.ch/castor/DIST/CERN/savannah/CGSI_gSOAP.pkg
 
 $ ./configure --help
-$ ./configure --enable-srm21 && make
+$ ./configure --enable-srm22 && make
 $ make install [prefix=your_prefix]
 $ make rpm
 

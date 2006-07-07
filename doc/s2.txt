@@ -455,7 +455,7 @@ Sleep for a specified amount of seconds and/or nanoseconds.
 2.3.9 SRM2 actions
 ~~~~~~~~~~~~~~~~~~~
 All SRM2 methods are implemented.  Please see the
-`testing/scripts/srm2/template' directory for syntax.
+`testing/scripts/protos/srm/{2.1,2.2}/template' directories for syntax.
 
 
 2.3.10 SYSTEM

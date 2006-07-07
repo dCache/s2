@@ -82,6 +82,7 @@ ReserveSpace(struct soap *soap,
   /* Retention */
   MV_RETENTION_POLICY(req.retentionPolicyInfo,retentionPolicy,accessLatency);
 
+  MV_UINT64(req.desiredSizeOfTotalSpace,desiredSizeOfTotalSpace);
   MV_UINT64(req.desiredSizeOfGuaranteedSpace,desiredSizeOfGuaranteedSpace);
   MV_PINT(req.desiredLifetimeOfReservedSpace,desiredLifetimeOfReservedSpace);
   

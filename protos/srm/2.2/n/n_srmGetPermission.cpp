@@ -176,12 +176,14 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
   if(resp->srmGetPermissionResponse->arrayOfPermissionReturns) {
     std::vector<srm__TPermissionReturn *> v = resp->srmGetPermissionResponse->arrayOfPermissionReturns->permissionArray;
     BOOL print_space = FALSE;
+    DM_DBG(DM_N(3), "v.size() = %u\n", v.size());
     for(uint u = 0; u < v.size(); u++) {
       SS_P_VEC_PAR(surl);
       SS_P_VEC_SRM_RETSTAT(status);
       SS_P_VEC_DPAR(owner);
       SS_P_VEC_DPAR_SOAP(PermissionMode,ownerPermission);
 
+      DM_DBG(DM_N(3), "v[u]->arrayOfUserPermissions=%p\n", v[u]->arrayOfUserPermissions);
       if(v[u] && v[u]->arrayOfUserPermissions) {
         for(uint j = 0; v[u]->arrayOfUserPermissions->userPermissionArray.size(); j++) {
           if(!v[u]->arrayOfUserPermissions->userPermissionArray[j]) continue;
@@ -190,16 +192,22 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
           ss << "mode"   << u << ":" << j << "=" << getTPermissionMode(v[u]->arrayOfUserPermissions->userPermissionArray[j]->mode);
         }
       }
-      
+      DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", v[u]->arrayOfGroupPermissions);
+      DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", resp->srmGetPermissionResponse->arrayOfPermissionReturns->permissionArray[u]->arrayOfGroupPermissions);
+
+#if 0 // TODO: investigate, DPM may return unitialised values which crash the client?
       if(v[u] && v[u]->arrayOfGroupPermissions) {
+        DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray.size()=%u\n", v[u]->arrayOfGroupPermissions->groupPermissionArray.size());
         for(uint j = 0; v[u]->arrayOfGroupPermissions->groupPermissionArray.size(); j++) {
-          if(!v[u]->arrayOfGroupPermissions->groupPermissionArray[j]) continue;
+          if(!(v[u]->arrayOfGroupPermissions->groupPermissionArray[j])) continue;
           SS_VEC_SPACE; 
+          DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray[j]=%p\n", (v[u]->arrayOfGroupPermissions->groupPermissionArray[j]));
           ss << "groupID" << u << ":" << j << "=" << v[u]->arrayOfGroupPermissions->groupPermissionArray[j]->groupID;
           ss << "mode"   << u << ":" << j << "=" << getTPermissionMode(v[u]->arrayOfGroupPermissions->groupPermissionArray[j]->mode);
         }
       }
-      
+#endif
+      DM_DBG(DM_N(3), "v[u]->otherPermission=%p", v[u]->otherPermission);
       SS_P_VEC_DPAR_SOAP(PermissionMode,otherPermission);
     }
   }

@@ -1,0 +1,9 @@
+; srmGetPermission
+
+ASSIGN srmTest srmSetPermission
+
+&& srmGetPermission $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] permissionArray=(?P<permissionArray>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

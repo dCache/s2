@@ -1,6 +1,6 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- NOT_0
+- Look into matching empty strings
 - SRM 2.2 test scenarios and testing (storage system info/description as testing)!
 - sed 's/^n_srm//'
 - Testing, optimize for speed (e1, e2 evaluation only if required)

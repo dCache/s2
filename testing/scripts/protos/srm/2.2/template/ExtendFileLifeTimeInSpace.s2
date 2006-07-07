@@ -1,3 +1,3 @@
 ; srmExtendFileLifeTimeInSpace
 
-srmExtendFileLifeTimeInSpace $ENV{ENDPOINT} authorizationID=$ENV{USER} spaceToken=<spaceToken> SURL[<s0> <s1>] newTimeExtended=(?P<newTimeExtended>.*) fileStatuses=(?<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+srmExtendFileLifeTimeInSpace $ENV{ENDPOINT} authorizationID=$ENV{USER} spaceToken=<spaceToken> SURL[<s0> <s1>] newLifeTime=0 newTimeExtended=(?P<newTimeExtended>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

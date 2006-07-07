@@ -1,0 +1,13 @@
+; srmExtendFileLifeTimeInSpace
+;
+; srmReserveSpace
+
+ASSIGN srmTest srmExtendFileLifeTimeInSpace
+
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+   SYSTEM echo "srmReserveSpace: spaceToken=${spaceToken}" >> $ENV{S2_LOG}
+&& srmExtendFileLifeTimeInSpace $ENV{ENDPOINT} spaceToken=${spaceToken} SURL[<TODO>] newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}

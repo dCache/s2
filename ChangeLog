@@ -1,3 +1,7 @@
+2006-07-06 21:38  Jiri Mencak
+	* all: Full SRM 2.2 support, basic SRM 2.2 scripts written.
+
+
 2006-05-31 19:24  Jiri Mencak
 	* all: Redesigned expression evaluation.
 
@@ -43,7 +47,7 @@
 
 
 2005-12-15 23:39  Jiri Mencak
-	* all: Basic logic works, 4 SRM2 methods implemented.
+	* all: Basic logic works, 4 SRM 2.1 methods implemented.
 	  No parallel execution, timeouts yet.
 
 

@@ -31,6 +31,7 @@ extern BOOL is_tag(const char *s);
 #define _GET_INT(sign,size)\
 extern sign##int##size##_t get_##sign##int##size(const char *word, char **endptr, BOOL warn);
 _GET_INT(,);
+_GET_INT(u,);
 _GET_INT(,8);
 _GET_INT(u,8);
 _GET_INT(,16);

@@ -1,37 +1,37 @@
-Please send bug reports with S2 scripts causing them to the current
-maintainer.  When reporting BUGs, please verify against the latest
-s2 version.
-
 Known problems
 ==============
-1 NPTL bugs
-~~~~~~~~~~~
-I'm experiencing a deadlock in 1 out of 10000 consecutive runs of a
-script spawning parallel processes using nested parallel repeat loops
-with NPTL 3.2.5.  The same test was fine for 1000000+ consecutive runs
-with the traditional LinuxThreads 0.10 library (the test took one
-week to complete).  Please use "getconf GNU_LIBPTHREAD_VERSION" to
-see which threads library you're using before reporting deadlocks.
-You do not need to report them for NPTL 3.2.5.
-
-2 Memory leaks
+1 Memory leaks
 ~~~~~~~~~~~~~~
-2.1 LinuxThreads and NPTL
+1.1 LinuxThreads and NPTL
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 valgrind reports very minor, constant memory leak for both libraries
+(only "possible" memory leak for NPTL).
 
-2.2 gSoap
+1.2 gSoap
 ~~~~~~~~~
-Quite severe linear memory leaks.  Spent at least half a day trying
-to get rid of them, I'm clueless.
+Linear memory leaks.  Spent at least half a day trying to get rid of
+them, I'm clueless.
+
 
 Expected problems
 =================
-1) SRM 2.2 implementation
-~~~~~~~~~~~~~~~~~~~~~~~~~
-Written in a hurry therefore please expect and report problems.
+1 SRM 2.2 implementation
+~~~~~~~~~~~~~~~~~~~~~~~~
+Written in a hurry and received little testing.  Please expect and
+report problems.
 
-2) Parallel execution, timeouts and expression evaluation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Tested, but not as much as I'd like.  Please report problems!
+2 Parallel execution, timeouts and expression evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Tested, but not as much as I'd like.  Please report problems.
 
+
+Bug reporting
+=============
+1) Please see this file first.
+2) Verify them against the latest S2 release (or even better 
+   the latest tagged version).
+3) Add your OS information and thread library used (for Linux:
+   getconf GNU_LIBPTHREAD_VERSION).  
+4) Attach the S2 script causing the bug.
+5) Contact the maintainer directly or through SourceForge bug 
+   reporting infrastructure.

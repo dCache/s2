@@ -1147,11 +1147,27 @@ Parser::PREPROCESSOR()
   } else if(POPL("require")) {		/* require a specific s2 version */
     WS();		/* allow whitespace after 'require' */
     PARSE(dq_param,_val,"require directive parameter\n");	/* parse require version into _val */
-    if(strcmp(MK_VERSION, _val.c_str()) < 0) {
-      /* TODO (major/minor versions) */
-      DM_ERR(ERR_ERR, _("S2 script requires S2 client version `%s' or higher\n"), _val.c_str());
-      return ERR_ERR;
-    }
+
+    const char *MK_VERSION_ptr = MK_VERSION;
+    const char *_val_ptr = _val.c_str();
+    char *MK_VERSION_endptr, *_val_endptr;
+
+    do {
+      uint MK_VERSION_u, _val_u;
+      MK_VERSION_u = get_uint(MK_VERSION_ptr, &MK_VERSION_endptr, FALSE);
+      if(MK_VERSION_ptr != MK_VERSION_endptr)
+        MK_VERSION_ptr = *MK_VERSION_endptr? MK_VERSION_endptr + 1 : MK_VERSION_endptr;	/* skip a dot */
+
+      _val_u = get_uint(_val_ptr, &_val_endptr, FALSE);
+      if (MK_VERSION_u < _val_u) {
+        DM_ERR(ERR_ERR, _("S2 script requires S2 client version `%s' or higher, have `%s'\n"), _val.c_str(), MK_VERSION);
+        return ERR_ERR;
+      } else if (MK_VERSION_u > _val_u) break;
+      
+      if(_val_ptr != _val_endptr)
+        _val_ptr = *_val_endptr? _val_endptr + 1 : _val_endptr;	/* skip a dot */
+
+    } while(*MK_VERSION_ptr && *_val_ptr);
   } else if(POPL("include")) {
     if(!is_true_block()) 
       /* #if 0 or #else branch of #if 1 */
@@ -4344,7 +4360,7 @@ Parser::srmStatusOfCopyRequestR(void)
 
   /* parsing succeeded */
   return ERR_OK;
-} /* srmStatusOfGetRequestR */
+} /* srmStatusOfCopyRequestR */
 
 int
 Parser::srmStatusOfGetRequestR(void)

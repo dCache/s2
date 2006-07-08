@@ -95,7 +95,7 @@ Quick start
 SRM2 tests
 ~~~~~~~~~~
 The s2 SRM2 test scripts are located the
-testing/scripts/protos/srm/2.1/{basic,usecase} directories.
+testing/scripts/protos/srm/{2.1,2.2}/{basic,usecase} directories.
 Make sure you change your settings in directory-wide s2.env or
 script-related .env files.
 

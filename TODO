@@ -1,5 +1,6 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
+- split parse.cpp (SRM 2.2 out)
 - SRM 2.2 test scenarios and testing
 - Testing, optimize for speed (e1, e2 evaluation only if required)
 - output of TEST ${empty} == "" and simillar in e* files

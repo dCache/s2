@@ -64,12 +64,9 @@ SourceForge
 \htmladdnormallink{CVS}{http://sourceforge.net/cvs/?group_id=\sfGID}
 server hosts this project.  Please refer to the  
 \htmladdnormallink{SourceForge project's CVS}{http://sourceforge.net/cvs/?group_id=\sfGID}
-page on how to retrieve the files.  The latest tag is
-\\
-\verb:echo:
-{\tt\input{../env/tag}}%
-\verb:| sed -e 's|^|v|' -e 's|\.|_|g':%
-\\
+page on how to retrieve the files.  Module name is {\tt s2}.  The latest tag is
+\def\CvsTag{\input{../env/tag}\unskip}%
+{\tt v\DotsToUnderscores\CvsTag}. 
 Note that there is currently a 5 hour syncing delay between developer and
 public CVS servers.  Therefore you may need to wait a few hours for
 the latest tagged revision.

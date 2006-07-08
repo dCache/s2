@@ -140,6 +140,13 @@
   \catcode`\@=\active%
   \gdef@{-at-}%
 }
+\def\DotsToUnderscores{%
+  \catcode`\.=\active%
+}
+{%
+  \catcode`\.=\active%
+  \gdef.{\_}%
+}
 
 \def\ts{\thinspace}
 \def\iskip{\hskip.25em\relax}  % \def\enskip{\hskip.5em\relax}

@@ -106,3 +106,6 @@ Please help improve this project by:
  * reporting s2 bugs, errors in documentation, etc.
  * creating and contributing back SRM 2.2 test scenarios
  * providing feedback
+ * new developers and/or patches that work and apply cleanly against
+   CVS head or at least the latest advertised CVS tag are very welcome
+ 

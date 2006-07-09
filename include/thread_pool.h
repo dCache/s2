@@ -26,9 +26,9 @@
       DM_DBG(DM_N(3), "mutex "# mtx" >>>\n");\
       S_V(mtx);} while(0)
 
-#define TP_THREADS_MAX	128		/* maximum number of threads in the threadpool */
+#define TP_THREADS_MAX	1024		/* maximum number of threads in the threadpool */
 #define TP_THREADS_MIN	1		/* minimum number of threads in the threadpool */
-#define TP_THREADS_DEF	63		/* default number of threads in the threadpool */
+#define TP_THREADS_DEF	64		/* default number of threads in the threadpool */
 
 /* format of a single request. */
 typedef struct tp_request {

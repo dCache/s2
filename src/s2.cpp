@@ -367,24 +367,18 @@ hlp(int l)
       if(op->short_name)
         switch(op->short_name[0]) {
         case '0':
-          /* before-execution tree output filename (<p>: path) */
-          fprintf(stderr,_("before-evaluation tree output filename (%s)\n"), opts.e0_fname? opts.e0_fname : 
-                         E0_DEFAULT_OUTPUT == stdout? "stdout":
-                         E0_DEFAULT_OUTPUT == stderr? "stderr": "?");
+          /* before-execution tree output filename (<p>: path); disabled if not specified */
+          fprintf(stderr,_("before-evaluation tree output filename (%s)\n"), opts.e0_fname? opts.e0_fname : "");
         break;
           
         case '1':
-          /* after-execution tree output filename (<p>: path) */
-          fprintf(stderr,_("after-execution tree output filename (%s)\n"), opts.e1_fname? opts.e1_fname : 
-                         E1_DEFAULT_OUTPUT == stdout? "stdout":
-                         E1_DEFAULT_OUTPUT == stderr? "stderr": "?");
+          /* after-execution tree output filename (<p>: path); disabled if not specified */
+          fprintf(stderr,_("after-execution tree output filename (%s)\n"), opts.e1_fname? opts.e1_fname : "");
         break;
           
         case '2':
           /* after-evaluation tree output filename (<p>: path) */
-          fprintf(stderr,_("after-evaluation tree output filename (%s)\n"), opts.e2_fname? opts.e2_fname : 
-                         E2_DEFAULT_OUTPUT == stdout? "stdout":
-                         E2_DEFAULT_OUTPUT == stderr? "stderr": "?");
+          fprintf(stderr,_("after-evaluation tree output filename (%s)\n"), opts.e2_fname? opts.e2_fname : "");
         break;
           
         case 'a':

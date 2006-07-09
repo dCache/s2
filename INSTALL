@@ -43,7 +43,7 @@ You'll need:
 * PCRE (Perl Compatible Regular Expressions) library >= 4.4
   http://www.pcre.org/
 * diagnose library >= 0.3.8 (optional in principal, but 
-  strongly recommended)
+  you are strongly advised to use it)
   http://libdiagnose.sourceforge.net
 
 If you require SRM 2.2 protocol support, you'll also need:

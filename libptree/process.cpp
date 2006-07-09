@@ -416,7 +416,7 @@ Process::eval()
   DM_DBG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
   DM_LOG(DM_N(2), FBRANCH"complete evaluation=%d\n", n->row, executed, evaluated, root_eval);
   
-  /* write e2 debugging/logging information */
+  /* write debugging/logging information for e2 */
   n->executed = executed; n->evaluated = evaluated;
 
   RETURN(evaluated);	/* ${!} */
@@ -904,8 +904,8 @@ Process::eval_with_timeout()
       if(by_ref_vals.length() > 0) by_ref_vals=" :" + by_ref_vals;
     }
     et=EVAL_STATIC;
-    fprintf(opts.e0_file, "---> FUN %s%s\n", ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
-    fprintf(opts.e1_file, "%d:---> FUN %s%s\n", executed, ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
+    if(opts.e0_fname) fprintf(opts.e0_file, "---> FUN %s%s\n", ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
+    if(opts.e1_fname) fprintf(opts.e1_file, "%d:---> FUN %s%s\n", executed, ((nFun *)n)->name->c_str(), by_ref_vals.c_str());
   }
 
   DM_DBG_T(DM_N(4), FBRANCH"finished execution (of proc=%p)\n", n->row, executed, evaluated, this);

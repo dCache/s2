@@ -404,4 +404,8 @@ With Globus:                 ${_with_globusdir}
 With gSOAP:                  ${_with_gsoapdir}
 With CGSI plugin:            ${_with_cgsi_plugindir}
 EOF
+
+  if test x${enable_dg} != xyes ; then
+    echo -e "\nWarning: libdiagnose is disabled." >&2 
+  fi
 }

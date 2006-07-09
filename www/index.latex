@@ -130,23 +130,6 @@
 \def\NewPage{\chapter{\relax}}
 \def\Http#1{\htmladdnormallink{\tt #1}{#1}}
 \def\Email#1{\htmladdnormallink{{\tt #1}}{mailto:#1}}
-\def\spamprotect{%
-  \catcode`\.=\active%
-  \catcode`\@=\active%
-}
-{%
-  \catcode`\.=\active%
-  \gdef.{-dot-}%
-  \catcode`\@=\active%
-  \gdef@{-at-}%
-}
-\def\DotsToUnderscores{%
-  \catcode`\.=\active%
-}
-{%
-  \catcode`\.=\active%
-  \gdef.{\_}%
-}
 
 \def\ts{\thinspace}
 \def\iskip{\hskip.25em\relax}  % \def\enskip{\hskip.5em\relax}
@@ -183,11 +166,28 @@
   \htmladdnormallink{\JM}{mailto:\JiriEmail}}
 \def\JiriHttp{%
   \htmladdnormallink{J.~Menc\'ak}{http://www.e-science.clrc.ac.uk/web/staff/jiri_mencak}}
+\def\actspamprot{%
+  \catcode`\.=\active%
+  \catcode`\@=\active%
+}
+{%
+  \catcode`\.=\active%
+  \gdef.{_}%
+  \catcode`\@=\active%
+  \gdef@{\#}%
+}
+\def\actcvstag{%
+  \catcode`\.=\active%
+}
+{%
+  \catcode`\.=\active%
+  \gdef.{\_}%
+}
 
 % Get those bastards off our backs...
 {%
 \ifx\spamprotecttrue\relax
-\spamprotect
+\actspamprot
 \fi
 \gdef\JiriEmail{j.mencak@rl.ac.uk}
 }

@@ -26,13 +26,11 @@ getting a package of your choice from an RPM package:
 
 Binary distribution
 ~~~~~~~~~~~~~~~~~~~
-There are two versions of the binary RPM distribution.  The first <RPM>
-gridpp-s2-<VERSION>.rpm is a GridPP-specific package which depends
-on the vdt_globus_essentials package.  The other <RPM> is called
-s2-<VERSION>.rpm and depends only on the standard system libraries.
-Both of these packages were compiled on Scientific Linux 3.0.5.
+The S2 binary has been compiled on a Scientifix Linux 3.0.5 Fermi, and
+was successfully tested on SL 3.0.5 and SL 4.3 (Fermi).  You will need
+compat-libstdc++-33 to use the binary on SL 4.3.
 
-The <RPM>s is installed by 
+The <RPM> is installed by 
 # rpm -ivh <RPM>
 
 
@@ -67,7 +65,7 @@ $ make install [prefix=your_prefix]
 $ make rpm
 
 Note that if you just want to play with the S2 language and do not
-want SRM2 support, use
+want SRM support, use
 $ ./configure
 
 Testing directory

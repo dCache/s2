@@ -1,6 +1,6 @@
 Overview
 ~~~~~~~~
-S2 is a simple general-purpose test client with the SRM2 protocol
+S2 is a simple general-purpose test client with the SRM 2.x protocol
 support.  S2 interprets a tree-like language, which was also named S2.
 
 The S2 tree consists of branches.  Every branch is indented by 0
@@ -92,8 +92,8 @@ Quick start
 5) Read s2.txt document if you get stuck.
 
 
-SRM2 tests
-~~~~~~~~~~
+SRM 2.x tests
+~~~~~~~~~~~~~
 The s2 SRM2 test scripts are located the
 testing/scripts/protos/srm/{2.1,2.2}/{basic,usecase} directories.
 Make sure you change your settings in directory-wide s2.env or

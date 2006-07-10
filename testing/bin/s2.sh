@@ -65,6 +65,13 @@ Source() {
   return $not_found
 }
 
+Which_s2() {
+  Which 7 src/${S2_BIN}
+  if test $? -eq 0 ; then
+    S2_BIN=${which_file}
+  fi
+}
+
 Usage() {
   echo "Usage: $ProgramName
 options: --help         this help
@@ -86,6 +93,12 @@ main() {
       ;;
       --[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]) S2_VALGRIND=1
       ;;
+      --[Ss][2]-[Bb][Ii][Nn])
+        Which_s2
+        S2_BIN=`which ${S2_BIN} 2>/dev/null` || S2_BIN="false"
+	echo -n $S2_BIN
+        exit
+      ;;
       --) shift; break
       ;;
       -*) Die 1 "invalid option \`$1'"
@@ -96,10 +109,7 @@ main() {
     shift
   done
 
-  Which 7 src/${S2_BIN}
-  if test $? -eq 0 ; then
-    S2_BIN=${which_file}
-  fi
+  Which_s2
   S2_BIN=`which ${S2_BIN} 2>/dev/null` || Die 3 "Couldn't find s2 binary."
   S2_SRC_DIR=`dirname ${S2_BIN}`
 

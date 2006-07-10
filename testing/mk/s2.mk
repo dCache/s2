@@ -16,8 +16,7 @@ ln:
 	  ln -sf $(S2_SH) $$s2_sh;\
 	done
 
-test: ln
-	@rm -f $(S2_EXIT_LOG) $(S2_HTML_LOG)
+test: clean_log ln
 	@echo -e "$(call HTML_HEAD,`basename $(CWD)`)" >> $(S2_HTML_LOG)
 	@echo -e "$(call HTML_TABLE_HEAD)" >> $(S2_HTML_LOG)
 	@for s2 in `ls -1 *.$(S2_EXT) 2>/dev/null` ;\
@@ -25,6 +24,9 @@ test: ln
 	  s2_bare=`basename $$s2 .$(S2_EXT)` ;\
 	  s2_sh=$$s2_bare.$(SH_EXT) ;\
 	  s2_out=$$s2_bare.$(OUT_EXT) ;\
+	  if test x`./$$s2_sh --s2-bin` = xfalse ; then\
+	    echo "Error: s2 binary not found." >&2 ; exit 3;\
+	  fi;\
 	  if test x$${S2_TIMEOUT} = x ; then\
 	    ./$$s2_sh;\
 	  else\
@@ -41,7 +43,7 @@ test: ln
 	      grep "^$$err ($$s2_sh)$$" "$(CHECK_DIR)/$(S2_EXIT_LOG)" >/dev/null 2>&1 ;\
 	      err=$$?;\
 	      if test $$err -ne 0 ; then \
-	        echo "Error: exit code check failed for $$s2_sh.  Did you compile without libdiagnose?  If not, please investigate ($$s2_out) and report." >&2 ; exit $$err;\
+	        echo "Error: exit code ($$err) check failed for $$s2_sh.  Did you compile without libdiagnose?  If not, please investigate ($$s2_out) and report." >&2 ; exit $$err;\
 	      fi\
 	    fi\
 	  fi;\
@@ -58,8 +60,10 @@ test: ln
 
 install:
 
-clean:
-	find . -name \*.sh -type l -exec rm -f {} \;
-	rm -f $(S2_LOGS)
+clean_log:
+	@rm -f $(S2_LOGS)
+
+clean: clean_log
+	@find . -name \*.sh -type l -exec rm -f {} \;
 
 distclean mclean: clean

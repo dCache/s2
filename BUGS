@@ -1,20 +1,16 @@
 Known problems
 ==============
-0 Timeouts
-~~~~~~~~~~
-Timeouts don't work properly, I'm looking into them.
-
 1 Memory leaks
 ~~~~~~~~~~~~~~
-1.1 LinuxThreads and NPTL
-~~~~~~~~~~~~~~~~~~~~~~~~~
-valgrind reports very minor, constant memory leak for both libraries
-(only "possible" memory leak for NPTL).
-
-1.2 gSoap
+1.1 gSoap
 ~~~~~~~~~
 Linear memory leaks.  Spent at least half a day trying to get rid of
 them, I'm clueless.
+
+1.2 LinuxThreads and NPTL
+~~~~~~~~~~~~~~~~~~~~~~~~~
+valgrind reports very minor, constant memory leak for both libraries
+(only "possible" memory leak for NPTL).
 
 
 Expected problems
@@ -26,7 +22,8 @@ report problems.
 
 2 Parallel execution, timeouts and expression evaluation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Tested, but not as much as I'd like.  Please report problems.
+Tested quite a bit, but not as much as I'd like.  Please report
+problems.
 
 
 Bug reporting

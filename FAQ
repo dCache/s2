@@ -1,0 +1,10 @@
+Q: The script just hangs.
+A: The easiest thing to do is to run the script with a timeout
+option.  If you're running a series of tests by "make test", you
+can say "S2_TIMEOUT=<usec> make test" instead, where <usec> is the
+timeout value in microseconds.  You could also investigate which
+branch "hangs" based on the debugging/logging information provided.
+If this doesn't help, you may have found a bug.  Please see BUGS.
+Note that timeouts are quite expensive, don't use them if you don't
+need to.
+

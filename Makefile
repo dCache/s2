@@ -24,8 +24,9 @@ SUBDIRS_CLEAN	:= $(SUBDIRS) pant www
 DOCS		:= \
   AUTHORS\
   BUGS\
-  COPYING\
   ChangeLog\
+  COPYING\
+  FAQ\
   INSTALL\
   README\
   TODO\

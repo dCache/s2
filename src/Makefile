@@ -93,8 +93,6 @@ PRJLIBS		+=\
   $(LIB_GLOBUS)
 endif
 
-#EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)
-# Use this to compile on lxb1389
 EXTRALIBS	 += $(PRJLIBS)
 
 

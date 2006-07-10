@@ -607,7 +607,10 @@ mk_libs() {
   echo "
 # includes and libraries #############################################
 INCLUDES	+= ${INCLUDES}
-EXTRALIBS	+= ${EXTRALIBS}" >> ${CONFIG_MAK}
+EXTRALIBS	+= ${EXTRALIBS}
+LIB_PCRE	:= ${LIB_PCRE}
+LIB_PTHREAD	:= ${LIB_PTHREAD}
+LIB_DIAGNOSE	:= ${LIB_DIAGNOSE}" >> ${CONFIG_MAK}
 }
 
 mk_opts() {

@@ -9,14 +9,14 @@
 DEFUN FileTransGet fileToGet transferURL
    ; substring matching
    match=-c TEST $MATCH{"^gsiftp://" ${transferURL}}
-      timeout=$ENV{TRANSFER_TIMEOUT} SYSTEM globus-url-copy ${transferURL} file://${fileToGet}
+      SYSTEM globus-url-copy ${transferURL} file://${fileToGet}
       ; return 2 if globus-url-copy fails, it returns 1 which is just a warning in s2
       || SYSTEM echo "globus-url-copy failed ${!}" >> $ENV{S2_LOG} && exit 2
    || TEST $MATCH{"^rfio://(?P<rfioHost>.*?)/(?P<rfioPath>.*)" ${transferURL}}
       #if $ENV{RFCP_SUDO}
-      timeout=$ENV{TRANSFER_TIMEOUT} SYSTEM sudo -u dteam001 rfcp ${rfioHost}:${rfioPath} ${fileToGet} 
+      SYSTEM sudo -u dteam001 rfcp ${rfioHost}:${rfioPath} ${fileToGet} 
       #else
-      timeout=$ENV{TRANSFER_TIMEOUT} SYSTEM rfcp ${rfioHost}:${rfioPath} ${fileToGet}
+      SYSTEM rfcp ${rfioHost}:${rfioPath} ${fileToGet}
       #endif
       || SYSTEM echo "rfcp failed ${!}" >> $ENV{S2_LOG} && exit 2
 

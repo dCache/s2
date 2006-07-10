@@ -102,7 +102,5 @@ ReserveSpace(struct soap *soap,
   /* To send the request ... */
   SOAP_CALL_SRM(ReserveSpace); 
 
-  DM_LOG(DM_N(2), "------------->%"PRIi64"\n", *(resp->srmReserveSpaceResponse->sizeOfTotalReservedSpace));
-
   RETURN(EXIT_SUCCESS);
 }

@@ -29,6 +29,7 @@
 #include <errno.h>              /* errno */
 #include <stdarg.h>             /* vprintf() */
 #include <libgen.h>		/* dirname() */
+#include <unistd.h>		/* getcwd() on RedHat */
 
 #include <iostream>             /* std::string, cout, endl, ... */
 

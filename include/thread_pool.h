@@ -45,8 +45,6 @@ typedef struct tp_sync_t {
   int total;
   pthread_mutex_t total_mtx;
   pthread_mutex_t print_mtx;
-  pthread_cond_t timeout_cv;
-  pthread_mutex_t timeout_mtx;
   pthread_attr_t attr;
 } tp_sync_t;
 

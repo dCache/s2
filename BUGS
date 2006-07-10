@@ -1,5 +1,9 @@
 Known problems
 ==============
+0 Timeouts
+~~~~~~~~~~
+Timeouts don't work properly, I'm looking into them.
+
 1 Memory leaks
 ~~~~~~~~~~~~~~
 1.1 LinuxThreads and NPTL

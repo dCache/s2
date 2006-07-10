@@ -25,11 +25,15 @@ test: ln
 	  s2_bare=`basename $$s2 .$(S2_EXT)` ;\
 	  s2_sh=$$s2_bare.$(SH_EXT) ;\
 	  s2_out=$$s2_bare.$(OUT_EXT) ;\
-	  ./$$s2_sh;\
+	  if test x$${S2_TIMEOUT} = x ; then\
+	    ./$$s2_sh;\
+	  else\
+	    ./$$s2_sh -- --timeout=$${S2_TIMEOUT};\
+	  fi;\
           err=$$?;\
 	  echo "$$err ($$s2_sh)" >> $(S2_EXIT_LOG);\
 	  $(call HTML_TABLE_ROW,$(S2_HTML_LOG));\
-	  if test -f $(CHECK_DIR)/$(S2_EXIT_LOG) ; then \
+	  if test -f $(CHECK_DIR)/$(S2_EXIT_LOG) ; then\
 	    grep "^[^ ]* ($$s2_sh)$$" "$(CHECK_DIR)/$(S2_EXIT_LOG)" >/dev/null 2>&1 ;\
 	    if test $$? -ne 0 ; then \
 	      echo "Warning: exit code check not performed for $$s2_sh, please update $(CHECK_DIR)/$(S2_EXIT_LOG)" >&2 ;\

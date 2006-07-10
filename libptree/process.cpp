@@ -62,6 +62,7 @@ struct tp_sync_t tp_sync;
 typedef struct timeout_info_t {
   Process *p;
   BOOL terminated;
+  pthread_cond_t timeout_cv;
 } timeout_info_t;
 
 /* functions */
@@ -252,8 +253,6 @@ Process::threads_init(void)
 
   pthread_mutex_init(&tp_sync.total_mtx, NULL);
   pthread_mutex_init(&tp_sync.print_mtx, NULL);
-  pthread_cond_init(&tp_sync.timeout_cv, NULL);
-  pthread_mutex_init(&tp_sync.timeout_mtx, NULL);
 
   RETURN(ERR_OK);
 }
@@ -267,8 +266,6 @@ Process::threads_destroy(void)
 
   pthread_mutex_destroy(&tp_sync.total_mtx);
   pthread_mutex_destroy(&tp_sync.print_mtx);
-  pthread_cond_destroy(&tp_sync.timeout_cv);
-  pthread_mutex_destroy(&tp_sync.timeout_mtx);
 
   return ERR_OK;
 }
@@ -715,7 +712,7 @@ pthread_timeout_handler(void *proc)
     DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
   );
 
-  S_V(&tp_sync.total_mtx);
+//  S_V(&tp_sync.total_mtx);
 
   DM_DBG_O;
 }
@@ -739,8 +736,8 @@ exec_in_parallel_without_timeout(void *timeout_info)
   ti->terminated = TRUE;
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, pthread_self());
-  
-  if(pthread_cond_broadcast(&tp_sync.timeout_cv)) {
+
+  if(pthread_cond_broadcast(&ti->timeout_cv)) {
     DM_ERR(ERR_SYSTEM, _("pthread_cond_signal failed: %s\n"), strerror(errno));
   }
 
@@ -764,6 +761,8 @@ Process::exec_with_timeout()
   struct timeval now;			/* timeval uses micro-seconds */
   struct timespec timeout;		/* timespec uses nano-seconds */
   timeout_info_t ti;
+  pthread_mutex_t timeout_mtx = PTHREAD_MUTEX_INITIALIZER;
+  pthread_cond_init(&ti.timeout_cv, NULL);
 
   if(!n->TIMEOUT) {
     /* no timeout needed */
@@ -800,11 +799,11 @@ Process::exec_with_timeout()
     timeout.tv_nsec = ((now.tv_usec + timeout_add_usec) % 1000) * 1000;
 
     DM_DBG_T(DM_N(2), FBRANCH"seting timeout to wait till sec=%ld; nsec=%ld [now: sec=%ld, usec=%ld]\n", n->row, executed, evaluated, timeout.tv_sec, timeout.tv_nsec, now.tv_sec, now.tv_usec);
-    S_P(&tp_sync.timeout_mtx);
+    S_P(&timeout_mtx);
     DM_DBG(DM_N(3), FBRANCH"<<< timeout_mtx\n", n->row, executed, evaluated);
     int rc;
     while(1) {
-      rc = pthread_cond_timedwait(&tp_sync.timeout_cv, &tp_sync.timeout_mtx, &timeout);
+      rc = pthread_cond_timedwait(&ti.timeout_cv, &timeout_mtx, &timeout);
       if(rc == ETIMEDOUT) {
         /* timeout reached, cancel the thread */
         DM_DBG_T(DM_N(2), FBRANCH"timeout_cv timed out\n", n->row, executed, evaluated);
@@ -816,7 +815,7 @@ Process::exec_with_timeout()
       }
     }
     DM_DBG(DM_N(3), FBRANCH"timeout_mtx >>>\n", n->row, executed, evaluated);
-    S_V(&tp_sync.timeout_mtx);
+    S_V(&timeout_mtx);
 
     if(rc == ETIMEDOUT) {
       /* timeout reached, cancel the thread */
@@ -843,6 +842,10 @@ Process::exec_with_timeout()
 
   /* Remove thread cleanup handler. */
   pthread_cleanup_pop(0);
+
+  /* threads-related cleanup */
+  pthread_cond_destroy(&ti.timeout_cv);
+  pthread_mutex_destroy(&timeout_mtx);
 
   RETURN(evaluated);
 } /* exec_with_timeout */

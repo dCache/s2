@@ -31,7 +31,7 @@ ISPELL		= $(SPELL_DICT)spell
 STYLES		= $(wildcard *.sty)
 EXTRA_FILES	:=\
   CHECKSUM.SHA1\
-  ../{BUGS,COPYING,ChangeLog,INSTALL,README}\
+  ../{BUGS,COPYING,FAQ,ChangeLog,INSTALL,README}\
   ../doc/s2.txt 
 SRCDEP		= \
   $(DOCUMENT).$(DOCEXT)\

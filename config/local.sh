@@ -102,8 +102,9 @@ EOF
 ## documents
 %doc %{_docdir}/AUTHORS
 %doc %{_docdir}/BUGS
-%doc %{_docdir}/COPYING
 %doc %{_docdir}/ChangeLog
+%doc %{_docdir}/COPYING
+%doc %{_docdir}/FAQ
 %doc %{_docdir}/INSTALL
 %doc %{_docdir}/README
 %doc %{_docdir}/TODO

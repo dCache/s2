@@ -65,7 +65,8 @@ PRJLIBS		:=\
   -L../libptree\
   -lptree\
   -lexpr\
-  -lmatch
+  -lmatch\
+  $(LIB_PCRE)
 
 ifneq ($(SRM_VERSION),)
 SRM_DIR		:= ../protos/srm/$(SRM_VERSION)
@@ -92,9 +93,9 @@ PRJLIBS		+=\
   $(LIB_GLOBUS)
 endif
 
-EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)
+#EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)
 # Use this to compile on lxb1389
-#EXTRALIBS	 += $(PRJLIBS)
+EXTRALIBS	 += $(PRJLIBS)
 
 
 # Extra libraries ####################################################

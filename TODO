@@ -1,6 +1,7 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
 - SRM 2.2 test scenarios and testing
+- try to sort out the pcre linking issues once and for all
 - Testing, optimize for speed
 - code cleanup (parsing macros?)
 - output of TEST ${empty} == "" and simillar in e* files

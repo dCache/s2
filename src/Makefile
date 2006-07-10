@@ -63,7 +63,6 @@ PRJLIBS		:=\
   -L../libexpr\
   -L../libmatch\
   -L../libptree\
-  -lpcre\
   -lptree\
   -lexpr\
   -lmatch
@@ -93,7 +92,8 @@ PRJLIBS		+=\
   $(LIB_GLOBUS)
 endif
 
-EXTRALIBS	 += $(PRJLIBS)
+#EXTRALIBS	 += $(PRJLIBS)
+EXTRALIBS	 := $(PRJLIBS) $(EXTRALIBS)
 
 
 # Extra libraries ####################################################

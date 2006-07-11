@@ -106,7 +106,7 @@ tar: rpm_include rpmclean
 	mkdir $(BUILDDIR)/$(RELEASE)
 	cp -r * $(BUILDDIR)/$(RELEASE)
 	cd $(BUILDDIR) ; tar zcvf $(RELEASE).tar.gz\
-	  --exclude=.depend\
+	  --exclude=.depend --exclude='./*/CVS' --exclude='./*/.cvsignore'\
 	  --exclude='*~' --exclude='#*#'\
 	  --exclude=1gnore --exclude=./pant/ --exclude=www\
 	  $(RELEASE)

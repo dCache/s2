@@ -192,7 +192,7 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
         }
       }
       DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", v[u]->arrayOfGroupPermissions);
-      DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", resp->srmGetPermissionResponse->arrayOfPermissionReturns->permissionArray[u]->arrayOfGroupPermissions);
+      DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray.size()=%u\n", v[u]->arrayOfGroupPermissions->groupPermissionArray.size());
 
       if(v[u] && v[u]->arrayOfGroupPermissions) {
         DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray.size()=%u\n", v[u]->arrayOfGroupPermissions->groupPermissionArray.size());
@@ -204,7 +204,6 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
         }
       }
 
-      DM_DBG(DM_N(3), "v[u]->otherPermission=%p", v[u]->otherPermission);
       SS_P_VEC_DPAR_SOAP(PermissionMode,otherPermission);
     }
   }

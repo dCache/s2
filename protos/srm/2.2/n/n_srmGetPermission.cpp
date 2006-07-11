@@ -185,7 +185,7 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
 
       DM_DBG(DM_N(3), "v[u]->arrayOfUserPermissions=%p\n", v[u]->arrayOfUserPermissions);
       if(v[u] && v[u]->arrayOfUserPermissions) {
-        for(uint j = 0; v[u]->arrayOfUserPermissions->userPermissionArray.size(); j++) {
+        for(uint j = 0; v[u]->arrayOfUserPermissions->userPermissionArray.size() < j; j++) {
           if(!v[u]->arrayOfUserPermissions->userPermissionArray[j]) continue;
           SS_VEC_SPACE; 
           ss << "userID" << u << ":" << j << "=" << v[u]->arrayOfUserPermissions->userPermissionArray[j]->userID;
@@ -195,10 +195,10 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
       DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", v[u]->arrayOfGroupPermissions);
       DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", resp->srmGetPermissionResponse->arrayOfPermissionReturns->permissionArray[u]->arrayOfGroupPermissions);
 
-#if 0 // TODO: investigate, DPM may return unitialised values which crash the client?
+#if 1 // TODO: investigate, DPM may return unitialised values which crash the client?
       if(v[u] && v[u]->arrayOfGroupPermissions) {
         DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray.size()=%u\n", v[u]->arrayOfGroupPermissions->groupPermissionArray.size());
-        for(uint j = 0; v[u]->arrayOfGroupPermissions->groupPermissionArray.size(); j++) {
+        for(uint j = 0; v[u]->arrayOfGroupPermissions->groupPermissionArray.size() < j; j++) {
           if(!(v[u]->arrayOfGroupPermissions->groupPermissionArray[j])) continue;
           SS_VEC_SPACE; 
           DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray[j]=%p\n", (v[u]->arrayOfGroupPermissions->groupPermissionArray[j]));

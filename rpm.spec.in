@@ -64,6 +64,7 @@ as of 2006-07-03.
 #
 %build
 CFLAGS="-mcpu=i386 $CFLAGS"
+%include .configure
 make
 
 

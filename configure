@@ -1298,6 +1298,10 @@ EOF
 ######################################################################
 # main()-closely-related functions                                   #
 ######################################################################
+dot_configure() {
+  echo "./$ProgramName $@" >${DOT_CONFIGURE}
+}
+
 set_vars() {
   # set the environment ##############################################
   env_bernstein
@@ -1315,6 +1319,7 @@ set_vars() {
   CONFIGURE_LOG=${CONFIGURE_LOG:-"./configure.log"}
   
   # output configuration files #######################################
+  DOT_CONFIGURE=${DOT_CONFIG:-".configure"}
   CONFIG_MAK=${CONFIG_MAK:-"config.mak"}
   CONFIG_H=${CONFIG_H:-"src/config.h"}
   RPMDEF=${RPMDEF:-".rpmdef"}
@@ -1537,6 +1542,9 @@ main() {
   # Set environment variables
   set_vars  
   
+  # Log the arguments I've been invoked with
+  dot_configure $@
+
   # Determine which OS we are using
   check_OS
 

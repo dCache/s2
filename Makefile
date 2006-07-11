@@ -89,8 +89,12 @@ rpm_dirs:
 	         $(RPMTOPDIR)/RPMS/{i386,i586,i686,noarch} \
 		 $(RPMTOPDIR)/tmp
 
-rpm_include: $(RPM_SPECIN)
+dot_configure:
+	touch .configure
+
+rpm_include: dot_configure $(RPM_SPECIN)
 	sed\
+	  -e '/^%include .configure/r .configure'\
 	  -e '/^%include .rpmdef/r .rpmdef'\
 	  -e '/^%include .rpmfiles/r .rpmfiles'\
 	  -e '/^%include .rpmreq/r .rpmreq'\
@@ -187,4 +191,4 @@ distclean mclean: clean
 	    make -C "$$dir" distclean || exit $$? ;\
 	  fi\
 	done
-	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .rpm* *.spec *.log
+	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .configure .rpm* *.spec *.log

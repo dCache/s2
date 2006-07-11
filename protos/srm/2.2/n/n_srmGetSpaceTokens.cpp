@@ -151,8 +151,7 @@ srmGetSpaceTokens::arrayOfSpaceTokensToString(Process *proc, BOOL space, BOOL qu
     BOOL print_space = FALSE;
     std::vector<std::string> v = resp->srmGetSpaceTokensResponse->arrayOfSpaceTokens->stringArray;
     for(uint u = 0; u < v.size(); u++) {
-      SS_VEC_SPACE;
-      ss << " spaceToken" << u << "=" << dq_param(v[u], quote);
+      SS_VEC_SPACE; ss << " spaceToken" << u << "=" << dq_param(v[u], quote);
     }
   }
 

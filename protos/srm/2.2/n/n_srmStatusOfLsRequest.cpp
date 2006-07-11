@@ -170,7 +170,7 @@ srmStatusOfLsRequest::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL 
   
   std::stringstream ss;
   
-  /* the response is exactly the same as srmLs */
+  /* the response is exactly the same as in srmLs */
   BOOL print_space = space;
   for(uint u = 0; u < v.size(); u++) {
     SS_P_VEC_PAR(surl);
@@ -185,8 +185,7 @@ srmStatusOfLsRequest::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL 
 
     if(v[u] && v[u]->arrayOfSpaceTokens) {
       for(uint j = 0; j < v[u]->arrayOfSpaceTokens->stringArray.size(); j++) {
-        SS_VEC_SPACE; 
-        ss << "spaceToken" << u << ":" << j << "=" << v[u]->arrayOfSpaceTokens->stringArray[j];
+        SS_VEC_SPACE; ss << "spaceToken" << u << ":" << j << "=" << v[u]->arrayOfSpaceTokens->stringArray[j];
       }
     }
 
@@ -195,14 +194,12 @@ srmStatusOfLsRequest::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL 
     SS_P_VEC_DPAR(lifetimeAssigned);
     SS_P_VEC_DPAR(lifetimeLeft);
     if(v[u] && v[u]->ownerPermission) {
-      SS_VEC_SPACE; 
-      ss << "userID" << u << "=" << v[u]->ownerPermission->userID;
-      ss << "mode"   << u << "=" << getTPermissionMode(v[u]->ownerPermission->mode);
+      SS_VEC_SPACE; ss << "userID" << u << "=" << v[u]->ownerPermission->userID;
+      SS_VEC_SPACE; ss << "mode"   << u << "=" << getTPermissionMode(v[u]->ownerPermission->mode);
     }
     if(v[u] && v[u]->groupPermission) {
-      SS_VEC_SPACE; 
-      ss << "groupID" << u << "=" << v[u]->groupPermission->groupID;
-      ss << "mode"   << u << "=" << getTPermissionMode(v[u]->groupPermission->mode);
+      SS_VEC_SPACE; ss << "groupID" << u << "=" << v[u]->groupPermission->groupID;
+      SS_VEC_SPACE; ss << "mode"   << u << "=" << getTPermissionMode(v[u]->groupPermission->mode);
     }
     SS_P_VEC_DPAR_SOAP(PermissionMode,otherPermission);
     

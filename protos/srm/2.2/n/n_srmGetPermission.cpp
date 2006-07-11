@@ -187,9 +187,8 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
       if(v[u] && v[u]->arrayOfUserPermissions) {
         for(uint j = 0; j < v[u]->arrayOfUserPermissions->userPermissionArray.size(); j++) {
           if(!v[u]->arrayOfUserPermissions->userPermissionArray[j]) continue;
-          SS_VEC_SPACE; 
-          ss << "userID" << u << ":" << j << "=" << v[u]->arrayOfUserPermissions->userPermissionArray[j]->userID;
-          ss << "mode"   << u << ":" << j << "=" << getTPermissionMode(v[u]->arrayOfUserPermissions->userPermissionArray[j]->mode);
+          SS_VEC_SPACE; ss << "userID" << u << ":" << j << "=" << v[u]->arrayOfUserPermissions->userPermissionArray[j]->userID;
+          SS_VEC_SPACE; ss << "mode"   << u << ":" << j << "=" << getTPermissionMode(v[u]->arrayOfUserPermissions->userPermissionArray[j]->mode);
         }
       }
       DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions=%p\n", v[u]->arrayOfGroupPermissions);
@@ -199,10 +198,9 @@ srmGetPermission::arrayOfFilePermissionToString(Process *proc, BOOL space, BOOL 
         DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray.size()=%u\n", v[u]->arrayOfGroupPermissions->groupPermissionArray.size());
         for(uint j = 0; j < v[u]->arrayOfGroupPermissions->groupPermissionArray.size(); j++) {
           if(!(v[u]->arrayOfGroupPermissions->groupPermissionArray[j])) continue;
-          SS_VEC_SPACE; 
           DM_DBG(DM_N(3), "v[u]->arrayOfGroupPermissions->groupPermissionArray[j]=%p\n", (v[u]->arrayOfGroupPermissions->groupPermissionArray[j]));
-          ss << "groupID" << u << ":" << j << "=" << v[u]->arrayOfGroupPermissions->groupPermissionArray[j]->groupID;
-          ss << "mode"   << u << ":" << j << "=" << getTPermissionMode(v[u]->arrayOfGroupPermissions->groupPermissionArray[j]->mode);
+          SS_VEC_SPACE; ss << "groupID" << u << ":" << j << "=" << v[u]->arrayOfGroupPermissions->groupPermissionArray[j]->groupID;
+          SS_VEC_SPACE; ss << "mode"   << u << ":" << j << "=" << getTPermissionMode(v[u]->arrayOfGroupPermissions->groupPermissionArray[j]->mode);
         }
       }
 

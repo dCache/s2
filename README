@@ -1,38 +1,6 @@
-Overview
-~~~~~~~~
-S2 is a simple general-purpose test client with the SRM 2.x protocol
-support.  S2 interprets a tree-like language, which was also named S2.
-
-The S2 tree consists of branches.  Every branch is indented by 0
-or more spaces which, together with its row position, defines its
-relationship to the other branches.  This indentation is then followed
-by an optional set of parameters common to all branches, followed
-by a specific <ACTION> with clearly defined syntax and semantics.
-Branches located at the same indentation can be connected by three
-different primitives.  No connection at all (which stands for parallel
-execution), the OR and AND connectives.  The S2 language also supports
-parallel and sequential (OR and AND) repeats.
-
-The evaluation of an S2 tree starts with its root (the first
-branch with no indentation).  If an <ACTION> of a branch executes
-successfully, the evaluation process continues with the execution of
-its child.  Unsuccessful execution results in a search and evaluation
-of the first OR branch indented by the same number of spaces as the
-unsuccessful <ACTION>.  The OR and AND branches are left-associative
-and are evaluated in the short-circuit style.
-
-The parameters common to all branches include the evaluation level
-which decides success or failure of a branch's execution, timeout
-and PCRE library options.
-
-Regular expressions can be used as parameters of <ACTION>s where
-a response is expected.  This is the most powerful feature of the
-S2 language.
-
-S2 also supports simple preprocessor directives; support for macros, 
-expression evaluation and further <ACTION>s is planned.
-
-Please see the s2.txt document for more information about the language.
+The S2 language
+~~~~~~~~~~~~~~~
+Please see the s2.txt document for information about the language.
 
 
 Testing directory
@@ -97,7 +65,8 @@ SRM 2.x tests
 The s2 SRM2 test scripts are located the
 testing/scripts/protos/srm/{2.1,2.2}/{basic,usecase} directories.
 Make sure you change your settings in directory-wide s2.env or
-script-related .env files.
+script-related .env files.  The minimum change you will need to
+make is to select SRM_ENDPOINT.
 
 
 Request for help

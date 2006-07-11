@@ -64,6 +64,7 @@ BuildRequires:	gsoap = 2.7.2
 BuildRequires:	CGSI_gSOAP_2.7-dev >= 1.1.9
 BuildRequires:	pcre-devel >= 4.4
 BuildRequires:	libdiagnose >= 0.3.8
+BuildRequires:	doxygen >= 1.3.0
 EOF
 
 #Requires:	CGSI_gSOAP_2.7  vdt_globus_essentials  globus-initialization  gpt

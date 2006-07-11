@@ -184,7 +184,7 @@ srmStatusOfLsRequest::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL 
     SS_P_VEC_DPAR_SOAP(FileLocality,fileLocality);
 
     if(v[u] && v[u]->arrayOfSpaceTokens) {
-      for(uint j = 0; v[u]->arrayOfSpaceTokens->stringArray.size(); j++) {
+      for(uint j = 0; j < v[u]->arrayOfSpaceTokens->stringArray.size(); j++) {
         SS_VEC_SPACE; 
         ss << "spaceToken" << u << ":" << j << "=" << v[u]->arrayOfSpaceTokens->stringArray[j];
       }

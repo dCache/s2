@@ -34,5 +34,5 @@ Bug reporting
 3) Add your OS information and thread library used (for Linux:
    getconf GNU_LIBPTHREAD_VERSION).  
 4) Attach the S2 script causing the bug.
-5) Contact the maintainer directly or through SourceForge bug 
-   reporting infrastructure.
+5) Contact the current maintainer directly or through SourceForge
+   bug reporting infrastructure.

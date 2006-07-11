@@ -1,6 +1,13 @@
-The S2 language
-~~~~~~~~~~~~~~~
-Please see the s2.txt document for information about the language.
+Quick start
+~~~~~~~~~~~
+1) Make sure the s2 binary in PATH.
+2) Copy the testing directory to a directory where you have RW permissions.
+3) cd testing/scripts/eval
+4) Run a couple of test scripts and examine the s2.sh script output files.
+   (See section Testing directory.)  To run all tests contained in
+   the directory, type
+   make test
+5) Read s2.txt document for information about the S2 language.
 
 
 Testing directory
@@ -47,17 +54,6 @@ s2.sh script output files
 *.log   log file of the an s2 script
 *.out   messages sent to standard output
 *.p     "pretty-printed" s2 script
-
-
-Quick start
-~~~~~~~~~~~
-1) Make sure the s2 binary in PATH.
-2) Copy the testing directory to a directory where you have RW permissions.
-3) cd testing/scripts/eval
-4) Run a couple of test scripts and examine the s2.sh script output files.
-   To run all tests contained in the directory, type
-   make test
-5) Read s2.txt document if you get stuck.
 
 
 SRM 2.x tests

@@ -1,4 +1,2 @@
 -include mk/general.mk ../mk/general.mk ../../mk/general.mk ../../../mk/general.mk ../../../../mk/general.mk ../../../../../mk/general.mk ../../../../../../mk/general.mk
 
-#SUBDIRS		:= basic usecase stress exhaust
-SUBDIRS_CLEAN	= $(SUBDIRS)

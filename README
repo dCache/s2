@@ -1,28 +1,41 @@
 Quick start
-~~~~~~~~~~~
-1) Make sure the s2 binary in PATH.
-2) Copy the testing directory to a directory where you have RW permissions.
-3) cd testing/scripts/eval
-4) Run a couple of test scripts and examine the s2.sh script output files.
-   (See section Testing directory.)  To run all tests contained in
-   the directory, type
-   make test
-5) Read s2.txt document for information about the S2 language.
+===========
+ 1) Make sure the s2 binary in PATH.
+ 2) Copy the `testing' directory to a directory where you have RW
+    permissions.
+ 3) If you are an SRM 2.x tester only interested in running a series
+    of tests against an endpoint, skip to 7.
+ 4) cd testing/scripts/eval && make ln
+ 5) `make ln' creates symbolic links to s2.sh script for all *.s2 files
+    in your current working directory (See `The s2.sh script' section
+    for more information).  You'll now be able to choose and run a
+    couple of test scripts and examine the s2.sh script output files.
+    (See `The s2.sh script' section.)  To run all tests contained
+    in the current directory, type
+    make test
+ 6) If you are not interested in SRM 2.x, skip to 10.
+ 7) Add your endpoint to your local copy of
+    testing/scripts/protos/srm/s2.env
+ 8) cd testing/scripts/protos/srm/2.<x>/basic && make ln
+    where <x> is [12].
+ 9) do 5)
+10) Read s2.txt document for information about the S2 language.
 
 
 Testing directory
-~~~~~~~~~~~~~~~~~
+=================
 After you've copied the testing directory into a directory with
 read-write permissions, please take a few minutes to familiarise
 yourself with its design.  Overview of the most important files and
 directories:
 
-bin/s2.sh       wrapper around the s2 binary sourcing s2.env files
-                in a directory-recursive fashion and speeding-up
-                development by optionally calling valgrind and gdb.
+bin/s2.sh       please see `The s2.sh script' section
 mk/             directory containing generic makefiles
 scripts/        directory containing s2 test scripts, please refer to 
-                README files within those directories.
+                README files within those directories for 
+                directory-specific information.
+
+You should never need to change anything bin/ and mk/ directories.
 
 Every script directory contains a Makefile.  This Makefile has three
 aims.  Firstly, to provide a way of automatically creating <script>.sh
@@ -37,10 +50,30 @@ $ make help
 
 for additional information.
 
-Every <script>.s2 can have a corresponding <script>.env file, which
-defines <script>-specific environment variables.  Directory-wide 
-environment variables are defined in s2.env files.
 
+The s2.sh script
+================
+The script is a wrapper around the s2 binary.  It sources s2
+environment files in a directory-recursive fashion and optionally
+runs s2 through valgrind or gdb.
+
+s2 environment files
+~~~~~~~~~~~~~~~~~~~~
+Every <script>.s2 has a optional <script>.env file, which
+defines <script>-specific environment variables.  Directory-wide 
+environment variables are defined in s2.env files.  The s2.env
+files can be defined in any of the `testing/script' subdirectories
+and they affect all sub-directories in a hierarchical fashion.
+
+For example, an s2.env file located in `testing/scripts/eval' affects
+`find testing/scripts/eval -type d' directories, but not any of the 
+`find testing/scripts/protos -type d' directories.
+Environment variables defined in
+`scripts/protos/srm/2.2/usecase/PutGet01.env' will take precedence
+over environment variables defined in
+`scripts/protos/srm/2.2/usecase/s2.env'.  However,
+`scripts/protos/srm/2.2/usecase/s2.env' will take precedence over
+`scripts/protos/srm/2.2/s2.env' and so on.
 
 s2.sh script output files
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,17 +89,8 @@ s2.sh script output files
 *.p     "pretty-printed" s2 script
 
 
-SRM 2.x tests
-~~~~~~~~~~~~~
-The s2 SRM2 test scripts are located the
-testing/scripts/protos/srm/{2.1,2.2}/{basic,usecase} directories.
-Make sure you change your settings in directory-wide s2.env or
-script-related .env files.  The minimum change you will need to
-make is to select SRM_ENDPOINT.
-
-
 Request for help
-~~~~~~~~~~~~~~~~
+================
 Please help improve this project by:
  * reporting s2 bugs, errors in documentation, etc.
  * creating and contributing back SRM 2.2 test scenarios

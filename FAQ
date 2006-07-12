@@ -1,3 +1,6 @@
+Q: 
+A:
+
 Q: The script just hangs.
 A: The easiest thing to do is to run the script with a timeout
 option.  If you're running a series of tests by "make test", you
@@ -7,4 +10,12 @@ branch "hangs" based on the debugging/logging information provided.
 If this doesn't help, you may have found a bug.  Please see BUGS.
 Note that timeouts are quite expensive, don't use them if you don't
 need to.
+
+Q: Why is `testing' directory in ${prefix}/share/doc/s2-<version>?
+It's sick!
+A: I don't like it either.  However, the testing directory contains
+a lot of examples, which really are documentation too and more
+importantly `template' directories which contain syntax of SRM 2.x
+calls (not documented by the s2.txt manual).  Please help and suggest
+a better approach.
 

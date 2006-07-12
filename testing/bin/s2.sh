@@ -1,10 +1,10 @@
 #!/bin/bash
 
-ProgramName=`basename $0`
-ProgramNameEnv=`basename ${ProgramName} .sh`.env
-ProgramDir=`dirname $0` ; cd ${ProgramDir}
+ProgramName=$(basename $0)
+ProgramNameEnv=$(basename ${ProgramName} .sh).env
+ProgramDir=$(dirname $0) ; cd ${ProgramDir}
 
-S2_TEST_FILE=`basename ${ProgramName} .sh`.s2
+S2_TEST_FILE=$(basename ${ProgramName} .sh).s2
 S2_BIN=s2
 ENV_SH=s2.env
 
@@ -108,6 +108,11 @@ main() {
     esac
     shift
   done
+
+  if test x"${ProgramName}" = xs2.sh && ! test -L ${ProgramName} ; then
+    Fail "This script is not meant to be run here.  Please see README."
+    Usage
+  fi
 
   Which_s2
   S2_BIN=`which ${S2_BIN} 2>/dev/null` || Die 3 "Couldn't find s2 binary."

@@ -63,6 +63,7 @@ option_item optionlist[] = {
   { '-', "b[#]", "verbose[=#]",         NULL }, /* -2: no errors; -1: no warnings; 0: normal; 1+: verbose */
   { '-', "d<p>", "dbg-file=<p>",        NULL },
   { '-', "e<p>", "eval=<p>",            NULL },
+  { '-', "g[#]", "progress[=#]",	NULL }, 
   { '-', "i[#]", "pp-indent[=#]",       NULL },
   { '-', "l<p>", "log-file=<p>",        NULL },
   { '-', "p<p>", "pp-out-file=<p>",     NULL },

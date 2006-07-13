@@ -19,7 +19,7 @@ Quick start
  8) cd testing/scripts/protos/srm/2.<x>/basic && make ln
     where <x> is [12].
  9) do 5)
-10) Read s2.txt document for information about the S2 language.
+10) Read at least the `Overview' section from s2.txt document.
 
 
 Testing directory
@@ -59,32 +59,35 @@ runs s2 through valgrind or gdb.
 
 s2 environment files
 ~~~~~~~~~~~~~~~~~~~~
-Every <script>.s2 has a optional <script>.env file, which
+Every <script>.s2 has an optional <script>.env file, which
 defines <script>-specific environment variables.  Directory-wide 
 environment variables are defined in s2.env files.  The s2.env
 files can be defined in any of the `testing/script' subdirectories
 and they affect all sub-directories in a hierarchical fashion.
 
 For example, an s2.env file located in `testing/scripts/eval' affects
-`find testing/scripts/eval -type d' directories, but not any of the 
-`find testing/scripts/protos -type d' directories.
+`find testing/scripts/eval -type d` directories, but not any of the 
+`find testing/scripts/protos -type d` directories.
 Environment variables defined in
 `scripts/protos/srm/2.2/usecase/PutGet01.env' will take precedence
 over environment variables defined in
 `scripts/protos/srm/2.2/usecase/s2.env'.  However,
 `scripts/protos/srm/2.2/usecase/s2.env' will take precedence over
-`scripts/protos/srm/2.2/s2.env' and so on.
+`scripts/protos/srm/2.2/s2.env',
+`scripts/protos/srm/2.2/s2.env' will take precedence over
+`scripts/protos/srm/s2.env' and so on.
 
 s2.sh script output files
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 *.d     debug output of the diagnose library.  Verbosity can be
-        limited, please see the documentation for libdiagnose.
+        limited, please see the documentation for libdiagnose or
+        `testing/scripts/s2.env' file.
 *.e0    before-execution log messages
 *.e1    after-execution log messages
 *.e2    after-evaluation log messages
 *.err   messages sent to standard error
 *.l     log file of the s2 binary
-*.log   log file of the an s2 script
+*.log   log file of an s2 script
 *.out   messages sent to standard output
 *.p     "pretty-printed" s2 script
 

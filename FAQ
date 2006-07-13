@@ -1,6 +1,3 @@
-Q: 
-A:
-
 Q: The script just hangs.
 A: The easiest thing to do is to run the script with a timeout
 option.  If you're running a series of tests by "make test", you
@@ -10,6 +7,13 @@ branch "hangs" based on the debugging/logging information provided.
 If this doesn't help, you may have found a bug.  Please see BUGS.
 Note that timeouts are quite expensive, don't use them if you don't
 need to.
+
+Q: Is there a way to activate the debug info printing to understand 
+   what exactly is going on?
+A: S2 runs with "debugging options" automatically.  For the description
+of debugging files, please see the section `s2.sh script output files'
+of the README file.  If you want to limit/increase debugging, please
+see the `DIAGNOSTICS' section in the `testing/scripts/s2.env' file.
 
 Q: Why is `testing' directory in ${prefix}/share/doc/s2-<version>?
 It's sick!

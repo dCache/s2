@@ -40,6 +40,7 @@ typedef struct opts_t {
   int verbose;				/* -2: no errors; -1: no warnings; 0: normal; 1: verbose */
   int pp_indent;			/* pretty-printer indentation value */
   BOOL show_defaults;			/* show default values (pretty-printer, evaluator) */
+  BOOL progress_bar;			/* show progres bar */
   char *pp_fname;			/* pretty-printer output filename */
   FILE *pp_file;			/* pretty-printer output file */
   char *log_fname;			/* log messages output filename */
@@ -56,5 +57,8 @@ typedef struct opts_t {
   uint64_t s2_timeout;			/* default timeout for branches in milliseconds */
   int tp_size;				/* number of threads to use in the threadpool */
 } opts_t;
+
+/* extern(al) function declarations */
+extern void progress(int show);
 
 #endif /* _S2_H */

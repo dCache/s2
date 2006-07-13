@@ -89,6 +89,50 @@ PNAME(void)
 } /* PNAME */
 
 /********************************************************************
+ * Show a console progress "bar"
+ *
+ * Params:
+ *  -1: init
+ *   0: hide
+ *   1: show
+ ********************************************************************/
+extern void
+progress(int show)
+{
+  static char state = '/';
+  static BOOL hidden = TRUE;
+
+  if(!opts.progress_bar)
+    return;
+
+  if(!show) {
+    /* hide */
+    if(!hidden)
+      fprintf(stderr,"\b \b");	/* on some systems (Windows) '\b' doesn't seem to delete */
+ 
+    hidden = TRUE;
+    return;
+  }
+  
+  if(show == -1)
+    /* init */
+    state = '/';
+
+  switch (state) {
+    case '-': state = '\\'; break;
+    case '\\': state = '|'; break;
+    case '|': state = '/'; break;
+    case '/': state = '-'; break;
+  }
+  if(!hidden)
+    fprintf(stderr,"\b \b");	/* on some systems (Windows) '\b' doesn't seem to delete */
+    
+  fputc(state, stderr);
+  hidden = FALSE;
+  fflush(stderr);
+}
+
+/********************************************************************
  * Private C functions
  ********************************************************************/
 /*
@@ -168,6 +212,7 @@ init_s2(void)
   opts.verbose = 0;			/* -2: no errors; -1: no warnings; 0: normal; 1: verbose */
   opts.pp_indent = PP_INDENT;		/* pretty-printer indentation value */
   opts.show_defaults = FALSE;		/* show default values (pretty-printer, evaluator) */
+  opts.progress_bar = TRUE;		/* show progres bar */
   opts.pp_fname = NULL;			/* pretty-printer output filename */
   opts.pp_file = PP_DEFAULT_OUTPUT;	/* pretty-printer output file */
   opts.log_fname = NULL;		/* log messages output filename */
@@ -398,6 +443,10 @@ hlp(int l)
 
         case 'e':
           fprintf(stderr,_("default evaluation threshold for branches (%d)\n"), opts.s2_eval);
+        break;
+
+        case 'g':
+          fprintf(stderr,_("progress bar 0/1 (%s)\n"), opts.progress_bar ? _("on") : _("off"));
         break;
 
         case 'i':
@@ -654,6 +703,20 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     return 0;
   }
 
+  if (OPL("-g") || OPL("--progress"))
+  { /* progress bar */
+    if(opt_off > 2 && *(opt + opt_off) == '=')
+      /* long option, ignore '=' */
+      opt_off++;
+
+    opts.progress_bar = strtol(opt + opt_off, &p_err, 0);
+    if (p_err == opt + opt_off || *p_err)
+      /* no option value given || value contains invalid/non-digit char */
+      opts.progress_bar = TRUE;
+
+    return 0;
+  }
+
   if (OPL("-i") || OPL("--pp-indent"))
   { /* pretty-printer indentation value */
     BOOL vrb_msg = FALSE;
@@ -864,6 +927,9 @@ s2_run(int argc, char **argv, int i)
   Process *proc = NULL;
   BOOL tp_created = FALSE;
 
+  /* init progress bar */
+  progress(-1);
+
   if(i >= argc) {
     /* there are no further arguments do the business on stdin and exit */
     goto evaluate;
@@ -913,6 +979,9 @@ cleanup:
 
   /* destroy thread pool */
   if(tp_created) tp_cleanup();
+
+  /* hide progress bar */
+  progress(0);
 
   DM_DBG(DM_N(1), "s2_run return value=%d\n", rval);
   return rval;

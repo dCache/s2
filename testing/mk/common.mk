@@ -40,7 +40,6 @@ HTML_TABLE_HEAD		= \
 \n  <TD VALIGN=top ALIGN=center><B>Before exec</B></TD>\
 \n  <TD VALIGN=top ALIGN=center><B>After exec</B></TD>\
 \n  <TD VALIGN=top ALIGN=center><B>stdout</B></TD>\
-\n  <TD VALIGN=top ALIGN=center><B>stderr</B></TD>\
 \n  <TD VALIGN=top ALIGN=center><B>Log</B></TD>\
 \n  <TD VALIGN=top ALIGN=center><B>Debug</B></TD>\
 \n  <TD VALIGN=top ALIGN=center><B>Custom log</B></TD>\
@@ -67,7 +66,6 @@ echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.e2" ; then
 echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.e0" ; then echo -en "<A HREF=$$s2_bare.e0>before exec</A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
 echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.e1" ; then echo -en "<A HREF=$$s2_bare.e1>after exec</A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
 echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.out" ; then echo -en "<A HREF=$$s2_bare.out>stdout<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
-echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.err" ; then echo -en "<A HREF=$$s2_bare.err>stderr<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
 echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.l" ; then echo -en "<A HREF=$$s2_bare.l>log<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
 echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.d" ; then echo -en "<A HREF=$$s2_bare.d>debug<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\
 echo -n "  <TD VALIGN=top ALIGN=center>" >> $1; if test -s "$$s2_bare.log" ; then echo -en "<A HREF=$$s2_bare.log>custom log<A>" >> $1; else echo -en "n/a" >> $1; fi; echo "</TD>" >> $1;\

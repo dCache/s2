@@ -130,10 +130,10 @@ main() {
       --suppressions=${S2_SRC_DIR}/valgrind.supp\
       ${S2_BIN}\
       $@\
-      ${S2_TEST_FILE} >${S2_OUT} 2>${S2_ERR}
+      ${S2_TEST_FILE} >${S2_OUT}
   else
     # Normal S2 run
-    rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_ERR} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+    rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
     echo -e "${S2_TEST_FILE}:"
     time ${S2_BIN}\
       --threads=63\
@@ -146,7 +146,7 @@ main() {
       --e1-file=${S2_E1}\
       --e2-file=${S2_E2}\
       $@\
-      ${S2_TEST_FILE} > ${S2_OUT} 2>>${S2_ERR}
+      ${S2_TEST_FILE} > ${S2_OUT}
     err=$?
     echo -e "$err\n"
     return $err

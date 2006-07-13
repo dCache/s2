@@ -85,7 +85,6 @@ s2.sh script output files
 *.e0    before-execution log messages
 *.e1    after-execution log messages
 *.e2    after-evaluation log messages
-*.err   messages sent to standard error
 *.l     log file of the s2 binary
 *.log   log file of an s2 script
 *.out   messages sent to standard output

@@ -284,6 +284,10 @@ Process::eval()
     DM_ERR_ASSERT("n == NULL\n");
     RETURN(ERR_ASSERT);
   }
+
+  S_P(&tp_sync.print_mtx);
+  progress(1);		/* show/change progress bar */
+  S_V(&tp_sync.print_mtx);
   
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
@@ -492,7 +496,6 @@ seq:
           /* too many parallel requests, could lead to a deadlock on pthread_cond_wait()
              => evaluate sequentially */
           I = i;
-          fprintf(stderr, FBRANCH"3) too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, tp_sync.total, opts.tp_size);//dMan
           DM_DBG(DM_N(3), FBRANCH"too many parallel requests (%d >= %d), evaluating sequentially\n", n->row, executed, evaluated, tp_sync.total, opts.tp_size);
           repeats_eval = eval_with_timeout();
           UPDATE_MAX(evaluated, repeats_eval);

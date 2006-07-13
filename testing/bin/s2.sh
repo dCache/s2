@@ -40,6 +40,13 @@ Which() {
   return $not_found
 }
 
+Which_s2() {
+  Which 7 src/${S2_BIN}
+  if test $? -eq 0 ; then
+    S2_BIN=${which_file}
+  fi
+}
+
 Source() {
   local descend=""
   local src_file="$2"
@@ -65,10 +72,12 @@ Source() {
   return $not_found
 }
 
-Which_s2() {
-  Which 7 src/${S2_BIN}
-  if test $? -eq 0 ; then
-    S2_BIN=${which_file}
+Export() {
+  local var_val=$(eval echo '$'$1)
+  if test x$var_val = x ; then
+    export $1="$2"
+  else
+    export $1
   fi
 }
 

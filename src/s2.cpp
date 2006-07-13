@@ -108,8 +108,11 @@ progress(int show)
 
   if(!show) {
     /* hide */
-    if(!hidden)
+    if(!hidden) {
+      S_P(&tp_sync.print_mtx);
       fprintf(stderr,"\b \b");	/* on some systems (Windows) '\b' doesn't seem to delete */
+      S_V(&tp_sync.print_mtx);
+    }
  
     hidden = TRUE;
     return;
@@ -119,14 +122,26 @@ progress(int show)
     /* init */
     state = '/';
 
+  if(show == -2)
+    /* sleeping */
+    state = 's';
+
   switch (state) {
     case '-': state = '\\'; break;
     case '\\': state = '|'; break;
     case '|': state = '/'; break;
     case '/': state = '-'; break;
+    case 's': state = 's'; break;
+
+    default: 
+      state = '/';
+    break;
   }
-  if(!hidden)
+  if(!hidden) {
+    S_P(&tp_sync.print_mtx);
     fprintf(stderr,"\b \b");	/* on some systems (Windows) '\b' doesn't seem to delete */
+    S_V(&tp_sync.print_mtx);
+  }
     
   fputc(state, stderr);
   hidden = FALSE;

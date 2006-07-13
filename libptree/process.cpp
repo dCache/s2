@@ -285,9 +285,7 @@ Process::eval()
     RETURN(ERR_ASSERT);
   }
 
-  S_P(&tp_sync.print_mtx);
   progress(1);		/* show/change progress bar */
-  S_V(&tp_sync.print_mtx);
   
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 

@@ -213,7 +213,9 @@
 
 #define MV_CSTR2STR(t,s)\
   do {\
-    t.assign(s);\
+    if(s) {\
+      t.assign(s);\
+    }\
     DM_LOG(DM_N(2), ""#t " == `%s'\n", t.c_str());\
   } while(0)
 

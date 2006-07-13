@@ -20,7 +20,7 @@
 #include "i18.h"
 #include "sysdep.h"             /* BOOL, STD_BUF, ... */
 
-#include "s2.h"			/* opts (s2 options) */
+#include "s2.h"			/* opts (s2 options), progress(), ... */
 #include "str.h"
 #include "io.h"                 /* file_ropen(), ... */
 #include "thread_pool.h"	/* S_P, S_V */

@@ -10,10 +10,11 @@ need to.
 
 Q: Is there a way to activate the debug info printing to understand 
    what exactly is going on?
-A: S2 runs with "debugging options" automatically.  For the description
-of debugging files, please see the section `s2.sh script output files'
-of the README file.  If you want to limit/increase debugging, please
-see the `DIAGNOSTICS' section in the `testing/scripts/s2.env' file.
+A: The s2.sh script calls s2 with debugging/logging options
+automatically.  For the description of debugging files, please see the
+section `s2.sh script output files' of the README file.  If you want
+to limit/increase debugging, please see the `DIAGNOSTICS' section in
+the `testing/scripts/s2.env' file.
 
 Q: Why is `testing' directory in ${prefix}/share/doc/s2-<version>?
 It's sick!

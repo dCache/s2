@@ -99,8 +99,8 @@ struct Node
   uint64_t TIMEOUT;             /* timeout in micro seconds */
 
   match_opts match_opt;         /* PCRE options */
-#define MATCH_PX        0
-#define MATCH_PCRE      PCRE_ANCHORED
+#define MATCH_PX	0
+#define MATCH_PCRE	(PCRE_ANCHORED|PCRE_DOTALL)
 
   /* debugging/logging information (executed/evaluated _only_ for e2) */
   uint row;			/* parser row (node ID) */

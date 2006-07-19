@@ -7,7 +7,7 @@
 ; srmStatusOfGetRequest
 ; srmStatusOfPutRequest
 
-ASSIGN srmTest srmCopy
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 

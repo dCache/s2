@@ -19,6 +19,7 @@
 
 #include "free.h"		/* FREE(), DELETE() */
 #include "match.h"
+#include "str.h"		/* i2str() */
 #include "n.h"			/* Node */
 #include "process.h"		/* Process */
 #include "parse.h"		/* parse() function */
@@ -55,26 +56,27 @@ static void ErrCB(dg_callback cbData);
  * Constants
  ********************************************************************/
 option_item optionlist[] = {
-  { '-', "h[#]", "help[=#]",            _("display help and exit (#: help level)") },
+  { '-', "h[#]", "help[=#]",		_("display help and exit (#: help level)") },
   { '-', "0[#]", "e0-file[=#]",		NULL },
   { '-', "1[#]", "e1-file[=#]",		NULL },
   { '-', "2[#]", "e2-file[=#]",		NULL },
-  { '-', "a[#]", "ansi[=#]",            NULL },
-  { '-', "b[#]", "verbose[=#]",         NULL }, /* -2: no errors; -1: no warnings; 0: normal; 1+: verbose */
-  { '-', "d<p>", "dbg-file=<p>",        NULL },
-  { '-', "e<p>", "eval=<p>",            NULL },
+  { '-', "a[#]", "ansi[=#]",		NULL },
+  { '-', "b[#]", "verbose[=#]",		NULL }, /* -2: no errors; -1: no warnings; 0: normal; 1+: verbose */
+  { '-', "d<p>", "dbg-file=<p>",	NULL },
+  { '-', "e<p>", "eval=<p>",		NULL },
+  { '-', "f<p>", "file=<p>",		NULL }, /* s2 file */
   { '-', "g[#]", "progress[=#]",	NULL }, 
-  { '-', "i[#]", "pp-indent[=#]",       NULL },
-  { '-', "l<p>", "log-file=<p>",        NULL },
-  { '-', "p<p>", "pp-out-file=<p>",     NULL },
-  { '-', "r<p>", "err-file=<p>",        NULL },
-  { '-', "s[#]", "show-defaults[=#]",   NULL }, /* pretty-print defaults */
-  { '-', "T[#]", "threads[=#]",         NULL },
-  { '-', "t[#]", "timeout[=#]",         NULL },
-  { '-', "V", "version",                _("print version information and exit") },
-  { '-', "w<p>", "warn-file=<p>",       NULL },
+  { '-', "i[#]", "pp-indent[=#]",	NULL },
+  { '-', "l<p>", "log-file=<p>",	NULL },
+  { '-', "p<p>", "pp-out-file=<p>",	NULL },
+  { '-', "r<p>", "err-file=<p>",	NULL },
+  { '-', "s[#]", "show-defaults[=#]",	NULL }, /* pretty-print defaults */
+  { '-', "T[#]", "threads[=#]",		NULL },
+  { '-', "t[#]", "timeout[=#]",		NULL },
+  { '-', "V", "version",		_("print version information and exit") },
+  { '-', "w<p>", "warn-file=<p>",	NULL },
 
-  { 0, NULL, NULL,                      NULL }
+  { 0, NULL, NULL,			NULL }
 };
 
 /********************************************************************
@@ -228,6 +230,7 @@ init_s2(void)
   opts.verbose = 0;			/* -2: no errors; -1: no warnings; 0: normal; 1: verbose */
   opts.pp_indent = PP_INDENT;		/* pretty-printer indentation value */
   opts.show_defaults = FALSE;		/* show default values (pretty-printer, evaluator) */
+  opts.scr_fname = NULL;		/* script filename */
   opts.progress_bar = TRUE;		/* show progres bar */
   opts.pp_fname = NULL;			/* pretty-printer output filename */
   opts.pp_file = PP_DEFAULT_OUTPUT;	/* pretty-printer output file */
@@ -359,9 +362,9 @@ usage(int ret_val)
     putc(op->short_name[0], stderr);
   }
 
-  fprintf(stderr, "] [LONG-OPT]... [FILE1 FILE2...]\n");
+  fprintf(stderr, "] [LONG-OPT]... [SCRIPT_ARGS]\n");
 
-  fprintf(stderr, _("Example: %s eval01.s2\n"), PG);
+  fprintf(stderr, _("Example: %s --file=eval01.s2\n"), PG);
   fprintf(stderr, _("Type `%s --help' for more information.\n"), PG);
 
   return ret_val;
@@ -371,16 +374,16 @@ usage(int ret_val)
 static void
 hlp_gen(const char *PG)
 {
-  fprintf(stderr, _("Usage: %s [OPTION]... [FILE1 FILE2 ...]\n"), PG);
+  fprintf(stderr, _("Usage: %s [OPTION]... [SCRIPT_ARGS]\n"), PG);
 }
 
 static void
 hlp_head(const char *PG)
 {
   hlp_gen(PG);
-  fprintf(stderr, _("Evaluate FILEs in S2 language.\n"));
-  fprintf(stderr, _("With no FILE, read standard input.\n\n"));
-  fprintf(stderr, _("Example: %s eval01.s2 eval02.s2\n"), PG);
+  fprintf(stderr, _("Evaluate a SCRIPT in S2 language.\n"));
+  fprintf(stderr, _("With no --file=SCRIPT option, read standard input.\n\n"));
+  fprintf(stderr, _("Example: %s --file=eval01.s2 eval01_arg1 eval01_arg2\n"), PG);
   fprintf(stderr, _("         %s < eval01.s2\n"), PG);
 }
 
@@ -461,6 +464,11 @@ hlp(int l)
           fprintf(stderr,_("default evaluation threshold for branches (%d)\n"), opts.s2_eval);
         break;
 
+        case 'f':
+          /* script filename (<p>: path) */
+          fprintf(stderr,_("script filename (%s)\n"), opts.scr_fname? opts.scr_fname : "stdin");
+        break;
+          
         case 'g':
           fprintf(stderr,_("progress bar 0/1 (%s)\n"), opts.progress_bar ? _("on") : _("off"));
         break;
@@ -719,6 +727,21 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     return 0;
   }
 
+  if (OPL("-f") || OPL("--file"))
+  { /* script filename */
+    if(opt_off > 2 && *(opt + opt_off) == '=')
+      /* long option, ignore '=' */
+      opt_off++;
+      
+    opts.scr_fname = opt + opt_off;
+
+    if(strcmp(opts.scr_fname, "-") == 0)
+      /* standard input */
+      opts.scr_fname = NULL;
+
+    return 0;
+  }
+
   if (OPL("-g") || OPL("--progress"))
   { /* progress bar */
     if(opt_off > 2 && *(opt + opt_off) == '=')
@@ -939,6 +962,7 @@ static int
 s2_run(int argc, char **argv, int i)
 {
   int rval = ERR_OK, lval;
+  int i_1 = i;
   Node *root = NULL;
   Process *proc = NULL;
   BOOL tp_created = FALSE;
@@ -946,52 +970,56 @@ s2_run(int argc, char **argv, int i)
   /* init progress bar */
   progress(-1);
 
-  if(i >= argc) {
-    /* there are no further arguments do the business on stdin and exit */
-    goto evaluate;
-  } else {
-    /* work through the remaining arguments as files */
-    for (; i < argc; i++)
-    {
-evaluate:
-      lval = parse(argv[i], &root);
-      DM_DBG(DM_N(1), "parser return value=%d\n", lval);
-      UPDATE_MAX(rval, lval);
-      if(rval > opts.s2_eval) {
-        /* stop evaluation */
-        UPDATE_MAX(rval, ERR_NEXEC);
-        goto cleanup;
-      }
-
-      /* create thread pool */
-      if(!tp_created) tp_init(opts.tp_size);
-      tp_created = TRUE;
-    
-      /* pretty-print S2 tree ($ENV{VAR} are evaluated) */
-      if(opts.pp_fname) lval = pp_print(root);
-      DM_DBG(DM_N(1), "pretty-printer return value=%d\n", lval);
-      UPDATE_MAX(rval, lval);
-
-      if (root) {
-        Process::threads_init();
-        proc = new Process(root, NULL, NULL);
-        lval = proc->eval();
-        Process::threads_destroy();
-        DM_DBG(DM_N(1), "evaluation return value=%d\n", lval);
-        UPDATE_MAX(rval, lval);
-      }
-
-      /* after-evaluation print of the tree */
-      if(opts.e2_fname) lval = e2_print(root);
-      DM_DBG(DM_N(2), "after-evaluation print return value=%d\n", lval);
-      UPDATE_MAX(rval, lval);
-    
-cleanup:
-      /* cleanup */
-      DELETE(proc);	/* free proc *first*, then root */
-      DELETE(root);
-    }
+  lval = parse(opts.scr_fname, &root);
+  DM_DBG(DM_N(1), "parser return value=%d\n", lval);
+  UPDATE_MAX(rval, lval);
+  if(rval > opts.s2_eval) {
+    /* stop evaluation */
+    UPDATE_MAX(rval, ERR_NEXEC);
+    goto cleanup;
   }
+
+  /* create thread pool */
+  if(!tp_created) tp_init(opts.tp_size);
+  tp_created = TRUE;
+
+  /* pretty-print S2 tree ($ENV{VAR} are evaluated) */
+  if(opts.pp_fname) lval = pp_print(root);
+  DM_DBG(DM_N(1), "pretty-printer return value=%d\n", lval);
+  UPDATE_MAX(rval, lval);
+
+  if(root) {
+    Process::threads_init();
+    proc = new Process(root, NULL, NULL);
+
+    if(!proc) {
+      DM_ERR(ERR_SYSTEM, _("failed to create a Process: %s\n"), _(strerror(errno)));
+      UPDATE_MAX(rval, ERR_SYSTEM);
+      goto cleanup;
+    }
+
+    /* write ${0}..${n} variables */        
+    if(opts.scr_fname) proc->WriteVariable("0", opts.scr_fname);
+    else proc->WriteVariable("0", "stdin");
+    for(; i < argc; i++) {
+      proc->WriteVariable(i2str(i - i_1 + 1).c_str(), argv[i]);
+    }
+
+    lval = proc->eval();
+    Process::threads_destroy();
+    DM_DBG(DM_N(1), "evaluation return value=%d\n", lval);
+    UPDATE_MAX(rval, lval);
+  }
+
+  /* after-evaluation print of the tree */
+  if(opts.e2_fname) lval = e2_print(root);
+  DM_DBG(DM_N(2), "after-evaluation print return value=%d\n", lval);
+  UPDATE_MAX(rval, lval);
+
+cleanup:
+  /* cleanup */
+  DELETE(proc);	/* free proc *first*, then root */
+  DELETE(root);
 
   /* destroy thread pool */
   if(tp_created) tp_cleanup();

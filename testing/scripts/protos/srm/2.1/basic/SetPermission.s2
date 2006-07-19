@@ -2,7 +2,7 @@
 ;
 ; srmMkdir
 
-ASSIGN srmTest srmSetPermission
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 && srmMkdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{SRM_NEW_DIR0} storageSystemInfo=<i1> returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 

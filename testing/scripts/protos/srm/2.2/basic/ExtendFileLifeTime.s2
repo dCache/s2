@@ -2,7 +2,7 @@
 ;
 ; srmPrepareToPut
 
-ASSIGN srmTest srmExtendFileLifeTime
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 ;;; Put cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken

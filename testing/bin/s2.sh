@@ -88,7 +88,8 @@ options: --help         this help
          --valgrind     run with valgrind
 	 --             s2 options separator
 
-e.g.: $ProgramName --valgrind -- --timeout=5000000 --show-defaults" >&2
+e.g.: $ProgramName --valgrind -- --timeout=5000000 --show-defaults
+      $ProgramName -- ${ProgramName%.sh}_arg1 ${ProgramName%.sh}_arg2 ${ProgramName%.sh}_arg3" >&2
   exit 0
 }
 
@@ -145,7 +146,7 @@ main() {
     rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
     echo -e "${S2_TEST_FILE}:"
     time ${S2_BIN}\
-      --threads=63\
+      --file=${S2_TEST_FILE}\
       --pp-out-file=${S2_P}\
       --dbg-file=${S2_D}\
       --err-file=${S2_E}\
@@ -155,7 +156,7 @@ main() {
       --e1-file=${S2_E1}\
       --e2-file=${S2_E2}\
       $@\
-      ${S2_TEST_FILE} > ${S2_OUT}
+      > ${S2_OUT}
     err=$?
     echo -e "$err\n"
     return $err

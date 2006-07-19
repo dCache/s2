@@ -1,6 +1,6 @@
 ; srmPrepareToPut
 
-ASSIGN srmTest srmPrepareToPut
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 && srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 

@@ -6,7 +6,7 @@ s2 \- a simple general-purpose test client
 
 .SH SYNOPSIS
 
-.B s2 [OPTION]... [FILE1 FILE2 ...]
+.B s2 [OPTION]...[SCRIPT_ARGS]
 
 .SH AVAILABILITY
 
@@ -17,8 +17,8 @@ All UNIX flavors
 S2 is a simple general-purpose test client with the SRM2 protocol
 support.  S2 interprets a tree-like language, which was also named S2.
 
-The s2 binary evaluates FILEs in S2 language.
-With no FILE, it reads standard input.
+The s2 binary evaluates a SCRIPT in S2 language.
+With no --file=SCRIPT option, it reads standard input.
 
 Exit status is 0 success, 1 warning(s) and >=2 if false evaluation/trouble.
 
@@ -48,6 +48,9 @@ debug messages output filename (stderr)
 .TP
 .B \-e<p>, --eval=<p>
 default evaluation threshold for branches (0)
+.TP
+.B \-f<p>, --file=<p>
+script filename (stdin)
 .TP
 .B \-g[#], --progress[=#]
 progress bar 0/1 (on)
@@ -81,11 +84,11 @@ warning messages output filename (stderr)
 
 .SH EXAMPLES
 .TP
-s2 eval01.s2 eval02.s2
-Evaluate files eval01.s2 and eval02.s2
+s2 --file=eval01.s2 eval01_arg1 eval01_arg2
+Evaluate file eval01.s2 with arguments eval01_arg1 eval01_arg2
 .TP
 s2 < eval01.s2
-Evaluate files eval01.s2
+Evaluate file eval01.s2
 
 .SH AUTHOR
 

@@ -1,6 +1,6 @@
 ; srmStatusOfLsRequest
 
-ASSIGN srmTest srmStatusOfLsRequest
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
    SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> $ENV{S2_LOG}

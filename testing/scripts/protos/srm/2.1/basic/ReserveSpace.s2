@@ -1,6 +1,6 @@
 ; srmReserveSpace
 
-ASSIGN srmTest srmReserveSpace
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 && srmReserveSpace $ENV{ENDPOINT} userID=$ENV{USER} typeOfSpace=Durable userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} sizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE} sizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE} lifetimeOfSpaceToReserve=$ENV{LIFETIME} typeOfReservedSpace=(?P<typeOfReservedSpace>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) referenceHandleOfReservedSpace=(?P<referenceHandleOfReservedSpace>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace}; referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}

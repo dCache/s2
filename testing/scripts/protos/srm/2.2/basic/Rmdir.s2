@@ -2,7 +2,7 @@
 ;
 ; srmMkdir
 
-ASSIGN srmTest srmRmdir
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 && srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
    srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

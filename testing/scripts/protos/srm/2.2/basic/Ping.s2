@@ -1,6 +1,6 @@
 ; srmPing
 
-ASSIGN srmTest srmPing
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 && srmPing $ENV{ENDPOINT} versionInfo=(?P<versionInfo>.*) otherInfo=(?P<otherInfo>.*)
    SYSTEM echo -e "versionInfo=${versionInfo}\notherInfo=${-otherInfo}" > $ENV{S2_LOG}

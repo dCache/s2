@@ -1,4 +1,7 @@
 ; $MATCH{}
 
-TEST $MATCH{ex.ected expected}
+TEST $MATCH{(?P<Test>.*).s2 ${0}}
+&& SYSTEM echo ${Test}
+
+&& TEST $MATCH{ex.ected expected}
 && TEST $MATCH{}

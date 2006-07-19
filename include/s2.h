@@ -41,6 +41,7 @@ typedef struct opts_t {
   int pp_indent;			/* pretty-printer indentation value */
   BOOL show_defaults;			/* show default values (pretty-printer, evaluator) */
   BOOL progress_bar;			/* show progres bar */
+  char *scr_fname;			/* script filename */
   char *pp_fname;			/* pretty-printer output filename */
   FILE *pp_file;			/* pretty-printer output file */
   char *log_fname;			/* log messages output filename */

@@ -1,6 +1,6 @@
 ; srmGetSpaceMetaData
 
-ASSIGN srmTest srmGetSpaceMetaData
+TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
 
 ; retentionPolicy is a required parameter which can be NULL!
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

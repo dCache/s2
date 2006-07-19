@@ -4,7 +4,7 @@
 ; srmPutDone
 ; srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 && srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

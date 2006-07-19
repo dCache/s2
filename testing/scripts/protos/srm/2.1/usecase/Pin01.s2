@@ -6,7 +6,7 @@
 ; srmExtendFileLifeTime
 ; srmReleaseFiles
 
-TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

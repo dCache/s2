@@ -1,6 +1,6 @@
 ; srmGetTransferProtocols
 
-TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmGetTransferProtocols $ENV{ENDPOINT} transferProtocols=(?P<transferProtocols>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo -e "transferProtocols=${transferProtocols}" > $ENV{S2_LOG}

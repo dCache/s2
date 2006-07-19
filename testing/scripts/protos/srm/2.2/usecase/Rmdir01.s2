@@ -1,0 +1,53 @@
+; Rmdir01: remove directory test
+;
+; srmMkdir
+; srmRmdir
+; srmPrepareToGet
+; srmPrepareToPut
+; srmPutDone
+; srmStatusOfGetRequest
+; srmStatusOfPutRequest
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+
+; put a file into the newly created directory
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT0}
+&& ASSIGN sURL $ENV{SRM_NEW_DIR0}/f0
+   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
+
+; this remove should fail, not a recursive rm
+&& NOP
+   srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "$DATE{} non-recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> $ENV{S2_LOG}
+
+; try to fetch the file, it should succeed
+&& ASSIGN fileToGet $ENV{FILE_TO_GET0}
+   FUN GetCycle ${fileToGet} ${sURL} : getRequestToken
+
+; this remove should succeed if a recursive rm is supported by the server
+&& NOP
+   srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} recursive=1 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "$DATE{} recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> $ENV{S2_LOG}
+
+; try to fetch the file (should fail)
+&& NOP
+   FUN GetCycle ${fileToGet} ${sURL} : getRequestToken
+      ASSIGN sExplanation "successfully put files into a directory which should've been removed!"
+         SYSTEM echo "$DATE{} KO: successfully fetched a file from a directory which should've been removed!" >> $ENV{S2_LOG}
+   || TEST !$DEFINED{sExplanation}
+      SYSTEM echo "$DATE{} OK: couldn't fetch a file from a directory which was recursively removed." >> $ENV{S2_LOG}
+
+; try to put files into the removed directory (should fail)
+&& NOP
+   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
+      ASSIGN sExplanation "successfully put files into a directory which should've been removed!"
+         SYSTEM echo "$DATE{} KO: ${sExplanation}" >> $ENV{S2_LOG} && exit 2
+   || TEST !$DEFINED{sExplanation}
+      SYSTEM echo "$DATE{} OK: couldn't put a file to a directory which was recursively removed." >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED}

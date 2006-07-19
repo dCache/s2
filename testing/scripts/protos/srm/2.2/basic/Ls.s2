@@ -1,6 +1,6 @@
 ; srmLs
 
-TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> $ENV{S2_LOG}

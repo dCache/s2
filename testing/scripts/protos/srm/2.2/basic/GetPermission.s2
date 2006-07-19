@@ -1,6 +1,6 @@
 ; srmGetPermission
 
-TEST $MATCH{(?P<srmTest>.*).s2 ${0}}
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmGetPermission $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] permissionArray=(?P<permissionArray>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 

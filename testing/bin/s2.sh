@@ -72,12 +72,17 @@ Source() {
   return $not_found
 }
 
+Defined() {
+  env | grep "^$1=" >/dev/null
+  return $?
+}
+
 Export() {
-  local var_val=$(eval echo '$'$1)
-  if test x$var_val = x ; then
-    export $1="$2"
-  else
+  Defined $1
+  if test $? -eq 0 ; then
     export $1
+  else
+    export $1="$2"
   fi
 }
 

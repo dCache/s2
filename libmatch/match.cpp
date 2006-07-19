@@ -202,7 +202,7 @@ pcre_get_named
     int vlen = ovector[2*n+1] - ovector[2*n];
 
 #if 1
-      proc->WriteVariable(tabptr + 2, received + ovector[2*n], vlen);
+      proc->WriteVariable(tabptr + 2, received + ovector[2*n], FALSE, vlen);
 #else
       write_variable(tabptr + 2, received + ovector[2*n], vlen);
 #endif

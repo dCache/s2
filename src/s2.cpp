@@ -999,10 +999,10 @@ s2_run(int argc, char **argv, int i)
     }
 
     /* write ${0}..${n} variables */        
-    if(opts.scr_fname) proc->WriteVariable("0", opts.scr_fname);
-    else proc->WriteVariable("0", "stdin");
+    if(opts.scr_fname) proc->WriteVariable("0", opts.scr_fname, TRUE);
+    else proc->WriteVariable("0", "stdin", TRUE);
     for(; i < argc; i++) {
-      proc->WriteVariable(i2str(i - i_1 + 1).c_str(), argv[i]);
+      proc->WriteVariable(i2str(i - i_1 + 1).c_str(), argv[i], TRUE);
     }
 
     lval = proc->eval();

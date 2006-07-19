@@ -120,7 +120,7 @@ nFun::exec(Process *proc, Process &proc_fun)
   for(uint u = 0; u < args_size; u++) {
     DM_DBG(DM_N(3), "FUN arg[%u]=|%s|\n", u, Process::eval_str(args[u], proc).c_str());
     proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
-                           Process::eval_str(args[u], proc).c_str());
+                           Process::eval_str(args[u], proc).c_str(), FALSE);
   }
 
   /* pass arguments to the function "by reference" (do not evaluate the arguments) */
@@ -128,7 +128,7 @@ nFun::exec(Process *proc, Process &proc_fun)
     const char *v = proc->ReadVariable(args_ref[u]->c_str());
     if(v) {
       /* args_ref[u] is set, write it to params_ref[u] */
-      proc_fun.WriteVariable(nDefunNode->params_ref[u]->c_str(), v);
+      proc_fun.WriteVariable(nDefunNode->params_ref[u]->c_str(), v, FALSE);
     }
   }
 
@@ -147,7 +147,7 @@ nFun::exec_finish(Process *proc, Process &proc_fun)
     const char *v = proc_fun.ReadVariable(nDefunNode->params_ref[u]->c_str());
     if(v) {
       /* params/args_ref[u] is set */
-      proc->WriteVariable(args_ref[u]->c_str(), v);
+      proc->WriteVariable(args_ref[u]->c_str(), v, FALSE);
     }
   }
 }

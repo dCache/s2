@@ -1137,7 +1137,7 @@ Process::WriteVariable(Process *proc, const char *name, const char *value, int v
 } /* WriteVariable */
 
 void
-Process::WriteVariable(const char *name, const char *value, int vlen)
+Process::WriteVariable(const char *name, const char *value, BOOL argv, int vlen)
 {
   unsigned name_len, no_warn;
   
@@ -1151,17 +1151,32 @@ Process::WriteVariable(const char *name, const char *value, int vlen)
 
   DM_DBG(DM_N(3), _("process=%p, process->var_tab=%p; parent=%p; parent->var_tab=%p\n"), this, this->var_tab, parent, parent? parent->var_tab : NULL);
 
-  if(name_len > (no_warn + 1)) {
-    if(name[no_warn] == '0')
+  if(name_len >= (no_warn + 1)) {
+    /* see ReadVariable amd note the difference in condition (> vs. >=) */
+    if(name[no_warn] == '0') {
       /* ${0<name>} or ${-0<name>} */
-      return WriteVariable(&gl_var_tab, name + no_warn + 1, value, vlen);
+      if(name[no_warn + 1] || argv) {
+        WriteVariable(&gl_var_tab, name + no_warn + (argv? 0 : 1), value, vlen);
+      } else {
+        UPDATE_MAX(executed, ERR_WARN);
+        DM_WARN(ERR_WARN, _("refusing to write read-only variable ${0}\n"));
+      }
+      return;
+    }
 
     if(IS_ASCII_DIGIT(name[no_warn])) {
       /* ${[1-9]+<name>} or ${-[1-9]+<name>} */
       char *true_name = (char *)(name + no_warn);
-      Process *up = get_parent_scope(&true_name, this);
-      DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
-      return WriteVariable(up, true_name, value, vlen);
+      if(argv) {
+        WriteVariable(&gl_var_tab, name + no_warn, value, vlen);
+      } else if(*true_name) {
+        Process *up = get_parent_scope(&true_name, this);
+        DM_DBG(DM_N(4), _("this->var_tab=%p; parent->var_tab=%p; up->var_tab=%p\n"), this->var_tab, parent? parent->var_tab : NULL, up? up->var_tab : NULL);
+        WriteVariable(up, true_name, value, vlen);
+      } else {
+        DM_WARN(ERR_WARN, _("refusing to write read-only variable ${%s}\n"), name + no_warn);
+      }
+      return;
     }
   }
 
@@ -1169,9 +1184,9 @@ Process::WriteVariable(const char *name, const char *value, int vlen)
 } /* WriteVariable */
 
 void
-Process::WriteVariable(const char *name, const char *value)
+Process::WriteVariable(const char *name, const char *value, BOOL argv)
 {
-  WriteVariable(name, value, -1);
+  WriteVariable(name, value, argv, -1);
 } /* WriteVariable */
 
 const char *
@@ -1997,7 +2012,7 @@ Process::eval_str(const char *cstr, Process *proc)
           /* pass arguments to the function by value (evaluate the arguments) */
           for(uint u = 0; u < args_size; u++) {
             proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
-                                   Process::eval_str(args[u], proc).c_str());
+                                   Process::eval_str(args[u], proc).c_str(), FALSE);
           }
         
           if(proc_fun.n->child) {
@@ -2132,7 +2147,7 @@ Process::eval_str(const char *cstr, Process *proc)
             /* pass arguments to the function by value (evaluate the arguments) */
             for(uint u = 0; u < args_size; u++) {
               proc_fun.WriteVariable(nDefunNode->params[u]->c_str(),
-                                     Process::eval_str(args[u], proc).c_str());
+                                     Process::eval_str(args[u], proc).c_str(), FALSE);
             }
           
             if(proc_fun.n->child) {

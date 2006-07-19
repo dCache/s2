@@ -91,7 +91,7 @@ nAssign::exec(Process *proc)
     DM_DBG(DM_N(3), "ASSIGN write=%u |%s| |%s|\n", write, s_var.c_str(), s_val.c_str());
 
     if(write)
-      proc->WriteVariable(s_var.c_str(), s_val.c_str());
+      proc->WriteVariable(s_var.c_str(), s_val.c_str(), FALSE);
   }
 
   RETURN(ERR_OK);

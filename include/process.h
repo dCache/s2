@@ -92,8 +92,8 @@ public:
   /* operations on variables */
   void WriteVariable(Vars_t *var_tab, const char *name, const char *value, int vlen);
   void WriteVariable(Process *proc, const char *name, const char *value, int vlen);
-  void WriteVariable(const char *name, const char *value);
-  void WriteVariable(const char *name, const char *value, int vlen);
+  void WriteVariable(const char *name, const char *value, BOOL argv);
+  void WriteVariable(const char *name, const char *value, BOOL argv, int vlen);
   const char *ReadVariable(Vars_t *var_tab, const char *name);
   const char *ReadVariable(Process *proc, const char *name);
   const char *ReadVariable(const char *name);

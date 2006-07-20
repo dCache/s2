@@ -17,4 +17,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && FUN GetCycle $ENV{FILE_TO_GET0} ${sURL} : getRequestToken
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_STRESS}
-|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_STRESS} && exit 2
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_STRESS} && exit ${!}

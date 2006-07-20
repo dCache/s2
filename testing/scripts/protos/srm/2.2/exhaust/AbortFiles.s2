@@ -2,29 +2,19 @@
 ;
 ; srmPrepareToPut
 
-#include S2Call.s2
+#include Exhaust.s2
 
-DEFUN srmTest authorizationID requestToken SURL : c
-   ASSIGN c "$EXPR{${c}+1}"
-      >0&&2 NOP
-         TEST !$I{0}
-            ASSIGN arg0 "authorizationID=${authorizationID} "
-         || ASSIGN arg0 ""
-         && >0&&2 NOP
-            TEST !$I{0}
-               ASSIGN arg1 "requestToken=${requestToken} "
-            || ASSIGN arg1 ""
-            && >0&&2 NOP
-               TEST !$I{0}
-                  ASSIGN arg2 "SURL[${SURL}] "
-               || ASSIGN arg2 ""
+DEFUN srmTest authorizationID requestToken SURL
+   ASSIGN c 0
+      >0&&1 FUN SetVarIf0 $I{0} "authorizationID=${authorizationID}" : arg0
+         >0&&1 FUN SetVarIf0 $I{0} "requestToken=${requestToken}" : arg1  
+            >0&&1 FUN SetVarIf0 $I{0} "SURL[${SURL}]" : arg2
+               ASSIGN c "$EXPR{${c}+1}"
                && ASSIGN script "srmAbortFiles $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)"
-                  eval=2 FUN S2 ${script} $PRINTF{%02d ${c}}
+               && eval=2 FUN S2 ${script} $PRINTF{%02d ${c}}
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& ASSIGN c 0
 && ASSIGN putRequestToken A
 ;&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-;                           1            2                     3                   
-&& eval=2 FUN srmTest "$ENV{USER}" "${putRequestToken}" "$ENV{SRM_NEW_FILE1}" : c
+&& eval=2 FUN srmTest "$ENV{USER}" "${putRequestToken}" "$ENV{SRM_NEW_FILE1}"

@@ -6,5 +6,9 @@ DEFUN join v : r
 DEFUN join_two v1 v2 : r
    ASSIGN r "(${v1}${v2})"
 
+DEFUN f a
+   SYSTEM exit ${a}
+
 && SYSTEM echo $MAP{join 1 2 3}
 && SYSTEM echo "$MAP{join_two 1 2 3 4}"
+&& TEST $MAP{f 1 2 0}

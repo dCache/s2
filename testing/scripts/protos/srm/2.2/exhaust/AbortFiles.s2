@@ -11,6 +11,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    >0&&1 FUN SetVarIf0 $I{0} "authorizationID=$ENV{USER}" : arg0
       >0&&1 FUN SetVarIf0 $I{0} "requestToken=${putRequestToken}" : arg1  
          >0&&1 FUN SetVarIf0 $I{0} "SURL[$ENV{SRM_NEW_FILE1}]" : arg2
-            ASSIGN c "$EXPR{${c}+1}"
+            ASSIGN c $EXPR{${c}+1}
             && ASSIGN script "srmAbortFiles $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)"
             && eval=2 FUN S2 ${script} $PRINTF{%02d ${c}}

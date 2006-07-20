@@ -31,4 +31,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "$DATE{} ${sExplanation}, failure!" >> $ENV{S2_LOG} && exit 2
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED} && exit ${!}

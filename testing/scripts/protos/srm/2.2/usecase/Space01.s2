@@ -17,10 +17,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
 ; call srmUpdateSpace increasing the lifetime and size
-&& srmUpdateSpace $ENV{ENDPOINT} spaceToken=${spaceToken} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTime=$ENV{LIFETIME_NEW} requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*)  returnStatus.explanation=(?P<returnStatus_explanation>.*)  sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+&& srmUpdateSpace $ENV{ENDPOINT} spaceToken=${spaceToken} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTime=$ENV{LIFETIME_NEW} requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
 ; call srmGetSpaceMetadata again to check the update worked
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=.*guaranteedSize0=$ENV{RESERVE_SPACE_NEW}.* returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

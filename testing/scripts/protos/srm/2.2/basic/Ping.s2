@@ -6,4 +6,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo -e "versionInfo=${versionInfo}\notherInfo=${-otherInfo}" > $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

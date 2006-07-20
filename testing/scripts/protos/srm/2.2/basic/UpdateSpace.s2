@@ -6,11 +6,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
    SYSTEM echo "srmReserveSpace: spaceToken=${spaceToken}" >> $ENV{S2_LOG}
-&& srmUpdateSpace $ENV{ENDPOINT} spaceToken=${spaceToken} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTime=$ENV{LIFETIME_NEW} requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*)  returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmUpdateSpace $ENV{ENDPOINT} spaceToken=${spaceToken} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTime=$ENV{LIFETIME_NEW} requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "srmUpdateSpace: sizeOfTotalSpace=${sizeOfTotalSpace}, lifetimeGranted=${lifetimeGranted}" >> $ENV{S2_LOG}
 
 && TEST $ENV{RESERVE_SPACE_NEW} == ${sizeOfGuaranteedSpace}
 && TEST $ENV{LIFETIME_NEW} == ${lifetimeGranted}
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

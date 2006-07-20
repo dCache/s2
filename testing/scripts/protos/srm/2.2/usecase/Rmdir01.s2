@@ -50,4 +50,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "$DATE{} OK: couldn't put a file to a directory which was recursively removed." >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED} && exit ${!}

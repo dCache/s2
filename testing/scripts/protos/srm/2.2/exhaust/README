@@ -1,2 +1,3 @@
 This directory will contain SRM 2.2 scripts meant for complete
-method arguments testing.
+method arguments testing.  Don't expect meaningful tests here,
+the aim is to see if the tests can crash the server.

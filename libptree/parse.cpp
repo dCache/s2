@@ -392,7 +392,7 @@ Parser::double_quoted_param(std::string &target, BOOL env_var, const char* term_
     if(c == '"') {
       string = string? FALSE: TRUE;
       target.push_back(c);
-      continue;
+      goto out;
     }
 
     if(!dq) {

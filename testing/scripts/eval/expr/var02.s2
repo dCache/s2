@@ -1,0 +1,23 @@
+; Evaluation of variables (double quotes)
+
+NOP
+; ""
+&& ASSIGN v0 "\"\""
+; """
+&& ASSIGN v1 "\"\"\""
+
+; No change (only in double-quoted strings)
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; \"\"
+&& ASSIGN v2 \"\"
+; \""\"
+&& ASSIGN v3 \""\"
+; \"\"\"
+&& ASSIGN v4 \"\"\"
+
+&& SYSTEM echo '${v0}'
+&& SYSTEM echo '${v1}'
+&& SYSTEM echo '${v2}'
+&& SYSTEM echo '${v3}'
+&& SYSTEM echo '${v4}'
+ 

@@ -851,6 +851,7 @@ Expr::K1()
     }
     break;
 
+#if 1
     /* K1 -> STRING */
     case StringSym:{
       std::string s;			/* string with no $TAGs */
@@ -860,7 +861,8 @@ Expr::K1()
       if(strcmp(s.c_str(), lex_attr.v.s->c_str())) {
         /* string evaluation produced a different string; *
          * evaluate the expression again                  */
-        Expr e = Expr(s.c_str(), proc);
+        DM_DBG(DM_N(4),"s=|%s|; expr_dq_param=|%s|\n",s.c_str(),dq_param(s,TRUE).c_str());
+        Expr e = Expr(dq_param(s,TRUE).c_str(), proc);
         Attr a = e.parse();
         attr = a;
         if(a.type == STRING) {
@@ -878,6 +880,37 @@ Expr::K1()
       LEX();
     }
     break;
+#else
+    case StringSym:{
+      std::string s1 = lex_attr.v.s->c_str();
+      std::string s2;
+      BOOL change = FALSE;
+      while(1) {
+        s2 = s1;
+        DM_DBG(DM_N(4),"s1=|%s|\n",s1.c_str());
+        s1 = Process::eval_str(s1.c_str(), proc);	/* string with no $TAGs */
+        DM_DBG(DM_N(4),"s1=|%s|\n",s1.c_str());
+        if(s1 != s2) change = TRUE;
+        else break;
+      }
+      if(change) {
+        /* string evaluation produced a different string */
+        attr.type = STRING;
+        NEW_STR(attr.v.s,s1.c_str());
+        DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
+        normalize(attr);
+        DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
+      } else {
+        /* string evaluation didn't produce a different string; *
+         * it is a string                                       */
+        attr.type = STRING;
+        NEW_STR(attr.v.s,lex_attr.v.s->c_str());
+        DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
+      }
+      LEX();
+    }
+    break;
+#endif
 
     /* K1 -> e */
     case EofSym:{

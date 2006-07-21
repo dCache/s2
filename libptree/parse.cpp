@@ -324,7 +324,6 @@ Parser::AZaz_09(const char *l, char **end)
  * - De-escaping of spaces and "s is performed: 'a\ string' => 'a string'
  *                                              '"a \"string\""' => 'a "string"'.
  * - \\ is left unchanged: '\\"' => '\\"'
- * - ad 1) the meaning of \" and " is equivalent
  * 
  * Environment variables $ENV{VAR} are interpreted if `env_var' is TRUE.
  *
@@ -392,22 +391,29 @@ Parser::double_quoted_param(std::string &target, BOOL env_var, const char* term_
     if(c == '"') {
       string = string? FALSE: TRUE;
       target.push_back(c);
-      goto out;
+      goto esc_out;
     }
 
-    if(!dq) {
-      /* we have an unquoted string => remove escaping of whitespace and "s */
-      if(c == '\\' && !bslash && 
-         (IS_WHITE(line[col]) || line[col] == '"')) /* look ahead */
+    if(dq) {
+      /* we have a double-quoted string => remove escaping of "s */
+      if(c == '\\' && !bslash && line[col] == '"') /* look ahead */
       {
         /* single backslash => the following character is escaped */
         esc++;
-        goto out;
+        goto esc_out;
+      }
+    } else {
+      /* we have an unquoted string => remove escaping of whitespace */
+      if(c == '\\' && !bslash && IS_WHITE(line[col])) /* look ahead */
+      {
+        /* single backslash => the following character is escaped */
+        esc++;
+        goto esc_out;
       }
     }
 
     target.push_back(c);
-out:
+esc_out:
     bslash = c == '\\';
   }
 
@@ -499,16 +505,6 @@ Parser::double_quoted_param(std::string &target, BOOL env_var)
       } else ugc();
 
       return ERR_OK;            /* found a string terminator */
-    }
-
-    if(!term_char) {
-      /* we have an unquoted string => remove escaping of whitespace */
-      if(c == '\\' && !bslash &&
-         IS_WHITE(line[col]))	/* look ahead */
-      {
-        /* single backslash => the following character is escaped */
-        goto out;
-      }
     }
 
     target.push_back(c);

@@ -319,11 +319,12 @@ dq_param(const char *s, BOOL quote)
   }
 
   if(!is_tag(s)) {
-    q = str_char(s, ' ') != NULL ||	/* constains a space */
-        str_char(s, '\t') != NULL ||	/* constains a tabulator */
-        str_char(s, '\n') != NULL ||	/* constains a newline character */
-        str_char(s, '\r') != NULL ||	/* constains a carriage return */
-        *s == 0;			/* empty string */
+    q = unescaped_char(s, ' ') != NULL ||	/* constains a space */
+        unescaped_char(s, '\t') != NULL ||	/* constains a tabulator */
+        unescaped_char(s, '\n') != NULL ||	/* constains a newline character */
+        unescaped_char(s, '\r') != NULL ||	/* constains a carriage return */
+        unescaped_char(s, '"')  != NULL ||	/* constains a carriage return */
+        *s == 0;				/* empty string */
   }
 
   if(q) ss << '"';
@@ -431,7 +432,6 @@ ind_param(const std::string *s)
  * - De-escaping of spaces and "s is performed: 'a\ string' => 'a string'
  *                                              '"a \"string\""' => 'a "string"'.
  * - \\ is left unchanged: '\\"' => '\\"'
- * - ad 1) the meaning of \" and " is equivalent
  * 
  * Returns the number of characters parsed.
  */
@@ -483,10 +483,16 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
       return col;	/* found a string terminator */
     }
 
-    if(!dq) {
-      /* we have an unquoted string => remove escaping of whitespace and "s */
-      if(c == '\\' && !bslash && 
-         (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
+    if(dq) {
+      /* we have a double-quoted string => remove escaping of "s */
+      if(c == '\\' && !bslash && source[col] == '"') /* look ahead */
+      {
+        /* single backslash => the following character is escaped */
+        goto esc_out;
+      }
+    } else {
+      /* we have an unquoted string => remove escaping of whitespace */
+      if(c == '\\' && !bslash && IS_WHITE(source[col])) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         goto esc_out;
@@ -508,6 +514,7 @@ esc_out:
 #undef ugc
 } /* get_dq_param */
 #else
+/* support for $TAG{} */
 extern int
 get_dq_param(std::string &target, const char *source, BOOL &ws_only)
 {
@@ -575,9 +582,8 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
     }
 
     if(!dq) {
-      /* we have an unquoted string => remove escaping of whitespace and "s */
-      if(c == '\\' && !bslash && 
-         (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
+      /* we have an unquoted string => remove escaping of whitespace */
+      if(c == '\\' && !bslash && IS_WHITE(source[col])) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         goto esc_out;
@@ -597,7 +603,6 @@ esc_out:
 #undef gc
 #undef ugc
 } /* get_dq_param */
-
 #endif
 
 /*

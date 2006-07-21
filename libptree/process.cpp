@@ -2311,7 +2311,7 @@ Process::eval_str(const char *cstr, Process *proc)
     s.push_back(c);
   }
 
-  DM_DBG(DM_N(4), "state=%d; eval_str=|%s|\n", state, s.c_str());
+  DM_DBG(DM_N(6), "state=%d; eval_str=|%s|\n", state, s.c_str());
 
   /* sanity checks */
   if(state == sDollar) {
@@ -2323,7 +2323,7 @@ Process::eval_str(const char *cstr, Process *proc)
       s.append("$" + std::string(state_name[state]) + "{" + target);
     }
   }
-  DM_DBG(DM_N(4), "eval_str=|%s|\n", s.c_str());
+  DM_DBG(DM_N(5), "eval_str=|%s|\n", s.c_str());
 
   RETURN(s);
 

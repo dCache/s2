@@ -121,6 +121,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
 {
   switch (ConvTypes(a1, a2)) {
     case INT:{
+      DM_DBG(DM_N(4), "%"PRIi64" %s %"PRIi64"\n", a1.v.i, Lex::SymbolName(o), a2.v.i);
       switch (o) {
         case EqSym: return a1.v.i == a2.v.i;
         case LtSym: return a1.v.i <  a2.v.i;
@@ -135,6 +136,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
     break;
 
     case REAL:{
+      DM_DBG(DM_N(4), "%f %s %f\n", a1.v.r, Lex::SymbolName(o), a2.v.r);
       switch (o) {
         case EqSym: return a1.v.r == a2.v.r;
         case LtSym: return a1.v.r <  a2.v.r;
@@ -150,6 +152,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
 
     case STRING:{
       int cmp = strcmp(a1.v.s->c_str(), a2.v.s->c_str());
+      DM_DBG(DM_N(4), "%s %s %s\n", a1.v.s->c_str(), Lex::SymbolName(o), a2.v.s->c_str());
       switch (o) {
         case EqSym: return cmp == 0 ? TRUE : FALSE;
         case LtSym: return cmp <  0 ? TRUE : FALSE;
@@ -851,7 +854,9 @@ Expr::K1()
     /* K1 -> STRING */
     case StringSym:{
       std::string s;			/* string with no $TAGs */
+      DM_DBG(DM_N(4),"s=|%s|\n",lex_attr.v.s->c_str());
       s = Process::eval_str(lex_attr.v.s->c_str(), proc);
+      DM_DBG(DM_N(4),"s=|%s|\n",s.c_str());
       if(strcmp(s.c_str(), lex_attr.v.s->c_str())) {
         /* string evaluation produced a different string; *
          * evaluate the expression again                  */

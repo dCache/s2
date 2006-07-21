@@ -1465,9 +1465,12 @@ Process::eval_str(const char *cstr, Process *proc)
     /* we have a reference to a variable */\
     state = s;\
     tgt_chars = get_ballanced_br_param(target, opt + opt_off);\
-    if(tgt_chars == 0)\
+    if(tgt_chars == 0) {\
       /* no characters parsed, we hit \0 */\
-      break;\
+      UPDATE_MAX(proc->executed, ERR_WARN);\
+      DM_WARN(ERR_WARN, _("unterminated $%s{\n"), state_name[state]);\
+    }\
+    DM_DBG(DM_N(6), "tgt_chars=%d\n", tgt_chars);\
     i += tgt_chars + opt_off - 2;	/* compensate for +1 loop increment */\
     target = proc->preeval_str(target.c_str());\
     continue;\
@@ -1497,11 +1500,6 @@ Process::eval_str(const char *cstr, Process *proc)
   }
 
   if(!proc || proc->et == EVAL_NONE) return std::string(cstr);
-#if 0
-  DM_DBG(DM_N(4), "before preevaluated=|%s|\n", cstr);
-  cstr = proc->preeval_str(cstr).c_str();
-  DM_DBG(DM_N(4), "preevaluated=|%s|\n", cstr);
-#endif
   
   s.clear();
   slen = strlen(cstr);
@@ -1828,6 +1826,7 @@ Process::eval_str(const char *cstr, Process *proc)
         }
         argv[j--] = 0;
 
+        DM_DBG(DM_N(4), "s=|%s|\n", s.c_str());
         if(proc->et == EVAL_ALL) {
           if(j >= 0) /* no SEGVs when $PRINTF{} (empty argument) */
             s.append(ssprintf_chk(argv));
@@ -1842,6 +1841,7 @@ Process::eval_str(const char *cstr, Process *proc)
           s.append("}");
         }
         FREE(argv);
+        DM_DBG(DM_N(4), "s=|%s|\n", s.c_str());
         state = sInit;
       }
       continue;
@@ -2311,7 +2311,7 @@ Process::eval_str(const char *cstr, Process *proc)
     s.push_back(c);
   }
 
-  DM_DBG(DM_N(4), "state=%d\n", state);
+  DM_DBG(DM_N(4), "state=%d; eval_str=|%s|\n", state, s.c_str());
 
   /* sanity checks */
   if(state == sDollar) {
@@ -2323,6 +2323,7 @@ Process::eval_str(const char *cstr, Process *proc)
       s.append("$" + std::string(state_name[state]) + "{" + target);
     }
   }
+  DM_DBG(DM_N(4), "eval_str=|%s|\n", s.c_str());
 
   RETURN(s);
 

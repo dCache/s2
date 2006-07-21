@@ -3,4 +3,8 @@
 NOP
 && SYSTEM echo "$PRINTF{"%03x %05x" 300 500}"
 && SYSTEM echo $PRINTF{"torture}}}%s" parser}
+&& ASSIGN v $PRINTF{"\x5C\x22\x5C\x22\x5C\x22\x5C\x22"}
+&& TEST "\"\"" == $PRINTF{"\x5C\x22\x5C\x22"}
+&& TEST "\"\"\"\"" == "${v}"
+&& TEST "\"\"\"\"" == $PRINTF{"\x5C\x22\x5C\x22\x5C\x22\x5C\x22"}
 && SYSTEM echo $PRINTF{}

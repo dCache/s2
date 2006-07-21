@@ -259,15 +259,18 @@ ssprintf(const char *fmt...)
 extern std::string
 escape_chars(const char* s, const char c, BOOL esc)
 {
+  DM_DBG_I;
   std::stringstream ss;
   BOOL bslash = FALSE;  /* we had the '\\' character */
   int llen;
   int i;
-  
+
   if(s == NULL)
     return ss.str();
 
   llen = strlen(s);
+
+  DM_DBG(DM_N(6), "complete string=|%s|\n", s);
 
   for(i = 0; i < llen; i++)
   {
@@ -286,6 +289,8 @@ escape_chars(const char* s, const char c, BOOL esc)
 out:
     ss << s[i];
   }
+
+  DM_DBG(DM_N(6), "escaped string=|%s|\n", ss.str().c_str());
 
   return ss.str();
 }

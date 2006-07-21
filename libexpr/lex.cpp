@@ -113,7 +113,7 @@ Symbol
 Lex::lex(Attr& attr)
 {
 #define IS_SEP(c)	(c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '(' || c == ')' || c == '^' || c == '~' || c == '<' || c == '>' || c == '=' || c == '!' || c == '|' || c == '&' || c == ';')
-#define TERM_CHAR(c)    (q? (c == '"'): (IS_WHITE(c) || IS_SEP(c)) && !brackets)
+#define TERM_CHAR(c)    (dq? (c == '"'): (IS_WHITE(c) || IS_SEP(c)) && !brackets)
 
   DM_DBG_I;
 
@@ -127,7 +127,7 @@ Lex::lex(Attr& attr)
   double power10 = 1.0;
   int expon = 0, sign = 1, base = 10;
   BOOL bslash = FALSE;	/* we had the '\\' character */
-  BOOL q = FALSE;	/* quotation mark at the start of a string */
+  BOOL dq = FALSE;	/* quotation mark at the start of a string */
   int brackets = 0;
 
   attr.type = INV;
@@ -169,8 +169,8 @@ Lex::lex(Attr& attr)
             state = sString;
             attr.type = STRING;
             NEW_STR(attr.v.s,);
-            q = (c == '"');	/* string enclosed in quotes */
-            if(!q) attr.v.s->push_back(c);
+            dq = (c == '"');	/* string enclosed in quotes */
+            if(!dq) attr.v.s->push_back(c);
         }
       break;
 
@@ -424,7 +424,7 @@ Lex::lex(Attr& attr)
           state = sInit;
           if(c != '"') {
             ugc();
-            if(q) {
+            if(dq) {
               UPDATE_MAX(proc->executed, ERR_WARN);
               DM_WARN(ERR_WARN, "'%s%c' terminated double-quoted parameter\n", (c == 0)? "\\": "", c);
             }
@@ -432,18 +432,7 @@ Lex::lex(Attr& attr)
           return StringSym;
         }
 
-        if(!q) {
-          /* we have an unquoted string => remove escaping of whitespace and "s */
-          if(c == '\\' && !bslash && 
-             (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
-          {
-            /* single backslash => the following character is escaped */
-            goto esc_out;
-          }
-        }
-
         attr.v.s->push_back(c);
-esc_out:
         bslash = c == '\\';
       break;
 

@@ -9,6 +9,8 @@ Ordered by priority
   * $FILE{<eval> <file>} (read in contents from <file> and optionally <eval>uate tags it contains)
   * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...
 - SEND/RECEIVE (TCP/UDP/RTP,RTCP,SIP,...)?
+- improve parser?
+  * e.g.: TEST "\"\"" == "$PRINTF{"\x5C\x22\x5C\x22"}" vs. TEST "\"\"" == "$PRINTF{\x5C\x22\x5C\x22}"
 - Plugin architecture to make addition of new protocols less intrusive?
 - Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
   investigate?  Use Apache threads instead?

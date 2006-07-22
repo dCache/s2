@@ -1,6 +1,7 @@
 ./configure  --static-globus --prefix=/opt/gridpp --package-prefix="gridpp-" --enable-srm22 --package-suffix="-srm-2.2"
 make
 sed 's/^e=.*/e=999/' < testing/scripts/protos/srm/s2.env >testing/scripts/protos/srm/s2.new && mv -f testing/scripts/protos/srm/s2.new testing/scripts/protos/srm/s2.env
+rm -rf testing/scripts/{core,debug}
 rm -rf testing/scripts/protos/srm/2.1
 #make install prefix="`rpm --eval '%_topdir'`/INSTALL/s2-`cat VERSION`"
 make rpm

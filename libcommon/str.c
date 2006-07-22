@@ -266,10 +266,13 @@ escape_chars(const char* s, const char c, BOOL esc)
   int i;
 
   if(s == NULL)
-    return ss.str();
+    RETURN(ss.str());
+
+  if(!esc) RETURN(std::string(s));
 
   llen = strlen(s);
 
+  DM_DBG(DM_N(6), "esc char=|%c|\n", c);
   DM_DBG(DM_N(6), "complete string=|%s|\n", s);
 
   for(i = 0; i < llen; i++)
@@ -281,8 +284,8 @@ escape_chars(const char* s, const char c, BOOL esc)
     }
 
     
-    if(esc && s[i] == c && !bslash) {
-      /* we need to escape unescaped double quotes */
+    if(s[i] == c && !bslash) {
+      /* we need to escape unescaped c */
       ss << '\\';
     }
     bslash = s[i] == '\\';
@@ -292,7 +295,7 @@ out:
 
   DM_DBG(DM_N(6), "escaped string=|%s|\n", ss.str().c_str());
 
-  return ss.str();
+  RETURN(ss.str());
 }
 
 /* 
@@ -318,17 +321,18 @@ dq_param(const char *s, BOOL quote)
     goto out;
   }
 
-  if(!is_tag(s)) {
+//  if(!is_tag(s)) {
     q = unescaped_char(s, ' ') != NULL ||	/* constains a space */
         unescaped_char(s, '\t') != NULL ||	/* constains a tabulator */
         unescaped_char(s, '\n') != NULL ||	/* constains a newline character */
         unescaped_char(s, '\r') != NULL ||	/* constains a carriage return */
         unescaped_char(s, '"')  != NULL ||	/* constains a carriage return */
         *s == 0;				/* empty string */
-  }
+//  }
 
   if(q) ss << '"';
 
+  DM_DBG(DM_N(6), "q=%d\n", q);
   ss << escape_chars(s, '"', q);
 
   if(q) ss << '"';

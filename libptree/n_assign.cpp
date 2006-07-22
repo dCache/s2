@@ -109,6 +109,8 @@ nAssign::toString(Process *proc)
   for(uint u = 0; u < var_size; u++) {
     SS_DQ(" ", var[u]);
     SS_DQ(" ", val[u]);
+    DM_DBG(DM_N(3),"----------------|%s|\n",dq_param(val[u],TRUE).c_str());
+    DM_DBG(DM_N(3),"----------------|%s|\n",dq_param("a\" b\"",TRUE).c_str());
   }
 
   return ss.str();

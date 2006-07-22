@@ -1,10 +1,11 @@
 ; Test equivalence of a strings (double quotes)
 
 NOP
-&& ASSIGN v0 \"\"
-&& ASSIGN v1 "\"\""
+&& ASSIGN v0 "\"\""
+&& ASSIGN v1 \"\"
 && ASSIGN v2 \"\ \"
 && SYSTEM echo '${v0}'
-&& TEST "\"\"" != ${v0}
-&& TEST "\"\"" == ${v1}
+&& SYSTEM echo '${v1}'
+&& TEST "\"\"" == ${v0}
+&& TEST "\"\"" != ${v1}
 && TEST "\" \"" == ${v2}

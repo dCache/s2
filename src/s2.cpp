@@ -108,15 +108,17 @@ progress(int show)
   if(!opts.progress_bar)
     return;
 
+  S_P(&tp_sync.print_mtx);
   if(!show) {
     /* hide */
     if(!hidden) {
-      S_P(&tp_sync.print_mtx);
-      fprintf(stderr,"\b \b");	/* on some systems (Windows) '\b' doesn't seem to delete */
-      S_V(&tp_sync.print_mtx);
+      /* on some systems (Windows) '\b' doesn't seem to delete */
+      fprintf(stderr,"\b \b");
+      fflush(stderr);
     }
  
     hidden = TRUE;
+    S_V(&tp_sync.print_mtx);
     return;
   }
   
@@ -140,14 +142,14 @@ progress(int show)
     break;
   }
   if(!hidden) {
-    S_P(&tp_sync.print_mtx);
-    fprintf(stderr,"\b \b");	/* on some systems (Windows) '\b' doesn't seem to delete */
-    S_V(&tp_sync.print_mtx);
+    /* on some systems (Windows) '\b' doesn't seem to delete */
+    fprintf(stderr,"\b \b");
   }
     
   fputc(state, stderr);
-  hidden = FALSE;
   fflush(stderr);
+  hidden = FALSE;
+  S_V(&tp_sync.print_mtx);
 }
 
 /********************************************************************

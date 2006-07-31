@@ -861,8 +861,9 @@ Expr::K1()
       if(strcmp(s.c_str(), lex_attr.v.s->c_str())) {
         /* string evaluation produced a different string; *
          * evaluate the expression again                  */
-        DM_DBG(DM_N(4),"s=|%s|; expr_dq_param=|%s|\n",s.c_str(),dq_param(s,TRUE).c_str());
-        Expr e = Expr(dq_param(s,TRUE).c_str(), proc);
+        std::string expr_dq_param=dq_param(s,TRUE);
+        DM_DBG(DM_N(4),"expr_dq_param=|%s|\n",expr_dq_param.c_str());
+        Expr e = Expr(expr_dq_param.c_str(), proc);
         Attr a = e.parse();
         attr = a;
         if(a.type == STRING) {

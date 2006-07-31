@@ -582,10 +582,17 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
     if(c == '"') {
       string = string? FALSE: TRUE;
       target.push_back(c);
-      continue;
+      goto esc_out;
     }
 
-    if(!dq) {
+    if(dq) {
+      /* we have a double-quoted string => remove escaping of "s */
+      if(c == '\\' && !bslash && source[col] == '"') /* look ahead */
+      {
+        /* single backslash => the following character is escaped */
+        goto esc_out;
+      }
+    } else {
       /* we have an unquoted string => remove escaping of whitespace */
       if(c == '\\' && !bslash && IS_WHITE(source[col])) /* look ahead */
       {

@@ -432,18 +432,6 @@ Lex::lex(Attr& attr)
           return StringSym;
         }
 
-#if 0
-        if(!dq) {
-          /* we have an unquoted string => remove escaping of whitespace and "s */
-          if(c == '\\' && !bslash && 
-             (IS_WHITE(source[col]) || source[col] == '"')) /* look ahead */
-          {
-            /* single backslash => the following character is escaped */
-            goto esc_out;
-          }
-        }
-#endif
-
         if(dq) {
           /* we have a double-quoted string => remove escaping of "s */
           if(c == '\\' && !bslash && source[col] == '"') /* look ahead */

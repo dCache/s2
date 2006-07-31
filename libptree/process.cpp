@@ -1965,7 +1965,6 @@ Process::eval_str(const char *cstr, Process *proc)
         int l = chars;
         while(1) {
           BOOL ws_only;
-          int chars;
           std::string arg;
           chars = get_dq_param(arg, target_cstr + l, ws_only);
           arg = eval_str(arg.c_str(), proc);	/* evaluate things like: $FUN{name ...${var}...} */
@@ -2208,7 +2207,6 @@ Process::eval_str(const char *cstr, Process *proc)
         int l = chars;
         while(1) {
           BOOL ws_only;
-          int chars;
           std::string arg;
           chars = get_dq_param(arg, target_cstr + l, ws_only);
           /* do not evaluate arguments */

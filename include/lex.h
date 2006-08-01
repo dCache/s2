@@ -58,14 +58,16 @@ public:
   Lex(const char *s, Process *p);
   ~Lex();
 
-  Symbol lex(Attr& attr);
-  static const char* SymbolName(Symbol s);
   char gc(void);
   void ugc(void);
   BOOL eof(void);
+  static std::string eval(const char *s, Process *proc);
+  Symbol lex(Attr& attr);
+  static const char* SymbolName(Symbol s);
 
 private:
   Process *proc;	/* pointer to the Process with relevant variable tables, etc. */
+  std::string source_string;
   const char *source;
   int col;
   int source_len;

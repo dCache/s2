@@ -62,8 +62,7 @@ nTest::exec(Process *proc)
 {
   DM_DBG_I;
 
-  Expr e = Expr(expr->c_str(), proc);
-  std::string s = e.parse().toString();
+  std::string s = Expr::eval2s(expr->c_str(), proc);
 
   DM_DBG(DM_N(3), "|%s|\n", s.c_str());
 
@@ -75,7 +74,6 @@ nTest::exec(Process *proc)
 std::string
 nTest::toString(Process *proc)
 {
-  BOOL quote = TRUE;
   std::stringstream ss;
 
   ss << "TEST";
@@ -84,20 +82,7 @@ nTest::toString(Process *proc)
     return ss.str();
   
   if(!(expr->length() == 0 || (expr->length() == 1) && (*expr)[0] == '0')) {
-    const char *target_cstr = expr->c_str();
-    int l = 0;
-    /* process and double-quote TEST arguments separately (e.g.: TEST $empty == "") */
-    while(1) {
-      BOOL ws_only;
-      int chars;
-      std::string arg;
-      chars = get_dq_param(arg, target_cstr + l, ws_only);
-      arg = Process::eval_str(arg.c_str(), proc);
-      DM_DBG(DM_N(5), "arg%d=|%s|\n", l, arg.c_str());
-      if(ws_only) break;
-      ss << " " << dq_param(arg, quote);
-      l += chars;
-    }
+    ss << " " << Lex::eval(expr->c_str(), proc);
   }
 
   return ss.str();

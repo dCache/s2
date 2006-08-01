@@ -101,8 +101,6 @@ public:
   std::string toString();
 
   /* evaluation functions (basic) */
-  static int64_t expr2i(const char *cstr, Process *proc);
-  static int64_t expr2i(const std::string *s, Process *proc);
   static std::string eval_str(const char *cstr, Process *proc);
   static std::string eval_str(const std::string *s, Process *proc);
 #define EVAL2CSTR(str) (str)? Process::eval_str(str, proc).c_str(): (const char *)NULL

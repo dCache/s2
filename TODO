@@ -1,9 +1,9 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- re-think evaluation ($EVAL, TEST, ...); perform string evaluation in the Lex
-- add test scenarios from core
+- "\"" vs \"
 - make test_valgrind
 - SRM 2.2 test scenarios and testing
+- make 0.2.3 release
 - Testing, optimize for speed
 - code cleanup (parsing macros?)
 - ECHO (vs. SYSTEM echo --- performance considerations)

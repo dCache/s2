@@ -12,7 +12,11 @@ public:
   Expr(const char *s, Process *p);
   ~Expr();
 
-  Attr parse();
+  static int64_t eval2i(const char *cstr, Process *proc);
+  static int64_t eval2i(const std::string *s, Process *proc);
+  static double eval2r(const char *cstr, Process *proc);
+  static double eval2r(const std::string *s, Process *proc);
+  static std::string eval2s(const char *cstr, Process *proc);
 
 private:
   Process *proc;	/* pointer to the Process with relevant variable tables, etc. */
@@ -24,6 +28,7 @@ private:
   Types ConvTypes(Attr &a1, Attr &a2);
   int compare(Attr a1, Attr a2, Symbol o);
   void normalize(Attr &attr);
+  Attr parse();
 
   /* grammar */
   Attr S();

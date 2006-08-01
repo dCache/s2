@@ -1,0 +1,19 @@
+; Test test expression evaluation
+
+NOP
+&& ASSIGN dq "\"\""
+&& ASSIGN dq_v "${dq}"
+&& ASSIGN abc "a b c"
+&& ASSIGN empty ""
+&& SYSTEM echo '${dq}'
+&& SYSTEM echo '${dq_v}'
+&& SYSTEM echo '${empty}'
+&& TEST "${dq}" == "\"\""
+&& TEST ${dq} == "\"\""
+&& TEST ${empty} == ""
+&& TEST ${dq}${abc} == "\"\"a b c"
+&& TEST "${dq} ${abc}" != "\"\"a b c"
+&& ASSIGN abab1 $PRINTF{"a %s" b}\ $PRINTF{"a %s" b}
+&& ASSIGN abab2 "$PRINTF{\"a %s\" b} $PRINTF{\"a %s\" b}"
+&& SYSTEM echo '|${abab1}|${abab2}|'
+&& TEST ${abab1} == ${abab2}

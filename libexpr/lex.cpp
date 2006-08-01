@@ -31,6 +31,7 @@
     DM_ERR_ASSERT(_("new failed\n"));\
   } else strings.push_back(v);		/* free the allocated string on exit */
 
+
 /* constructor */
 Attr::Attr()
 {
@@ -41,6 +42,7 @@ Attr::Attr()
 Attr::~Attr()
 {
 }
+
 
 std::string
 Attr::toString()
@@ -59,6 +61,7 @@ Attr::toString()
 
   return str;
 }
+
 
 /* constructor */
 Lex::Lex()
@@ -101,11 +104,36 @@ Lex::ugc(void)
   if(col > 0) col--;
 }
 
+
 BOOL
 Lex::eof(void)
 {
   DM_DBG(DM_N(5), "%d/%d\n", col, source_len);
   return col >= source_len;
+}
+
+
+std::string
+Lex::eval(const char *s, Process *proc)
+{
+  std::string s_eval;
+
+  int len = 0;
+  /* evaluate TEST arguments separately */
+  while(1) {
+    BOOL ws_only;
+    std::string arg;
+    int chars;
+    chars = get_dq_param(arg, s + len, ws_only);
+    arg = Process::eval_str(arg.c_str(), proc);
+    DM_DBG(DM_N(6), "arg%d=|%s|\n", len, arg.c_str());
+    if(ws_only) break;
+    if(len) s_eval += " ";
+    s_eval += dq_param(arg, TRUE);
+    len += chars;
+  }
+
+  return s_eval;
 }
 
 

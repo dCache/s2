@@ -312,8 +312,8 @@ Process::eval()
         if(ptr_node->REPEAT.type == S2_REPEAT_PAR) {
           /* repeats execution */
           int repeats_eval;
-          int64_t x = expr2i(ptr_node->REPEAT.X, this);
-          int64_t y = expr2i(ptr_node->REPEAT.Y, this);
+          int64_t x = Expr::eval2i(ptr_node->REPEAT.X, this);
+          int64_t y = Expr::eval2i(ptr_node->REPEAT.Y, this);
           int8_t step = x < y ? 1 : -1;
           int64_t i = x - step;
 
@@ -439,15 +439,15 @@ Process::eval_repeats()
     case S2_REPEAT_AND:		/* fall through */
     case S2_REPEAT_WHILE:	/* fall through */
 seq:
-      I = expr2i(n->REPEAT.X, this);	/* necessary for S2_REPEAT_NONE only */
+      I = Expr::eval2i(n->REPEAT.X, this);	/* necessary for S2_REPEAT_NONE only */
       repeats_eval = eval_sequential_repeats();
       UPDATE_MAX(evaluated, repeats_eval);
       DM_DBG(DM_N(5), FBRANCH"repeats_eval=%d\n", n->row, executed, evaluated, repeats_eval);
     break;
 
     case S2_REPEAT_PAR: {
-      int64_t x = expr2i(n->REPEAT.X, this);
-      int64_t y = expr2i(n->REPEAT.Y, this);
+      int64_t x = Expr::eval2i(n->REPEAT.X, this);
+      int64_t y = Expr::eval2i(n->REPEAT.Y, this);
       int8_t step = x < y ? 1 : -1;
       int64_t i = x - step;
       uint threads_total = 1 + ((x > y)? x - y: y - x);
@@ -621,8 +621,8 @@ Process::eval_sequential_repeats()
   DM_DBG_I;
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
-  int64_t x = expr2i(n->REPEAT.X, this);
-  int64_t y = expr2i(n->REPEAT.Y, this);
+  int64_t x = Expr::eval2i(n->REPEAT.X, this);
+  int64_t y = Expr::eval2i(n->REPEAT.Y, this);
   int8_t step = x < y ? 1 : -1;
   int64_t i = x - step;
   int iter_eval;
@@ -1280,52 +1280,6 @@ Process::ReadVariable(const char *name)
 } /* ReadVariable */
 
 /*
- * Evaluate an expression into an integer if possible.
- */
-int64_t
-Process::expr2i(const char *cstr, Process *proc)
-{
-  Expr e;
-  Attr a;
-  EVAL_t et_orig;
-  int i = 0;
-
-  if(!cstr || !proc) return 0;
-
-  /* we need to evaluate the string completely (not just variables or nothing!) */
-  et_orig = proc->et;
-  proc->et = EVAL_ALL;
-  e = Expr(cstr, proc);
-  a = e.parse();
-  switch(a.type) {
-    case INT:	/* we have an integer, good */
-      i = a.v.i;
-      goto ret;
-    break;
-    
-    default:
-      UPDATE_MAX(proc->executed, ERR_WARN);
-      DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), cstr);
-    break;
-  }
-  
-ret:
-  proc->et = et_orig;
-  return i;
-}
-
-/*
- * Evaluate an expression into an integer if possible.
- */
-int64_t
-Process::expr2i(const std::string *s, Process *proc)
-{
-  if(!s || !proc) return 0;
-  
-  return expr2i(s->c_str(), proc);
-}
-
-/*
  * Evaluate the $SPLIT{} tags.
  */
 std::string
@@ -1685,8 +1639,7 @@ Process::eval_str(const char *cstr, Process *proc)
         DM_DBG(DM_N(4), "expr=|%s|\n", target.c_str());
 
         if(proc->et == EVAL_ALL) {
-          Expr e = Expr(target.c_str(), proc);
-          s.append(e.parse().toString());
+          s.append(Expr::eval2s(target.c_str(), proc));
         } else {
           target = eval_str(target.c_str(), proc);	/* evaluate things like: $EXPR{...${var}...} */
           s.append("$" + std::string(state_name[state]) + "{");
@@ -1703,15 +1656,10 @@ Process::eval_str(const char *cstr, Process *proc)
         DM_DBG(DM_N(4), "rnd=|%s|\n", target.c_str());
 
         if(proc->et == EVAL_ALL) {
-          Expr e = Expr(target.c_str(), proc);
-          Attr attr = e.parse();
-          if(attr.type != INT) {
-            UPDATE_MAX(proc->executed, ERR_WARN);
-            DM_WARN(ERR_WARN, _(FBRANCH"couldn't evaluate expression `%s' to an integer\n"), proc->n->row, proc->executed, proc->evaluated, target.c_str());
-          } else {
-            /* srandom() is done elsewhere */
-            s.append(i2str(random() % attr.v.i));
-          }
+          /* srandom() is done elsewhere */
+          int64_t max = (int64_t)Expr::eval2i(target.c_str(), proc);
+          if(max) s.append(i2str(random() % max));
+          else  s.append("0");
         } else {
           s.append("$" + std::string(state_name[state]) + "{");
           s.append(target.c_str());
@@ -1906,23 +1854,7 @@ Process::eval_str(const char *cstr, Process *proc)
         if(proc->et == EVAL_ALL) {
           /* DO NOT evaluate target here, let Expr do the evaluation *
            * (e.g. strings with whitespace in them)                  */
-          Expr e = Expr(target.c_str(), proc);
-          Attr a = e.parse();
-          switch(a.type) {
-            case INT:	/* we have an integer, good */
-            break;
-            
-            case REAL:	/* round it up */
-              a.type = INT;
-              a.v.i = (int64_t)a.v.r;
-            break;
-            
-            default:
-              UPDATE_MAX(proc->executed, ERR_WARN);
-              DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), target.c_str());
-            break;
-          }
-          s.append(a.toString());
+          s.append(i2str((int64_t)Expr::eval2r(target.c_str(), proc)));
         } else {
           target = eval_str(target.c_str(), proc);	/* evaluate things like: $INT{...${var}...} */
           s.append("$" + std::string(state_name[state]) + "{");
@@ -2199,7 +2131,7 @@ Process::eval_str(const char *cstr, Process *proc)
         std::vector <std::string *> args;	/* vector of call by value arguments */
 
         chars = get_dq_param(count, target_cstr);	/* interleave count */
-        i64count = expr2i(count.c_str(), proc);		/* evaluate things like: $INTERLEAVE{...${var}... <arguments>} */
+        i64count = Expr::eval2i(count.c_str(), proc);	/* evaluate things like: $INTERLEAVE{...${var}... <arguments>} */
 
         DM_DBG(DM_N(4), "target=|%s|\n", target.c_str());
         DM_DBG(DM_N(4), "i64count=%u\n", i64count);
@@ -2269,21 +2201,8 @@ Process::eval_str(const char *cstr, Process *proc)
         DM_DBG(DM_N(4), "seq.y=|%s|\n", arg_y.c_str());
 
         if(proc->et == EVAL_ALL) {
-          e = Expr(arg_x.c_str(), proc);
-          a = e.parse();
-          if(a.type != INT) {
-            UPDATE_MAX(proc->executed, ERR_WARN);
-            DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), arg_x.c_str());
-            x = 0;
-          } else x = a.v.i;
-  
-          e = Expr(arg_y.c_str(), proc);
-          a = e.parse();
-          if(a.type != INT) {
-            UPDATE_MAX(proc->executed, ERR_WARN);
-            DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), arg_y.c_str());
-            y = 0;
-          } else y = a.v.i;
+          x = Expr::eval2i(arg_x.c_str(), proc);
+          y = Expr::eval2i(arg_y.c_str(), proc);
 
           int step = x < y? 1 : -1;
           int j = x - step;
@@ -2391,7 +2310,6 @@ _EVAL2PINT(u,32);
 _EVAL2PINT(u,64);
 #undef _EVAL2PINT
 
-#if 1
 /*
  * Evaluate std::vector <std::string *> into std::vector <std::string *>.
  */
@@ -2428,34 +2346,6 @@ Process::eval_vec_str(const std::vector <std::string *> &v)
 
   RETURN(ev);
 } /* eval_vec_str */
-#else
-/*
- * Evaluate std::vector <std::string *> into std::vector <std::string *>.
- */
-std::vector <std::string *>
-Process::eval_vec_str(const std::vector <std::string *> &v)
-{
-  DM_DBG_I;
-
-  std::vector <std::string *> ev;
-  std::vector <std::string *>::const_iterator iter;
-
-  for (iter = v.begin(); iter != v.end(); iter++) {
-    DM_DBG(DM_N(4), "before preevaluated=|%s|\n", (*iter)->c_str());
-    std::string str = preeval_str((*iter)->c_str());
-    DM_DBG(DM_N(4), "preevaluated=|%s|\n", str.c_str());
-
-//    DM_DBG(DM_N(3), "et=%d; string=|%s|\n", et, (*iter)->c_str());
-    str = Process::eval_str(str.c_str(), this);
-    DM_DBG(DM_N(3), "et=%d; eval_vec_string=|%s|\n", et, str.c_str());
-  
-    if(*iter) ev.push_back(new std::string(str.c_str()));
-    else ev.push_back((std::string *)NULL);
-  }
-
-  return ev;
-} /* eval_vec_str */
-#endif
 
 /*
  * Evaluate std::vector <std::string *>.

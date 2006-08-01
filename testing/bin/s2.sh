@@ -140,6 +140,7 @@ main() {
     gdb $@ ${S2_BIN}
   elif test x${S2_VALGRIND} != x; then
     # --gen-suppressions=all
+    rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
     valgrind\
       --show-reachable=yes\
       --suppressions=${S2_SRC_DIR}/valgrind.supp\

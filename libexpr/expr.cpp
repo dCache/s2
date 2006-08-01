@@ -37,6 +37,7 @@
     DM_ERR_ASSERT(_("new failed\n"));\
   } else strings.push_back(v);		/* free the allocated string on exit */
 
+
 /* constructor */
 Expr::Expr()
 {
@@ -58,6 +59,130 @@ Expr::~Expr()
 }
 
 
+/*
+ * Evaluate an expression into an integer if possible.
+ */
+int64_t
+Expr::eval2i(const char *cstr, Process *proc)
+{
+  Expr e;
+  Attr a;
+  EVAL_t et_orig;
+  int i = 0;
+
+  if(!cstr || !proc) return 0;
+
+  /* we need to evaluate the string completely (not just variables or nothing!) */
+  et_orig = proc->et;
+  proc->et = EVAL_ALL;
+
+  /* pre-evaluate the expression (we don't want any variables, tags, ...) */
+  std::string cstr_dq = Lex::eval(cstr, proc);
+
+  e = Expr(cstr_dq.c_str(), proc);
+  a = e.parse();
+  switch(a.type) {
+    case INT:	/* we have an integer, good */
+      i = a.v.i;
+      goto ret;
+    break;
+    
+    default:
+      UPDATE_MAX(proc->executed, ERR_WARN);
+      DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to an integer\n"), cstr_dq.c_str());
+    break;
+  }
+  
+ret:
+  proc->et = et_orig;
+  return i;
+}
+
+/*
+ * Evaluate an expression into an integer if possible.
+ */
+int64_t
+Expr::eval2i(const std::string *s, Process *proc)
+{
+  if(!s || !proc) return 0;
+  
+  return eval2i(s->c_str(), proc);
+}
+
+
+/*
+ * Evaluate an expression into a real number if possible.
+ */
+double
+Expr::eval2r(const char *cstr, Process *proc)
+{
+  Expr e;
+  Attr a;
+  EVAL_t et_orig;
+  double r = 0;
+
+  if(!cstr || !proc) return 0;
+
+  /* we need to evaluate the string completely (not just variables or nothing!) */
+  et_orig = proc->et;
+  proc->et = EVAL_ALL;
+
+  /* pre-evaluate the expression (we don't want any variables, tags, ...) */
+  std::string cstr_dq = Lex::eval(cstr, proc);
+
+  e = Expr(cstr_dq.c_str(), proc);
+  a = e.parse();
+  switch(a.type) {
+    case INT:	/* we have an integer, good */
+      r = a.v.i;
+      goto ret;
+    break;
+    
+    case REAL:	/* we have a real number, good */
+      r = a.v.r;
+      goto ret;
+    break;
+    
+    default:
+      UPDATE_MAX(proc->executed, ERR_WARN);
+      DM_WARN(ERR_WARN, _("couldn't evaluate expression `%s' to a real number\n"), cstr_dq.c_str());
+    break;
+  }
+  
+ret:
+  proc->et = et_orig;
+  return r;
+}
+
+/*
+ * Evaluate an expression into a real number if possible.
+ */
+double
+Expr::eval2r(const std::string *s, Process *proc)
+{
+  if(!s || !proc) return 0;
+  
+  return eval2r(s->c_str(), proc);
+}
+
+
+/*
+ * Evaluate an expression into a string.
+ */
+std::string
+Expr::eval2s(const char *cstr, Process *proc)
+{
+  /* pre-evaluate the expression (we don't want any variables, tags, ...) */
+  std::string cstr_dq = Lex::eval(cstr, proc);
+
+  Expr e = Expr(cstr_dq.c_str(), proc);
+  Attr a = e.parse();
+
+  return a.toString();
+}
+
+
+/*** Private functions **********************************************/
 Attr
 Expr::parse()
 {
@@ -172,6 +297,7 @@ Expr::compare(Attr a1, Attr a2, Symbol o)
 
   return 0; /* unable to compare */
 }
+
 
 void
 Expr::normalize(Attr &attr)
@@ -851,8 +977,18 @@ Expr::K1()
     }
     break;
 
-#if 1
     /* K1 -> STRING */
+#if 1
+    case StringSym:{
+      attr.type = STRING;
+      NEW_STR(attr.v.s,lex_attr.v.s->c_str());
+      DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
+      LEX();
+    }
+    break;
+#endif
+
+#if 0
     case StringSym:{
       std::string s;			/* string with no $TAGs */
       DM_DBG(DM_N(4),"s=|%s|\n",lex_attr.v.s->c_str());
@@ -881,19 +1017,21 @@ Expr::K1()
       LEX();
     }
     break;
-#else
+#endif
+
+#if 0
     case StringSym:{
       std::string s1 = lex_attr.v.s->c_str();
       std::string s2;
       BOOL change = FALSE;
-      while(1) {
+//      while(1) {
         s2 = s1;
         DM_DBG(DM_N(4),"s1=|%s|\n",s1.c_str());
         s1 = Process::eval_str(s1.c_str(), proc);	/* string with no $TAGs */
         DM_DBG(DM_N(4),"s1=|%s|\n",s1.c_str());
         if(s1 != s2) change = TRUE;
-        else break;
-      }
+//        else break;
+//      }
       if(change) {
         /* string evaluation produced a different string */
         attr.type = STRING;

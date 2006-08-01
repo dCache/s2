@@ -1,0 +1,10 @@
+; Test test expression evaluation
+
+ASSIGN zero 0 one 1
+&& TEST 1-${one}
+|| TEST 1-${zero}
+   SYSTEM echo OK
+&& eval=1 SYSTEM out=(?P<x>.*) echo -n '${y}'
+&& ASSIGN y yyy
+&& SYSTEM echo '${x}'
+&& TEST ${x} == yyy

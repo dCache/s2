@@ -3,27 +3,30 @@
 all: ln
 
 help:
-	@echo "make"
-	@echo "~~~~"
+	@echo "make [option]"
+	@echo "~~~~~~~~~~~~~"
+	@echo "help                  this help"
 	@echo "ln                    symbolic linking"
-	@echo "test                  run all tests in the current directory"
+	@echo "test                  run all tests in this directory (normal)"
+	@echo "fast                  run all tests in this directory (no diagnostics)"
+	@echo "gdb                   run all tests in this directory (through gdb)"
+	@echo "valgrind              run all tests in this directory (through valgrind)"
 	@echo "clean                 cleanup"
 
 ln:
 	@for dir in $(SUBDIRS) ;\
 	do \
-	  $(MAKE) -C "$$dir" ln || exit $$? ;\
+	  $(MAKE) -C "$$dir" $@ || exit $$? ;\
 	done
 
-test: ln
+test fast gdb valgrind:
 	@echo -e "$(call HTML_HEAD,`basename $(CWD)`)" > $(S2_HTML_LOG)
 	@for dir in $(SUBDIRS) ;\
 	do \
 	  echo -e "<A HREF=$$dir/$(S2_HTML_LOG)>$$dir</A><BR>" >> $(S2_HTML_LOG);\
-	  $(MAKE) -C "$$dir" test || exit $$? ;\
+	  $(MAKE) -C "$$dir" $@ || exit $$? ;\
 	done
 	@echo -e "$(call HTML_TAIL)" >> $(S2_HTML_LOG)
-
 
 install:
 

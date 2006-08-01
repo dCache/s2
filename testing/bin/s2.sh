@@ -87,8 +87,9 @@ Export() {
 }
 
 Usage() {
-  echo "Usage: $ProgramName
+  echo "Usage: $ProgramName [options]
 options: --help         this help
+         --fast         run with no diagnostics
          --gdb          run a gdb session
          --valgrind     run with valgrind
 	 --             s2 options separator
@@ -104,9 +105,11 @@ main() {
     case "$1" in
       --[Hh][Ee][Ll][Pp]) Usage
       ;;
-      --[Gg][Dd][Bb]) S2_GDB=1
+      --[Ff][Aa][Ss][Tt]) S2_RUN=fast
       ;;
-      --[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]) S2_VALGRIND=1
+      --[Gg][Dd][Bb]) S2_RUN=gdb
+      ;;
+      --[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]) S2_RUN=valgrind
       ;;
       --[Ss][2]-[Bb][Ii][Nn])
         Which_s2
@@ -124,6 +127,24 @@ main() {
     shift
   done
 
+  # invocation by make
+  while true
+  do
+    case "$1" in
+      test)
+      ;;
+      fast)     S2_RUN=fast
+      ;;
+      gdb)      S2_RUN=gdb
+      ;;
+      valgrind) S2_RUN=valgrind
+      ;;
+      *) break
+      ;;
+    esac
+    shift
+  done
+
   if test x"${ProgramName}" = xs2.sh && ! test -L ${ProgramName} ; then
     Fail "This script is not meant to be run here.  Please see README."
     Usage
@@ -136,46 +157,67 @@ main() {
   Source 5 ${ENV_SH} || Die 3 "Couldn't source ${ENV_SH}"
   test -r ${ProgramNameEnv} && source ${ProgramNameEnv}
 
-  if test   x${S2_GDB} != x; then
-    gdb $@ ${S2_BIN}
-  elif test x${S2_VALGRIND} != x; then
-    # --gen-suppressions=all
-    rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
-    valgrind\
-      --show-reachable=yes\
-      --suppressions=${S2_SRC_DIR}/valgrind.supp\
-      ${S2_BIN}\
-      --file=${S2_TEST_FILE}\
-      --pp-out-file=${S2_P}\
-      --dbg-file=${S2_D}\
-      --err-file=${S2_E}\
-      --log-file=${S2_L}\
-      --warn-file=${S2_W}\
-      --e0-file=${S2_E0}\
-      --e1-file=${S2_E1}\
-      --e2-file=${S2_E2}\
-      $@\
-      >${S2_OUT}
-  else
-    # Normal S2 run
-    rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
-    echo -e "${S2_TEST_FILE}:"
-    time ${S2_BIN}\
-      --file=${S2_TEST_FILE}\
-      --pp-out-file=${S2_P}\
-      --dbg-file=${S2_D}\
-      --err-file=${S2_E}\
-      --log-file=${S2_L}\
-      --warn-file=${S2_W}\
-      --e0-file=${S2_E0}\
-      --e1-file=${S2_E1}\
-      --e2-file=${S2_E2}\
-      $@\
-      > ${S2_OUT}
-    err=$?
-    echo -e "$err\n"
-    return $err
-  fi
+  case "$S2_RUN" in
+    fast)
+      # Normal S2 run
+      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      echo -e "${S2_TEST_FILE}:"
+      time DG_DIAGNOSE=0 ${S2_BIN}\
+        --file=${S2_TEST_FILE}\
+        $@\
+        > ${S2_OUT}
+      err=$?
+      echo -e "$err\n"
+      return $err
+    ;;
+
+    gdb)
+      gdb $@ ${S2_BIN}
+    ;;
+
+    valgrind)
+      # --gen-suppressions=all
+      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      valgrind\
+        --gen-suppressions=all\
+        --show-reachable=yes\
+        --suppressions=${S2_SRC_DIR}/valgrind.supp\
+        ${S2_BIN}\
+        --progress=0\
+        --file=${S2_TEST_FILE}\
+        --pp-out-file=${S2_P}\
+        --dbg-file=${S2_D}\
+        --err-file=${S2_E}\
+        --log-file=${S2_L}\
+        --warn-file=${S2_W}\
+        --e0-file=${S2_E0}\
+        --e1-file=${S2_E1}\
+        --e2-file=${S2_E2}\
+        $@\
+        >${S2_OUT}
+    ;;
+
+    *)
+      # Normal S2 run
+      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      echo -e "${S2_TEST_FILE}:"
+      time ${S2_BIN}\
+        --file=${S2_TEST_FILE}\
+        --pp-out-file=${S2_P}\
+        --dbg-file=${S2_D}\
+        --err-file=${S2_E}\
+        --log-file=${S2_L}\
+        --warn-file=${S2_W}\
+        --e0-file=${S2_E0}\
+        --e1-file=${S2_E1}\
+        --e2-file=${S2_E2}\
+        $@\
+        > ${S2_OUT}
+      err=$?
+      echo -e "$err\n"
+      return $err
+    ;;
+  esac
 }
 
 main $@

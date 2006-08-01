@@ -98,6 +98,7 @@ ret:
   return i;
 }
 
+#if 0
 /*
  * Evaluate an expression into an integer if possible.
  */
@@ -108,6 +109,7 @@ Expr::eval2i(const std::string *s, Process *proc)
   
   return eval2i(s->c_str(), proc);
 }
+#endif
 
 
 /*
@@ -154,6 +156,7 @@ ret:
   return r;
 }
 
+#if 0
 /*
  * Evaluate an expression into a real number if possible.
  */
@@ -164,6 +167,7 @@ Expr::eval2r(const std::string *s, Process *proc)
   
   return eval2r(s->c_str(), proc);
 }
+#endif
 
 
 /*

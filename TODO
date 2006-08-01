@@ -1,12 +1,11 @@
 High priority
 ~~~~~~~~~~~~~
-- make test_valgrind
 - SRM 2.2 test scenarios and testing
 - Testing, optimize for speed
 
 Normal priority
 ~~~~~~~~~~~~~~~
-- code cleanup (parsing macros?)
+- Code cleanup (parsing macros?)
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs, e.g.:
   * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...
@@ -16,6 +15,7 @@ Normal priority
 
 Low priority
 ~~~~~~~~~~~~
+- Port to BSDs?
 - Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
   investigate?  Use Apache threads instead?
 - Investigate gSoap memory leaks yet again???

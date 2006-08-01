@@ -13,9 +13,9 @@ public:
   ~Expr();
 
   static int64_t eval2i(const char *cstr, Process *proc);
-  static int64_t eval2i(const std::string *s, Process *proc);
+//  static int64_t eval2i(const std::string *s, Process *proc);
   static double eval2r(const char *cstr, Process *proc);
-  static double eval2r(const std::string *s, Process *proc);
+//  static double eval2r(const std::string *s, Process *proc);
   static std::string eval2s(const char *cstr, Process *proc);
 
 private:

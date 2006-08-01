@@ -16,8 +16,15 @@ section `s2.sh script output files' of the README file.  If you want
 to limit/increase debugging, please see the `DIAGNOSTICS' section in
 the `testing/scripts/s2.env' file.
 
+Q: The s2.sh script generates loads of debugging files filled
+   with useless information which only slows down execution.
+A: Run the script with --fast option or when running all tests in
+a directory, do `make fast' instead of `make test'.  Another option
+is to limit the diagnostics information through the DG_* environment
+variables and s2 binary options.
+
 Q: Why is `testing' directory in ${prefix}/share/doc/s2-<version>?
-It's sick!
+   It's sick!
 A: I don't like it either.  However, the testing directory contains
 a lot of examples, which really are documentation too and more
 importantly `template' directories which contain syntax of SRM 2.x

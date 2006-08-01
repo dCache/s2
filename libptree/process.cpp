@@ -312,14 +312,14 @@ Process::eval()
         if(ptr_node->REPEAT.type == S2_REPEAT_PAR) {
           /* repeats execution */
           int repeats_eval;
-          int64_t x = Expr::eval2i(ptr_node->REPEAT.X, this);
-          int64_t y = Expr::eval2i(ptr_node->REPEAT.Y, this);
+          int64_t x = Expr::eval2i(ptr_node->REPEAT.X->c_str(), this);
+          int64_t y = Expr::eval2i(ptr_node->REPEAT.Y->c_str(), this);
           int8_t step = x < y ? 1 : -1;
           int64_t i = x - step;
 
           do {
             i += step;
-            DM_DBG(DM_N(1), "parallel repeat branch %u; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", ptr_node->row, ptr_node->REPEAT.X, ptr_node->REPEAT.Y, i);
+            DM_DBG(DM_N(1), "parallel repeat branch %u; >%s %s; i=%"PRIi64"\n", ptr_node->row, ptr_node->REPEAT.X->c_str(), ptr_node->REPEAT.Y->c_str(), i);
             S_P(&tp_sync.total_mtx);
             DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
             if(tp_sync.total < opts.tp_size) {
@@ -439,15 +439,15 @@ Process::eval_repeats()
     case S2_REPEAT_AND:		/* fall through */
     case S2_REPEAT_WHILE:	/* fall through */
 seq:
-      I = Expr::eval2i(n->REPEAT.X, this);	/* necessary for S2_REPEAT_NONE only */
+      I = n->REPEAT.X? Expr::eval2i(n->REPEAT.X->c_str(), this) : 0;	/* necessary for S2_REPEAT_NONE only */
       repeats_eval = eval_sequential_repeats();
       UPDATE_MAX(evaluated, repeats_eval);
       DM_DBG(DM_N(5), FBRANCH"repeats_eval=%d\n", n->row, executed, evaluated, repeats_eval);
     break;
 
     case S2_REPEAT_PAR: {
-      int64_t x = Expr::eval2i(n->REPEAT.X, this);
-      int64_t y = Expr::eval2i(n->REPEAT.Y, this);
+      int64_t x = Expr::eval2i(n->REPEAT.X->c_str(), this);
+      int64_t y = Expr::eval2i(n->REPEAT.Y->c_str(), this);
       int8_t step = x < y ? 1 : -1;
       int64_t i = x - step;
       uint threads_total = 1 + ((x > y)? x - y: y - x);
@@ -462,7 +462,7 @@ seq:
       DM_DBG(DM_N(1), FBRANCH"parallel repeat; total number of threads=%d\n", n->row, executed, evaluated, threads_total);
       do {
         i += step;
-        DM_DBG(DM_N(1), FBRANCH"parallel repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
+        DM_DBG(DM_N(1), FBRANCH"parallel repeat; >%s %s; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X->c_str(), n->REPEAT.Y->c_str(), i);
         BOOL enqueued;
         enqueued = FALSE;
         
@@ -621,8 +621,8 @@ Process::eval_sequential_repeats()
   DM_DBG_I;
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
-  int64_t x = Expr::eval2i(n->REPEAT.X, this);
-  int64_t y = Expr::eval2i(n->REPEAT.Y, this);
+  int64_t x = n->REPEAT.X? Expr::eval2i(n->REPEAT.X->c_str(), this) : 0;
+  int64_t y = n->REPEAT.Y? Expr::eval2i(n->REPEAT.Y->c_str(), this) : 0;
   int8_t step = x < y ? 1 : -1;
   int64_t i = x - step;
   int iter_eval;
@@ -641,7 +641,7 @@ Process::eval_sequential_repeats()
       I = i;
       do {
         I += step;
-        DM_DBG(DM_N(5), FBRANCH"OR repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
+        DM_DBG(DM_N(5), FBRANCH"OR repeat; >%s %s; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X->c_str(), n->REPEAT.Y->c_str(), i);
 
         iter_eval = eval_with_timeout();
         UPDATE_MAX(evaluated, iter_eval);
@@ -659,7 +659,7 @@ Process::eval_sequential_repeats()
       I = i;
       do {
         I += step;
-        DM_DBG(DM_N(5), FBRANCH"AND repeat; >%"PRIi64" %"PRIi64"; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X, n->REPEAT.Y, i);
+        DM_DBG(DM_N(5), FBRANCH"AND repeat; >%s %s; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X->c_str(), n->REPEAT.Y->c_str(), i);
 
         iter_eval = eval_with_timeout();
         UPDATE_MAX(evaluated, iter_eval);

@@ -714,6 +714,7 @@ pthread_timeout_handler(void *proc)
     DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
   );
 
+  S_V(&tp_sync.print_mtx);	//dMan--hack
   fprintf(stderr, "--- pthread_timeout_handler ---\n");
 
   DM_DBG_O;
@@ -729,7 +730,9 @@ exec_in_parallel_without_timeout(void *timeout_info)
   timeout_info_t *ti = (timeout_info_t *)timeout_info;
   int root_eval;
   
-  DM_DBG(DM_N(3), FBRANCH"proc=%p\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, ti->p->n);
+  /* set thread cleanup handler */
+  DM_DBG(DM_N(3), FBRANCH"pushing cleanup handler for proc=%p\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, ti->p->n);
+  pthread_cleanup_push(pthread_timeout_handler, (void*)ti->p);
   DM_DBG(DM_N(3), "%s\n", ti->p->n->toString(FALSE).c_str());
 
   root_eval = ti->p->n->exec(ti->p);
@@ -751,6 +754,9 @@ exec_in_parallel_without_timeout(void *timeout_info)
 #else
   return (void *)ti->p;
 #endif
+
+  /* Remove thread cleanup handler. */
+  pthread_cleanup_pop(0);
 } /* exec_in_parallel_without_timeout */
 
 /*
@@ -774,10 +780,6 @@ Process::exec_with_timeout()
     DM_DBG(DM_N(3), FBRANCH"no timeout set\n", n->row, executed, evaluated);
     RETURN(n->exec(this));
   }
-
-  /* set thread cleanup handler */
-  DM_DBG(DM_N(3), FBRANCH"pushing cleanup handler\n", n->row, executed, evaluated);
-  pthread_cleanup_push(pthread_timeout_handler, (void*)this);
 
   ti.p = this;
   ti.terminated = FALSE;
@@ -839,12 +841,8 @@ Process::exec_with_timeout()
     }
   }
 
-  /* Remove thread cleanup handler. */
-  pthread_cleanup_pop(0);
-
   /* ``reap'' the thread */
   Process *p;	/* pointer to a return value from a thread */
-  fprintf(stderr, FBRANCH"reaping thread %lu\n", n->row, executed, evaluated, thread_id);//dMan
   DM_DBG(DM_N(3), FBRANCH"reaping thread %lu\n", n->row, executed, evaluated, thread_id);
   if(thread_join(thread_id, (void **)&p)) {
     DM_ERR(ERR_SYSTEM, FBRANCH"failed to join thread: %s\n", n->row, executed, evaluated, strerror(errno));
@@ -858,8 +856,6 @@ Process::exec_with_timeout()
     root_eval = ERR_NEXEC;
     UPDATE_MAX(evaluated, ERR_NEXEC);
   }
-  
-  S_V(&tp_sync.print_mtx);	//dMan--hack
 
   /* threads-related cleanup */
   pthread_cond_destroy(&ti.timeout_cv);

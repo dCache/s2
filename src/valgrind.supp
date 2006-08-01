@@ -67,3 +67,18 @@
    fun:__libc_start_main
    obj:/home/mencak/work/s2/src/s2
 }
+{
+   Syscall param write(buf) points to uninitialised byte(s)
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:_Z13thread_createPmPFPvS0_ES0_
+   fun:_ZN7Process17exec_with_timeoutEv
+   fun:_ZN7Process17eval_with_timeoutEv
+   fun:_ZN7Process23eval_sequential_repeatsEv
+   fun:_Z16eval_in_parallelPv
+   fun:_Z17tp_handle_requestPv
+   fun:_Z20request_loop_handlerPv
+   fun:pthread_start_thread
+   fun:clone
+}

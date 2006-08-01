@@ -178,6 +178,7 @@ main() {
     valgrind)
       # --gen-suppressions=all
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      echo -e "${S2_TEST_FILE}:" >&2
       valgrind\
         --gen-suppressions=all\
         --show-reachable=yes\

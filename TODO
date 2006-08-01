@@ -1,16 +1,21 @@
-Ordered by priority
-~~~~~~~~~~~~~~~~~~~
+High priority
+~~~~~~~~~~~~~
 - make test_valgrind
 - SRM 2.2 test scenarios and testing
-- make 0.2.3 release
 - Testing, optimize for speed
+
+Normal priority
+~~~~~~~~~~~~~~~
 - code cleanup (parsing macros?)
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs, e.g.:
-  * $FILE{<eval> <file>} (read in contents from <file> and optionally <eval>uate tags it contains)
   * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...
+  * $FILE{<eval> <file>} (read in contents from <file> and optionally <eval>uate tags it contains)
 - SEND/RECEIVE (TCP/UDP/RTP,RTCP,SIP,...)?
 - Plugin architecture to make addition of new protocols less intrusive?
+
+Low priority
+~~~~~~~~~~~~
 - Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
   investigate?  Use Apache threads instead?
 - Investigate gSoap memory leaks yet again???

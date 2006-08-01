@@ -77,6 +77,9 @@ over environment variables defined in
 `scripts/protos/srm/2.2/s2.env' will take precedence over
 `scripts/protos/srm/s2.env' and so on.
 
+Environment variables defined in the user's environment take precedence
+over all of the above.
+
 s2.sh script output files
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 *.d     debug output of the diagnose library.  Verbosity can be

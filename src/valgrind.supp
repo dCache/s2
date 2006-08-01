@@ -1,3 +1,4 @@
+### libc 2.3.5 #######################################################
 {
    Syscall param clone(child_tidptr) contains uninitialised byte(s)
    Memcheck:Param
@@ -25,4 +26,44 @@
    fun:__nss_passwd_lookup
    fun:getpwuid_r
    fun:getpwuid
+}
+### libc 2.3.2 #######################################################
+{
+   Syscall param write(buf) points to uninitialised byte(s)
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:pthread_create@@GLIBC_2.1
+   fun:_Z9tp_createv
+   fun:_Z7tp_initi
+   fun:_Z6s2_runiPPci
+   fun:main
+}
+{
+   Syscall param write(buf) points to uninitialised byte(s)
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:_Z9tp_createv
+   fun:_Z7tp_initi
+   fun:_Z6s2_runiPPci
+   fun:main
+}
+{
+   Syscall param write(buf) points to uninitialised byte(s)
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:_Z10tp_cleanupv
+   fun:_Z6s2_runiPPci
+   fun:main
+}
+{
+   Syscall param write(buf) points to uninitialised byte(s)
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:exit
+   fun:__libc_start_main
+   obj:/home/mencak/work/s2/src/s2
 }

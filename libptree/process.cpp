@@ -714,8 +714,7 @@ pthread_timeout_handler(void *proc)
     DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
   );
 
-  S_V(&tp_sync.print_mtx);	//dMan--hack
-  fprintf(stderr, "--- pthread_timeout_handler ---\n");
+  S_V(&tp_sync.print_mtx);	//hack
 
   DM_DBG_O;
 }
@@ -835,8 +834,6 @@ Process::exec_with_timeout()
     if(rc == ETIMEDOUT) {
       /* timeout reached, cancel the thread */
       DM_DBG_T(DM_N(2), FBRANCH"cancelling thread %lu\n", n->row, executed, evaluated, thread_id);
-      fprintf(stderr, FBRANCH"cancelling thread %lu\n", n->row, executed, evaluated, thread_id);//dMan
-      usleep(50000); //dMan
       pthread_cancel(thread_id);
     }
   }
@@ -860,7 +857,6 @@ Process::exec_with_timeout()
   /* threads-related cleanup */
   pthread_cond_destroy(&ti.timeout_cv);
   pthread_mutex_destroy(&ti.timeout_mtx);
-  fprintf(stderr, "exec_with_timeout out >>>\n");//dMan
 
   RETURN(evaluated);
 } /* exec_with_timeout */

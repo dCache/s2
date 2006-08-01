@@ -714,9 +714,10 @@ pthread_timeout_handler(void *proc)
     DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
   );
 
+  fprintf(stderr, "--- pthread_timeout_handler ---\n");
+
   DM_DBG_O;
 }
-
 /*
  * For use in threads only.
  */
@@ -737,11 +738,13 @@ exec_in_parallel_without_timeout(void *timeout_info)
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, pthread_self());
 
+  DM_DBG(DM_N(3), "<<< ti->timeout_mtx\n");
   S_P(&ti->timeout_mtx);
   if(pthread_cond_broadcast(&ti->timeout_cv)) {
     DM_ERR(ERR_SYSTEM, _("pthread_cond_signal failed: %s\n"), strerror(errno));
   }
   S_V(&ti->timeout_mtx);
+  DM_DBG(DM_N(3), "ti->timeout_mtx >>>\n");
 
 #if 0
   pthread_exit((void *)ti->p);
@@ -830,13 +833,19 @@ Process::exec_with_timeout()
     if(rc == ETIMEDOUT) {
       /* timeout reached, cancel the thread */
       DM_DBG_T(DM_N(2), FBRANCH"cancelling thread %lu\n", n->row, executed, evaluated, thread_id);
+      fprintf(stderr, FBRANCH"cancelling thread %lu\n", n->row, executed, evaluated, thread_id);//dMan
+      usleep(50000); //dMan
       pthread_cancel(thread_id);
     }
   }
 
+  /* Remove thread cleanup handler. */
+  pthread_cleanup_pop(0);
+
   /* ``reap'' the thread */
   Process *p;	/* pointer to a return value from a thread */
-  DM_DBG(DM_N(3), "reaping thread %lu\n", n->row, executed, evaluated, thread_id);
+  fprintf(stderr, FBRANCH"reaping thread %lu\n", n->row, executed, evaluated, thread_id);//dMan
+  DM_DBG(DM_N(3), FBRANCH"reaping thread %lu\n", n->row, executed, evaluated, thread_id);
   if(thread_join(thread_id, (void **)&p)) {
     DM_ERR(ERR_SYSTEM, FBRANCH"failed to join thread: %s\n", n->row, executed, evaluated, strerror(errno));
   }
@@ -849,13 +858,13 @@ Process::exec_with_timeout()
     root_eval = ERR_NEXEC;
     UPDATE_MAX(evaluated, ERR_NEXEC);
   }
-
-  /* Remove thread cleanup handler. */
-  pthread_cleanup_pop(0);
+  
+  S_V(&tp_sync.print_mtx);	//dMan--hack
 
   /* threads-related cleanup */
   pthread_cond_destroy(&ti.timeout_cv);
   pthread_mutex_destroy(&ti.timeout_mtx);
+  fprintf(stderr, "exec_with_timeout out >>>\n");//dMan
 
   RETURN(evaluated);
 } /* exec_with_timeout */
@@ -890,7 +899,7 @@ Process::eval_with_timeout()
   et=EVAL_STATIC;
   DM_LOG_B(DM_N(1), "e1:%s\n", Node::nodeToString(n, n->OFFSET - FUN_OFFSET, this).c_str());
 
-  /* there might have been warnings (unset variables) during tag expansions */
+  /* there might have been warnings (e.g. unset variables) during tag expansions */
   UPDATE_MAX(executed, timeout_exec);
   evaluated = executed;				/* for ${?} */
 

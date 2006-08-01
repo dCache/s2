@@ -8,7 +8,7 @@ help:
 	@echo "help                  this help"
 	@echo "ln                    symbolic linking"
 	@echo "test                  run all tests in this directory (normal)"
-	@echo "fast                  run all tests in this directory (no diagnostics)"
+	@echo "fast                  run all tests in this directory (no debug/logs)"
 	@echo "gdb                   run all tests in this directory (through gdb)"
 	@echo "valgrind              run all tests in this directory (through valgrind)"
 	@echo "clean                 cleanup"
@@ -19,7 +19,7 @@ ln:
 	  $(MAKE) -C "$$dir" $@ || exit $$? ;\
 	done
 
-test fast gdb valgrind:
+test superfast fast gdb valgrind:
 	@echo -e "$(call HTML_HEAD,`basename $(CWD)`)" > $(S2_HTML_LOG)
 	@for dir in $(SUBDIRS) ;\
 	do \

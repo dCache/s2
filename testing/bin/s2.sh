@@ -89,7 +89,8 @@ Export() {
 Usage() {
   echo "Usage: $ProgramName [options]
 options: --help         this help
-         --fast         run with no diagnostics
+         --superfast    run with no diagnostics
+         --fast         run with no logging and debugging (only warnings/errors)
          --gdb          run a gdb session
          --valgrind     run with valgrind
 	 --             s2 options separator
@@ -104,6 +105,8 @@ main() {
   do
     case "$1" in
       --[Hh][Ee][Ll][Pp]) Usage
+      ;;
+      --[Ss][Uu][Pp][Ee][Rr][Ff][Aa][Ss][Tt]) S2_RUN=superfast
       ;;
       --[Ff][Aa][Ss][Tt]) S2_RUN=fast
       ;;
@@ -133,11 +136,13 @@ main() {
     case "$1" in
       test)
       ;;
-      fast)     S2_RUN=fast
+      superfast) S2_RUN=superfast
       ;;
-      gdb)      S2_RUN=gdb
+      fast)      S2_RUN=fast
       ;;
-      valgrind) S2_RUN=valgrind
+      gdb)       S2_RUN=gdb
+      ;;
+      valgrind)  S2_RUN=valgrind
       ;;
       *) break
       ;;
@@ -158,11 +163,22 @@ main() {
   test -r ${ProgramNameEnv} && source ${ProgramNameEnv}
 
   case "$S2_RUN" in
-    fast)
-      # Normal S2 run
+    superfast)
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
       echo -e "${S2_TEST_FILE}:"
       time DG_DIAGNOSE=0 ${S2_BIN}\
+        --file=${S2_TEST_FILE}\
+        $@\
+        > ${S2_OUT}
+      err=$?
+      echo -e "$err\n"
+      return $err
+    ;;
+
+    fast)
+      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      echo -e "${S2_TEST_FILE}:"
+      time DG_DBG=0 DG_LOG=0 ${S2_BIN}\
         --file=${S2_TEST_FILE}\
         $@\
         > ${S2_OUT}

@@ -724,7 +724,7 @@ Parser::PREPROCESSOR()
   if(++preproc.IF.p >= MAX_IFS) {\
     DM_ERR_P(_("too many nested #if((n)def) directives (max %u)\n"), MAX_IFS);\
     preproc.IF.p--;\
-    return ERR_OK;\
+    return ERR_ERR;\
   }
   
   int rval;
@@ -814,7 +814,7 @@ Parser::PREPROCESSOR()
     if(++preproc.INC.p >= MAX_INCS) {
       DM_ERR_P(_("too many nested #include(s) (max %u); #include directive ignored\n"), MAX_INCS);
       preproc.INC.p--;
-      return ERR_OK;	/* don't return ERR_ERR, try to ignore this error */
+      return ERR_ERR;
     }
     preproc.INC.offset[preproc.INC.p] = preproc.INC.offset[preproc.INC.p-1] + preproc_offset;
     DM_DBG(DM_N(5),"INC.offset[%d]=%u, INC.offset[%d]=%u, preproc_offset=%u\n", preproc.INC.p, preproc.INC.offset[preproc.INC.p], preproc.INC.p-1, preproc.INC.offset[preproc.INC.p-1], preproc_offset);
@@ -1643,6 +1643,7 @@ loop:
       int INCp = preproc.INC.p;
       lval = PREPROCESSOR();
       UPDATE_MAX(rval, lval);
+      DM_DBG(DM_N(5), "PREPROC: rval=%d/lval=%d\n", rval, lval);
 
       if(INCp != preproc.INC.p) {
         /* we have a new #include */

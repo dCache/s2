@@ -38,7 +38,7 @@
 struct opts_t opts;
 
 /* private variables */
-uint exit_val = 0;                      /* exit value (diagnose library: error-reporting functions) */
+uint diagnose_val = 0;		/* diagnostics value (diagnose library: error-reporting functions) */
 
 /* private function declarations */
 static int parse_cmd_opts(int argc, char **argv);
@@ -278,7 +278,7 @@ init_s2(void)
 static void
 WarnCB(dg_callback cbData)
 {
-  UPDATE_MAX(exit_val, cbData.level);   /* increase the return value */
+  UPDATE_MAX(diagnose_val, cbData.level);	/* increase the return value */
 } /* WarnCB */
 #endif
 
@@ -288,17 +288,17 @@ ErrCB(dg_callback cbData)
 {
   switch(cbData.level) {
     case ERR_SYSTEM:
-      UPDATE_MAX(exit_val, ERR_SYSTEM);         /* increase the return value */
-      exit(exit_val);   /* better than SEGv (e.g.: phreads) */
+      UPDATE_MAX(diagnose_val, ERR_SYSTEM);	/* increase the return value */
+      exit(diagnose_val);			/* better than SEGv (e.g.: phreads) */
     break;
 
-    case DG_ERR_ASSERT: /* don't change to ERR_ASSERT! (see dg.h) */
-      UPDATE_MAX(exit_val, ERR_ASSERT);         /* increase the return value */
-      exit(exit_val);   /* better than SEGv */
+    case DG_ERR_ASSERT:				/* don't change to ERR_ASSERT! (see dg.h) */
+      UPDATE_MAX(diagnose_val, ERR_ASSERT);	/* increase the return value */
+      exit(diagnose_val);			/* better than SEGv */
     break;
 
     default:
-      UPDATE_MAX(exit_val, cbData.level);       /* increase the return value */
+      UPDATE_MAX(diagnose_val, cbData.level);	/* increase the return value */
   }
 } /* ErrCB */
 #endif
@@ -1053,9 +1053,6 @@ main(int argc, char *argv[])
 
   /* Parse and evaluate S2 language file(s) */
   rval = s2_run(argc, argv, i);
-
-  /* Update the return value (warnings/errors) */
-  UPDATE_MAX(rval, exit_val);
 
   return (int)rval;
 }

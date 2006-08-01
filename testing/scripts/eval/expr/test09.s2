@@ -1,0 +1,13 @@
+; Test test expression evaluation
+
+NOP
+&& ASSIGN dq "\"\""
+&& ASSIGN dq_s1a "\\\"\\\""
+&& ASSIGN dq_s1b \\\"\\\"
+&& ASSIGN dq_s1c $PRINTF{\x5C\"\x5C\"}
+&& SYSTEM echo '${dq}'
+&& SYSTEM echo '${dq_s1a}'
+&& SYSTEM echo '${dq_s1b}'
+&& SYSTEM echo '${dq_s1c}'
+&& TEST "\\\"\\\"" == ${dq_s1a}
+&& TEST ${dq_s1a} == ${dq_s1b}

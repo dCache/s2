@@ -1,6 +1,5 @@
 Ordered by priority
 ~~~~~~~~~~~~~~~~~~~
-- "\"" vs \"
 - make test_valgrind
 - SRM 2.2 test scenarios and testing
 - make 0.2.3 release

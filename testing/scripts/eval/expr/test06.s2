@@ -7,5 +7,5 @@ NOP
 && SYSTEM echo '${v0}'
 && SYSTEM echo '${v1}'
 && TEST "\"\"" == ${v0}
-&& TEST "\"\"" != ${v1}
+&& TEST "\"\"" == ${v1}
 && TEST "\" \"" == ${v2}

@@ -6,13 +6,11 @@ NOP
 ; """
 && ASSIGN v1 "\"\"\""
 
-; No change (only in double-quoted strings)
-; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-; \"\"
+; ""
 && ASSIGN v2 \"\"
-; \""\"
+; ""
 && ASSIGN v3 \""\"
-; \"\"\"
+; """
 && ASSIGN v4 \"\"\"
 
 && SYSTEM echo '${v0}'

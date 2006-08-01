@@ -48,7 +48,7 @@ _GET_INT(u,64);
 extern std::string i2str(int64_t value);
 extern std::string r2str(double value);
 extern std::string ssprintf(const char *fmt...);
-extern std::string escape_chars(const char* s, const char c, BOOL esc);
+extern std::string escape_chars(const char* s, const char* chars, BOOL esc);
 extern std::string dq_param(const std::string *s, BOOL quote);
 extern std::string dq_param(const std::string &s, BOOL quote);
 extern std::string dq_param(const char *s, BOOL quote);

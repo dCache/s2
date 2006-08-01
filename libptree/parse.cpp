@@ -317,13 +317,12 @@ Parser::AZaz_09(const char *l, char **end)
 /*
  * Parse one of the following strings:
  * 1) [^ \t\r\n]* 
- * 2) " [^"]* "
+ * 2) '"' [^"]* '"'
  * Note: ad 1) space can be part of the parsed string if it is escaped
  *       ad 2) "     can be part of the parsed string if it is escaped.
  * 
- * - De-escaping of spaces and "s is performed: 'a\ string' => 'a string'
- *                                              '"a \"string\""' => 'a "string"'.
- * - \\ is left unchanged: '\\"' => '\\"'
+ * - De-escaping of " and \ is performed: 'a\ string' => 'a string'
+ *                                        '"a \"string\""' => 'a "string"'.
  * 
  * Environment variables $ENV{VAR} are interpreted if `env_var' is TRUE.
  *
@@ -395,16 +394,18 @@ Parser::double_quoted_param(std::string &target, BOOL env_var, const char* term_
     }
 
     if(dq) {
-      /* we have a double-quoted string => remove escaping of "s */
-      if(c == '\\' && !bslash && line[col] == '"') /* look ahead */
+      /* we have a double-quoted string => remove escaping of "\ */
+      if(c == '\\' && !bslash
+         && (line[col] == '"' || line[col] == '\\')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         esc++;
         goto esc_out;
       }
     } else {
-      /* we have an unquoted string => remove escaping of whitespace */
-      if(c == '\\' && !bslash && IS_WHITE(line[col])) /* look ahead */
+      /* we have an unquoted string => remove escaping of "\ and whitespace */
+      if(c == '\\' && !bslash
+         && (IS_WHITE(line[col]) || line[col] == '"' || line[col] == '\\')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         esc++;

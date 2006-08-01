@@ -257,13 +257,14 @@ ssprintf(const char *fmt...)
  * if !esc            => string: 'hello "world"' is printed as 'hello "world"'
  */
 extern std::string
-escape_chars(const char* s, const char c, BOOL esc)
+escape_chars(const char* s, const char* chars, BOOL esc)
 {
   DM_DBG_I;
   std::stringstream ss;
   BOOL bslash = FALSE;  /* we had the '\\' character */
   int llen;
   int i;
+  const char *c;
 
   if(s == NULL)
     RETURN(ss.str());
@@ -272,7 +273,7 @@ escape_chars(const char* s, const char c, BOOL esc)
 
   llen = strlen(s);
 
-  DM_DBG(DM_N(6), "esc char=|%c|\n", c);
+  DM_DBG(DM_N(6), "esc chars=|%s|\n", chars);
   DM_DBG(DM_N(6), "complete string=|%s|\n", s);
 
   for(i = 0; i < llen; i++)
@@ -283,10 +284,10 @@ escape_chars(const char* s, const char c, BOOL esc)
       goto out;
     }
 
-    
-    if(s[i] == c && !bslash) {
+    if((c = strchr(chars, s[i])) && !bslash) {
       /* we need to escape unescaped c */
       ss << '\\';
+      if(*c == '\\') goto out;
     }
     bslash = s[i] == '\\';
 out:
@@ -321,19 +322,18 @@ dq_param(const char *s, BOOL quote)
     goto out;
   }
 
-//  if(!is_tag(s)) {
-    q = unescaped_char(s, ' ') != NULL ||	/* constains a space */
-        unescaped_char(s, '\t') != NULL ||	/* constains a tabulator */
-        unescaped_char(s, '\n') != NULL ||	/* constains a newline character */
-        unescaped_char(s, '\r') != NULL ||	/* constains a carriage return */
-        unescaped_char(s, '"')  != NULL ||	/* constains a carriage return */
-        *s == 0;				/* empty string */
-//  }
+  q = unescaped_char(s, ' ')  != NULL ||	/* contains a space */
+      unescaped_char(s, '\t') != NULL ||	/* contains a tabulator */
+      unescaped_char(s, '\n') != NULL ||	/* contains a newline character */
+      unescaped_char(s, '\r') != NULL ||	/* contains a carriage return */
+      unescaped_char(s, '"')  != NULL ||	/* contains a carriage return */
+      strchr(s, '\\')         != NULL ||	/* contains a slash */
+      *s == 0;					/* empty string */
 
   if(q) ss << '"';
 
   DM_DBG(DM_N(6), "q=%d\n", q);
-  ss << escape_chars(s, '"', q);
+  ss << escape_chars(s, "\"\\", q);
 
   if(q) ss << '"';
 
@@ -400,7 +400,7 @@ ind_param(const char *s)
     goto out;
   }
 
-  ss << escape_chars(s, ']', TRUE);
+  ss << escape_chars(s, "]", TRUE);
 
 out:
 #ifdef DELIMIT_PARAM    /* for debugging only */
@@ -433,10 +433,8 @@ ind_param(const std::string *s)
  * Note: ad 1) space can be part of the parsed string if it is escaped
  *       ad 2) "     can be part of the parsed string if it is escaped.
  * 
- * - De-escaping of spaces and "s is performed: 'a\ string' => 'a string'
- *                                              '"a \"string\""' => 'a "string"'.
- * - \\ is left unchanged: '\\"' => '\\"'
- * 
+ * - De-escaping of " and \ is performed: 'a\ string' => 'a string'
+ *                                        '"a \"string\""' => 'a "string"'.
  * Returns the number of characters parsed.
  */
 #if 0
@@ -488,15 +486,17 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
     }
 
     if(dq) {
-      /* we have a double-quoted string => remove escaping of "s */
-      if(c == '\\' && !bslash && source[col] == '"') /* look ahead */
+      /* we have a double-quoted string => remove escaping of "\ */
+      if(c == '\\' && !bslash
+         && (source[col] == '"' || source[col] == '\\')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         goto esc_out;
       }
     } else {
-      /* we have an unquoted string => remove escaping of whitespace */
-      if(c == '\\' && !bslash && IS_WHITE(source[col])) /* look ahead */
+      /* we have an unquoted string => remove escaping of "\ and whitespace */
+      if(c == '\\' && !bslash
+         && (IS_WHITE(source[col]) || source[col] == '"' || source[col] == '\\')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         goto esc_out;
@@ -586,21 +586,23 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
     }
 
     if(dq) {
-      /* we have a double-quoted string => remove escaping of "s */
-      if(c == '\\' && !bslash && source[col] == '"') /* look ahead */
+      /* we have a double-quoted string => remove escaping of "\ */
+      if(c == '\\' && !bslash
+         && (source[col] == '"' || source[col] == '\\')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         goto esc_out;
       }
     } else {
-      /* we have an unquoted string => remove escaping of whitespace */
-      if(c == '\\' && !bslash && IS_WHITE(source[col])) /* look ahead */
+      /* we have an unquoted string => remove escaping of "\ and whitespace */
+      if(c == '\\' && !bslash
+         && (IS_WHITE(source[col]) || source[col] == '"' || source[col] == '\\')) /* look ahead */
       {
         /* single backslash => the following character is escaped */
         goto esc_out;
       }
     }
-    
+
     target.push_back(c);
 esc_out:
     bslash = c == '\\';

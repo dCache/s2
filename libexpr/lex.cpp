@@ -461,15 +461,17 @@ Lex::lex(Attr& attr)
         }
 
         if(dq) {
-          /* we have a double-quoted string => remove escaping of "s */
-          if(c == '\\' && !bslash && source[col] == '"') /* look ahead */
+          /* we have a double-quoted string => remove escaping of "\ */
+          if(c == '\\' && !bslash
+             && (source[col] == '"' || source[col] == '\\')) /* look ahead */
           {
             /* single backslash => the following character is escaped */
             goto esc_out;
           }
         } else {
-          /* we have an unquoted string => remove escaping of whitespace */
-          if(c == '\\' && !bslash && IS_WHITE(source[col])) /* look ahead */
+          /* we have an unquoted string => remove escaping of "\ and whitespace */
+          if(c == '\\' && !bslash
+             && (IS_WHITE(source[col]) || source[col] == '"' || source[col] == '\\')) /* look ahead */
           {
             /* single backslash => the following character is escaped */
             goto esc_out;

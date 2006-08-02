@@ -13,8 +13,31 @@
 
 #include <map>                  /* std::map */
 
+/* simple macros */
+#define S_P(mtx,proc)\
+  do {\
+    pthread_mutex_lock(mtx);\
+    Mutexes_t::iterator iter;\
+    if((iter = mutex_tab.find(mtx)) != mutex_tab.end()) {\
+      iter->second = proc;\
+    } else {\
+      mutex_tab.insert(std::pair<pthread_mutex_t *, Process *>(mtx, proc));\
+    }\
+  } while(0)
+#define S_V(mtx)\
+  do {\
+    pthread_mutex_unlock(mtx);\
+  } while(0)
+#define MUTEX(mtx,proc,...)\
+  do {S_P(mtx,proc);\
+      DM_DBG(DM_N(3), "<<< mutex "# mtx"\n");\
+      __VA_ARGS__ ;\
+      DM_DBG(DM_N(3), "mutex "# mtx" >>>\n");\
+      S_V(mtx);} while(0)
+
 /* typedefs */
 typedef std::map<std::string, std::string> Vars_t;		/* name/value pair */
+typedef std::map<pthread_mutex_t *, Process *> Mutexes_t;
 
 #define _TYPEDEF_PINT(u,s)\
 typedef struct p##u##int##s##_t \
@@ -39,7 +62,7 @@ typedef enum EVAL_t {
 
 /* global variables */
 static Vars_t gl_var_tab;	/* table of global variables */
-
+static Mutexes_t mutex_tab;	/* table of locked mutexes */
 
 struct Process
 {
@@ -70,6 +93,7 @@ public:
   Process();
   Process(Node *node, Process *p, Process *rpar);
   virtual ~Process();
+  static void progress(int show, Process *proc);
   static int threads_init(void);
   static int threads_destroy(void);
 

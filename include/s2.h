@@ -5,9 +5,9 @@
 #include <stdint.h>
 #endif
 
-#include <stdio.h>              /* FILE */
+#include <stdio.h>		/* FILE */
 
-#include "sysdep.h"	/* BOOL, STD_BUF, ... */
+#include "sysdep.h"		/* BOOL, STD_BUF, ... */
 
 #define PGMNAME         "s2"
 #define VERSION         "v"MK_VERSION" build: "BUILD_DATE
@@ -58,8 +58,5 @@ typedef struct opts_t {
   uint64_t s2_timeout;			/* default timeout for branches in milliseconds */
   int tp_size;				/* number of threads to use in the threadpool */
 } opts_t;
-
-/* extern(al) function declarations */
-extern void progress(int show);
 
 #endif /* _S2_H */

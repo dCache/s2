@@ -106,7 +106,7 @@ nDelay::exec(Process *proc)
   DM_DBG(DM_N(2), _("sleeping sec=%ld seconds, nsec=%ld [now: sec=%ld, usec=%ld]\n"), req.tv_sec, req.tv_nsec, now.tv_sec, now.tv_usec);
   
   /* show 's' => sleeping */
-  progress(-2);
+  Process::progress(-2, proc);
 
   while(nanosleep(&req, &rem) != 0) {
     if(errno == EINTR) {

@@ -17,15 +17,6 @@
 #define RETURN(...) do {DM_DBG_O; return __VA_ARGS__;} while(0)
 #endif
 
-#define S_P(mtx)	pthread_mutex_lock(mtx);
-#define S_V(mtx)	pthread_mutex_unlock(mtx);
-#define MUTEX(mtx,...)\
-  do {S_P(mtx);\
-      DM_DBG(DM_N(3), "<<< mutex "# mtx"\n");\
-      __VA_ARGS__ ;\
-      DM_DBG(DM_N(3), "mutex "# mtx" >>>\n");\
-      S_V(mtx);} while(0)
-
 #define TP_THREADS_MAX	1024		/* maximum number of threads in the threadpool */
 #define TP_THREADS_MIN	1		/* minimum number of threads in the threadpool */
 #define TP_THREADS_DEF	64		/* default number of threads in the threadpool */

@@ -982,7 +982,6 @@ Expr::K1()
     break;
 
     /* K1 -> STRING */
-#if 1
     case StringSym:{
       attr.type = STRING;
       NEW_STR(attr.v.s,lex_attr.v.s->c_str());
@@ -990,70 +989,6 @@ Expr::K1()
       LEX();
     }
     break;
-#endif
-
-#if 0
-    case StringSym:{
-      std::string s;			/* string with no $TAGs */
-      DM_DBG(DM_N(4),"s=|%s|\n",lex_attr.v.s->c_str());
-      s = Process::eval_str(lex_attr.v.s->c_str(), proc);
-      DM_DBG(DM_N(4),"s=|%s|\n",s.c_str());
-      if(strcmp(s.c_str(), lex_attr.v.s->c_str())) {
-        /* string evaluation produced a different string; *
-         * evaluate the expression again                  */
-        std::string expr_dq_param=dq_param(s,TRUE);
-        DM_DBG(DM_N(4),"expr_dq_param=|%s|\n",expr_dq_param.c_str());
-        Expr e = Expr(expr_dq_param.c_str(), proc);
-        Attr a = e.parse();
-        attr = a;
-        if(a.type == STRING) {
-          NEW_STR(attr.v.s,a.v.s->c_str());
-          DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
-        }
-        DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
-      } else {
-        /* string evaluation didn't produce a different string; *
-         * it is a string                                       */
-        attr.type = STRING;
-        NEW_STR(attr.v.s,s.c_str());
-        DM_DBG(DM_N(4),"s=|%s|\n",s.c_str());
-      }
-      LEX();
-    }
-    break;
-#endif
-
-#if 0
-    case StringSym:{
-      std::string s1 = lex_attr.v.s->c_str();
-      std::string s2;
-      BOOL change = FALSE;
-//      while(1) {
-        s2 = s1;
-        DM_DBG(DM_N(4),"s1=|%s|\n",s1.c_str());
-        s1 = Process::eval_str(s1.c_str(), proc);	/* string with no $TAGs */
-        DM_DBG(DM_N(4),"s1=|%s|\n",s1.c_str());
-        if(s1 != s2) change = TRUE;
-//        else break;
-//      }
-      if(change) {
-        /* string evaluation produced a different string */
-        attr.type = STRING;
-        NEW_STR(attr.v.s,s1.c_str());
-        DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
-        normalize(attr);
-        DM_DBG(DM_N(4),"attr.type=%d\n",attr.type);
-      } else {
-        /* string evaluation didn't produce a different string; *
-         * it is a string                                       */
-        attr.type = STRING;
-        NEW_STR(attr.v.s,lex_attr.v.s->c_str());
-        DM_DBG(DM_N(4),"attr.v.s=|%s|\n",attr.v.s->c_str());
-      }
-      LEX();
-    }
-    break;
-#endif
 
     /* K1 -> e */
     case EofSym:{

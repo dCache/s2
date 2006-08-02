@@ -1,9 +1,7 @@
 High priority
 ~~~~~~~~~~~~~
-- investigate possible race in timeout03
-- memory leaks in tag08.s2, tag09.s2
 - SRM 2.2 test scenarios and testing
-- Testing, optimize for speed, code cleanup (parsing macros?)
+- Testing, optimize for speed, code cleanup (headers, parsing macros?)
 
 Normal priority
 ~~~~~~~~~~~~~~~
@@ -17,6 +15,6 @@ Low priority
 ~~~~~~~~~~~~
 - Plugin architecture to make addition of new protocols less intrusive?
 - Port to BSDs?
-- Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgridn);
+- Both NPTL and LinuxThreads leak a bit (although somewhat differently according to valgrind);
   investigate?  Use Apache threads instead?
 - Investigate gSoap memory leaks yet again???

@@ -23,6 +23,16 @@
 #include <stdlib.h>		/* rand() and srand() functions */
 #include <unistd.h>
 
+/* simple macros */
+#define S_P(mtx)	pthread_mutex_lock(mtx);
+#define S_V(mtx)	pthread_mutex_unlock(mtx);
+#define MUTEX(mtx,...)\
+  do {S_P(mtx);\
+      DM_DBG(DM_N(3), "<<< mutex "# mtx"\n");\
+      __VA_ARGS__ ;\
+      DM_DBG(DM_N(3), "mutex "# mtx" >>>\n");\
+      S_V(mtx);} while(0)
+
 /* number of threads used to service requests */
 #define FTHREAD	"thread (%d/%lu): "
 

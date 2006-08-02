@@ -46,16 +46,6 @@
 
 using namespace std;
 
-/* simple macros */
-#define UPDATE_MAX_MUTEX(mtx,m1,m2)\
-  do {\
-    S_P(mtx);\
-    DM_DBG(DM_N(3), FBRANCH"<<< update_max_mutex\n", n->row, executed, evaluated);\
-    UPDATE_MAX(m1,m2);\
-    DM_DBG(DM_N(3), FBRANCH"update_max_mutex >>>\n", n->row, executed, evaluated);\
-    S_V(mtx);\
-  } while(0)
-
 /* global variables */
 struct tp_sync_t tp_sync;
 
@@ -116,7 +106,7 @@ eval_in_parallel(void *proc)
 
   root_eval = p->eval_sequential_repeats();
   UPDATE_MAX(p->evaluated, root_eval);
-  MUTEX(&tp_sync.total_mtx, tp_sync.total--);
+  MUTEX(&tp_sync.total_mtx, p, tp_sync.total--);
 
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", p->n->row, p->executed, p->evaluated, pthread_self());
 
@@ -239,6 +229,69 @@ Process::~Process()
     n->finish(this);
 }
 
+
+/*
+ * Show a simple progress "bar"
+ *
+ * Params:
+ *  -1: init
+ *   0: hide
+ *   1: show
+ */
+void
+Process::progress(int show, Process *proc)
+{
+  static char state = '/';
+  static BOOL hidden = TRUE;
+
+  if(!opts.progress_bar)
+    return;
+
+  S_P(&tp_sync.print_mtx,proc);
+  if(!show) {
+    /* hide */
+    if(!hidden) {
+      /* on some systems (Windows) '\b' doesn't seem to delete */
+      fprintf(stderr,"\b \b");
+      fflush(stderr);
+    }
+ 
+    hidden = TRUE;
+    S_V(&tp_sync.print_mtx);
+    return;
+  }
+  
+  if(show == -1)
+    /* init */
+    state = '/';
+
+  if(show == -2)
+    /* sleeping */
+    state = 's';
+
+  switch (state) {
+    case '-': state = '\\'; break;
+    case '\\': state = '|'; break;
+    case '|': state = '/'; break;
+    case '/': state = '-'; break;
+    case 's': state = 's'; break;
+
+    default: 
+      state = '/';
+    break;
+  }
+  if(!hidden) {
+    /* on some systems (Windows) '\b' doesn't seem to delete */
+    fprintf(stderr,"\b \b");
+  }
+    
+  fputc(state, stderr);
+  fflush(stderr);
+  hidden = FALSE;
+  S_V(&tp_sync.print_mtx);
+}
+
+
 int
 Process::threads_init(void)
 {
@@ -285,7 +338,7 @@ Process::eval()
     RETURN(ERR_ASSERT);
   }
 
-  progress(1);		/* show/change progress bar */
+  Process::progress(1,this);		/* show/change progress bar */
   
   DM_DBG(DM_N(3), FBRANCH"proc=%p\n", n->row, executed, evaluated, this);
 
@@ -320,7 +373,7 @@ Process::eval()
           do {
             i += step;
             DM_DBG(DM_N(1), "parallel repeat branch %u; >%s %s; i=%"PRIi64"\n", ptr_node->row, ptr_node->REPEAT.X->c_str(), ptr_node->REPEAT.Y->c_str(), i);
-            S_P(&tp_sync.total_mtx);
+            S_P(&tp_sync.total_mtx,this);
             DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
             if(tp_sync.total < opts.tp_size) {
               tp_sync.total++;
@@ -355,7 +408,7 @@ Process::eval()
           continue;
         } /* end repeats */
         
-        S_P(&tp_sync.total_mtx);
+        S_P(&tp_sync.total_mtx,this);
         DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
         if(tp_sync.total < opts.tp_size) {
           tp_sync.total++;
@@ -392,7 +445,7 @@ Process::eval()
   UPDATE_MAX(evaluated, root_eval);
   DM_DBG(DM_N(3), FBRANCH"root_eval=%d\n", n->row, executed, evaluated, root_eval);
 
-  S_P(&sreqs_mtx);
+  S_P(&sreqs_mtx,this);
   DM_DBG(DM_N(3), FBRANCH"<<< sreqs_mtx\n", n->row, executed, evaluated);
   while(sreqs != 0) {
     DM_DBG(DM_N(3), FBRANCH"waiting for sreqs=0 (%d)\n", n->row, executed, evaluated, sreqs);
@@ -466,7 +519,7 @@ seq:
         BOOL enqueued;
         enqueued = FALSE;
         
-        S_P(&tp_sync.total_mtx);
+        S_P(&tp_sync.total_mtx,this);
         DM_DBG(DM_N(3), FBRANCH"<<< total_mtx\n", n->row, executed, evaluated);
 
         if(tp_sync.total < opts.tp_size) {
@@ -500,7 +553,7 @@ seq:
         }
       } while(i != y);
 
-      S_P(&sreqs_mtx);
+      S_P(&sreqs_mtx,this);
       DM_DBG(DM_N(3), FBRANCH"<<< r sreqs_mtx (%d)\n", n->row, executed, evaluated, sreqs);
       while(sreqs != 0) {
         DM_DBG(DM_N(3), FBRANCH"waiting for r sreqs=0 (%d)\n", n->row, executed, evaluated, sreqs);
@@ -706,15 +759,20 @@ pthread_timeout_handler(void *proc)
 {
   DM_DBG_I;
 
+  Process *p = (Process *)proc;
+  Mutexes_t::iterator iter;
+
   /* put it all in a diagnostics block => no warnings when compiling without libdiagnose */
   DM_BLOCK(DBG, DM_N(3),
     pthread_t tid = pthread_self();	/* thread identifying number */
-    Process *p = (Process *)proc;
 
     DM_DBG(DM_N(3), FBRANCH"cleaning up thread (%lu)\n", p->n->row, p->executed, p->evaluated, tid);
   );
 
-  S_V(&tp_sync.print_mtx);	//hack
+  /* unlock all the locks locked by this process to be canceled */
+  for(iter = mutex_tab.begin(); iter != mutex_tab.end(); iter++) {
+    if(iter->second == p) S_V(&tp_sync.print_mtx);
+  }
 
   DM_DBG_O;
 }
@@ -732,6 +790,7 @@ exec_in_parallel_without_timeout(void *timeout_info)
   /* set thread cleanup handler */
   DM_DBG(DM_N(3), FBRANCH"pushing cleanup handler for proc=%p\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, ti->p->n);
   pthread_cleanup_push(pthread_timeout_handler, (void*)ti->p);
+
   DM_DBG(DM_N(3), "%s\n", ti->p->n->toString(FALSE).c_str());
 
   root_eval = ti->p->n->exec(ti->p);
@@ -741,7 +800,7 @@ exec_in_parallel_without_timeout(void *timeout_info)
   DM_DBG(DM_N(3), FBRANCH"quitting thread id %lu\n", ti->p->n->row, ti->p->executed, ti->p->evaluated, pthread_self());
 
   DM_DBG(DM_N(3), "<<< ti->timeout_mtx\n");
-  S_P(&ti->timeout_mtx);
+  S_P(&ti->timeout_mtx,ti->p);
   if(pthread_cond_broadcast(&ti->timeout_cv)) {
     DM_ERR(ERR_SYSTEM, _("pthread_cond_signal failed: %s\n"), strerror(errno));
   }
@@ -785,7 +844,7 @@ Process::exec_with_timeout()
   
   /* timeouts handling */
   DM_DBG(DM_N(3), FBRANCH"proc=%p; creating new thread with timeout=%"PRIu64"\n", n->row, executed, evaluated, this, n->TIMEOUT);
-  S_P(&ti.timeout_mtx);
+  S_P(&ti.timeout_mtx,this);
   DM_DBG(DM_N(3), FBRANCH"<<< timeout_mtx\n", n->row, executed, evaluated);
   int thread_rval = thread_create(&thread_id, exec_in_parallel_without_timeout, &ti);
   if(thread_rval)
@@ -1971,6 +2030,8 @@ Process::eval_str(const char *cstr, Process *proc)
             UPDATE_MAX(proc->executed, fun_eval);
             proc->evaluated = proc->executed;		/* for ${?} */
           }
+          /* cleanup */
+          DELETE(proc_fun.var_tab);
         } else {
           s.append("$" + std::string(state_name[state]) + "{");
           s.append(dq_param(name.c_str(), TRUE));

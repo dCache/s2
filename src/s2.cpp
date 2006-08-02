@@ -92,67 +92,6 @@ PNAME(void)
 } /* PNAME */
 
 /********************************************************************
- * Show a console progress "bar"
- *
- * Params:
- *  -1: init
- *   0: hide
- *   1: show
- ********************************************************************/
-extern void
-progress(int show)
-{
-  static char state = '/';
-  static BOOL hidden = TRUE;
-
-  if(!opts.progress_bar)
-    return;
-
-  S_P(&tp_sync.print_mtx);
-  if(!show) {
-    /* hide */
-    if(!hidden) {
-      /* on some systems (Windows) '\b' doesn't seem to delete */
-      fprintf(stderr,"\b \b");
-      fflush(stderr);
-    }
- 
-    hidden = TRUE;
-    S_V(&tp_sync.print_mtx);
-    return;
-  }
-  
-  if(show == -1)
-    /* init */
-    state = '/';
-
-  if(show == -2)
-    /* sleeping */
-    state = 's';
-
-  switch (state) {
-    case '-': state = '\\'; break;
-    case '\\': state = '|'; break;
-    case '|': state = '/'; break;
-    case '/': state = '-'; break;
-    case 's': state = 's'; break;
-
-    default: 
-      state = '/';
-    break;
-  }
-  if(!hidden) {
-    /* on some systems (Windows) '\b' doesn't seem to delete */
-    fprintf(stderr,"\b \b");
-  }
-    
-  fputc(state, stderr);
-  fflush(stderr);
-  hidden = FALSE;
-  S_V(&tp_sync.print_mtx);
-}
-
-/********************************************************************
  * Private C functions
  ********************************************************************/
 /*
@@ -970,7 +909,7 @@ s2_run(int argc, char **argv, int i)
   BOOL tp_created = FALSE;
 
   /* init progress bar */
-  progress(-1);
+  Process::progress(-1,proc);
 
   lval = parse(opts.scr_fname, &root);
   DM_DBG(DM_N(1), "parser return value=%d\n", lval);
@@ -1027,7 +966,7 @@ cleanup:
   if(tp_created) tp_cleanup();
 
   /* hide progress bar */
-  progress(0);
+  Process::progress(0,proc);
 
   DM_DBG(DM_N(1), "s2_run return value=%d\n", rval);
   return rval;

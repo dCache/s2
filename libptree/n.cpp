@@ -23,7 +23,8 @@
 #include "s2.h"			/* opts (s2 options), progress(), ... */
 #include "str.h"
 #include "io.h"                 /* file_ropen(), ... */
-#include "thread_pool.h"	/* S_P, S_V */
+#include "process.h"		/* S_P, S_V */
+#include "thread_pool.h"	/* tp_sync_t */
 
 #include <sys/time.h>		/* gettimeofday() */
 #include <time.h>		/* gettimeofday() */
@@ -307,7 +308,7 @@ Node::print_node
 
   std::string str = nodeToString(n, indent, proc);
 
-  S_P(&tp_sync.print_mtx);
+  S_P(&tp_sync.print_mtx,proc);
   if(show_executed) {
     if(show_evaluated)
       fprintf(file, "%d/%d:", executed, evaluated);

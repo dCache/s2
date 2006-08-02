@@ -17,7 +17,7 @@
 #define RETURN(...) do {DM_DBG_O; return __VA_ARGS__;} while(0)
 #endif
 
-#define TP_THREADS_MAX	1024		/* maximum number of threads in the threadpool */
+#define TP_THREADS_MAX	128		/* maximum number of threads in the threadpool (I've had failures to create new threads when threads >383) */
 #define TP_THREADS_MIN	1		/* minimum number of threads in the threadpool */
 #define TP_THREADS_DEF	64		/* default number of threads in the threadpool */
 

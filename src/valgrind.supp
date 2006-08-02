@@ -7,6 +7,14 @@
    fun:clone
 }
 {
+   Conditional jump or move depends on uninitialised value(s)
+   Memcheck:Cond
+   fun:__pthread_perform_cleanup
+   fun:__pthread_do_exit
+   fun:pthread_start_thread
+   fun:clone
+}
+{
    ld
    Memcheck:Cond
    obj:/lib/ld-2.3.5.so

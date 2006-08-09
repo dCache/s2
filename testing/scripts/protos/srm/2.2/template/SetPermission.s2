@@ -1,3 +1,3 @@
 ; srmSetPermission
 
-srmSetPermission $ENV{ENDPOINT} authorizationID=$ENV{USER} SURL=<SURL> permissionType=ADD ownerPermission=RWX userPermission.ID[ui0 ui1] userPermission.mode[None RWX] groupPermission.ID[gi0 gi1] groupPermission.mode[None RWX] otherPermission=RWX storageSystemInfo.key[<k0> <k1>] storageSystemInfo.value[<v0> <v1>] returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+srmSetPermission $ENV{ENDPOINT} authorizationID=$ENV{USER} SURL=<SURL> permissionType=ADD ownerPermission=RWX userPermission.ID[ui0 ui1] userPermission.mode[None RWX] groupPermission.ID[gi0 gi1] groupPermission.mode[None RWX] otherPermission=RWX storageSystemInfo.key[<k0> <k1>] storageSystemInfo.value[<v0> <v1>] returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)

@@ -13,8 +13,8 @@ DEFUN ExhArrString i var val : var_r
    || ASSIGN var_r ""
 
 DEFUN S2 script i
-   ASSIGN S2_P ${i}$ENV{S2_P} S2_D ${i}$ENV{S2_D} S2_E ${i}$ENV{S2_E} S2_L ${i}$ENV{S2_L} S2_W ${i}$ENV{S2_W} S2_E0 ${i}$ENV{S2_E0} S2_E1 ${i}$ENV{S2_E1} S2_E2 ${i}$ENV{S2_E2}
-#if 0
+   ASSIGN S2_S2 ${i}$ENV{S2_P} S2_P ${i}$ENV{S2_P} S2_D ${i}$ENV{S2_D} S2_E ${i}$ENV{S2_E} S2_L ${i}$ENV{S2_L} S2_W ${i}$ENV{S2_W} S2_E0 ${i}$ENV{S2_E0} S2_E1 ${i}$ENV{S2_E1} S2_E2 ${i}$ENV{S2_E2}
+#if 1
    && SYSTEM echo '${script}' | s2 --pp-out-file=${S2_P} --dbg-file=${S2_D} --err-file=${S2_E} --log-file=${S2_L} --warn-file=${S2_W} --e0-file=${S2_E0} --e1-file=${S2_E1} --e2-file=${S2_E2} --progress=0
 #else
    && SYSTEM echo '${script}'

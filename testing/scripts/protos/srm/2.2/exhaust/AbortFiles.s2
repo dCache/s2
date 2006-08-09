@@ -10,8 +10,10 @@ DEFUN srmTest authorizationID requestToken SURL
       >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1  
          >0&&2 FUN ExhArrString $I{0} SURL ${SURL} : arg2
             ASSIGN c $EXPR{${c}+1}
-            && ASSIGN script "srmAbortFiles $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-            && eval=2 FUN S2 ${script} $PRINTF{%02d ${c}}
+            && ASSIGN script "eval=2 srmAbortFiles $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+            && FUN S2 ${script} $PRINTF{%02d ${c}}
+            ; Ingore errors
+            || NOP
 
 ;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && ASSIGN c 0

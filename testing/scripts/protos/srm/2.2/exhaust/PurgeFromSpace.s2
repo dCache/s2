@@ -1,0 +1,20 @@
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+  #include ../include/Exhaust.s2
+
+DEFUN srmTest authorizationID SURL spaceToken storageSystemInfo.key storageSystemInfo.value
+   >0&&4 NOP
+      >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
+         >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} SURL ${SURL} : arg1
+            >0&&$EXPR{2*($I{3}==2)} FUN ExhString $I{0} spaceToken ${spaceToken} : arg2
+               >0&&$EXPR{2*($I{4}==3)} FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg3
+                  >0&&$EXPR{2*($I{5}==4)} FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg4
+                     ASSIGN c $EXPR{${c}+1}
+                     && ASSIGN script "eval=2 srmPurgeFromSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+                     && FUN S2 ${script} $PRINTF{%02d ${c}}
+                     ; Ignore errors
+                     || NOP
+
+;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN c 0
+;&& <CODE FROM BASIC>
+&& FUN srmTest $ENV{USER} ${SURL} ${spaceToken} ${storageSystemInfo.key} ${storageSystemInfo.value}

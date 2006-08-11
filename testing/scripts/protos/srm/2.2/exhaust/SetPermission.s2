@@ -1,0 +1,26 @@
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+  #include ../include/Exhaust.s2
+
+DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission.ID userPermission.mode groupPermission.ID groupPermission.mode otherPermission storageSystemInfo.key storageSystemInfo.value
+   >0&&10 NOP
+      >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
+         >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} SURL ${SURL} : arg1
+            >0&&$EXPR{2*($I{3}==2)} FUN ExhPermissionType $I{0} permissionType ${permissionType} : arg2
+               >0&&$EXPR{2*($I{4}==3)} FUN ExhPermissionMode $I{0} ownerPermission ${ownerPermission} : arg3
+                  >0&&$EXPR{2*($I{5}==4)} FUN ExhString $I{0} userPermission.ID ${userPermission.ID} : arg4
+                     >0&&$EXPR{2*($I{6}==5)} FUN ExhPermissionMode $I{0} userPermission.mode ${userPermission.mode} : arg5
+                        >0&&$EXPR{2*($I{7}==6)} FUN ExhString $I{0} groupPermission.ID ${groupPermission.ID} : arg6
+                           >0&&$EXPR{2*($I{8}==7)} FUN ExhPermissionMode $I{0} groupPermission.mode ${groupPermission.mode} : arg7
+                              >0&&$EXPR{2*($I{9}==8)} FUN ExhPermissionMode $I{0} otherPermission ${otherPermission} : arg8
+                                 >0&&$EXPR{2*($I{10}==9)} FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg9
+                                    >0&&$EXPR{2*($I{11}==10)} FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg10
+                                       ASSIGN c $EXPR{${c}+1}
+                                       && ASSIGN script "eval=2 srmSetPermission $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
+                                       && FUN S2 ${script} $PRINTF{%02d ${c}}
+                                       ; Ignore errors
+                                       || NOP
+
+;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN c 0
+;&& <CODE FROM BASIC>
+&& FUN srmTest $ENV{USER} ${SURL} ${permissionType} ${ownerPermission} ${userPermission.ID} ${userPermission.mode} ${groupPermission.ID} ${groupPermission.mode} ${otherPermission} ${storageSystemInfo.key} ${storageSystemInfo.value}

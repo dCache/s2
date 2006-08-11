@@ -1,0 +1,34 @@
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+  #include ../include/Exhaust.s2
+
+DEFUN srmTest authorizationID sourceSURL targetSURL isSourceADirectory allLevelRecursive numOfLevels userRequestDescription overwriteOption desiredTotalRequestTime desiredTargetSURLLifeTime targetFileStorageType targetSpaceToken targetFileRetentionPolicyInfo retentionPolicy accessLatency sourceStorageSystemInfo.key sourceStorageSystemInfo.value targetStorageSystemInfo.key targetStorageSystemInfo.value
+   >0&&18 NOP
+      >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
+         >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} sourceSURL ${sourceSURL} : arg1
+            >0&&$EXPR{2*($I{3}==2)} FUN ExhString $I{0} targetSURL ${targetSURL} : arg2
+               >0&&$EXPR{2*($I{4}==3)} FUN ExhBool $I{0} isSourceADirectory ${isSourceADirectory} : arg3
+                  >0&&$EXPR{2*($I{5}==4)} FUN ExhBool $I{0} allLevelRecursive ${allLevelRecursive} : arg4
+                     >0&&$EXPR{2*($I{6}==5)} FUN ExhInt $I{0} numOfLevels ${numOfLevels} : arg5
+                        >0&&$EXPR{2*($I{7}==6)} FUN ExhString $I{0} userRequestDescription ${userRequestDescription} : arg6
+                           >0&&$EXPR{2*($I{8}==7)} FUN ExhBool $I{0} overwriteOption ${overwriteOption} : arg7
+                              >0&&$EXPR{2*($I{9}==8)} FUN ExhTime $I{0} desiredTotalRequestTime ${desiredTotalRequestTime} : arg8
+                                 >0&&$EXPR{2*($I{10}==9)} FUN ExhTime $I{0} desiredTargetSURLLifeTime ${desiredTargetSURLLifeTime} : arg9
+                                    >0&&$EXPR{2*($I{11}==10)} FUN ExhFileStorageType $I{0} targetFileStorageType ${targetFileStorageType} : arg10
+                                       >0&&$EXPR{2*($I{12}==11)} FUN ExhString $I{0} targetSpaceToken ${targetSpaceToken} : arg11
+                                          >0&&$EXPR{2*($I{13}==12)} FUN ExhString $I{0} targetFileRetentionPolicyInfo ${targetFileRetentionPolicyInfo} : arg12
+                                             >0&&$EXPR{2*($I{14}==13)} FUN ExhRetentionPolicy $I{0} retentionPolicy ${retentionPolicy} : arg13
+                                                >0&&$EXPR{2*($I{15}==14)} FUN ExhAccessLatency $I{0} accessLatency ${accessLatency} : arg14
+                                                   >0&&$EXPR{2*($I{16}==15)} FUN ExhString $I{0} sourceStorageSystemInfo.key ${sourceStorageSystemInfo.key} : arg15
+                                                      >0&&$EXPR{2*($I{17}==16)} FUN ExhString $I{0} sourceStorageSystemInfo.value ${sourceStorageSystemInfo.value} : arg16
+                                                         >0&&$EXPR{2*($I{18}==17)} FUN ExhString $I{0} targetStorageSystemInfo.key ${targetStorageSystemInfo.key} : arg17
+                                                            >0&&$EXPR{2*($I{19}==18)} FUN ExhString $I{0} targetStorageSystemInfo.value ${targetStorageSystemInfo.value} : arg18
+                                                               ASSIGN c $EXPR{${c}+1}
+                                                               && ASSIGN script "eval=2 srmCopy $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}${arg11}${arg12}${arg13}${arg14}${arg15}${arg16}${arg17}${arg18}requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_DONE)"
+                                                               && FUN S2 ${script} $PRINTF{%02d ${c}}
+                                                               ; Ignore errors
+                                                               || NOP
+
+;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN c 0
+;&& <CODE FROM BASIC>
+&& FUN srmTest $ENV{USER} ${sourceSURL} ${targetSURL} ${isSourceADirectory} ${allLevelRecursive} ${numOfLevels} ${userRequestDescription} ${overwriteOption} ${desiredTotalRequestTime} ${desiredTargetSURLLifeTime} ${targetFileStorageType} ${targetSpaceToken} ${targetFileRetentionPolicyInfo} ${retentionPolicy} ${accessLatency} ${sourceStorageSystemInfo.key} ${sourceStorageSystemInfo.value} ${targetStorageSystemInfo.key} ${targetStorageSystemInfo.value}

@@ -1,0 +1,18 @@
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+  #include ../include/Exhaust.s2
+
+DEFUN srmTest authorizationID requestToken offset count
+   >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
+      >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
+         >0&&2 FUN ExhInt $I{0} offset ${offset} : arg2
+            >0&&2 FUN ExhInt $I{0} count ${count} : arg3
+               ASSIGN c $EXPR{${c}+1}
+               && ASSIGN script "eval=2 srmStatusOfLsRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+               && FUN S2 ${script} $PRINTF{%02d ${c}}
+               ; Ignore errors
+               || NOP
+
+;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN c 0
+;&& <CODE FROM BASIC>
+&& FUN srmTest $ENV{USER} ${requestToken} ${offset} ${count}

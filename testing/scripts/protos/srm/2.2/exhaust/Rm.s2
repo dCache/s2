@@ -1,0 +1,18 @@
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+  #include ../include/Exhaust.s2
+
+DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
+   >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
+      >0&&2 FUN ExhString $I{0} SURL ${SURL} : arg1
+         >0&&2 FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
+            >0&&2 FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
+               ASSIGN c $EXPR{${c}+1}
+               && ASSIGN script "eval=2 srmRm $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+               && FUN S2 ${script} $PRINTF{%02d ${c}}
+               ; Ignore errors
+               || NOP
+
+;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+&& ASSIGN c 0
+;&& <CODE FROM BASIC>
+&& FUN srmTest $ENV{USER} ${SURL} ${storageSystemInfo.key} ${storageSystemInfo.value}

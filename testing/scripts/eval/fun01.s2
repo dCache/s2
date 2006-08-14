@@ -1,8 +1,0 @@
-; Function definition and call test.
-
-ASSIGN ScriptName "fun01"
-   DEFUN Fail str code
-      SYSTEM echo "${ScriptName}: ${str}: ${code}"
-         NOP ${code}
-
-&& FUN Fail "Testing a function call" 1

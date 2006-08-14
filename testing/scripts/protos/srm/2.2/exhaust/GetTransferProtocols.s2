@@ -9,7 +9,7 @@ DEFUN srmTest authorizationID
       % Ignore errors
       || NOP
 
-%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
 && FUN srmTest $ENV{USER}

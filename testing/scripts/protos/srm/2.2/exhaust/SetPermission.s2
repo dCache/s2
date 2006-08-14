@@ -20,7 +20,7 @@ DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission
                                        % Ignore errors
                                        || NOP
 
-%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
 && ASSIGN SURL SURL

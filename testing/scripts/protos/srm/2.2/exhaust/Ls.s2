@@ -19,7 +19,7 @@ DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
                                     % Ignore errors
                                     || NOP
 
-%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
 && ASSIGN SURL SURL

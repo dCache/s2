@@ -12,7 +12,7 @@ DEFUN srmTest authorizationID directoryPath storageSystemInfo.key storageSystemI
                % Ignore errors
                || NOP
 
-%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
 && ASSIGN directoryPath directoryPath

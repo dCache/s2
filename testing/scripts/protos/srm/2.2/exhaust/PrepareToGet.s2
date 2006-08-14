@@ -27,7 +27,7 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory 
                                                             % Ignore errors
                                                             || NOP
 
-%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
 && ASSIGN fileRequests.SURL fileRequests.SURL

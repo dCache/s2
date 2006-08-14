@@ -14,7 +14,7 @@ DEFUN srmTest authorizationID requestToken SURL newFileLifeTime newPinLifeTime
                      % Ignore errors
                      || NOP
 
-%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
+%%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
 && ASSIGN requestToken requestToken

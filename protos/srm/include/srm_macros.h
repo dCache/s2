@@ -232,7 +232,7 @@
 #define MV_PSTR2PSTR(t,s)\
   do {\
     t = s;\
-    DM_LOG(DM_N(2), ""#t " == `%s'\n", CSTR(s));\
+    DM_LOG(DM_N(2), ""#t " == `%s'\n", CSTR(t));\
   } while(0)
 
 /* SRM types */
@@ -270,7 +270,7 @@
       srm__TExtraInfo *extraInfo;\
       NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));\
       MV_CSTR2STR(extraInfo->key,CSTR(v2.key[u]));\
-      MV_PSTR2PSTR(extraInfo->value,v2.value[u]);\
+      MV_PSTR2PSTR(extraInfo->value, NOT_NULL_VEC(v2,value)? v2.value[u]: NULL);\
       v1->extraInfoArray.push_back(extraInfo);\
     }\
   } while(0)

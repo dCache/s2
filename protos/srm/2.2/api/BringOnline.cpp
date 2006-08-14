@@ -113,7 +113,7 @@ BringOnline(struct soap *soap,
   MV_TRANSFER_PARAMETERS(req.transferParameters);
 
   MV_PINT(req.desiredTotalRequestTime,desiredTotalRequestTime);
-  
+
   /* To send the request ... */
   SOAP_CALL_SRM(BringOnline); 
 

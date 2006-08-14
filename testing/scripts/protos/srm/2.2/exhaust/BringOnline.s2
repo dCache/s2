@@ -1,16 +1,17 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
   #include ../include/Exhaust.s2
+  #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory fileRequests.allLevelRecursive fileRequests.numOfLevels userRequestDescription storageSystemInfo.key storageSystemInfo.value desiredFileStorageType desiredTotalRequestTime desiredLifeTime targetSpaceToken retentionPolicy accessLatency accessPattern connectionType clientNetworks transferProtocols deferredStartTime
    >0&&18 NOP
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
-         >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} fileRequests.SURL ${fileRequests.SURL} : arg1
-            >0&&$EXPR{2*($I{3}==2)} FUN ExhBool $I{0} fileRequests.isSourceADirectory ${fileRequests.isSourceADirectory} : arg2
-               >0&&$EXPR{2*($I{4}==3)} FUN ExhBool $I{0} fileRequests.allLevelRecursive ${fileRequests.allLevelRecursive} : arg3
-                  >0&&$EXPR{2*($I{5}==4)} FUN ExhInt $I{0} fileRequests.numOfLevels ${fileRequests.numOfLevels} : arg4
+         >0&&$EXPR{2*($I{2}==1)} FUN ExhStringArr $I{0} fileRequests.SURL ${fileRequests.SURL} : arg1
+            >0&&$EXPR{2*($I{3}==2)} FUN ExhBoolArr $I{0} fileRequests.isSourceADirectory ${fileRequests.isSourceADirectory} : arg2
+               >0&&$EXPR{2*($I{4}==3)} FUN ExhBoolArr $I{0} fileRequests.allLevelRecursive ${fileRequests.allLevelRecursive} : arg3
+                  >0&&$EXPR{2*($I{5}==4)} FUN ExhIntArr $I{0} fileRequests.numOfLevels ${fileRequests.numOfLevels} : arg4
                      >0&&$EXPR{2*($I{6}==5)} FUN ExhString $I{0} userRequestDescription ${userRequestDescription} : arg5
-                        >0&&$EXPR{2*($I{7}==6)} FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg6
-                           >0&&$EXPR{2*($I{8}==7)} FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg7
+                        >0&&$EXPR{2*($I{7}==6)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg6
+                           >0&&$EXPR{2*($I{8}==7)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg7
                               >0&&$EXPR{2*($I{9}==8)} FUN ExhFileStorageType $I{0} desiredFileStorageType ${desiredFileStorageType} : arg8
                                  >0&&$EXPR{2*($I{10}==9)} FUN ExhTime $I{0} desiredTotalRequestTime ${desiredTotalRequestTime} : arg9
                                     >0&&$EXPR{2*($I{11}==10)} FUN ExhTime $I{0} desiredLifeTime ${desiredLifeTime} : arg10
@@ -19,8 +20,8 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory 
                                              >0&&$EXPR{2*($I{14}==13)} FUN ExhAccessLatency $I{0} accessLatency ${accessLatency} : arg13
                                                 >0&&$EXPR{2*($I{15}==14)} FUN ExhAccessPattern $I{0} accessPattern ${accessPattern} : arg14
                                                    >0&&$EXPR{2*($I{16}==15)} FUN ExhConnectionType $I{0} connectionType ${connectionType} : arg15
-                                                      >0&&$EXPR{2*($I{17}==16)} FUN ExhString $I{0} clientNetworks ${clientNetworks} : arg16
-                                                         >0&&$EXPR{2*($I{18}==17)} FUN ExhString $I{0} transferProtocols ${transferProtocols} : arg17
+                                                      >0&&$EXPR{2*($I{17}==16)} FUN ExhStringArr $I{0} clientNetworks ${clientNetworks} : arg16
+                                                         >0&&$EXPR{2*($I{18}==17)} FUN ExhStringArr $I{0} transferProtocols ${transferProtocols} : arg17
                                                             >0&&$EXPR{2*($I{19}==18)} FUN ExhTime $I{0} deferredStartTime ${deferredStartTime} : arg18
                                                                ASSIGN c $EXPR{${c}+1}
                                                                && ASSIGN script "eval=2 srmBringOnline $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}${arg11}${arg12}${arg13}${arg14}${arg15}${arg16}${arg17}${arg18}requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
@@ -30,5 +31,25 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory 
 
 ;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& ASSIGN fileRequests.SURL $ENV{SRM_NEW_FILE0}
+&& ASSIGN fileRequests.isSourceADirectory 0
+&& ASSIGN fileRequests.allLevelRecursive 0
+&& ASSIGN fileRequests.numOfLevels 0
+&& ASSIGN userRequestDescription userRequestDescription
+&& ASSIGN storageSystemInfo.key storageSystemInfo.key
+&& ASSIGN storageSystemInfo.value storageSystemInfo.value
+&& ASSIGN desiredFileStorageType $ENV{STORAGE_TYPE}
+&& ASSIGN desiredTotalRequestTime 60
+&& ASSIGN desiredLifeTime 60
+&& ASSIGN targetSpaceToken targetSpaceToken
+&& ASSIGN retentionPolicy $ENV{RETENTION_POLICY}
+&& ASSIGN accessLatency $ENV{ACCESS_LATENCY}
+&& ASSIGN accessPattern $ENV{ACCESS_PATTERN}
+&& ASSIGN connectionType $ENV{CONNECTION_TYPE}
+&& ASSIGN clientNetworks clientNetworks
+&& ASSIGN transferProtocols "$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}"
+&& ASSIGN deferredStartTime 0
 && FUN srmTest $ENV{USER} ${fileRequests.SURL} ${fileRequests.isSourceADirectory} ${fileRequests.allLevelRecursive} ${fileRequests.numOfLevels} ${userRequestDescription} ${storageSystemInfo.key} ${storageSystemInfo.value} ${desiredFileStorageType} ${desiredTotalRequestTime} ${desiredLifeTime} ${targetSpaceToken} ${retentionPolicy} ${accessLatency} ${accessPattern} ${connectionType} ${clientNetworks} ${transferProtocols} ${deferredStartTime}

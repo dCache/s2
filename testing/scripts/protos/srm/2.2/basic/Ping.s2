@@ -1,4 +1,4 @@
-; srmPing
+% srmPing
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

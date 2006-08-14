@@ -1,3 +1,3 @@
-; srmCopy
+% srmCopy
 
 srmCopy $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.allLevelRecursive[0 0] arrayOfFileRequests.isSourceADirectory[0 0] arrayOfFileRequests.numOfLevels[0 0] arrayOfFileRequests.fileStorageType[<type0> <type1>] arrayOfFileRequests.fromSURLOrStFN[<s0> <s1>] arrayOfFileRequests.fromStorageSystemInfo[<i0> <i1>] arrayOfFileRequests.lifetime[0 0] arrayOfFileRequests.overwriteMode[<t0> <t1>] arrayOfFileRequests.spaceToken[<t0> <t1>] arrayOfFileRequests.toSURLOrStFN[<s0> <s1>] arrayOfFileRequests.toStorageSystemInfo[<i0> <i1>] userRequestDescription=<userRequestDescription> overwriteOption=Always removeSourceFiles=0 storageSystemInfo=<storageSystemInfo> totalRetryTime=<totalRetryTime> requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_DONE)

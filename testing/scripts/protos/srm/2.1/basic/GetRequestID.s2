@@ -1,6 +1,6 @@
-; srmGetRequestID
-;
-; srmPrepareToPut
+% srmGetRequestID
+%
+% srmPrepareToPut
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
@@ -9,7 +9,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && srmGetRequestID $ENV{ENDPOINT} userID=$ENV{USER} userRequestDescription=$ENV{cdate} requestTokens=(?P<requestTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: requestTokens[${requestTokens}]" >> $ENV{S2_LOG}
 
-; "substring" matching (-c)
+% "substring" matching (-c)
 && match=-c TEST $MATCH{${putRequestToken} ${requestTokens}}
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

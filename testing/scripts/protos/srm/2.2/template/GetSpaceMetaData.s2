@@ -1,3 +1,3 @@
-; srmGetSpaceMetaData
+% srmGetSpaceMetaData
 
 srmGetSpaceMetaData $ENV{ENDPOINT} authorizationID=$ENV{USER} spaceTokens[spaceToken0 spaceToken1] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)

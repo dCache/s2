@@ -6,15 +6,19 @@ DEFUN srmTest authorizationID fromSURL toSURL storageSystemInfo.key storageSyste
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
          >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} fromSURL ${fromSURL} : arg1
             >0&&$EXPR{2*($I{3}==2)} FUN ExhString $I{0} toSURL ${toSURL} : arg2
-               >0&&$EXPR{2*($I{4}==3)} FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg3
-                  >0&&$EXPR{2*($I{5}==4)} FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg4
+               >0&&$EXPR{2*($I{4}==3)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg3
+                  >0&&$EXPR{2*($I{5}==4)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg4
                      ASSIGN c $EXPR{${c}+1}
                      && ASSIGN script "eval=2 srmMv $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
                      && FUN S2 ${script} $PRINTF{%02d ${c}}
-                     ; Ignore errors
+                     % Ignore errors
                      || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN fromSURL fromSURL
+&& ASSIGN toSURL toSURL
+&& ASSIGN storageSystemInfo.key storageSystemInfo.key
+&& ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${fromSURL} ${toSURL} ${storageSystemInfo.key} ${storageSystemInfo.value}

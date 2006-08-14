@@ -1,4 +1,4 @@
-; $DEFINED{} test
+% $DEFINED{} test
 
 ASSIGN var1 "val1"
 && SYSTEM echo "\$DEFINED{var1}=$DEFINED{var1}; \$DEFINED{var2}=$DEFINED{var2}; \$DEFINED{0var1}=$DEFINED{0var1}; "

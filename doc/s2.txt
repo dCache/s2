@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 test client documentation
-Version:	2006-07-11
+Version:	2006-08-14
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -76,7 +76,8 @@ conventions apply
 1.1) Branches
 ~~~~~~~~~~~~~
 The start symbol of the grammar is <S>.  Comments start optional whitespace,
-the ';' character and continue up to the next newline ('\n') character.
+the '%' character [as in (La)TeX] and continue up to the next newline
+('\n') character.
 
   <S> :: (<BRANCH> '\n' | <PREPROCESSOR> '\n')*
 
@@ -860,8 +861,6 @@ using $EVAL{${v1}} is "1".
 
   C-like operator priority table 
 
-Comments can be used inside expressions, however, this usage is discouraged.
-
 2.5.3 Random number
 ~~~~~~~~~~~~~~~~~~~
   '$RND{' <EXPR> '}'
@@ -986,4 +985,4 @@ however, the result is split into separate tokens separated by whitespace.
 3.1 Comments
 ~~~~~~~~~~~~
 While putting comments next to branches is allowed in most cases, it is bad
-practice and highly discouraged (consider SYSTEM command).
+practice and highly discouraged (consider the SYSTEM command).

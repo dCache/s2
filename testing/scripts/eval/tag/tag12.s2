@@ -1,4 +1,4 @@
-; Testing $MAP{} tag.
+% Testing $MAP{} tag.
 
 DEFUN join v : r
    ASSIGN r ${v}

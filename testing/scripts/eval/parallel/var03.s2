@@ -1,4 +1,4 @@
-; Parallel execution test (variables in local scope)
+% Parallel execution test (variables in local scope)
 
 ASSIGN one 1
    >1 2 ASSIGN v $I{0}

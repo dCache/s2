@@ -1,4 +1,4 @@
-; Parallel execution test (references to local/global variables)
+% Parallel execution test (references to local/global variables)
 
 ASSIGN v "v0"
    SYSTEM echo "${v} == v0 && ${0v} == v0"

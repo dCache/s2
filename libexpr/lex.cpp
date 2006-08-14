@@ -150,7 +150,7 @@ Lex::lex(Attr& attr)
   enum { sInit,
          sNum, sNumber,
          sReal01, sReal02, sReal03, sReal04, 
-         sLt, sGt, sEq, sNe, sOr, sAnd, sString, sComment } state = sInit;
+         sLt, sGt, sEq, sNe, sOr, sAnd, sString } state = sInit;
   int64_t inum = 0;	/* for overflows/underflows */
   double power10 = 1.0;
   int expon = 0, sign = 1, base = 10;
@@ -191,7 +191,6 @@ Lex::lex(Attr& attr)
           case '!': state = sNe; break;
           case '|': state = sOr; break;
           case '&': state = sAnd; break;
-          case ';': state = sComment; break;
 
           default: /* string */
             state = sString;
@@ -481,10 +480,6 @@ Lex::lex(Attr& attr)
         attr.v.s->push_back(c);
 esc_out:
         bslash = c == '\\';
-      break;
-
-      case sComment:		/* ; */
-        /* ignore everything until '\0' */
       break;
 
     } /* switch */

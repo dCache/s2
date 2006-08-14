@@ -1,4 +1,4 @@
-; Parallel execution test
+% Parallel execution test
 
 eval=1 NOP 1
    SYSTEM echo ${?}

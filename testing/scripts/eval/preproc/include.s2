@@ -1,6 +1,6 @@
-; #include parser test
+% #include parser test
 
 SYSTEM echo "Demontrating some legal includes, indentation is important!  <A> is my child."
-   #include ../include/a/a.s2 ; note that indentation is important!
+   #include ../include/a/a.s2 % note that indentation is important!
 
-;#include "/home/mencak/work/programs/s2/testing/scripts/eval/include/a/a.s2" ; some absolute path tests
+%#include "/home/mencak/work/programs/s2/testing/scripts/eval/include/a/a.s2" % some absolute path tests

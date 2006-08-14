@@ -1,17 +1,17 @@
-; srmStatusOfCopyRequest
+% srmStatusOfCopyRequest
 
-; srmCopy
-; srmPrepareToPut
-; srmPutDone
-; srmStatusOfCopyRequest
-; srmStatusOfPutRequest
+% srmCopy
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfCopyRequest
+% srmStatusOfPutRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-;;; Copy cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; Copy cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{SRM_NEW_FILE1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
    >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

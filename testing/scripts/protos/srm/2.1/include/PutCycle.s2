@@ -1,18 +1,18 @@
-; PutCycle with multiple files
-;
-; @param: ${filesToPut}
-; @param: ${sURLs}
-;
-; srmPrepareToPut
-; srmStatusOfPutRequest
-; srmPutDone
+% PutCycle with multiple files
+%
+% @param: ${filesToPut}
+% @param: ${sURLs}
+%
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
 
 #ifndef _PUT_CYCLE_
 #define _PUT_CYCLE_
 
-; Generic functions
+% Generic functions
 #include ../../../../include/Basic.s2
-; SRM functions
+% SRM functions
 #include ../../include/Basic.s2
 #include ../../include/FileTransPut.s2
 
@@ -21,7 +21,7 @@ DEFUN DefTransferURLs f : t
    && ASSIGN 1c $EXPR{${1c}+1}
 
 DEFUN PutCycle filesToPut sURLs : putRequestToken
-   ; Define local variables
+   % Define local variables
    ASSIGN fileToPutSizes $MAP{FileSize $SPLIT{${filesToPut}}}
    && ASSIGN storageTypes $MAP{StorageTypes $SPLIT{${filesToPut}}}
    && ASSIGN lifetimes $MAP{Lifetimes $SPLIT{${filesToPut}}}
@@ -34,7 +34,7 @@ DEFUN PutCycle filesToPut sURLs : putRequestToken
          srmStatusOfPutRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
          || SYSTEM echo "srmStatusOfPutRequest failed" >> $ENV{S2_LOG} && exit 2
 
-      ; The actual physical transfer
+      % The actual physical transfer
       && ASSIGN c 0
          WHILE FUN car ${filesToPut} : fileToPut filesToPut
             FUN FileTransPut ${fileToPut} ${transferURL${c}}
@@ -45,5 +45,5 @@ DEFUN PutCycle filesToPut sURLs : putRequestToken
       SYSTEM echo "srmPutDone: fileStatuses=${pdFileStatuses}" >> $ENV{S2_LOG}
    && SYSTEM echo "Put cycle succeeded" >> $ENV{S2_LOG}
 
-; _PUT_CYCLE_
+% _PUT_CYCLE_
 #endif

@@ -1,4 +1,4 @@
-; Repeats with variables
+% Repeats with variables
 
 ASSIGN n 3
 && >1&&${n} SYSTEM echo $I{0}

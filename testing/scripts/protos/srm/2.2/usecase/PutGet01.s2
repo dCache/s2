@@ -1,10 +1,10 @@
-; PutGet01: transfer of a file to/from SRM server
-;
-; srmPrepareToGet
-; srmPrepareToPut
-; srmPutDone
-; srmStatusOfGetRequest
-; srmStatusOfPutRequest
+% PutGet01: transfer of a file to/from SRM server
+%
+% srmPrepareToGet
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfGetRequest
+% srmStatusOfPutRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

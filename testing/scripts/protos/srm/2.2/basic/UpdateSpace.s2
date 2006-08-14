@@ -1,6 +1,6 @@
-; srmUpdateSpace
-;
-; srmReserveSpace
+% srmUpdateSpace
+%
+% srmReserveSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

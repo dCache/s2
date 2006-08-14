@@ -1,4 +1,4 @@
-; Test test expression evaluation
+% Test test expression evaluation
 
 ASSIGN zero 0 one 1
 && TEST 1-${one}

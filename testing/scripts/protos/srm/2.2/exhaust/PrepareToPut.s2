@@ -4,12 +4,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID fileRequests.SURL fileRequests.expectedFileSize userRequestDescription overwriteOption storageSystemInfo.key storageSystemInfo.value desiredTotalRequestTime desiredPinLifeTime desiredFileLifeTime desiredFileStorageType targetSpaceToken retentionPolicy accessLatency accessPattern connectionType clientNetworks transferProtocols
    >0&&17 NOP
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
-         >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} fileRequests.SURL ${fileRequests.SURL} : arg1
-            >0&&$EXPR{2*($I{3}==2)} FUN ExhInt $I{0} fileRequests.expectedFileSize ${fileRequests.expectedFileSize} : arg2
+         >0&&$EXPR{2*($I{2}==1)} FUN ExhStringArr $I{0} fileRequests.SURL ${fileRequests.SURL} : arg1
+            >0&&$EXPR{2*($I{3}==2)} FUN ExhIntArr $I{0} fileRequests.expectedFileSize ${fileRequests.expectedFileSize} : arg2
                >0&&$EXPR{2*($I{4}==3)} FUN ExhString $I{0} userRequestDescription ${userRequestDescription} : arg3
                   >0&&$EXPR{2*($I{5}==4)} FUN ExhBool $I{0} overwriteOption ${overwriteOption} : arg4
-                     >0&&$EXPR{2*($I{6}==5)} FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg5
-                        >0&&$EXPR{2*($I{7}==6)} FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg6
+                     >0&&$EXPR{2*($I{6}==5)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg5
+                        >0&&$EXPR{2*($I{7}==6)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg6
                            >0&&$EXPR{2*($I{8}==7)} FUN ExhTime $I{0} desiredTotalRequestTime ${desiredTotalRequestTime} : arg7
                               >0&&$EXPR{2*($I{9}==8)} FUN ExhTime $I{0} desiredPinLifeTime ${desiredPinLifeTime} : arg8
                                  >0&&$EXPR{2*($I{10}==9)} FUN ExhTime $I{0} desiredFileLifeTime ${desiredFileLifeTime} : arg9
@@ -19,15 +19,32 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.expectedFileSize us
                                              >0&&$EXPR{2*($I{14}==13)} FUN ExhAccessLatency $I{0} accessLatency ${accessLatency} : arg13
                                                 >0&&$EXPR{2*($I{15}==14)} FUN ExhAccessPattern $I{0} accessPattern ${accessPattern} : arg14
                                                    >0&&$EXPR{2*($I{16}==15)} FUN ExhConnectionType $I{0} connectionType ${connectionType} : arg15
-                                                      >0&&$EXPR{2*($I{17}==16)} FUN ExhString $I{0} clientNetworks ${clientNetworks} : arg16
-                                                         >0&&$EXPR{2*($I{18}==17)} FUN ExhString $I{0} transferProtocols ${transferProtocols} : arg17
+                                                      >0&&$EXPR{2*($I{17}==16)} FUN ExhStringArr $I{0} clientNetworks ${clientNetworks} : arg16
+                                                         >0&&$EXPR{2*($I{18}==17)} FUN ExhStringArr $I{0} transferProtocols ${transferProtocols} : arg17
                                                             ASSIGN c $EXPR{${c}+1}
                                                             && ASSIGN script "eval=2 srmPrepareToPut $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}${arg11}${arg12}${arg13}${arg14}${arg15}${arg16}${arg17}requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
                                                             && FUN S2 ${script} $PRINTF{%02d ${c}}
-                                                            ; Ignore errors
+                                                            % Ignore errors
                                                             || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN fileRequests.SURL fileRequests.SURL
+&& ASSIGN fileRequests.expectedFileSize fileRequests.expectedFileSize
+&& ASSIGN userRequestDescription userRequestDescription
+&& ASSIGN overwriteOption overwriteOption
+&& ASSIGN storageSystemInfo.key storageSystemInfo.key
+&& ASSIGN storageSystemInfo.value storageSystemInfo.value
+&& ASSIGN desiredTotalRequestTime desiredTotalRequestTime
+&& ASSIGN desiredPinLifeTime desiredPinLifeTime
+&& ASSIGN desiredFileLifeTime desiredFileLifeTime
+&& ASSIGN desiredFileStorageType desiredFileStorageType
+&& ASSIGN targetSpaceToken targetSpaceToken
+&& ASSIGN retentionPolicy retentionPolicy
+&& ASSIGN accessLatency accessLatency
+&& ASSIGN accessPattern accessPattern
+&& ASSIGN connectionType connectionType
+&& ASSIGN clientNetworks clientNetworks
+&& ASSIGN transferProtocols transferProtocols
 && FUN srmTest $ENV{USER} ${fileRequests.SURL} ${fileRequests.expectedFileSize} ${userRequestDescription} ${overwriteOption} ${storageSystemInfo.key} ${storageSystemInfo.value} ${desiredTotalRequestTime} ${desiredPinLifeTime} ${desiredFileLifeTime} ${desiredFileStorageType} ${targetSpaceToken} ${retentionPolicy} ${accessLatency} ${accessPattern} ${connectionType} ${clientNetworks} ${transferProtocols}

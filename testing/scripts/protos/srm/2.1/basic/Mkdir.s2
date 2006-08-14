@@ -1,8 +1,8 @@
-; srmMkdir
-;
-; srmPrepareToPut
-; srmPutDone
-; srmStatusOfPutRequest
+% srmMkdir
+%
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfPutRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

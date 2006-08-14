@@ -1,8 +1,8 @@
-; ASSIGN test
+% ASSIGN test
 
 ASSIGN var1 "val1" var2 "val2"
    SYSTEM echo "var1=${var1}; var2=${var2}"
-; don't set var1 unless var1 is unset
+% don't set var1 unless var1 is unset
 && ASSIGN overwrite=0 var1 "x"
 && ASSIGN one 1
 && ASSIGN overwrite=${one} var2 "y"

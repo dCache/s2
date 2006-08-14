@@ -1,16 +1,16 @@
-; srmStatusOfGetRequest
-;
-; srmPrepareToGet
-; srmPrepareToPut
-; srmPutDone
-; srmStatusOfPutRequest
+% srmStatusOfGetRequest
+%
+% srmPrepareToGet
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfPutRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-;;; Get cycle ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=".*returnStatus.statusCode0=SRM_REQUEST_QUEUED.*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
    SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}

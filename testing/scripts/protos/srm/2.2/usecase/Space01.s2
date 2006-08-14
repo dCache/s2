@@ -1,25 +1,25 @@
-; Space01: space functions test
-;
-; srmReserveSpace
-; srmGetSpaceToken
-; srmGetSpaceMetaData
-; srmUpdateSpace
+% Space01: space functions test
+%
+% srmReserveSpace
+% srmGetSpaceToken
+% srmGetSpaceMetaData
+% srmUpdateSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-; call srmReserveSpace with a unique space token tag and defined size
+% call srmReserveSpace with a unique space token tag and defined size
 && srmReserveSpace $ENV{ENDPOINT} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
 
-; use srmGetSpaceToken to get the space token from the tag
+% use srmGetSpaceToken to get the space token from the tag
 && srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
-; call srmGetSpaceMetadata to make sure the right amount of space was allocated
+% call srmGetSpaceMetadata to make sure the right amount of space was allocated
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
-; call srmUpdateSpace increasing the lifetime and size
+% call srmUpdateSpace increasing the lifetime and size
 && srmUpdateSpace $ENV{ENDPOINT} spaceToken=${spaceToken} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTime=$ENV{LIFETIME_NEW} requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
-; call srmGetSpaceMetadata again to check the update worked
+% call srmGetSpaceMetadata again to check the update worked
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=.*guaranteedSize0=$ENV{RESERVE_SPACE_NEW}.* returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

@@ -1,4 +1,4 @@
-; Testing $EVAL{} tag.
+% Testing $EVAL{} tag.
 
 ASSIGN HOME "home" v1 "$PRINTF{$\173HOME\175}" v2 "${v1}" v3 "$EVAL{${v1}}"
 && SYSTEM echo "HOME=${HOME}; v1=${v1}; v2=${v2}; v3=${v3}(=HOME)"

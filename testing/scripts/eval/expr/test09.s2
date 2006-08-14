@@ -1,4 +1,4 @@
-; Test test expression evaluation
+% Test test expression evaluation
 
 NOP
 && ASSIGN dq "\"\""

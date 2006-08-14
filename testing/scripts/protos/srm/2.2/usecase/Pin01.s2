@@ -1,29 +1,29 @@
-; Pin01: pinning
-;
-; srmPrepareToPut
-; srmStatusOfPutRequest
-; srmPutDone
-; srmExtendFileLifeTime
-; srmReleaseFiles
+% Pin01: pinning
+%
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmExtendFileLifeTime
+% srmReleaseFiles
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN fileToPut $ENV{FILE_TO_PUT0}
 && ASSIGN sURL $ENV{SRM_NEW_FILE0}
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; use srmExtendFileLifeTime to try to extend the pin time for the file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% use srmExtendFileLifeTime to try to extend the pin time for the file
 && srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] newPinLifeTime=$ENV{PIN_LIFETIME} fileStatuses=".*pinLifetime0=(?P<pinLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
    TEST $ENV{PIN_LIFETIME} == ${pinLifetime0}
       SYSTEM echo "$DATE{} pin lifetime extended to ${pinLifetime0}" >> $ENV{S2_LOG}
    || SYSTEM echo "$DATE{} pin lifetime extended to ${-pinLifetime0}" >> $ENV{S2_LOG} && exit 2
-; use srmReleaseFiles to remove one file
+% use srmReleaseFiles to remove one file
 && srmReleaseFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
    SYSTEM echo "$DATE{} srmReleaseFiles: success" >> $ENV{S2_LOG}
-; try to extend the pins again (this should result in failure).
+% try to extend the pins again (this should result in failure).
 && NOP
    srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] newPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} fileStatuses=".*pinLifetime0=(?P<pinLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
    || SYSTEM echo "$DATE{} couldn't extend pin lifetime on an already released file, success." >> $ENV{S2_LOG}

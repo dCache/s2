@@ -54,7 +54,7 @@ DEFUN ExhTimeArr i var val : var_r
       ASSIGN var_r "${var}=[] "
    || ASSIGN var_r ""
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DEFUN ExhAccessLatency i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
@@ -209,7 +209,7 @@ DEFUN ExhRetentionPolicyArr i var val : var_r
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 DEFUN S2 script i
    ASSIGN S2_S2 ${i}$ENV{S2_P} S2_P ${i}$ENV{S2_P} S2_D ${i}$ENV{S2_D} S2_E ${i}$ENV{S2_E} S2_L ${i}$ENV{S2_L} S2_W ${i}$ENV{S2_W} S2_E0 ${i}$ENV{S2_E0} S2_E1 ${i}$ENV{S2_E1} S2_E2 ${i}$ENV{S2_E2}
 #if 0

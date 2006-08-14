@@ -1,6 +1,6 @@
-; MATCH action test (substring matching)
+% MATCH action test (substring matching)
 
-; substring matching (-c)
+% substring matching (-c)
 match=-c TEST $MATCH{"^gsiftp://" "gsiftp://host.domain"}
    SYSTEM echo "GridFTP"
 || SYSTEM echo "unknown protocol"

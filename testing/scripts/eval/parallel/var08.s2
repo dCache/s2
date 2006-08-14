@@ -1,4 +1,4 @@
-; Testing access to parent's process variable scope.
+% Testing access to parent's process variable scope.
 
 DEFUN cnt s : r
    TEST ${1c} == 0

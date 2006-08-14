@@ -1,4 +1,4 @@
-; Function definition and call test.
+% Function definition and call test.
 
 ASSIGN ScriptName "fun01"
    DEFUN Fail str code

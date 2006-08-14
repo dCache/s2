@@ -1,4 +1,4 @@
-; WHILE loop
+% WHILE loop
 
 WHILE ASSIGN r $RND{10}
    SYSTEM echo "${r}"

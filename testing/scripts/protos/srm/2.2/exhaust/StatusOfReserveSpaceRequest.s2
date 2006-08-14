@@ -7,10 +7,11 @@ DEFUN srmTest authorizationID requestToken
          ASSIGN c $EXPR{${c}+1}
          && ASSIGN script "eval=2 srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} ${arg0}${arg1}estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
          && FUN S2 ${script} $PRINTF{%02d ${c}}
-         ; Ignore errors
+         % Ignore errors
          || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN requestToken requestToken
 && FUN srmTest $ENV{USER} ${requestToken}

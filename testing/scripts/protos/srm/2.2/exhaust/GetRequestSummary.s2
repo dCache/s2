@@ -3,14 +3,15 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 DEFUN srmTest authorizationID requestToken
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
-      >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
+      >0&&2 FUN ExhStringArr $I{0} requestToken ${requestToken} : arg1
          ASSIGN c $EXPR{${c}+1}
          && ASSIGN script "eval=2 srmGetRequestSummary $ENV{ENDPOINT} ${arg0}${arg1}requestSummary=(?P<requestSummary>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)"
          && FUN S2 ${script} $PRINTF{%02d ${c}}
-         ; Ignore errors
+         % Ignore errors
          || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN requestToken requestToken
 && FUN srmTest $ENV{USER} ${requestToken}

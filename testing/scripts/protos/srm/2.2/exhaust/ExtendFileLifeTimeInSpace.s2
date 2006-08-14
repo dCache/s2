@@ -4,15 +4,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID spaceToken SURL newLifeTime
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} spaceToken ${spaceToken} : arg1
-         >0&&2 FUN ExhString $I{0} SURL ${SURL} : arg2
+         >0&&2 FUN ExhStringArr $I{0} SURL ${SURL} : arg2
             >0&&2 FUN ExhTime $I{0} newLifeTime ${newLifeTime} : arg3
                ASSIGN c $EXPR{${c}+1}
                && ASSIGN script "eval=2 srmExtendFileLifeTimeInSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}newTimeExtended=(?P<newTimeExtended>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
-               ; Ignore errors
+               % Ignore errors
                || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN spaceToken spaceToken
+&& ASSIGN SURL SURL
+&& ASSIGN newLifeTime newLifeTime
 && FUN srmTest $ENV{USER} ${spaceToken} ${SURL} ${newLifeTime}

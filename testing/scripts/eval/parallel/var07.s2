@@ -1,6 +1,6 @@
-; Parallel execution test references to global
+% Parallel execution test references to global
 
-; saving to global variable space
+% saving to global variable space
 SYSTEM out=(?P<0Hello>.*) echo -n 'Hello'
 
 SLEEP 1

@@ -1,4 +1,4 @@
-; Parallel execution test
+% Parallel execution test
 
 SLEEP 2
    SYSTEM echo 2 && exit 0

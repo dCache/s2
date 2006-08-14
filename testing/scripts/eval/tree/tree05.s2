@@ -1,4 +1,4 @@
-; Parent execution value test
+% Parent execution value test
 
 NOP
    >2||0 eval=1 NOP 1

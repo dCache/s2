@@ -1,4 +1,4 @@
-; Test evaluation of a string inside an expression.
+% Test evaluation of a string inside an expression.
 
 ASSIGN a "5+3"
    SYSTEM echo "${a}"

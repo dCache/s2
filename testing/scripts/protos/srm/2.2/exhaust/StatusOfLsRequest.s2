@@ -9,10 +9,13 @@ DEFUN srmTest authorizationID requestToken offset count
                ASSIGN c $EXPR{${c}+1}
                && ASSIGN script "eval=2 srmStatusOfLsRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
-               ; Ignore errors
+               % Ignore errors
                || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN requestToken requestToken
+&& ASSIGN offset offset
+&& ASSIGN count count
 && FUN srmTest $ENV{USER} ${requestToken} ${offset} ${count}

@@ -1,4 +1,4 @@
-; Test evaluation value of a branch located at the same offset
+% Test evaluation value of a branch located at the same offset
 
 NOP 0
    eval=2 NOP 2

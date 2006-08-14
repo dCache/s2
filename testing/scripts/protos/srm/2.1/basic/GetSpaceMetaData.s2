@@ -1,6 +1,6 @@
-; srmGetSpaceMetadata
-;
-; srmReserveSpace
+% srmGetSpaceMetadata
+%
+% srmReserveSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

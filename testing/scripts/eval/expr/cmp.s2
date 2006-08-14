@@ -1,4 +1,4 @@
-; CMP operations test
+% CMP operations test
 
 NOP 0
 && TEST 0 == 0

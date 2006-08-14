@@ -1,5 +1,5 @@
-; #include parser test
+% #include parser test
 
 SYSTEM echo "some legal includes..."
-;#include /dev/stdin ; yes, you can include /dev/stdin if you really want to
+%#include /dev/stdin % yes, you can include /dev/stdin if you really want to
 && SYSTEM echo "after stdin"

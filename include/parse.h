@@ -9,12 +9,12 @@
 #include "sysdep.h"     /* BOOL */
 
 /* parser constants */
-#define CH_COMMENT      ';'                     /* script comment character */
-#define CH_PREPROC      '#'                     /* script preprocessor character */
-#define CH_EOL          -1                      /* EOL character (parsing purposes) */
-#define CH_INV_UGC      0                       /* invalid unget() character */
-#define MAX_ID          63                      /* maximum length of an identifier */
-#define MAX_IFS         63                      /* maximum number of nested #if directives */
+#define CH_COMMENT	'%'			/* script comment character */
+#define CH_PREPROC	'#'			/* script preprocessor character */
+#define CH_EOL		-1			/* EOL character (parsing purposes) */
+#define CH_INV_UGC	0			/* invalid unget() character */
+#define MAX_ID		63			/* maximum length of an identifier */
+#define MAX_IFS		63			/* maximum number of nested #if directives */
 #define MAX_INCS	63			/* maximum number of files to include */
 
 /* macros */

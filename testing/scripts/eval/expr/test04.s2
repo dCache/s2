@@ -1,11 +1,11 @@
-; Testing arithmetic overflows
+% Testing arithmetic overflows
 
-; Issue a warning
+% Issue a warning
 TEST $EXPR{1<<63}
 || TEST $EXPR{(1<<62) + (1<<62) + 1}
 || SYSTEM echo OK
 
-;SYSTEM echo "$INT{100/3}"
-;SYSTEM echo "$EXPR{1e+308}"
-;SYSTEM echo $EXPR{--9223372036854775808}
-;SYSTEM echo $EXPR{1<<65}
+%SYSTEM echo "$INT{100/3}"
+%SYSTEM echo "$EXPR{1e+308}"
+%SYSTEM echo $EXPR{--9223372036854775808}
+%SYSTEM echo $EXPR{1<<65}

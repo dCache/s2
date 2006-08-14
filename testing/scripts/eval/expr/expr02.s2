@@ -1,4 +1,4 @@
-; Expression evaluation test
+% Expression evaluation test
 
 ASSIGN fifty 50
 && SYSTEM echo $EXPR{ ${fifty}/25 }

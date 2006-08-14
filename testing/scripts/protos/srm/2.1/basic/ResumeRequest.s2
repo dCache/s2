@@ -1,7 +1,7 @@
-; srmResumeRequest
-;
-; srmPrepareToPut
-; srmSuspendRequest
+% srmResumeRequest
+%
+% srmPrepareToPut
+% srmSuspendRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
@@ -14,6 +14,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-; TODO
-; ~~~~
-; a proper test when some SRMv2 server supports it
+% TODO
+% ~~~~
+% a proper test when some SRMv2 server supports it

@@ -1,8 +1,8 @@
-; Tree evaluation test
+% Tree evaluation test
 
-; evaluate children if they exit <= 1 (default is <= 0)
+% evaluate children if they exit <= 1 (default is <= 0)
 eval=1 SYSTEM echo 1 && exit 1		
-   ; simulate failure
+   % simulate failure
    SYSTEM echo 2 && exit 2
       SYSTEM echo never reached && exit 3
 || eval=1 SYSTEM echo 3 && exit 1

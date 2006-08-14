@@ -1,5 +1,5 @@
-; $MD5{} test
-; see rfc1321.txt
+% $MD5{} test
+% see rfc1321.txt
 
 NOP
 && SYSTEM out=d41d8cd98f00b204e9800998ecf8427e echo -n $MD5{}

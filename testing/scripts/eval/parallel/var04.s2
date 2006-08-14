@@ -1,4 +1,4 @@
-; Parallel execution test (references to local/global variables)
+% Parallel execution test (references to local/global variables)
 
 ASSIGN v "v0"
    >1 3 ASSIGN v "v$I{0}"

@@ -1,13 +1,13 @@
-; Parallel execution test (variables in local scope)
+% Parallel execution test (variables in local scope)
 
 SLEEP 0
    ASSIGN v "p1"
       SYSTEM echo "p1() 1: v='${v}'='p1'"
-      && SLEEP 2 ; (we shouln't get p2 assigned to v)
+      && SLEEP 2 % (we shouln't get p2 assigned to v)
       && SYSTEM echo "p1() 2: v='${v}'='p1'"
       && ASSIGN v "p1"
 
 SLEEP 1
    ASSIGN v "p2"
-      SLEEP 2 ; (we shouln't get p1 assigned to v)
+      SLEEP 2 % (we shouln't get p1 assigned to v)
       && SYSTEM echo "p2() 1: v='${v}'='p2'"

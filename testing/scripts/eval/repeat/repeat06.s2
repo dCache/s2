@@ -1,4 +1,4 @@
-; Parallel repeat with two loops connected in parallel
+% Parallel repeat with two loops connected in parallel
 
 SYSTEM echo "-:-"
 >1 2 SLEEP 0

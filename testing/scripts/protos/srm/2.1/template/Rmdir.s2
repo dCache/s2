@@ -1,3 +1,3 @@
-; srmRmdir
+% srmRmdir
 
 srmRmdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=<SURLOrStFN> storageSystemInfo=<storageSystemInfo> recursive=0 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

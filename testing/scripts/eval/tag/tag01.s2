@@ -1,4 +1,4 @@
-; $DATE{} test
+% $DATE{} test
 
 NOP
 && SYSTEM echo "$DATE{}"

@@ -1,6 +1,6 @@
-; srmStatusOfReserveSpaceRequest
-;
-; srmReserveSpace
+% srmStatusOfReserveSpaceRequest
+%
+% srmReserveSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
@@ -17,4 +17,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-; TODO, status codes, looping
+% TODO, status codes, looping

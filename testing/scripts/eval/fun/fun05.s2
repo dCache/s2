@@ -1,4 +1,4 @@
-; LISP emulator ;)
+% LISP emulator ;)
 
 DEFUN car list : car cdr
    TEST $MATCH{"(?P<car>[^ ]+)([ ]+|$)(?P<cdr>.*)" ${list}}

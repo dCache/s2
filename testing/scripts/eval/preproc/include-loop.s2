@@ -1,4 +1,4 @@
-; #include parser test (loop until too many nested includes is hit)
+% #include parser test (loop until too many nested includes is hit)
 
 SYSTEM echo "looping..."
 #include include-loop.s2

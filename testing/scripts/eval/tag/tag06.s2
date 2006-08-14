@@ -1,4 +1,4 @@
-; $MATCH{}
+% $MATCH{}
 
 TEST $MATCH{(?P<Test>.*).s2 ${0}}
 && SYSTEM echo ${Test}

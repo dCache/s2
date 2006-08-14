@@ -1,3 +1,3 @@
-; srmAbortRequest
+% srmAbortRequest
 
 srmAbortRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=<requestToken> returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)

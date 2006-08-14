@@ -1,4 +1,4 @@
-; Testing $FUN{} tag
+% Testing $FUN{} tag
 
 DEFUN expand n : a b c
    ASSIGN a "" b "" c ""

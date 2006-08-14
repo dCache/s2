@@ -1,4 +1,4 @@
-; Testing $SPLIT{} tag.
+% Testing $SPLIT{} tag.
 
 ASSIGN var "1 2 3"
 && SYSTEM echo "$PRINTF{%s,%s,%s $SPLIT{${var}}}"

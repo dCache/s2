@@ -1,7 +1,7 @@
-; srmResumeRequest
-;
-; srmSuspendRequest
-; srmPrepareToPut
+% srmResumeRequest
+%
+% srmSuspendRequest
+% srmPrepareToPut
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

@@ -1,4 +1,4 @@
-; Test the lex for expressions
+% Test the lex for expressions
 
 NOP
 && SYSTEM out=100 echo -n $EXPR{ 1e2 }

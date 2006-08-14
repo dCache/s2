@@ -1,6 +1,6 @@
-; #if #else #endif preprocessor directive test
+% #if #else #endif preprocessor directive test
 
-; $ENV{<var>} could be used insted of 1
+% $ENV{<var>} could be used insted of 1
 #if 1
 NOP 1
 #else

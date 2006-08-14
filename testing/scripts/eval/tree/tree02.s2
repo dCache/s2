@@ -1,4 +1,4 @@
-; Tree evaluation test
+% Tree evaluation test
 
 NOP 0
 && SYSTEM echo "&& 2a: ${?}/${!}" && exit 2

@@ -1,4 +1,4 @@
-; #include parser test
+% #include parser test
 
 SYSTEM echo "<A>, <B> follows as a child of <A>"
    #include "../b/b.s2"

@@ -10,18 +10,29 @@ DEFUN srmTest authorizationID userSpaceTokenDescription retentionPolicy accessLa
                   >0&&$EXPR{2*($I{5}==4)} FUN ExhInt $I{0} desiredSizeOfTotalSpace ${desiredSizeOfTotalSpace} : arg4
                      >0&&$EXPR{2*($I{6}==5)} FUN ExhInt $I{0} desiredSizeOfGuaranteedSpace ${desiredSizeOfGuaranteedSpace} : arg5
                         >0&&$EXPR{2*($I{7}==6)} FUN ExhTime $I{0} desiredLifetimeOfReservedSpace ${desiredLifetimeOfReservedSpace} : arg6
-                           >0&&$EXPR{2*($I{8}==7)} FUN ExhInt $I{0} expectedFileSizes ${expectedFileSizes} : arg7
+                           >0&&$EXPR{2*($I{8}==7)} FUN ExhIntArr $I{0} expectedFileSizes ${expectedFileSizes} : arg7
                               >0&&$EXPR{2*($I{9}==8)} FUN ExhAccessPattern $I{0} accessPattern ${accessPattern} : arg8
                                  >0&&$EXPR{2*($I{10}==9)} FUN ExhConnectionType $I{0} connectionType ${connectionType} : arg9
-                                    >0&&$EXPR{2*($I{11}==10)} FUN ExhString $I{0} clientNetworks ${clientNetworks} : arg10
-                                       >0&&$EXPR{2*($I{12}==11)} FUN ExhString $I{0} transferProtocols ${transferProtocols} : arg11
+                                    >0&&$EXPR{2*($I{11}==10)} FUN ExhStringArr $I{0} clientNetworks ${clientNetworks} : arg10
+                                       >0&&$EXPR{2*($I{12}==11)} FUN ExhStringArr $I{0} transferProtocols ${transferProtocols} : arg11
                                           ASSIGN c $EXPR{${c}+1}
                                           && ASSIGN script "eval=2 srmReserveSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}${arg11}requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)"
                                           && FUN S2 ${script} $PRINTF{%02d ${c}}
-                                          ; Ignore errors
+                                          % Ignore errors
                                           || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN userSpaceTokenDescription userSpaceTokenDescription
+&& ASSIGN retentionPolicy retentionPolicy
+&& ASSIGN accessLatency accessLatency
+&& ASSIGN desiredSizeOfTotalSpace desiredSizeOfTotalSpace
+&& ASSIGN desiredSizeOfGuaranteedSpace desiredSizeOfGuaranteedSpace
+&& ASSIGN desiredLifetimeOfReservedSpace desiredLifetimeOfReservedSpace
+&& ASSIGN expectedFileSizes expectedFileSizes
+&& ASSIGN accessPattern accessPattern
+&& ASSIGN connectionType connectionType
+&& ASSIGN clientNetworks clientNetworks
+&& ASSIGN transferProtocols transferProtocols
 && FUN srmTest $ENV{USER} ${userSpaceTokenDescription} ${retentionPolicy} ${accessLatency} ${desiredSizeOfTotalSpace} ${desiredSizeOfGuaranteedSpace} ${desiredLifetimeOfReservedSpace} ${expectedFileSizes} ${accessPattern} ${connectionType} ${clientNetworks} ${transferProtocols}

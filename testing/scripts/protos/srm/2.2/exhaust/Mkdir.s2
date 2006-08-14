@@ -4,15 +4,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID directoryPath storageSystemInfo.key storageSystemInfo.value
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} directoryPath ${directoryPath} : arg1
-         >0&&2 FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
-            >0&&2 FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
+         >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
+            >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
                ASSIGN c $EXPR{${c}+1}
                && ASSIGN script "eval=2 srmMkdir $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
-               ; Ignore errors
+               % Ignore errors
                || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN directoryPath directoryPath
+&& ASSIGN storageSystemInfo.key storageSystemInfo.key
+&& ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${directoryPath} ${storageSystemInfo.key} ${storageSystemInfo.value}

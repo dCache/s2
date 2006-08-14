@@ -1,4 +1,4 @@
-; Function definition and call test.
+% Function definition and call test.
 
 DEFUN GetAndShowRand n : myr
    ASSIGN myr $RND{${n}}

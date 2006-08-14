@@ -1,6 +1,6 @@
-; srmChangeSpaceForFiles
-;
-; srmReserveSpace
+% srmChangeSpaceForFiles
+%
+% srmReserveSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

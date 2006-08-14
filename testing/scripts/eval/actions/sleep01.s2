@@ -1,3 +1,3 @@
-; Sleep [<seconds> [<nanoseconds>]] test
+% Sleep [<seconds> [<nanoseconds>]] test
 
 SLEEP 1 2000000000

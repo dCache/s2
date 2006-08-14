@@ -1,4 +1,4 @@
-; A few SRM-related basic function.
+% A few SRM-related basic function.
 
 #ifndef _BASIC_SRM_FUNC_
 #define _BASIC_SRM_FUNC_
@@ -9,5 +9,5 @@ DEFUN StorageTypes f : r
 DEFUN Lifetimes f : r
    ASSIGN r "$ENV{LIFETIME} "
 
-; _BASIC_SRM_FUNC_
+% _BASIC_SRM_FUNC_
 #endif

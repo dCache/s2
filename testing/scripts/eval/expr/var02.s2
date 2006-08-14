@@ -1,16 +1,16 @@
-; Evaluation of variables (double quotes)
+% Evaluation of variables (double quotes)
 
 NOP
-; ""
+% ""
 && ASSIGN v0 "\"\""
-; """
+% """
 && ASSIGN v1 "\"\"\""
 
-; ""
+% ""
 && ASSIGN v2 \"\"
-; ""
+% ""
 && ASSIGN v3 \""\"
-; """
+% """
 && ASSIGN v4 \"\"\"
 
 && SYSTEM echo '${v0}'

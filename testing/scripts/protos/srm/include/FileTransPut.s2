@@ -1,26 +1,26 @@
-; Do the real file transfer (Put)
-;
-; @param: ${fileToPut}
-; @param: ${transferURL}
+% Do the real file transfer (Put)
+%
+% @param: ${fileToPut}
+% @param: ${transferURL}
 
 #ifndef _FILE_TRANS_PUT_
 #define _FILE_TRANS_PUT_
 
 DEFUN FileTransPut fileToPut transferURL
-   ; substring matching
+   % substring matching
    match=-c TEST $MATCH{"^gsiftp://" ${transferURL}}
       SYSTEM globus-url-copy file://${fileToPut} ${transferURL}
-      ; return 2 if globus-url-copy fails, it returns 1 which is just a warning in s2
+      % return 2 if globus-url-copy fails, it returns 1 which is just a warning in s2
       || SYSTEM echo "globus-url-copy failed ${!}" >> $ENV{S2_LOG} && exit 2
    || TEST $MATCH{"^rfio://(?P<rfioHost>.*?)/(?P<rfioPath>.*)" ${transferURL}}
       #if $ENV{RFCP_SUDO}
-;      SYSTEM sudo -u dteam001 rfcp ${fileToPut} ${rfioHost}:${rfioPath}
+%      SYSTEM sudo -u dteam001 rfcp ${fileToPut} ${rfioHost}:${rfioPath}
       SYSTEM sudo -u dteam001 rfcp ${fileToPut} ${rfioPath}
       #else
-;      SYSTEM rfcp ${fileToPut} ${rfioHost}:${rfioPath}
+%      SYSTEM rfcp ${fileToPut} ${rfioHost}:${rfioPath}
       SYSTEM rfcp ${fileToPut} ${rfioPath}
       #endif
       || SYSTEM echo "rfcp failed ${!}" >> $ENV{S2_LOG} && exit 2
 
-; _FILE_TRANS_PUT_
+% _FILE_TRANS_PUT_
 #endif

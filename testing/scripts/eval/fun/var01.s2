@@ -1,4 +1,4 @@
-; Test access to local/global variables
+% Test access to local/global variables
 
 NOP 
   DEFUN f3

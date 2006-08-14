@@ -1,5 +1,5 @@
-; Lyrics of the 99 Bottles of Beer song
-; see http://www.99-bottles-of-beer.net
+% Lyrics of the 99 Bottles of Beer song
+% see http://www.99-bottles-of-beer.net
 
 ASSIGN nn 99
 && >${nn}&&1 SYSTEM echo -en "$I{0} bottles of beer on the wall, $I{0} bottles of beer.\nTake one down and pass it around, "

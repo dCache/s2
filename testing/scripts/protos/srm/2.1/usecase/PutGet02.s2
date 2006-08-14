@@ -1,10 +1,10 @@
-; PutGet02: transfer of two files in one go to/from SRM server
-;
-; srmPrepareToGet
-; srmPrepareToPut
-; srmPutDone
-; srmStatusOfGetRequest
-; srmStatusOfPutRequest
+% PutGet02: transfer of two files in one go to/from SRM server
+%
+% srmPrepareToGet
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfGetRequest
+% srmStatusOfPutRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

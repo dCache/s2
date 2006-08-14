@@ -4,14 +4,16 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID requestToken SURL
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
-         >0&&2 FUN ExhString $I{0} SURL ${SURL} : arg2
+         >0&&2 FUN ExhStringArr $I{0} SURL ${SURL} : arg2
             ASSIGN c $EXPR{${c}+1}
             && ASSIGN script "eval=2 srmStatusOfPutRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
             && FUN S2 ${script} $PRINTF{%02d ${c}}
-            ; Ignore errors
+            % Ignore errors
             || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN requestToken requestToken
+&& ASSIGN SURL SURL
 && FUN srmTest $ENV{USER} ${requestToken} ${SURL}

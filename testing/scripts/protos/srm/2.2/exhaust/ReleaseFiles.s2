@@ -4,15 +4,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID requestToken SURL doRemove
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
-         >0&&2 FUN ExhString $I{0} SURL ${SURL} : arg2
+         >0&&2 FUN ExhStringArr $I{0} SURL ${SURL} : arg2
             >0&&2 FUN ExhBool $I{0} doRemove ${doRemove} : arg3
                ASSIGN c $EXPR{${c}+1}
                && ASSIGN script "eval=2 srmReleaseFiles $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
-               ; Ignore errors
+               % Ignore errors
                || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN requestToken requestToken
+&& ASSIGN SURL SURL
+&& ASSIGN doRemove doRemove
 && FUN srmTest $ENV{USER} ${requestToken} ${SURL} ${doRemove}

@@ -1,4 +1,4 @@
-; Test equivalence of a strings (double quotes)
+% Test equivalence of a strings (double quotes)
 
 NOP
 && ASSIGN v0 "\"\""

@@ -4,9 +4,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value fileStorageType fullDetailedList allLevelRecursive numOfLevels offset count
    >0&&9 NOP
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
-         >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} SURL ${SURL} : arg1
-            >0&&$EXPR{2*($I{3}==2)} FUN ExhString $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
-               >0&&$EXPR{2*($I{4}==3)} FUN ExhString $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
+         >0&&$EXPR{2*($I{2}==1)} FUN ExhStringArr $I{0} SURL ${SURL} : arg1
+            >0&&$EXPR{2*($I{3}==2)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
+               >0&&$EXPR{2*($I{4}==3)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
                   >0&&$EXPR{2*($I{5}==4)} FUN ExhFileStorageType $I{0} fileStorageType ${fileStorageType} : arg4
                      >0&&$EXPR{2*($I{6}==5)} FUN ExhBool $I{0} fullDetailedList ${fullDetailedList} : arg5
                         >0&&$EXPR{2*($I{7}==6)} FUN ExhBool $I{0} allLevelRecursive ${allLevelRecursive} : arg6
@@ -16,10 +16,19 @@ DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
                                     ASSIGN c $EXPR{${c}+1}
                                     && ASSIGN script "eval=2 srmLs $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
                                     && FUN S2 ${script} $PRINTF{%02d ${c}}
-                                    ; Ignore errors
+                                    % Ignore errors
                                     || NOP
 
-;;; main() ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%; main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%;
 && ASSIGN c 0
-;&& <CODE FROM BASIC>
+%&& <CODE FROM BASIC>
+&& ASSIGN SURL SURL
+&& ASSIGN storageSystemInfo.key storageSystemInfo.key
+&& ASSIGN storageSystemInfo.value storageSystemInfo.value
+&& ASSIGN fileStorageType fileStorageType
+&& ASSIGN fullDetailedList fullDetailedList
+&& ASSIGN allLevelRecursive allLevelRecursive
+&& ASSIGN numOfLevels numOfLevels
+&& ASSIGN offset offset
+&& ASSIGN count count
 && FUN srmTest $ENV{USER} ${SURL} ${storageSystemInfo.key} ${storageSystemInfo.value} ${fileStorageType} ${fullDetailedList} ${allLevelRecursive} ${numOfLevels} ${offset} ${count}

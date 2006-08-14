@@ -1,4 +1,4 @@
-; #ifdef #ifndef #define #endif preprocessor directive test
+% #ifdef #ifndef #define #endif preprocessor directive test
 
 #define ONE
 #ifdef ONE

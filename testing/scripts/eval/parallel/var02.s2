@@ -1,4 +1,4 @@
-; Parallel execution test (variables in local scope)
+% Parallel execution test (variables in local scope)
 
 >1 3 ASSIGN v $I{0}
    SLEEP 1

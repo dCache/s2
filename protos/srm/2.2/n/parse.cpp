@@ -700,6 +700,7 @@ Parser::srmPingR(void)
     AZaz_dot(opt = line + col, &end);   /* get options */
 
     /* request */
+    P_OPL_EQ_PARAM("authorizationID",r->authorizationID) else
 
     /* response */
     P_OPL_EQ_PARAM("versionInfo",r->versionInfo) else

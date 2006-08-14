@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID fileRequests.SURL fileRequests.expectedFileSize userRequestDescription overwriteOption storageSystemInfo.key storageSystemInfo.value desiredTotalRequestTime desiredPinLifeTime desiredFileLifeTime desiredFileStorageType targetSpaceToken retentionPolicy accessLatency accessPattern connectionType clientNetworks transferProtocols
    >0&&17 NOP
@@ -29,22 +30,22 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.expectedFileSize us
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN fileRequests.SURL fileRequests.SURL
-&& ASSIGN fileRequests.expectedFileSize fileRequests.expectedFileSize
+
+&& ASSIGN fileRequests.SURL $ENV{SRM_NEW_FILE0}
+&& ASSIGN fileRequests.expectedFileSize $ENV{FILE_TO_PUT0_SIZE}
 && ASSIGN userRequestDescription userRequestDescription
-&& ASSIGN overwriteOption overwriteOption
+&& ASSIGN overwriteOption ALWAYS
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
-&& ASSIGN desiredTotalRequestTime desiredTotalRequestTime
-&& ASSIGN desiredPinLifeTime desiredPinLifeTime
-&& ASSIGN desiredFileLifeTime desiredFileLifeTime
-&& ASSIGN desiredFileStorageType desiredFileStorageType
+&& ASSIGN desiredTotalRequestTime 60
+&& ASSIGN desiredPinLifeTime 60
+&& ASSIGN desiredFileLifeTime 60
+&& ASSIGN desiredFileStorageType $ENV{STORAGE_TYPE}
 && ASSIGN targetSpaceToken targetSpaceToken
-&& ASSIGN retentionPolicy retentionPolicy
-&& ASSIGN accessLatency accessLatency
-&& ASSIGN accessPattern accessPattern
-&& ASSIGN connectionType connectionType
+&& ASSIGN retentionPolicy $ENV{RETENTION_POLICY}
+&& ASSIGN accessLatency $ENV{ACCESS_LATENCY}
+&& ASSIGN accessPattern $ENV{ACCESS_PATTERN}
+&& ASSIGN connectionType $ENV{CONNECTION_TYPE}
 && ASSIGN clientNetworks clientNetworks
-&& ASSIGN transferProtocols transferProtocols
+&& ASSIGN transferProtocols "$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}"
 && FUN srmTest $ENV{USER} ${fileRequests.SURL} ${fileRequests.expectedFileSize} ${userRequestDescription} ${overwriteOption} ${storageSystemInfo.key} ${storageSystemInfo.value} ${desiredTotalRequestTime} ${desiredPinLifeTime} ${desiredFileLifeTime} ${desiredFileStorageType} ${targetSpaceToken} ${retentionPolicy} ${accessLatency} ${accessPattern} ${connectionType} ${clientNetworks} ${transferProtocols}

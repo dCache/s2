@@ -21,14 +21,14 @@ DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN SURL SURL
+
+&& ASSIGN SURL $ENV{SRM_ENDPOINT}
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
-&& ASSIGN fileStorageType fileStorageType
-&& ASSIGN fullDetailedList fullDetailedList
-&& ASSIGN allLevelRecursive allLevelRecursive
-&& ASSIGN numOfLevels numOfLevels
-&& ASSIGN offset offset
-&& ASSIGN count count
+&& ASSIGN fileStorageType $ENV{STORAGE_TYPE}
+&& ASSIGN fullDetailedList 0
+&& ASSIGN allLevelRecursive 0
+&& ASSIGN numOfLevels 0
+&& ASSIGN offset 0
+&& ASSIGN count 0
 && FUN srmTest $ENV{USER} ${SURL} ${storageSystemInfo.key} ${storageSystemInfo.value} ${fileStorageType} ${fullDetailedList} ${allLevelRecursive} ${numOfLevels} ${offset} ${count}

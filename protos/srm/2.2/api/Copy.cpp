@@ -99,7 +99,12 @@ Copy(struct soap *soap,
     MV_CSTR2STR(fileRequest->sourceSURL,CSTR(sourceSURL[u]));
 
     /* target */
-    MV_CSTR2STR(fileRequest->targetSURL,CSTR(targetSURL[u]));
+    if(NOT_NULL_VEC1(targetSURL)) {
+      MV_CSTR2STR(fileRequest->targetSURL, CSTR(targetSURL[u]));
+    } else {
+      /* NULL --> "" */
+      MV_CSTR2STR(fileRequest->targetSURL, "");
+    }
 
     /* dirOption */
     if(isSourceADirectory.size() != 0
@@ -145,25 +150,9 @@ Copy(struct soap *soap,
   MV_RETENTION_POLICY(req.targetFileRetentionPolicyInfo,retentionPolicy,accessLatency);
 
   /* Storage System Info */
-  NOT_0(sourceStorageSystemInfo.key,req.sourceStorageSystemInfo,soap_new_srm__ArrayOfTExtraInfo(soap, -1));
-  for(uint j = 0; j < sourceStorageSystemInfo.key.size(); j++) {
-    DM_LOG(DM_N(2), "sourceStorageSystemInfo.key[%u]\n", j);
-    srm__TExtraInfo *extraInfo;
-    NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));
-    MV_CSTR2STR(extraInfo->key,CSTR(sourceStorageSystemInfo.key[j]));
-    MV_PSTR2PSTR(extraInfo->value,sourceStorageSystemInfo.value[j]);
-    req.sourceStorageSystemInfo->extraInfoArray.push_back(extraInfo);
-  }
-  NOT_0(targetStorageSystemInfo.key,req.targetStorageSystemInfo,soap_new_srm__ArrayOfTExtraInfo(soap, -1));
-  for(uint j = 0; j < targetStorageSystemInfo.key.size(); j++) {
-    DM_LOG(DM_N(2), "targetStorageSystemInfo.key[%u]\n", j);
-    srm__TExtraInfo *extraInfo;
-    NOT_NULL(extraInfo = soap_new_srm__TExtraInfo(soap, -1));
-    MV_CSTR2STR(extraInfo->key,CSTR(targetStorageSystemInfo.key[j]));
-    MV_PSTR2PSTR(extraInfo->value,targetStorageSystemInfo.value[j]);
-    req.sourceStorageSystemInfo->extraInfoArray.push_back(extraInfo);
-  }
-  
+  MV_STORAGE_SYSTEM_INFO(req.sourceStorageSystemInfo,sourceStorageSystemInfo);
+  MV_STORAGE_SYSTEM_INFO(req.targetStorageSystemInfo,targetStorageSystemInfo);
+
   /* To send the request ... */
   SOAP_CALL_SRM(Copy); 
 

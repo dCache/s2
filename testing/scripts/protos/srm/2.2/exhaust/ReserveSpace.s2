@@ -23,7 +23,7 @@ DEFUN srmTest authorizationID userSpaceTokenDescription retentionPolicy accessLa
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
+
 && ASSIGN userSpaceTokenDescription userSpaceTokenDescription
 && ASSIGN retentionPolicy retentionPolicy
 && ASSIGN accessLatency accessLatency

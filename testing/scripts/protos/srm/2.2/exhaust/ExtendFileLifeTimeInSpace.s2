@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID spaceToken SURL newLifeTime
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
@@ -14,8 +15,10 @@ DEFUN srmTest authorizationID spaceToken SURL newLifeTime
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN spaceToken spaceToken
+
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+
+&& ASSIGN spaceToken ${spaceToken}
 && ASSIGN SURL SURL
-&& ASSIGN newLifeTime newLifeTime
+&& ASSIGN newLifeTime $ENV{LIFETIME_NEW}
 && FUN srmTest $ENV{USER} ${spaceToken} ${SURL} ${newLifeTime}

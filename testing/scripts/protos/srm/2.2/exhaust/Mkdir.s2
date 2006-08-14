@@ -14,8 +14,8 @@ DEFUN srmTest authorizationID directoryPath storageSystemInfo.key storageSystemI
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN directoryPath directoryPath
+
+&& ASSIGN directoryPath $ENV{SRM_NEW_DIR0}
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${directoryPath} ${storageSystemInfo.key} ${storageSystemInfo.value}

@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../../include/FileTransPut.s2
 
 DEFUN srmTest authorizationID requestToken SURL
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
@@ -13,7 +14,15 @@ DEFUN srmTest authorizationID requestToken SURL
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN requestToken requestToken
-&& ASSIGN SURL SURL
+
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+   SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
+   && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_INPROGRESS)
+         SYSTEM echo "srmStatusOfPutRequest: transferURL0=${transferURL0}" >> $ENV{S2_LOG}
+   && NOP
+      FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}
+
+&& ASSIGN requestToken ${putRequestToken}
+&& ASSIGN SURL $ENV{SRM_NEW_FILE0}
 && FUN srmTest $ENV{USER} ${requestToken} ${SURL}

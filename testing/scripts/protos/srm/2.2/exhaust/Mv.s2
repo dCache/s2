@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID fromSURL toSURL storageSystemInfo.key storageSystemInfo.value
    >0&&4 NOP
@@ -16,9 +17,11 @@ DEFUN srmTest authorizationID fromSURL toSURL storageSystemInfo.key storageSyste
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN fromSURL fromSURL
-&& ASSIGN toSURL toSURL
+
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& ASSIGN fromSURL $ENV{SRM_NEW_FILE0}
+&& ASSIGN toSURL $ENV{SRM_NEW_FILE1}
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${fromSURL} ${toSURL} ${storageSystemInfo.key} ${storageSystemInfo.value}

@@ -14,8 +14,8 @@ DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN SURL SURL
+
+&& ASSIGN SURL $ENV{SRM_ENDPOINT}
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${SURL} ${storageSystemInfo.key} ${storageSystemInfo.value}

@@ -22,15 +22,17 @@ DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN SURL SURL
-&& ASSIGN permissionType permissionType
-&& ASSIGN ownerPermission ownerPermission
+
+&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+
+&& ASSIGN SURL $ENV{SRM_NEW_DIR0}
+&& ASSIGN permissionType ADD
+&& ASSIGN ownerPermission RWX
 && ASSIGN userPermission.ID userPermission.ID
-&& ASSIGN userPermission.mode userPermission.mode
+&& ASSIGN userPermission.mode RW
 && ASSIGN groupPermission.ID groupPermission.ID
-&& ASSIGN groupPermission.mode groupPermission.mode
-&& ASSIGN otherPermission otherPermission
+&& ASSIGN groupPermission.mode RX
+&& ASSIGN otherPermission RWX
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${SURL} ${permissionType} ${ownerPermission} ${userPermission.ID} ${userPermission.mode} ${groupPermission.ID} ${groupPermission.mode} ${otherPermission} ${storageSystemInfo.key} ${storageSystemInfo.value}

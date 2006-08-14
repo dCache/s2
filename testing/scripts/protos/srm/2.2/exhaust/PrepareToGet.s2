@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory fileRequests.allLevelRecursive fileRequests.numOfLevels userRequestDescription storageSystemInfo.key storageSystemInfo.value desiredFileStorageType desiredTotalRequestTime desiredPinLifeTime targetSpaceToken retentionPolicy accessLatency accessPattern connectionType clientNetworks transferProtocols
    >0&&17 NOP
@@ -29,22 +30,24 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory 
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN fileRequests.SURL fileRequests.SURL
-&& ASSIGN fileRequests.isSourceADirectory fileRequests.isSourceADirectory
-&& ASSIGN fileRequests.allLevelRecursive fileRequests.allLevelRecursive
-&& ASSIGN fileRequests.numOfLevels fileRequests.numOfLevels
+
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& ASSIGN fileRequests.SURL $ENV{SRM_NEW_FILE0}
+&& ASSIGN fileRequests.isSourceADirectory 0
+&& ASSIGN fileRequests.allLevelRecursive 0
+&& ASSIGN fileRequests.numOfLevels 0
 && ASSIGN userRequestDescription userRequestDescription
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
-&& ASSIGN desiredFileStorageType desiredFileStorageType
-&& ASSIGN desiredTotalRequestTime desiredTotalRequestTime
-&& ASSIGN desiredPinLifeTime desiredPinLifeTime
+&& ASSIGN desiredFileStorageType $ENV{STORAGE_TYPE}
+&& ASSIGN desiredTotalRequestTime 60
+&& ASSIGN desiredPinLifeTime 60
 && ASSIGN targetSpaceToken targetSpaceToken
-&& ASSIGN retentionPolicy retentionPolicy
-&& ASSIGN accessLatency accessLatency
-&& ASSIGN accessPattern accessPattern
-&& ASSIGN connectionType connectionType
+&& ASSIGN retentionPolicy $ENV{RETENTION_POLICY}
+&& ASSIGN accessLatency $ENV{ACCESS_LATENCY}
+&& ASSIGN accessPattern $ENV{ACCESS_PATTERN}
+&& ASSIGN connectionType $ENV{CONNECTION_TYPE}
 && ASSIGN clientNetworks clientNetworks
-&& ASSIGN transferProtocols transferProtocols
+&& ASSIGN transferProtocols "$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}"
 && FUN srmTest $ENV{USER} ${fileRequests.SURL} ${fileRequests.isSourceADirectory} ${fileRequests.allLevelRecursive} ${fileRequests.numOfLevels} ${userRequestDescription} ${storageSystemInfo.key} ${storageSystemInfo.value} ${desiredFileStorageType} ${desiredTotalRequestTime} ${desiredPinLifeTime} ${targetSpaceToken} ${retentionPolicy} ${accessLatency} ${accessPattern} ${connectionType} ${clientNetworks} ${transferProtocols}

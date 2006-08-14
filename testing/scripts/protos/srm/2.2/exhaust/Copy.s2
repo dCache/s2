@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-  #include ../include/Exhaust.s2
+   #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID sourceSURL targetSURL isSourceADirectory allLevelRecursive numOfLevels userRequestDescription overwriteOption desiredTotalRequestTime desiredTargetSURLLifeTime targetFileStorageType targetSpaceToken targetFileRetentionPolicyInfo retentionPolicy accessLatency sourceStorageSystemInfo.key sourceStorageSystemInfo.value targetStorageSystemInfo.key targetStorageSystemInfo.value
    >0&&18 NOP
@@ -30,21 +31,22 @@ DEFUN srmTest authorizationID sourceSURL targetSURL isSourceADirectory allLevelR
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN sourceSURL sourceSURL
-&& ASSIGN targetSURL targetSURL
-&& ASSIGN isSourceADirectory isSourceADirectory
-&& ASSIGN allLevelRecursive allLevelRecursive
-&& ASSIGN numOfLevels numOfLevels
+
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& ASSIGN sourceSURL $ENV{SRM_NEW_FILE0}
+&& ASSIGN targetSURL $ENV{SRM_NEW_FILE1}
+&& ASSIGN isSourceADirectory 0
+&& ASSIGN allLevelRecursive 0
+&& ASSIGN numOfLevels 0
 && ASSIGN userRequestDescription userRequestDescription
-&& ASSIGN overwriteOption overwriteOption
-&& ASSIGN desiredTotalRequestTime desiredTotalRequestTime
-&& ASSIGN desiredTargetSURLLifeTime desiredTargetSURLLifeTime
-&& ASSIGN targetFileStorageType targetFileStorageType
+&& ASSIGN overwriteOption 0
+&& ASSIGN desiredTotalRequestTime 60
+&& ASSIGN desiredTargetSURLLifeTime 60
+&& ASSIGN targetFileStorageType $ENV{STORAGE_TYPE}
 && ASSIGN targetSpaceToken targetSpaceToken
-&& ASSIGN targetFileRetentionPolicyInfo targetFileRetentionPolicyInfo
-&& ASSIGN retentionPolicy retentionPolicy
-&& ASSIGN accessLatency accessLatency
+&& ASSIGN retentionPolicy $ENV{RETENTION_POLICY}
+&& ASSIGN accessLatency $ENV{ACCESS_LATENCY}
 && ASSIGN sourceStorageSystemInfo.key sourceStorageSystemInfo.key
 && ASSIGN sourceStorageSystemInfo.value sourceStorageSystemInfo.value
 && ASSIGN targetStorageSystemInfo.key targetStorageSystemInfo.key

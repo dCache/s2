@@ -1,5 +1,5 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-  #include ../include/Exhaust.s2
+   #include ../include/Exhaust.s2
 
 DEFUN srmTest authorizationID fileRequests.SURL fileRequests.isSourceADirectory fileRequests.allLevelRecursive fileRequests.numOfLevels userRequestDescription storageSystemInfo.key storageSystemInfo.value desiredFileStorageType desiredTotalRequestTime desiredPinLifeTime targetSpaceToken retentionPolicy accessLatency accessPattern connectionType clientNetworks transferProtocols
    >0&&17 NOP

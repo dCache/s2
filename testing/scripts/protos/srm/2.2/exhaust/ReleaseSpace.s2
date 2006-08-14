@@ -1,5 +1,5 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-  #include ../include/Exhaust.s2
+   #include ../include/Exhaust.s2
 
 DEFUN srmTest authorizationID spaceToken storageSystemInfo.key storageSystemInfo.value forceFileRelease
    >0&&4 NOP

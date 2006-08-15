@@ -14,8 +14,10 @@ DEFUN srmTest authorizationID requestToken offset count
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN requestToken requestToken
-&& ASSIGN offset offset
-&& ASSIGN count count
+
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+
+&& ASSIGN requestToken ${requestToken}
+&& ASSIGN offset 0
+&& ASSIGN count 0
 && FUN srmTest $ENV{USER} ${requestToken} ${offset} ${count}

@@ -1,5 +1,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2
 
 DEFUN srmTest authorizationID requestToken SURL
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
@@ -13,7 +14,10 @@ DEFUN srmTest authorizationID requestToken SURL
 
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
-%&& <CODE FROM BASIC>
-&& ASSIGN requestToken requestToken
+
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+&& srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+
+&& ASSIGN requestToken ${bolRequestToken}
 && ASSIGN SURL SURL
 && FUN srmTest $ENV{USER} ${requestToken} ${SURL}

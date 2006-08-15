@@ -5,6 +5,8 @@ High priority
 
 Normal priority
 ~~~~~~~~~~~~~~~
+- ;;
+- BREAK and CONTINUE for loops
 - ECHO (vs. SYSTEM echo --- performance considerations)
 - Support more $TAGs, e.g.:
   * $STR2HEX{}, $HEX2STR{}, $STR2BIN{}, $BIN2STR{}, ...

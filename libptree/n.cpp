@@ -233,8 +233,9 @@ Node::nodeToString(Node *n, uint indent, Process *proc)
   /* branch options */
   switch(n->COND) {
     case S2_COND_NONE: break;
-    case S2_COND_OR: ss << "|| "; break;
+    case S2_COND_OR:  ss << "|| "; break;
     case S2_COND_AND: ss << "&& "; break;
+    case S2_COND_SEQ: ss << ";; "; break;
   }
 
   switch(n->REPEAT.type) {
@@ -247,6 +248,10 @@ Node::nodeToString(Node *n, uint indent, Process *proc)
 
     case S2_REPEAT_AND:
       ss << '>' << EXPR2I(n->REPEAT.X) << "&&" << EXPR2I(n->REPEAT.Y);
+    break;
+
+    case S2_REPEAT_SEQ:
+      ss << '>' << EXPR2I(n->REPEAT.X) << ";;" << EXPR2I(n->REPEAT.Y);
     break;
 
     case S2_REPEAT_PAR:

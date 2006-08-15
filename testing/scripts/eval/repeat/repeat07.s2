@@ -1,10 +1,6 @@
-% Parallel repeat (references to local/global variables)
+% Parallel repeat with two loops connected in parallel
 
-ASSIGN v "v0"
-   SYSTEM echo "${v} == v0 && ${0v} == v0"
-   && ASSIGN v "v1"
-     >2 4 SLEEP 0 500000
-        ASSIGN v "v$I{0}" 0w "$I{0}" x "$I{0}"
-           SYSTEM echo "${v} == v$I{0} && ${0v} == v1 && ${w} == $I{0} && ${0w} == $I{0} && ${x} == $I{0}"
-   && SYSTEM echo "${v} == v1 && ${0w} == ${w} == [2-4] (lucky winner)"
-   && eval=2 SYSTEM echo "x (${-x}) is not defined here, local in the parallel process scope"
+SYSTEM echo "-:-"
+>1 2 SLEEP 0
+   >1 2 SLEEP 0
+      SYSTEM echo "$I{1}:$I{0}"

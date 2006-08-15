@@ -539,7 +539,7 @@ Parser::dq_param_env(std::string &target)
 int
 Parser::dq_param_x(std::string &target)
 {
-  return double_quoted_param(target, FALSE, "|& \t");
+  return double_quoted_param(target, FALSE, "|&; \t");
 } /* dq_param_x */
 
 int
@@ -1048,11 +1048,9 @@ Parser::COND(void)
         return ERR_ERR;
       }
       if(Node::get_node_with_offset(c0_node, parser_node.OFFSET) == NULL) {
-        DM_ERR_P(_("no previous branch with the same offset (%u) to join || condition to\n"), parser_node.OFFSET);
+        DM_ERR_P(_("no previous branch with the same offset (%u) to join || branch to\n"), parser_node.OFFSET);
         return ERR_ERR;
       }
-
-      /* we have a valid OR condition */
       parser_node.COND = S2_COND_OR;
     break;
     
@@ -1063,13 +1061,23 @@ Parser::COND(void)
         return ERR_ERR;
       }
       if(Node::get_node_with_offset(c0_node, parser_node.OFFSET) == NULL) {
-        DM_ERR_P(_("no previous branch with the same offset (%u) to join && condition to\n"), parser_node.OFFSET);
+        DM_ERR_P(_("no previous branch with the same offset (%u) to join && branch to\n"), parser_node.OFFSET);
         return ERR_ERR;
       }
-
-      /* we have a valid AND condition */
       parser_node.COND = S2_COND_AND;
-      
+    break;
+    
+    case ';': /* sequential execution (no matter what the previous result was) */
+      if((c = gc()) != ';') {
+        ugc();
+        DM_ERR_P(_("expected ;; found ;%c\n"), c);
+        return ERR_ERR;
+      }
+      if(Node::get_node_with_offset(c0_node, parser_node.OFFSET) == NULL) {
+        DM_ERR_P(_("no previous branch with the same offset (%u) to join ;; branch to\n"), parser_node.OFFSET);
+        return ERR_ERR;
+      }
+      parser_node.COND = S2_COND_SEQ;
     break;
     
     default:
@@ -1143,7 +1151,7 @@ Parser::REPEAT_FIXED(void)
       c = gc();
       if(c != '|') {
         ugc();
-        DM_ERR_P(_("invalid sequential '||' repeat operator %c\n"), c);
+        DM_ERR_P(_("invalid sequential '||' repeat operator |%c\n"), c);
         return ERR_ERR;
       }
       /* a sequential '||' repeat */
@@ -1156,12 +1164,25 @@ Parser::REPEAT_FIXED(void)
       c = gc();
       if(c != '&') {
         ugc();
-        DM_ERR_P(_("invalid sequential '||' repeat operator %c\n"), c);
+        DM_ERR_P(_("invalid sequential '&&' repeat operator, found &%c\n"), c);
         return ERR_ERR;
       }
       /* a sequential '&&' repeat */
 //      ugc();
       parser_node.REPEAT.type = S2_REPEAT_AND;
+    break;
+    
+    case ';':
+      /* we have found ';', check the second one */
+      c = gc();
+      if(c != ';') {
+        ugc();
+        DM_ERR_P(_("invalid sequential ';;' repeat operator, found ;%c\n"), c);
+        return ERR_ERR;
+      }
+      /* an unconditional sequential ';;' repeat */
+//      ugc();
+      parser_node.REPEAT.type = S2_REPEAT_SEQ;
     break;
     
     default:

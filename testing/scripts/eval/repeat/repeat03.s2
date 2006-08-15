@@ -1,5 +1,5 @@
 % Parallel repeat
 
->1 3 SYSTEM echo '>1 3 head'
-   SYSTEM echo ">1 3 body \$I{0}=$I{0}" && exit 0
+>2;;0 SYSTEM echo '>2;;0 head'
+   SYSTEM echo ">2;;0 body \$I{0}=$I{0}" && exit $I{0}
 && SYSTEM echo "I'm not part of the repeat!"

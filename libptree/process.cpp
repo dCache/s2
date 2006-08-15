@@ -490,6 +490,7 @@ Process::eval_repeats()
     case S2_REPEAT_NONE:	/* fall through */
     case S2_REPEAT_OR:		/* fall through */
     case S2_REPEAT_AND:		/* fall through */
+    case S2_REPEAT_SEQ:		/* fall through */
     case S2_REPEAT_WHILE:	/* fall through */
 seq:
       I = n->REPEAT.X? Expr::eval2i(n->REPEAT.X->c_str(), this) : 0;	/* necessary for S2_REPEAT_NONE only */
@@ -601,7 +602,7 @@ Process::eval_par()
     Node *ptr_node = n->par;
     DM_DBG(DM_N(5), FBRANCH"investigating branches located at the same offset\n", n->row, executed, evaluated);
     switch(n->par->COND) {
-      case S2_COND_OR:
+      case S2_COND_OR:{
         if(evaluated > n->EVAL) {
           DM_DBG(DM_N(5), FBRANCH"OR: evaluated=%d > EVAL=%d\n", n->row, executed, evaluated, evaluated, n->EVAL);
           Process proc = Process(n->par, parent, this);
@@ -614,21 +615,23 @@ Process::eval_par()
 
           ptr_node = n->par->par;
           while(ptr_node) {
-            if(ptr_node->COND == S2_COND_AND) goto eval_and;
+            if(ptr_node->COND == S2_COND_SEQ || ptr_node->COND == S2_COND_AND) goto seq_and;
             ptr_node = ptr_node->par;
           }
           break;
 
-eval_and: /* only used by the goto above */
-          DM_DBG(DM_N(5), FBRANCH"found a par AND, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
+seq_and: /* only used by the goto above */
+          DM_DBG(DM_N(5), FBRANCH"found a par %s, evaluating branch %u\n", n->row, executed, evaluated,
+                          (ptr_node->COND == S2_COND_SEQ)? ";;": "AND" , ptr_node->row);
           Process proc = Process(ptr_node, parent, this);
           par_eval = proc.eval();
           evaluated = par_eval;
           DM_DBG(DM_N(5), FBRANCH"OR: par_eval=%d\n", n->row, executed, evaluated, par_eval);
         }
+      }
       break;
 
-      case S2_COND_AND:
+      case S2_COND_AND:{
         if(evaluated <= n->EVAL) {
           DM_DBG(DM_N(5), FBRANCH"AND: evaluated(%d) <= EVAL(%d)\n", n->row, executed, evaluated, evaluated, n->EVAL);
           Process proc = Process(n->par, parent, this);
@@ -641,23 +644,35 @@ eval_and: /* only used by the goto above */
 
           ptr_node = n->par->par;
           while(ptr_node) {
-            if(ptr_node->COND == S2_COND_OR) goto eval_or;
+            if(ptr_node->COND == S2_COND_SEQ || ptr_node->COND == S2_COND_OR) goto seq_or;
             ptr_node = ptr_node->par;
           }
           break;
 
-eval_or: /* only used by the goto above */
-          DM_DBG(DM_N(5), FBRANCH"found a par OR, evaluating branch %u\n", n->row, executed, evaluated, ptr_node->row);
+seq_or: /* only used by the goto above */
+          DM_DBG(DM_N(5), FBRANCH"found a par %s, evaluating branch %u\n", n->row, executed, evaluated, 
+                          (ptr_node->COND == S2_COND_SEQ)? ";;": "OR", ptr_node->row);
           Process proc = Process(ptr_node, parent, this);
           par_eval = proc.eval();
           evaluated = par_eval;
           DM_DBG(DM_N(5), FBRANCH"AND: par_eval=%d\n", n->row, executed, evaluated, par_eval);
         }
+      }
       break;
-      
-      case S2_COND_NONE:
+
+      case S2_COND_SEQ:{
+        DM_DBG(DM_N(5), FBRANCH";;: evaluated=%d > EVAL=%d\n", n->row, executed, evaluated, evaluated, n->EVAL);
+        Process proc = Process(n->par, parent, this);
+        par_eval = proc.eval();
+        evaluated = par_eval;
+        DM_DBG(DM_N(5), FBRANCH";;: par_eval=%d\n", n->row, executed, evaluated, par_eval);
+      }
+      break;
+
+      case S2_COND_NONE:{
         /* parallel execution, already taken care of */
         DM_DBG(DM_N(5), FBRANCH"found a parallel branch, execution already scheduled\n", n->row, evaluated, executed);
+      }
       break;
     }
   }
@@ -722,6 +737,19 @@ Process::eval_sequential_repeats()
           /* end on first unsuccessful evaluation */
           break;
         }
+      } while(I != y);
+    }
+    break;
+
+    case S2_REPEAT_SEQ: {
+      I = i;
+      do {
+        I += step;
+        DM_DBG(DM_N(5), FBRANCH";; repeat; >%s %s; i=%"PRIi64"\n", n->row, executed, evaluated, n->REPEAT.X->c_str(), n->REPEAT.Y->c_str(), i);
+
+        iter_eval = eval_with_timeout();
+        UPDATE_MAX(evaluated, iter_eval);
+        DM_DBG(DM_N(5), ";; repeat "FBRANCH"iter_eval=%d\n", n->row, executed, evaluated, iter_eval);
       } while(I != y);
     }
     break;
@@ -1648,6 +1676,7 @@ Process::eval_str(const char *cstr, Process *proc)
           while(ptr_proc && i16 >= 0) {
             if(ptr_proc->n->REPEAT.type == S2_REPEAT_OR || 
                ptr_proc->n->REPEAT.type == S2_REPEAT_AND ||
+               ptr_proc->n->REPEAT.type == S2_REPEAT_SEQ ||
                ptr_proc->n->REPEAT.type == S2_REPEAT_PAR)
             {
               DM_DBG(DM_N(4), "found a repeat branch; i16=%d\n", i16);

@@ -5,6 +5,7 @@ NOP 0
 || SYSTEM echo "|| 2b: ${?}/${!}" && exit 2
 && SYSTEM echo "&& 0a: ${?}/${!} (never reached)"
 && SYSTEM echo "&& 0b: ${?}/${!} (never reached)"
-&& SYSTEM echo "&& 0c: ${?}/${!} (never reached)"
-|| SYSTEM echo "|| 0d: ${?}/${!}"
+;; SYSTEM echo ";; 0b: ${?}/${!} (always executed)"
+&& SYSTEM echo "&& 0c: ${?}/${!}"
+|| SYSTEM echo "|| 0d: ${?}/${!} (never reached)"
 && SYSTEM echo "&& 0e: ${?}/${!}"

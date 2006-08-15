@@ -1,6 +1,6 @@
 ======================================================================
-Title:		S2 test client documentation
-Version:	2006-08-14
+Title:		S2 language documentation
+Version:	2006-08-15
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -11,8 +11,9 @@ pattern matching.
 
 Overview
 ~~~~~~~~
-S2 is a simple general-purpose test client with the SRM 2.x protocol
-support.  S2 interprets a tree-like language, which was also named S2.
+S2 is a simple general-purpose test client with the SRM 2.1 and 2.2
+protocol support.  S2 interprets a tree-like language, which was also
+named S2.
 
 The S2 tree consists of branches.  Every branch is indented by 0
 or more spaces which, together with its row position, defines its
@@ -88,11 +89,11 @@ the '%' character [as in (La)TeX] and continue up to the next newline
 
   <BRANCH_PREFIX> :: <COND>? <REPEAT>? <BRANCH_OPT>*
 
-  <COND> :: '||' | '&&'
+  <COND> :: '||' | '&&' | ';;'
 
   <REPEAT> :: '>' <X> <PAR_SEQ> <Y> | 'WHILE'
   
-  <PAR_SEQ> :: ' ' | '||' | '&&'
+  <PAR_SEQ> :: ' ' | '||' | '&&' | ';;'
   
   <X> :: <DQ_I>
 ; repeat start value
@@ -268,8 +269,9 @@ is the execution value of the last sub-branch.
 ~~~~~~~~~~~~~~~~~~~
 Virtual branches are created from other branches by means of connecting
 them to other branches placed on the same level of indentation.
-The connectives can be '||' and '&&' conditions and an empty connective
-meaning parallel execution.  A branch is a virtual branch.
+The connectives can be '||' and '&&' operators, an empty connective
+which stands for parallel execution or ';;' which stands for
+unconditional sequential execution.  A branch is a virtual branch.
 
 Branch execution/evaluation values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -293,8 +295,8 @@ General model
 
 Indentation of branches is crucial.  <BRANCH>es indented by the same
 amount of whitespace (starting at the identical column) are evaluated
-in parallel unless special '||' or '&&' conditions described in the
-following sections are used.  A branch having a parent is evaluated
+in parallel unless special '||', '&&' or ';;' operators described in
+the following sections are used.  A branch having a parent is evaluated
 only if execution of this parent succeeded (i.e. a conditional
 sequential execution).  For example, <branch 3> is only executed
 if execution of <branch 2b> succeeded. (Consequently, execution of
@@ -304,23 +306,23 @@ branches <branch 2a> and <branch 2b>.
 
 Empty lines are ignored.
 
-Conditional sequential execution, the '||' (OR) condition
----------------------------------------------------------
+Conditional sequential execution, the '||' (OR) operator
+--------------------------------------------------------
 <branch 1>
 || <branch 2>
 
 <branch 2> is evaluated only if evaluation of <branch 1> fails.
 
 The virtual branch created by connecting <branch 1> and <branch 2>
-by the '||' condition evaluates to TRUE if <branch 1> evaluates to
+by the '||' operator evaluates to TRUE if <branch 1> evaluates to
 TRUE, otherwise it evaluates to evaluation of <branch 2>.
 
 The evaluation value of a virtual branch connected by the '||'
-condition is the evaluation value of <branch 1> if it evaluates to
+operator is the evaluation value of <branch 1> if it evaluates to
 TRUE, otherwise the evaluation value of <branch 2>.
 
-Conditional sequential execution, the '&&' (AND) condition
-----------------------------------------------------------
+Conditional sequential execution, the '&&' (AND) operator
+---------------------------------------------------------
 <branch 1>
 && <branch 2>
 
@@ -335,10 +337,10 @@ tree 1         | tree 2
   <branch 2>   | && <branch 2>
 
 As tree 1 and tree 2 are semantically equivalent, the evaluation
-value of a virtual branch connected by the '&&' condition is equal
+value of a virtual branch connected by the '&&' operator is equal
 to the evaluation value of <branch 1> of tree 1.
 
-The aim of the '&&' condition is to provide a "join" primitive.  For 
+The aim of the '&&' operator is to provide a "join" primitive.  For 
 example, the following trees (1 and 2) are semantically equivalent:
 
 tree 1 (not using '&&')      | tree 2 (using the '&&' primitive)
@@ -353,6 +355,20 @@ tree 1 (not using '&&')      | tree 2 (using the '&&' primitive)
       <branch 2c>            |   && <branch 2c>
         <branch 3c>          |     <branch 3c>
   <branch 2d>                |   <branch 2d>
+
+Unconditional sequential execution, the ';;' operator
+-----------------------------------------------------
+<branch 1>
+;; <branch 2>
+
+<branch 2> is evaluated sequentially irrespective of 
+<branch 1> evaluation result.
+
+The virtual branch created by connecting <branch 1> and <branch 2>
+by the ';;' evaluates to evaluation of <branch 2>.
+
+The evaluation value of a virtual branch connected by the ';;'
+operator is the evaluation value of <branch 2>.
 
 Parallel execution
 ------------------
@@ -401,6 +417,16 @@ A virtual branch created by the use of the sequential '||' repeat
 operator evaluates to FALSE, if all of <branch> iterations evaluate
 to FALSE.  The evaluation of the '||' repeat loop ends with its first
 successful evaluation and it evaluates to TRUE.
+
+The evaluation value is the value of the last iteration.
+
+The sequential ';;' repeat operator
+-----------------------------------
+  >X;;Y <branch>
+
+A virtual branch created by the use of the unconditional sequential
+';;' repeat operator evaluates to the evaluation value of the last
+<branch> iteration.
 
 The evaluation value is the value of the last iteration.
 

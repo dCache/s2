@@ -554,10 +554,10 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
   DM_DBG(DM_N(6), "|%c|\n", c);
   if(c != '\0') ws_only = FALSE;
   if(!dq) ugc();
-  DM_DBG(DM_N(5), "1) col=%d, dq=%d\n", col, dq);
+  DM_DBG(DM_N(6), "1) col=%d, dq=%d\n", col, dq);
   
   for(i = 0; (c = gc()) != '\0'; i++) {
-    DM_DBG(DM_N(5), "'%c'; bslash=%d, string=%d, brackets=%d\n", c, bslash, string, brackets);
+    DM_DBG(DM_N(6), "'%c'; bslash=%d, string=%d, brackets=%d\n", c, bslash, string, brackets);
     if(c == '\\' && bslash) {
       /* two backslashes => no quoting */
       bslash = FALSE;
@@ -570,12 +570,12 @@ get_dq_param(std::string &target, const char *source, BOOL &ws_only)
       if(c == '{') brackets++;
     }
 
-    DM_DBG(DM_N(5), "'%c'; bslash=%d, string=%d, brackets=%d\n", c, bslash, string, brackets);
+    DM_DBG(DM_N(6), "'%c'; bslash=%d, string=%d, brackets=%d\n", c, bslash, string, brackets);
 
     if(TERM_CHAR(c) && !bslash) {
       if(c != '"') ugc();
 
-      DM_DBG(DM_N(5), "|%s|; col=|%d|\n", target.c_str(), col);
+      DM_DBG(DM_N(6), "|%s|; col=|%d|\n", target.c_str(), col);
       return col;	/* found a string terminator */
     }
 

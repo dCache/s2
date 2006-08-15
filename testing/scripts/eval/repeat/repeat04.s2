@@ -1,4 +1,5 @@
-% Parallel repeat connected in parallel
+% Parallel repeat
 
-SYSTEM echo root
->0 2 SYSTEM echo "\$I{0}=$I{0}"
+>1 3 SYSTEM echo '>1 3 head'
+   SYSTEM echo ">1 3 body \$I{0}=$I{0}" && exit 0
+&& SYSTEM echo "I'm not part of the repeat!"

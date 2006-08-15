@@ -1,6 +1,4 @@
-% Parallel repeat connected in parallel; sometimes deadlocks with NPTL 3.2.5, see BUGS
+% Parallel repeat connected in parallel
 
->1 5 SYSTEM echo "$I{0}:-:-:-"
-   >1 5 SYSTEM echo "$I{0}:$I{1}:-:-"
-      >1 5 SYSTEM echo "$I{0}:$I{1}:$I{2}:-"
-         >1 5 SYSTEM echo "$I{0}:$I{1}:$I{2}:$I{3}"
+SYSTEM echo root
+>0 2 SYSTEM echo "\$I{0}=$I{0}"

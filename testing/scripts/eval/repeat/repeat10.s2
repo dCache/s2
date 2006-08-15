@@ -1,0 +1,7 @@
+% Expressions in repeats
+
+>0&&3 NOP
+   >0&&$EXPR{2*($I{1}==0)} SYSTEM echo "-:-:-:$I{1}:$I{0}"
+      >0&&$EXPR{2*($I{2}==1)} SYSTEM echo "-:-:$I{2}:$I{1}:$I{0}"
+         >0&&$EXPR{2*($I{3}==2)} SYSTEM echo "-:$I{3}:$I{2}:$I{1}:$I{0}"
+            >0&&$EXPR{2*($I{4}==3)} SYSTEM echo "$I{4}:$I{3}:$I{2}:$I{1}:$I{0}"

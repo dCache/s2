@@ -16,10 +16,12 @@ Quick start
  6) If you are not interested in SRM 2.x, skip to 10.
  7) Add your endpoint to your local copy of
     testing/scripts/protos/srm/s2.env
+    or set the SRM_ENDPOINT environment variable
  8) cd testing/scripts/protos/srm/2.<x>/basic && make ln
     where <x> is [12].
  9) do 5)
-10) Read at least the `Overview' section from s2.txt document.
+10) Read at least the `Overview' section from s2.txt document and
+    `How to create new SRM 2.2 scenarios'.
 
 
 Testing directory
@@ -94,6 +96,49 @@ s2.sh script output files
 *.p     "pretty-printed" s2 script
 
 
+How to create new SRM 2.2 scenarios
+===================================
+To create new SRM 2.2 scenarios, at least some basic knowledge of
+the S2 programming concepts is necessary.  To that end, you should
+consult the s2.txt reference manual, run and go through a few examples
+in testing/scripts/eval subdirectories.
+
+Secondly, you'll need to know the syntax of the S2 SRM 2.2 calls.
+Unfortunately, there is no grammar in the s2.txt reference manual
+for these, however, all the available parameters for all calls
+are given in the testing/scripts/protos/srm/2.2/template directory.
+These calls have two types of parameters: send and receive.  The `send'
+parameters contain read-only values (all variables are evaluated before
+the call) and the receive parameters contain regular expressions.
+In this way a success or a failure of a call can be established
+simply by entering expected values to receive parameters of an
+SRM call.  Also, the returned values can be saved into variables for
+later inspection/evaluation by the use of named regular expressions
+(?P<var_name>regexp).  Please see the reference manual for more details
+on regular expressions.  The important thing to note is that matching
+of returned values against regular expressions is currently performed
+in the short-circuit manner from left to right, therefore if a receive
+parameter's regular expression doesn't match the returned value for
+this parameter, the matching engine stops and no values are written
+into variables contained in named regular expressions right of the
+first mismatched receive parameter.  For example:
+
+srmPing $ENV{ENDPOINT} authorizationID=$ENV{USER} versionInfo=v2\.2 otherInfo=(?P<otherInfo>.*)
+
+is the simplest SRM 2.2 call with two send ($ENV{ENDPOINT},
+authorizationID) and two receive (versionInfo, otherInfo) parameters.
+If an SRM 2.2 server returns a value which doesn't match v2\.2
+(note the backslash as a single dot stands for any character), the
+${otherInfo} variable is never defined as the match for that parameter
+is never attempted, since the match for versionInfo already failed.
+
+The best place if you want to learn how to create new SRM
+2.2 scenarios are testing/scripts/protos/srm/2.2/basic and
+testing/scripts/protos/srm/2.2/template directories.  The first
+directory shows S2 SRM 2.2 calls in action which you can copy/modify,
+the second contains a list of all S2 SRM 2.2 call parameters.
+
+
 Request for help
 ================
 Please help improve this project by:
@@ -102,4 +147,3 @@ Please help improve this project by:
  * providing feedback
  * new developers and/or patches that work and apply cleanly against
    CVS head or at least the latest advertised CVS tag are very welcome
- 

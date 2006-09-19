@@ -138,6 +138,23 @@ testing/scripts/protos/srm/2.2/template directories.  The first
 directory shows S2 SRM 2.2 calls in action which you can copy/modify,
 the second contains a list of all S2 SRM 2.2 call parameters.
 
+Using existing scenarios for stress testing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There are a number of ways in which existing SRM 2.2 scenarios can be
+adapted for stress testing.  The simplest one is to do something like
+
+>0 99 NOP
+   <EXISTING_SCENARIO>
+
+Which runs the same scenario 100 times in parallel.  Or
+
+>0 100 SLEEP 1 500000000
+   <EXISTING_SCENARIO>
+
+Note that you
+can make use of the internal repeat operator $I{<NUM>} to refer to the 
+parallel instance 0--99 inside the <EXISTING_SCENARIO>.
+
 
 Request for help
 ================

@@ -1,6 +1,6 @@
 ======================================================================
 Title:		S2 language documentation
-Version:	2006-08-15
+Version:	2006-09-15
 ======================================================================
 
 This document describes the current state of S2, a general-purpose test
@@ -518,6 +518,8 @@ Sleep for a specified amount of seconds and/or nanoseconds.
 ~~~~~~~~~~~~~~~~~~~
 All SRM2 methods are implemented.  Please see the
 `testing/scripts/protos/srm/{2.1,2.2}/template' directories for syntax.
+Also, please refer to the `How to create new SRM 2.2 scenarios' section
+of the README document.
 
 
 2.3.10 SYSTEM
@@ -833,7 +835,7 @@ NOP 2
 shall print the number 2.
 
 $I{<BR_I>} 
-  refrerence to the internal counter of a sequential repeat operator.
+  refrerence to the internal counter of a repeat operator.
   The value is always between <X> any <Y>.  <BR_I> denotes branch
   nesting.  0 refers to the innermost repeat operator, 1 refers
   to the second innermost repeat operator...  If <BR_I> refers to

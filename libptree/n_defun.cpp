@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#include <sys/types.h>
+#include <sys/types.h>  /* explicit include for SL4 */
 
 #ifdef DG_DIAGNOSE
 #include "diagnose/dg.h"

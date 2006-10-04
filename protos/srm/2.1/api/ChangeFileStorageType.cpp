@@ -8,7 +8,7 @@
 #include "config.h"
 #endif
 
-#include <sys/types.h>
+#include <sys/types.h> /* Port to SL4 */
 
 #ifdef DG_DIAGNOSE
 #include "diagnose/dg.h"

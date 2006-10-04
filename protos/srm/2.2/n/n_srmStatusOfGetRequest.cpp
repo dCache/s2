@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#include <sys/types.h>
+
 #ifdef DG_DIAGNOSE
 #include "diagnose/dg.h"
 #endif

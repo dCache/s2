@@ -8,6 +8,8 @@
 #include "config.h"
 #endif
 
+#include <sys/types.h>
+
 #ifdef HAVE_INTTYPES
 #include "inttypes.h"
 #endif

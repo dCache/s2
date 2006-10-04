@@ -1,1 +1,1 @@
--I${HOME}/usr/local/include -L/usr/local/include -I../include
+-I${HOME}/usr/local/include -L/usr/local/include -I../include -I/usr/include/pcre

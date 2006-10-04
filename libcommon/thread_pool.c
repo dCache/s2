@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#include <sys/types.h>
+#include <sys/types.h>  /* explicit include for SL4 */
 
 #ifdef HAVE_INTTYPES
 #include "inttypes.h"

@@ -1,0 +1,4 @@
+This directory contains directory structure and files for a simple
+autobuild system with CVS/Subversion support written in Perl called
+pant.  Please see http://pant.sf.net for more detail.
+

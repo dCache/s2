@@ -189,7 +189,7 @@
 \ifx\spamprotecttrue\relax
 \actspamprot
 \fi
-\gdef\JiriEmail{j.mencak@rl.ac.uk}
+\gdef\JiriEmail{jiri.mencak@centrum.cz}
 }
 
 %%% PAGE SPECIFICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -47,7 +47,7 @@ Which_s2() {
   fi
 }
 
-Source() {
+Source_descend() {
   local descend=""
   local src_file="$2"
   local i="$1"
@@ -67,6 +67,27 @@ Source() {
       source "${env_file}"
       not_found=0
     fi
+  done
+
+  return $not_found
+}
+
+Source() {
+  local descend=""
+  local src_file="$2"
+  local i="$1"
+  local not_found=1
+
+  while test $i -ne 0
+  do
+    local env_file="${ProgramDir}/$descend$src_file"
+    if test -r "${env_file}" ; then
+      source "${env_file}"
+      not_found=0
+    fi
+
+    i=$(expr $i - 1)
+    descend="../$descend"
   done
 
   return $not_found
@@ -159,8 +180,8 @@ main() {
   S2_BIN=`which ${S2_BIN} 2>/dev/null` || Die 3 "Couldn't find s2 binary."
   S2_SRC_DIR=`dirname ${S2_BIN}`
 
-  Source 5 ${ENV_SH} || Die 3 "Couldn't source ${ENV_SH}"
   test -r ${ProgramNameEnv} && source ${ProgramNameEnv}
+  Source 6 ${ENV_SH} || Die 3 "Couldn't source ${ENV_SH}"
 
   case "$S2_RUN" in
     superfast)

@@ -20,10 +20,10 @@ ln:
 	  ln -sf $(S2_SH) $$s2_sh;\
 	done; \
 	if test ! -d $(S2_LOGS_DIR) ; then \
-	  mkdir -p $(S2_LOGS_DIR);\
+	  @mkdir -p $(S2_LOGS_DIR);\
 	fi;\
 	if test ! -d $(CHECK_DIR) ; then \
-	  mkdir -p $(CHECK_DIR);\
+	  @mkdir -p $(CHECK_DIR);\
 	fi
 
 test superfast fast gdb valgrind: clean_log ln

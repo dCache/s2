@@ -4,3 +4,28 @@ was implemented or not.
 
 Note that the tests are alpha, under construction, far from being
 complete, correct, ready...
+
+The procedure make_result_web_page.sh can be used to generate summary web
+pages from the tests executed on multiple SRM implementations.
+
+In particular, in the file testing/scripts/protos/srm/s2.env in the
+case statement you can find all possible values that refer to the various
+endpoints for the SRM implementations available at the moment.
+
+a) In order to allow the make procedure to execute on different endpoints
+creating output subdirectories for each endpoint, you need to modify
+the content of the shell script:
+testing/scripts/protos/srm/env.[c]sh
+to point to the right endpoint.
+
+b) Then you need to source the script.
+
+c) Then sitting in the directory testing/scripts/protos/srm/2.2/basic
+you need to execute the following commands:
+make -e test
+
+You can repeat steps a) to c) for each endpoint that you like.
+
+In order to create the web page summary report, execute the command:
+./make_result_web_page.sh
+

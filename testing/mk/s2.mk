@@ -20,10 +20,10 @@ ln:
 	  ln -sf $(S2_SH) $$s2_sh;\
 	done; \
 	if test ! -d $(S2_LOGS_DIR) ; then \
-	  @mkdir -p $(S2_LOGS_DIR);\
+	  mkdir -p $(S2_LOGS_DIR) 2>/dev/null;\
 	fi;\
 	if test ! -d $(CHECK_DIR) ; then \
-	  @mkdir -p $(CHECK_DIR);\
+	  mkdir -p $(CHECK_DIR) 2>/dev/null;\
 	fi
 
 test superfast fast gdb valgrind: clean_log ln
@@ -72,7 +72,7 @@ install:
 
 clean_log:
 	@rm -f $(S2_LOGS)
-	@cd $(S2_LOGS_DIR); rm -f $(S2_LOGS)
+	@cd $(S2_LOGS_DIR) 2>/dev/null; rm -f $(S2_LOGS)
 
 clean: clean_log
 	@find . -name \*.sh -type l -exec rm -f {} \;

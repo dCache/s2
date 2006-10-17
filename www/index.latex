@@ -164,6 +164,8 @@
 \def\JM{Ji\v{r}\'{\i} Menc\'ak}
 \def\JiriMailto{%
   \htmladdnormallink{\JM}{mailto:\JiriEmail}}
+\def\FlaviaMailto{%
+  \htmladdnormallink{Flavia Donno}{mailto:\FlaviaEmail}}
 \def\JiriHttp{%
   \htmladdnormallink{J.~Menc\'ak}{http://www.e-science.clrc.ac.uk/web/staff/jiri_mencak}}
 \def\actspamprot{%
@@ -190,6 +192,7 @@
 \actspamprot
 \fi
 \gdef\JiriEmail{jiri.mencak@centrum.cz}
+\gdef\FlaviaEmail{flavia.donno@cern.ch}
 }
 
 %%% PAGE SPECIFICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -206,7 +209,7 @@
 %\author{\JM}
 \author{\JiriHttp \\
         \RAL\\
-        e-mail: \Email{\JiriEmail}}
+        e-mail: \Email{\JiriEmail}, \Email{\FlaviaEmail}}
 
 % This is really an HTML document, don't indent paragraphs
 \parindent=0pt  

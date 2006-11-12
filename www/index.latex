@@ -52,8 +52,9 @@
            ]{natbib}
 
 %%% Formatting of URL and email addresses
-\usepackage{html} % important for HTML output
-\usepackage{url} % important for correct formating of URL addresses
+\usepackage{html} 	% important for HTML output
+\usepackage{url}	% important for correct formating of URL addresses
+\usepackage{hyperref}	% links (teTeX 2)
 
 %%% SOME SIMPLE MACROS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Note: use \htmladdnormallink instead of \href; LaTeX2HTML

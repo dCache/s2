@@ -3,15 +3,6 @@
 \usepackage{a4wide}
 %\pagestyle{empty}
 
-\ifx\pdfoutput\undefined
-% we are running LaTeX, not pdflatex
-\usepackage{graphicx}
-\else
-% we are running pdflatex, so convert .eps files to .pdf
-\usepackage[pdftex]{graphicx}
-\usepackage{epstopdf}
-\fi
-
 \input dates.tex
 \input dmanmac.tex
 %%% Options for this document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,66 +53,7 @@
 
 %%% Formatting of URL and email addresses
 \usepackage{html} % important for HTML output
-\usepackage[hyphens]{url} % important for correct formating of URL addresses
-
-%%% PDF & the Hyperref package %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\articletitle{Konk Website index page}
-\def\articlekeywords{Concordance, collocations}
-
-\ifx\hyperreftrue\relax
-\usepackage[%
-  dvipdfm, % necessary for http hyperlinks to work with netscape
-  pdfauthor={J. Mencak},%
-  pdftitle={\articletitle},%
-  pdfkeywords={\articlekeywords},%
-  bookmarks,%
-  colorlinks,%
-  linkcolor=blue,%
-  anchorcolor=black,%
-%  citecolor=green,%
-  citecolor=blue,%
-  filecolor=magenta,%
-  menucolor=red,%
-  pagecolor=red,%
-%   urlcolor=cyan,%
-  urlcolor=blue,%
-  ]%
-{hyperref}
-\else
-  \def\hyperlink#1#2{#2}%
-  \def\hypertarget#1#2{#2}
-\fi
-
-%%% Only for pdflatex
-\makeatletter
-\newif\ifpdfoutput
-\@ifundefined{pdfoutput}%
-  {\let\pdfoutput\@undefined}%
-  {\ifcase\pdfoutput
-     \let\pdfoutput\@undefined
-   \else
-     \pdfoutputtrue
-  }%
-\makeatother
-
-%\let\docext=\pdfext
-%\ifpdfoutput
-%  \usepackage{thumbpdf}
-%  \hypersetup{%
-%  \pdfinfo{/CreationDate (D:20010109000000-01'00')}
-%  \begingroup
-%    \def\twodigits#1{\ifnum#1<10 0\fi\the#1}%
-%    \count0=\time \divide\count0 by 60
-%    \edef\x{\twodigits{\count0}}%
-%    \multiply\count0 by 60
-%    \count1=\time \advance\count1 by -\count0
-%    \edef\x{\x\twodigits{\count1}}%
-%    \edef\x{/ModDate (D:\the\year
-%      \twodigits\month \twodigits\day \x 00-01'00')}%
-%  \expandafter\endgroup
-%  \expandafter\pdfinfo\expandafter{\x}%
-%\fi
-
+\usepackage{url} % important for correct formating of URL addresses
 
 %%% SOME SIMPLE MACROS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Note: use \htmladdnormallink instead of \href; LaTeX2HTML

@@ -188,7 +188,7 @@ init_s2(void)
   opts.e2_fname = NULL;			/* after-evaluation log messages filename */
   opts.e2_file = E2_DEFAULT_OUTPUT;	/* after-evaluation log messages file */
   opts.s2_eval = S2_EVAL;		/* default evaluation threshold for branches */
-  opts.s2_timeout = S2_TIMEOUT;		/* default timeout for branches in milliseconds */
+  opts.s2_timeout = S2_TIMEOUT;		/* default timeout for branches in microseconds */
   opts.tp_size = TP_THREADS_DEF;	/* number of threads to use in the thread pool */
 
   /* diagnose library */
@@ -451,7 +451,7 @@ hlp(int l)
         break;
 
         case 't':
-          fprintf(stderr,_("default timeout for branches in milliseconds (%"PRIu64")\n"), opts.s2_timeout);
+          fprintf(stderr,_("default timeout for branches in microseconds (%"PRIu64")\n"), opts.s2_timeout);
         break;
 
         case 'w':

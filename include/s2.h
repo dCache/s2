@@ -55,7 +55,7 @@ typedef struct opts_t {
   char *e2_fname;			/* after-evaluation log messages filename */
   FILE *e2_file;			/* after-evaluation log messages file */
   int s2_eval;				/* default evaluation threshold for branches */
-  uint64_t s2_timeout;			/* default timeout for branches in milliseconds */
+  uint64_t s2_timeout;			/* default timeout for branches in microseconds */
   int tp_size;				/* number of threads to use in the threadpool */
 } opts_t;
 

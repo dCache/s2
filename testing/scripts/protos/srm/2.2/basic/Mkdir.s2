@@ -1,15 +1,20 @@
 % srmMkdir
 %
-% srmPrepareToPut
-% srmPutDone
-% srmStatusOfPutRequest
+% srmLs
+% srmRmdir
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
 
 && srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_DIR0}/$ENV{cdate}.txt : putRequestToken
-
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
+   && SYSTEM echo "${srmTest}: Executed srmLs, pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
+   && srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
+      SYSTEM echo "${srmTest}: Executed Rmdir, directoryPath=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: srmRmdir returnStatus: ${-returnRmdir_statusCode}" >> $ENV{S2_LOG}
+ 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+

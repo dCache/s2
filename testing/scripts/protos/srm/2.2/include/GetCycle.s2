@@ -16,29 +16,34 @@
 #include ../../include/FileTransGet.s2
 
 DEFUN DefFileStatuses f : t
-   ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_DONE|SRM_FILE_IN_CACHE|SRM_FILE_PINNED) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
+   ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_FILE_IN_CACHE|SRM_FILE_PINNED) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
    && ASSIGN 1c $EXPR{${1c}+1}
 
 DEFUN GetCycle filesToGet sURLs : getRequestToken
    % Define local variables
    ASSIGN c 0
    && ASSIGN fileStatuses "$MAP{DefFileStatuses $SPLIT{${filesToGet}}}"
-   
-   && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-%   && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-      SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
-      && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-         srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${fileStatuses}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_INPROGRESS)
-         || SYSTEM echo "srmStatusOfGetRequest failed" >> $ENV{S2_LOG} && exit 2
+  
+%   && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) 
+   && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
+      SYSTEM echo "${srmTest}: Executing srmPrepareToGet, getRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: srmPrepareToGet, returnStatus=${-returnPToG_statusCode}" >> $ENV{S2_LOG}
 
-      % The actual physical transfer
-      && ASSIGN c 0 transferURLs ""
-         WHILE FUN car ${filesToGet} : fileToGet filesToGet
-            FUN FileTransGet ${fileToGet} ${transferURL${c}}
-            && ASSIGN c $EXPR{${c}+1}
-         || TEST "${filesToGet}" == "" && !$DEFINED{transferURL${c}}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToG_statusCode}}
+   && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${fileStatuses}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
+         SYSTEM echo "${srmTest}: srmStatusOfGetRequest=${returnStatusGet_statusCode}" >> $ENV{S2_LOG}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusGet_statusCode}}
+         || SYSTEM echo "${srmTest}: srmStatusOfGetRequest=${returnStatusGet_statusCode}, failed" >> $ENV{S2_LOG} && exit 2
 
-   && SYSTEM echo "Get cycle succeeded" >> $ENV{S2_LOG}
+   % The actual physical transfer
+   && ASSIGN c 0 transferURLs ""
+      WHILE FUN car ${filesToGet} : fileToGet filesToGet
+         FUN FileTransGet ${fileToGet} ${transferURL${c}}
+         && ASSIGN c $EXPR{${c}+1}
+      || TEST "${filesToGet}" == "" && !$DEFINED{transferURL${c}}
+
+   && SYSTEM echo "${srmTest}: Get cycle succeeded" >> $ENV{S2_LOG}
 
 % _GET_CYCLE_
 #endif

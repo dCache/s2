@@ -3,6 +3,8 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmCheckPermission $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] permissionArray=(?P<permissionArray>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed CheckPermission, permissionArray=${permissionArray}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmCheckPermission returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

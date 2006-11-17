@@ -5,11 +5,22 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPrepareToPut_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${putRequestToken}" > $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_PARTIAL_SUCCESS) ${returnPrepareToPut_statusCode}}
    srmAbortRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && SYSTEM echo "${srmTest}: Executing srmAbortRequest, requestToken=${putRequestToken}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmAbortRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<statusOfPutReturnStatus_explanation>.*) returnStatus.statusCode=(?P<statusOfPutReturnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: srmStatusOfPutRequest returnStatus=${-statusOfPutReturnStatus_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmStatusOfPutRequest fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{"(SRM_ABORTED|SRM_FAILURE)" "${statusOfPutReturnStatus_statusCode}"}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+%
+

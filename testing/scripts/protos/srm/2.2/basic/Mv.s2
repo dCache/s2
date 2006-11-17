@@ -14,6 +14,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 && srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, PrepareToGet, and Mv" > $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmMv returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE1} : getRequestToken

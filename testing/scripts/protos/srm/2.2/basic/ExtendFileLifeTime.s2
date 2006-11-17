@@ -9,8 +9,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 && srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] newFileLifeTime=$ENV{FILE_LIFETIME} newPinLifeTime=$ENV{PIN_LIFETIME} fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: fileStatuses=${-fileStatuses}" > $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{"(SRM_SUCCESS|SRM_DONE)" ${returnStatus_statusCode}}
+&& TEST $MATCH{"(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_DONE)" ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

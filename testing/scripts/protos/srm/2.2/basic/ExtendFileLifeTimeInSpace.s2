@@ -3,11 +3,44 @@
 % srmReserveSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../../include/FileTransPut.s2
 
-&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
-   SYSTEM echo "srmReserveSpace: spaceToken=${spaceToken}" >> $ENV{S2_LOG}
-&& srmExtendFileLifeTimeInSpace $ENV{ENDPOINT} spaceToken=${spaceToken} SURL[<TODO>] newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnReserveSpace_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: desiredLifetimeOfReservedSpace=$ENV{LIFETIME}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${spaceToken}, requestToken=${requestToken}, returnStatus: ${returnReserveSpace_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnReserveSpace_statusCode}}
+
+|| >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+       srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusReserve_statusCode>.*)
+       && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatusReserve_statusCode}, spaceToken=${-spaceToken}, requestToken=${-requestToken}" >> $ENV{S2_LOG}
+       && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatusReserve_statusCode}}
+
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} targetSpaceToken=${spaceToken} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPrepareToPut_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executing srmPrepareToPut, targetSpaceToken=${spaceToken}, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut, returnStatus=${-returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPrepareToPut_statusCode}}
+&& >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+    srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusOfPut_statusCode>.*)
+       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
+       && SYSTEM echo "${srmTest}: returnStatus=${returnStatusOfPut_statusCode}" >> $ENV{S2_LOG}
+       && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusOfPut_statusCode}}
+&& NOP
+   FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}
+
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnPutDone_statusCode>.*)
+   SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnPutDone_statusCode}, fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
+
+&& srmExtendFileLifeTimeInSpace $ENV{ENDPOINT} spaceToken=${spaceToken} SURL[$ENV{SRM_NEW_FILE0}] newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+     SYSTEM echo "${srmTest}: Executing ExtendFileLifeTimeInSpace spaceToken=${spaceToken}" >> $ENV{S2_LOG}
+     && SYSTEM echo "${srmTest}: returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+     && SYSTEM echo "${srmTest}: fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+

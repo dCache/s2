@@ -3,7 +3,8 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmGetTransferProtocols $ENV{ENDPOINT} transferProtocols=(?P<transferProtocols>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo -e "transferProtocols=${transferProtocols}" > $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed GetTransferProtocols" >> $ENV{S2_LOG}
+   && SYSTEM echo -e "${srmTest}: returnStatus=${-returnStatus_statusCode}, transferProtocols=${-transferProtocols}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

@@ -1582,11 +1582,12 @@ main() {
      _exec-prefix=$(echo $1 | cut -d '=' -f 2)
     ;;
   
-    --*dir=*) option_set_dir $1
-    ;;
-  
     # compile-time directories
     --with-*dir=*) option_set_withdir $1
+    ;;
+  
+    # _don't_ move the following option in front of the --with-*dir=*)
+    --*dir=*) option_set_dir $1
     ;;
   
     # (en|dis)able options

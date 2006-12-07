@@ -166,7 +166,7 @@ clean-subdirs:
 	do \
 	  if test -d "$$dir" ; then\
 	    make -C "$$dir" clean || exit $$? ;\
-	  fi\
+	  fi \
 	done
 
 dependclean:
@@ -189,6 +189,6 @@ distclean mclean: clean
 	do \
 	  if test -d "$$dir" ; then\
 	    make -C "$$dir" distclean || exit $$? ;\
-	  fi\
+	  fi \
 	done
 	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .configure .rpm* *.spec *.log

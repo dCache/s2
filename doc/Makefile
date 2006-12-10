@@ -21,9 +21,9 @@ MANS		:= \
 
 ifneq ($(CONFIG_MAK),)
 all: $(VERSION_H) $(SUBDIRS)
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS) ; \
 	do \
-	  make -C "$$dir" || exit $$? ;\
+	  make -C "$$dir" || exit $$? ; \
 	done
 endif
 
@@ -40,22 +40,22 @@ man: $(MANS)
 install: install-subdirs install-docs install-man
 
 install-subdirs: $(SUBDIRS)
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS) ; \
 	do \
-	  make -C "$$dir" install || exit $$? ;\
+	  make -C "$$dir" install || exit $$? ; \
 	done
 
 install-docs: $(DOCS)
-	@if test -n "$(DOCS)" ; then\
-	  mkdir -p $(prefix)$(_docdir) ;\
-	  install -m 0644 $(DOCS) $(prefix)$(_docdir) ;\
+	@if test -n "$(DOCS)" ; then \
+	  mkdir -p $(prefix)$(_docdir) ; \
+	  install -m 0644 $(DOCS) $(prefix)$(_docdir) ; \
 	fi
 
 install-man: $(MANS)
-	for m in $(MANS) ;\
+	for m in $(MANS) ; \
 	do \
-	  mkdir -p $(prefix)$(_mandir)/man`echo $$m | grep -o '[0-1]$$'` ;\
-	  install -m 0644 $(MANS) $(prefix)$(_mandir)/man`echo $$m | grep -o '[0-1]$$'` ;\
+	  mkdir -p $(prefix)$(_mandir)/man`echo $$m | grep -o '[0-1]$$'` ; \
+	  install -m 0644 $(MANS) $(prefix)$(_mandir)/man`echo $$m | grep -o '[0-1]$$'` ; \
 	done
 
 
@@ -66,9 +66,9 @@ clean: clean-subdirs
 	-find locale \( -name *.po[~t] -or -name *.mo \) | xargs rm -f
 
 clean-subdirs:
-	@for dir in $(SUBDIRS) $(DOCDIRS) $(WEBDIRS) ;\
+	@for dir in $(SUBDIRS) $(DOCDIRS) $(WEBDIRS) ; \
 	do \
-	  make -C "$$dir" clean || exit $$? ;\
+	  make -C "$$dir" clean || exit $$? ; \
 	done
 
 svnclean:
@@ -80,8 +80,8 @@ dependclean:
 rpmclean: dependclean
 
 distclean mclean: clean
-	@for dir in $(SUBDIRS) $(DOCDIRS) $(WEBDIRS) ;\
+	@for dir in $(SUBDIRS) $(DOCDIRS) $(WEBDIRS) ; \
 	do \
-	  make -C "$$dir" distclean || exit $$? ;\
+	  make -C "$$dir" distclean || exit $$? ; \
 	done
 	-rm -f `basename $(CONFIG_H)` $(CONFIG_MAK) $(VERSION_H) .depend 

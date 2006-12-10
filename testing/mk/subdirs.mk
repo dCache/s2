@@ -14,27 +14,27 @@ help:
 	@echo "clean                 cleanup"
 
 ln:
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS) ; \
 	do \
-	  $(MAKE) -C "$$dir" $@ || exit $$? ;\
+	  $(MAKE) -C "$$dir" $@ || exit $$? ; \
 	done
 
 test superfast fast gdb valgrind:
 	@echo -e "$(call HTML_HEAD,`basename $(CWD)`)" > $(S2_HTML_LOG)
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(SUBDIRS) ; \
 	do \
-	  echo -e "<A HREF=$$dir/$(S2_HTML_LOG)>$$dir</A><BR>" >> $(S2_HTML_LOG);\
-	  $(MAKE) -C "$$dir" $@ || exit $$? ;\
+	  echo -e "<A HREF=$$dir/$(S2_HTML_LOG)>$$dir</A><BR>" >> $(S2_HTML_LOG); \
+	  $(MAKE) -C "$$dir" $@ || exit $$? ; \
 	done
 	@echo -e "$(call HTML_TAIL)" >> $(S2_HTML_LOG)
 
 install:
 
 clean:
-	@for dir in $(SUBDIRS_CLEAN) ;\
+	@for dir in $(SUBDIRS_CLEAN) ; \
 	do \
-	  rm -f $(S2_HTML_LOG) ;\
-	  $(MAKE) -C "$$dir" clean || exit $$? ;\
+	  rm -f $(S2_HTML_LOG) ; \
+	  $(MAKE) -C "$$dir" clean || exit $$? ; \
 	done
 
 distclean mclean: clean

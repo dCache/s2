@@ -8,22 +8,22 @@ sinclude $(_CONFIG_MAK)
 
 # Makefile variables #################################################
 GSOAP_INCLUDE = -I$(_with_gsoapdir)/include
-SOAPCPP2=$(_with_gsoapdir)/bin/soapcpp2
-WSDL2H=$(_with_gsoapdir)/bin/wsdl2h
-SRM_H=srm_22.h
+SOAPCPP2 = $(_with_gsoapdir)/bin/soapcpp2
+WSDL2H = $(_with_gsoapdir)/bin/wsdl2h
+SRM_H = srm_22.h
 
-GENERATED_H=\
-  soapH.h\
-  soapsrmSoapBindingObject.h\
-  soapsrmSoapBindingProxy.h\
-  soapStub.h\
-  $(SRM_H)\
+GENERATED_H= \
+  soapH.h \
+  soapsrmSoapBindingObject.h \
+  soapsrmSoapBindingProxy.h \
+  soapStub.h \
+  $(SRM_H) \
   srmNsmap.h
-GENERATED_SRC=\
-  soapC.cpp\
-  soapClient.cpp\
-  soapClientLib.cpp\
-  soapServer.cpp\
+GENERATED_SRC = \
+  soapC.cpp \
+  soapClient.cpp \
+  soapClientLib.cpp \
+  soapServer.cpp \
   soapServerLib.cpp
 
 

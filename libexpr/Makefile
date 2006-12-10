@@ -73,28 +73,28 @@ endif
 install: all
 
 install-bins: $(BINS)
-	@if test -n "$(BINS)" ; then\
-	  mkdir -p $(prefix)$(_bindir) ;\
-	  install -m 0755 $(BINS) $(prefix)$(_bindir) ;\
+	@if test -n "$(BINS)" ; then \
+	  mkdir -p $(prefix)$(_bindir) ; \
+	  install -m 0755 $(BINS) $(prefix)$(_bindir) ; \
 	fi
 
 install-docs: $(DOCS)
-	@if test -n "$(DOCS)" ; then\
-	  mkdir -p $(prefix)$(_docdir) ;\
-	  install -m 0644 $(DOCS) $(prefix)$(_docdir) ;\
+	@if test -n "$(DOCS)" ; then \
+	  mkdir -p $(prefix)$(_docdir) ; \
+	  install -m 0644 $(DOCS) $(prefix)$(_docdir) ; \
 	fi
 
 install-incs: $(INCS)
-	@for dir in $(INCS) ;\
+	@for dir in $(INCS) ; \
 	do \
-	  mkdir -p $(prefix)$(_includedir)/`dirname $$dir` ;\
-	  install -m 0644 $(INCS) $(prefix)$(_includedir)/`dirname $$dir` ;\
+	  mkdir -p $(prefix)$(_includedir)/`dirname $$dir` ; \
+	  install -m 0644 $(INCS) $(prefix)$(_includedir)/`dirname $$dir` ; \
 	done
 
 install-libs: $(LIBS)
-	@if test -n "$(LIBS)" ; then\
-	  mkdir -p $(prefix)$(_libdir) ;\
-	  install -m 0644 $(LIBS) $(prefix)$(_libdir) ;\
+	@if test -n "$(LIBS)" ; then \
+	  mkdir -p $(prefix)$(_libdir) ; \
+	  install -m 0644 $(LIBS) $(prefix)$(_libdir) ; \
 	fi
 
 

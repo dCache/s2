@@ -40,12 +40,12 @@ CC		= $(CXX)
 
 # Includes ###########################################################
 INCLUDES	+= \
-  -I.\
-  -I..\
-  -I../../include\
-  -I$(_CONFIGURE_DIR)/include\
-  -I../gsoap\
-  -I$(_with_gsoapdir)/include\
+  -I. \
+  -I.. \
+  -I../../include \
+  -I$(_CONFIGURE_DIR)/include \
+  -I../gsoap \
+  -I$(_with_gsoapdir)/include \
   -I$(_with_cgsi_plugindir)/include
 CPPFLAGS	+= $(INCLUDES)
 INCS		:= srm2api.h
@@ -73,7 +73,7 @@ $(LIB): $(OBJS)
 	$(RANLIB) $@
 
 $(SLIB): $(OBJS)
-	$(CC) $(SHFLAGS)\
+	$(CC) $(SHFLAGS) \
 	  -o $@ $(OBJS)
 
 $(SOAP_LOCAL):
@@ -103,44 +103,44 @@ $(DOCS): $(SRCS) Doxyfile
 install: install-bins install-docs install-libs install-incs
 
 install-bins: $(BINS)
-	@if test -n "$(BINS)" ; then\
-	  mkdir -p $(prefix)$(_bindir) ;\
-	  install -m 0755 $(BINS) $(prefix)$(_bindir) ;\
+	@if test -n "$(BINS)" ; then \
+	  mkdir -p $(prefix)$(_bindir) ; \
+	  install -m 0755 $(BINS) $(prefix)$(_bindir) ; \
 	fi
 
 install-docs: $(DOCS)
-	@if test -n "$(DOCS)" ; then\
-	  for d in "$(DOCS)" ;\
-	  do\
-	    mkdir -p $(prefix)$(_docdir)/`dirname $$d` ;\
-	    if test -d "$$d" ; then\
-	      cp -aR $$d $(prefix)$(_docdir)/`dirname $$d` ;\
-	    else\
-	      mkdir -p $(prefix)$(_docdir) ;\
-	      install -m 0644 $$d $(prefix)$(_docdir) ;\
-	    fi\
-	  done\
+	@if test -n "$(DOCS)" ; then \
+	  for d in "$(DOCS)" ; \
+	  do \
+	    mkdir -p $(prefix)$(_docdir)/`dirname $$d` ; \
+	    if test -d "$$d" ; then \
+	      cp -aR $$d $(prefix)$(_docdir)/`dirname $$d` ; \
+	    else \
+	      mkdir -p $(prefix)$(_docdir) ; \
+	      install -m 0644 $$d $(prefix)$(_docdir) ; \
+	    fi \
+	  done \
 	fi
 
 install-incs: $(INCS)
-	@for dir in $(INCS) ;\
+	@for dir in $(INCS) ; \
 	do \
-	  mkdir -p $(prefix)$(_includedir)/`dirname $$dir` ;\
-	  install -m 0644 $(INCS) $(prefix)$(_includedir)/`dirname $$dir` ;\
+	  mkdir -p $(prefix)$(_includedir)/`dirname $$dir` ; \
+	  install -m 0644 $(INCS) $(prefix)$(_includedir)/`dirname $$dir` ; \
 	done
 
 install-libs: $(LIBS)
-	@if test -n "$(LIBS)" ; then\
-	  mkdir -p $(prefix)$(_libdir) ;\
-	  install -m 0644 $(LIBS) $(prefix)$(_libdir) ;\
+	@if test -n "$(LIBS)" ; then \
+	  mkdir -p $(prefix)$(_libdir) ; \
+	  install -m 0644 $(LIBS) $(prefix)$(_libdir) ; \
 	fi
 
 
 # CVS/Subversion #####################################################
 cvsignore:
-	@for f in `find . -name .cvsignore` ;\
+	@for f in `find . -name .cvsignore` ; \
 	do \
-	  svn propset svn:ignore -F "$$f" `dirname "$$f"` ;\
+	  svn propset svn:ignore -F "$$f" `dirname "$$f"` ; \
 	done
 
 ifeq ($(svnroot),)

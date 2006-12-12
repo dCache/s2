@@ -1337,7 +1337,7 @@ public:
   virtual void finish(Process *proc);
   int exec(Process *proc);
   std::string toString(Process *proc);
-  std::string srmExtendFileLifeTimeInSpace::arrayOfExtendFileLifeTimeInSpaceResponseToString(Process *proc, BOOL space, BOOL quote) const;
+  std::string arrayOfExtendFileLifeTimeInSpaceResponseToString(Process *proc, BOOL space, BOOL quote) const;
 
 private:
 };

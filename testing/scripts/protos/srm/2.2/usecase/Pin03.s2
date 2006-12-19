@@ -1,0 +1,41 @@
+% Pin03: Puts a file, then releases it. Then tries to increase the pin lifetime using the original request token.
+% 
+% put cycle:
+%   srmPrepareToPut
+%   srmStatusOfPutRequest
+%   srmPutDone
+% srmReleaseFiles
+% srmExtendFileLifeTime
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT0}
+&& ASSIGN sURL $ENV{SRM_NEW_FILE0}
+   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% use srmReleaseFiles to remove one file
+&& SYSTEM echo "${srmTest}: Executing ReleaseFiles with request token to remove ${sURL}.This operation is allowed after a PrepareToGet cycle." >> $ENV{S2_LOG}
+
+&& srmReleaseFiles $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnReleaseStatus_statusCode)
+    TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnReleaseStatus_statusCode}}
+        SYSTEM echo "${srmTest}: srmReleaseFiles has succeeded after a GetCycle as expected" >> $ENV{S2_LOG}
+        && SYSTEM echo "${srmTest}: returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{S2_LOG}
+    || SYSTEM echo "{srmTest}: KO srmReleaseFiles failed, returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+% try to extend the pins again (this should result in failure).
+&& SYSTEM echo "${srmTest}: Executing ExtendFileLifeTime again on TURL with request token to reset TURL for ${sURL}.This operation should fail." >> $ENV{S2_LOG}
+
+&& srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] newPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} fileStatuses=".*pinLifetime0=(?P<pinLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnExtendTURL_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnExtendTURL_statusCode}}
+      SYSTEM echo "${srmTest}: KO srmExtendFileLifeTime succeeded after a ReleaseFiles" >> $ENV{SRM2_SUPPORTED} && exit 2 
+   || TEST $MATCH{(SRM_FAILURE) ${-returnExtendTURL_statusCode}}
+        SYSTEM echo "${srmTest}: srmExtendFileLifeTime has failed as expected" >> $ENV{S2_LOG}
+        && SYSTEM echo "${srmTest}: returnStatus=${returnExtendTURL_statusCode}" >> $ENV{S2_LOG}
+   || SYSTEM echo "{srmTest}: KO srmExtendFileLifeTime failed, returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

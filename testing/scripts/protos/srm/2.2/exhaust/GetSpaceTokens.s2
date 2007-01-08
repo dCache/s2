@@ -5,7 +5,7 @@ DEFUN srmTest authorizationID userSpaceTokenDescription
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} userSpaceTokenDescription ${userSpaceTokenDescription} : arg1
          ASSIGN c $EXPR{${c}+1}
-         && ASSIGN script "eval=2 srmGetSpaceTokens $ENV{ENDPOINT} ${arg0}${arg1}spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+         && ASSIGN script "eval=2 srmGetSpaceTokens $ENV{ENDPOINT} ${arg0}${arg1}spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)"
          && FUN S2 ${script} $PRINTF{%02d ${c}}
          % Ignore errors
          || NOP
@@ -13,7 +13,8 @@ DEFUN srmTest authorizationID userSpaceTokenDescription
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 
-&& srmReserveSpace $ENV{ENDPOINT} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+&& srmReserveSpace $ENV{ENDPOINT} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED)
 
 && ASSIGN userSpaceTokenDescription $ENV{SPACE_TOKEN_DESCR}
 && FUN srmTest $ENV{USER} ${userSpaceTokenDescription}
+

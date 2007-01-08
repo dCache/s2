@@ -1,0 +1,49 @@
+% PutCycle with multiple files
+%
+% @param: ${endpointv}
+% @param: ${filesToPut}
+% @param: ${sURLs}
+%
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+
+#ifndef _PUT_CYCLE_
+#define _PUT_CYCLE_
+
+% Generic functions
+#include ../../../../include/Basic.s2
+% SRM functions
+#include ../../include/Basic.s2
+#include ../../include/FileTransPut.s2
+
+DEFUN DefTransferURLs f : t
+   ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_FILE_IN_CACHE|SRM_SPACE_AVAILABLE) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
+   && ASSIGN 1c $EXPR{${1c}+1}
+
+DEFUN PutCycle endpointv filesToPut sURLs : putRequestToken
+   % Define local variables
+   ASSIGN fileToPutSizes $MAP{FileSize $SPLIT{${filesToPut}}}
+   && ASSIGN c 0 transferURLs ""
+   && ASSIGN transferURLs "$MAP{DefTransferURLs $SPLIT{${filesToPut}}}"
+   
+   && srmPrepareToPut ${endpointv} fileRequests.SURL[$SPLIT{${sURLs}}] fileRequests.expectedFileSize[$SPLIT{${fileToPutSizes}}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<ptpFileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+      SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
+      && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfPutRequest ${endpointv} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPrepareToPut_statusCode>.*)
+            SYSTEM echo "${srmTest}: srmStatusOfPutRequest=${returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPrepareToPut_statusCode}}
+         || SYSTEM echo "${srmTest}: srmStatusOfPutRequest failed" >> $ENV{S2_LOG} && exit 2
+      % The actual physical transfer
+      && ASSIGN c 0
+         WHILE FUN car ${filesToPut} : fileToPut filesToPut
+            FUN FileTransPut ${fileToPut} ${transferURL${c}}
+            && ASSIGN c $EXPR{${c}+1}
+         || TEST "${filesToPut}" == "" && !$DEFINED{transferURL${c}}
+
+   && srmPutDone ${endpointv} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses=(?P<pdFileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
+      SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${pdFileStatuses}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: Put cycle succeeded" >> $ENV{S2_LOG}
+
+% _PUT_CYCLE_
+#endif

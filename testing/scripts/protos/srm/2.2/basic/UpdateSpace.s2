@@ -22,8 +22,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmUpdateSpace, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $ENV{RESERVE_SPACE_NEW} == ${sizeOfGuaranteedSpace}
-&& TEST $ENV{LIFETIME_NEW} == ${lifetimeGranted}
-&& TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
+&& TEST $ENV{LIFETIME_NEW} >= ${lifetimeGranted}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

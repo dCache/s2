@@ -15,7 +15,7 @@ DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission
                                  >0&&$EXPR{2*($I{10}==9)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg9
                                     >0&&$EXPR{2*($I{11}==10)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg10
                                        ASSIGN c $EXPR{${c}+1}
-                                       && ASSIGN script "eval=2 srmSetPermission $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
+                                       && ASSIGN script "eval=2 srmSetPermission $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)"
                                        && FUN S2 ${script} $PRINTF{%02d ${c}}
                                        % Ignore errors
                                        || NOP
@@ -23,7 +23,7 @@ DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 
-&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
 
 && ASSIGN SURL $ENV{SRM_NEW_DIR0}
 && ASSIGN permissionType ADD
@@ -36,3 +36,4 @@ DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${SURL} ${permissionType} ${ownerPermission} ${userPermission.ID} ${userPermission.mode} ${groupPermission.ID} ${groupPermission.mode} ${otherPermission} ${storageSystemInfo.key} ${storageSystemInfo.value}
+

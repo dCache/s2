@@ -7,7 +7,7 @@ DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
          >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
             >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
                ASSIGN c $EXPR{${c}+1}
-               && ASSIGN script "eval=2 srmCheckPermission $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}permissionArray=(?P<permissionArray>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+               && ASSIGN script "eval=2 srmCheckPermission $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}permissionArray=(?P<permissionArray>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
                % Ignore errors
                || NOP

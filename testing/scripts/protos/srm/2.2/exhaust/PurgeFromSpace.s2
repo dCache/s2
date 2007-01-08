@@ -9,7 +9,7 @@ DEFUN srmTest authorizationID SURL spaceToken storageSystemInfo.key storageSyste
                >0&&$EXPR{2*($I{4}==3)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg3
                   >0&&$EXPR{2*($I{5}==4)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg4
                      ASSIGN c $EXPR{${c}+1}
-                     && ASSIGN script "eval=2 srmPurgeFromSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+                     && ASSIGN script "eval=2 srmPurgeFromSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)"
                      && FUN S2 ${script} $PRINTF{%02d ${c}}
                      % Ignore errors
                      || NOP
@@ -17,8 +17,24 @@ DEFUN srmTest authorizationID SURL spaceToken storageSystemInfo.key storageSyste
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 %&& <CODE FROM BASIC>
+
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnReserveSpace_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: desiredLifetimeOfReservedSpace=$ENV{LIFETIME}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnReserveSpace_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnReserveSpace_statusCode}}
+
+|| >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+   srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusReserve_statusCode>.*)
+   && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatusReserve_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatusReserve_statusCode}}
+
 && ASSIGN SURL SURL
-&& ASSIGN spaceToken spaceToken
+&& ASSIGN spaceToken ${spaceToken}
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${SURL} ${spaceToken} ${storageSystemInfo.key} ${storageSystemInfo.value}
+

@@ -7,7 +7,7 @@ DEFUN srmTest authorizationID directoryPath storageSystemInfo.key storageSystemI
          >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
             >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
                ASSIGN c $EXPR{${c}+1}
-               && ASSIGN script "eval=2 srmMkdir $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+               && ASSIGN script "eval=2 srmMkdir $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
                % Ignore errors
                || NOP

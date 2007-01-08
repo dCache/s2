@@ -5,7 +5,7 @@ DEFUN srmTest authorizationID spaceTokens
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhStringArr $I{0} spaceTokens ${spaceTokens} : arg1
          ASSIGN c $EXPR{${c}+1}
-         && ASSIGN script "eval=2 srmGetSpaceMetaData $ENV{ENDPOINT} ${arg0}${arg1}spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)"
+         && ASSIGN script "eval=2 srmGetSpaceMetaData $ENV{ENDPOINT} ${arg0}${arg1}spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)"
          && FUN S2 ${script} $PRINTF{%02d ${c}}
          % Ignore errors
          || NOP
@@ -13,7 +13,8 @@ DEFUN srmTest authorizationID spaceTokens
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 
-&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED)
 
 && ASSIGN spaceTokens ${spaceToken}
 && FUN srmTest $ENV{USER} ${spaceTokens}
+

@@ -9,7 +9,7 @@ DEFUN srmTest authorizationID requestToken SURL newFileLifeTime newPinLifeTime
                >0&&$EXPR{2*($I{4}==3)} FUN ExhTime $I{0} newFileLifeTime ${newFileLifeTime} : arg3
                   >0&&$EXPR{2*($I{5}==4)} FUN ExhTime $I{0} newPinLifeTime ${newPinLifeTime} : arg4
                      ASSIGN c $EXPR{${c}+1}
-                     && ASSIGN script "eval=2 srmExtendFileLifeTime $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+                     && ASSIGN script "eval=2 srmExtendFileLifeTime $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)"
                      && FUN S2 ${script} $PRINTF{%02d ${c}}
                      % Ignore errors
                      || NOP
@@ -24,3 +24,4 @@ DEFUN srmTest authorizationID requestToken SURL newFileLifeTime newPinLifeTime
 && ASSIGN newFileLifeTime $ENV{FILE_LIFETIME}
 && ASSIGN newPinLifeTime $ENV{PIN_LIFETIME}
 && FUN srmTest $ENV{USER} ${requestToken} ${SURL} ${newFileLifeTime} ${newPinLifeTime}
+

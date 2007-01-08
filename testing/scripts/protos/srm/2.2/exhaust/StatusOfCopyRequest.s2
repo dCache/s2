@@ -7,7 +7,7 @@ DEFUN srmTest authorizationID requestToken sourceSURL targetSURL
          >0&&2 FUN ExhStringArr $I{0} sourceSURL ${sourceSURL} : arg2
             >0&&2 FUN ExhStringArr $I{0} targetSURL ${targetSURL} : arg3
                ASSIGN c $EXPR{${c}+1}
-               && ASSIGN script "eval=2 srmStatusOfCopyRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
+               && ASSIGN script "eval=2 srmStatusOfCopyRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
                && FUN S2 ${script} $PRINTF{%02d ${c}}
                % Ignore errors
                || NOP
@@ -19,3 +19,4 @@ DEFUN srmTest authorizationID requestToken sourceSURL targetSURL
 && ASSIGN sourceSURL sourceSURL
 && ASSIGN targetSURL targetSURL
 && FUN srmTest $ENV{USER} ${requestToken} ${sourceSURL} ${targetSURL}
+

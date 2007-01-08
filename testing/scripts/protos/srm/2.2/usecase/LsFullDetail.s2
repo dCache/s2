@@ -1,0 +1,39 @@
+% PutGet01: transfer of a file to/from SRM server
+%
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfPutRequest
+% srmLs
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../../include/FileTransPut.s2
+
+&& SYSTEM echo "${srmTest}: Executing first PrepareToPut ..." >> $ENV{S2_LOG}
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${-requestToken1}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-returnStatus_explanation}" >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: Check if TURL is ready ..." >> $ENV{S2_LOG}
+&& >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+   srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${requestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL=${-transferURL0}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: srmStatusOfPutRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: TURL is ready. Executing PutDone ..." >> $ENV{S2_LOG}
+   && FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}
+   && srmPutDone $ENV{ENDPOINT} requestToken=${requestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<PutfileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${PutfileStatuses}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: Checking lifetime of SURL for $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+
+&& NOP
+   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=".*lifetimeLeft0=(?P<Lifetime0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURLLifeTime=${Lifetime0}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!} 
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

@@ -1,0 +1,34 @@
+% srmCopy
+
+% srmPrepareToGet
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfCopyRequest
+% srmStatusOfGetRequest
+% srmStatusOfPutRequest
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycleEndpoint.s2
+   #include ../include/GetCycle.s2 
+
+%%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& FUN PutCycle $ENV{CERNDPM} $ENV{FILE_TO_PUT0} $ENV{CERNDPMFILE} : putRequestToken
+
+%%% Copy cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{CERNDPMFILE}] targetSURL[$ENV{SRM_NEW_FILE0}] desiredTargetSURLLifeTime=$ENV{CPSURLLIFETIME} requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+    SYSTEM echo "${srmTest}: Executed Copy" >> $ENV{S2_LOG}
+    && SYSTEM echo "${srmTest}: Executed srmCopy source=$ENV{CERNDPMFILE} destination=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+    && SYSTEM echo "${srmTest}: srmCopy returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+    && SYSTEM echo "${srmTest}: srmCopy fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+
+    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+        srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{CERNDPMFILE}] targetSURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+           SYSTEM echo "${srmTest}: StatusOfCopyRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+           && SYSTEM echo "${srmTest}: Executing PrepareToGet on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+           && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+%%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE0} : getRequestToken
+
+&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+

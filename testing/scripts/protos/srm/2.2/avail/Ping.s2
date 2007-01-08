@@ -1,0 +1,9 @@
+% srmPing
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+&& srmPing $ENV{ENDPOINT} authorizationID=$ENV{USER} versionInfo=(?P<versionInfo>.*) otherInfo=(?P<otherInfo>.*)
+   SYSTEM echo -e "versionInfo=${versionInfo}\notherInfo=${-otherInfo}" > $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

@@ -41,6 +41,8 @@ do
      ;;
      22CASTORCERN) sitetag="CERN<br>CASTOR"
      ;;
+     22CASTORDEV) sitetag="CERN<br>CASTORDEV"
+     ;;
      22CASTORRAL) sitetag="RAL<br>CASTOR"
      ;;
      22DCACHEFNAL) sitetag="FNAL<br>DCACHE"
@@ -54,15 +56,19 @@ do
      *) echo "Unrecognized endpoint - Exiting"; exit 1
      ;;
   esac
-  if test -e ${S2_LOGS}/${dir}/Ping.log; then
-     endp=`grep EndPoint ${S2_LOGS}/${dir}/Ping.log | cut -d= -f2`
-     echo "<TH VALIGN=center ALIGN=center><FONT SIZE=3><A HREF=${endp}>$sitetag</A></FONT></TH>" >> ${Index_File}
-  else
-     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF="Server down">$sitetag</A></FONT></TH>" >> ${Index_File}
-  fi
+#  if test -e ${S2_LOGS}/${dir}/Ping.log; then
+#     endp=`grep EndPoint ${S2_LOGS}/${dir}/Ping.log | cut -d= -f2`
+#     echo "<TH VALIGN=center ALIGN=center><FONT SIZE=3><A HREF=${endp}>$sitetag</A></FONT></TH>" >> ${Index_File}
+#  else
+     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF=${dir}/index.html>$sitetag</A></FONT></TH>" >> ${Index_File}
+#  fi
 done
 echo "</TR>" >> ${Index_File}
 
+echo "<TR><TH BGCOLOR=OLIVE COLSPAN=10 HEIGHT=40>" >> ${Index_File}
+echo "WLCG MoU SRM v2.2 methods</TH></TR>" >> ${Index_File}
+
+delim=1
 for s21 in `ls -1 *.s2`;
 do
    echo "<TR>" >> ${Index_File}
@@ -70,14 +76,21 @@ do
    s2=`echo $s2_t |cut -d_ -f2` 
    if test -z "$s2" ; then
      s2="$s2_t"
+   else
+     s2_num=`echo $s2_t |cut -d_ -f1`
+     if test $s2_num -ge 70 -a $delim -eq 1; then
+       echo "<TH BGCOLOR=OLIVE COLSPAN=10 HEIGHT=40>" >> ${Index_File} 
+       echo "WLCG non MoU SRM v2.2 methods</TH></TR><TR>" >> ${Index_File}
+       delim=0
+     fi
    fi
-   echo "<TD VALIGN=top ALIGN=center><B>${s2}</B></TD>" >> ${Index_File}
-   echo "<TD VALIGN=top ALIGN=center>   </TD>" >> ${Index_File}
+   echo "<TD VALIGN=top ALIGN=left><B>${s2}</B></TD>" >> ${Index_File}
+   echo "<TD VALIGN=top ALIGN=left>   </TD>" >> ${Index_File}
    for dir in `ls -1 $S2_LOGS | grep -v index.html`;
    do
     if test -e ${S2_LOGS}/${dir}/exit.log; then
-      err=`grep \($s2\.sh\) ${S2_LOGS}/${dir}/exit.log | cut -d" " -f1`
-      if test $err ; then
+      err=`grep \(${s2_t}\.sh\) ${S2_LOGS}/${dir}/exit.log | cut -d" " -f1`
+      if test "$err" ; then
          if test $err -eq 0 ; then
             color="GREEN"
          else
@@ -88,17 +101,18 @@ do
       fi
     fi
     echo "<TD BGCOLOR=${color} VALIGN=center ALIGN=center>" >> ${Index_File}
-    if test -e ${S2_LOGS}/${dir}/${s2}.out; then
-      echo "<A HREF=${dir}/${s2}.out>StdOut</A>" >> ${Index_File}
+    if test -e ${S2_LOGS}/${dir}/${s2_t}.out; then
+      echo "<A HREF=${dir}/${s2_t}.out>StdOut</A>" >> ${Index_File}
     fi
-    if test -e ${S2_LOGS}/${dir}/${s2}.log; then
-      echo " <A HREF=${dir}/${s2}.log>Log</A>" >> ${Index_File}
+    if test -e ${S2_LOGS}/${dir}/${s2_t}.log; then
+      echo " <A HREF=${dir}/${s2_t}.log>Log</A>" >> ${Index_File}
     fi
     echo "</TD>" >> ${Index_File}
     done
     echo "</TR>" >> ${Index_File}
 done
 cat << EOF1 >> ${Index_File}
+</TBODY>
 </TABLE>
 </BODY>
 </HTML>

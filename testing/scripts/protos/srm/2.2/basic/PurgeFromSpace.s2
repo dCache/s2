@@ -3,6 +3,7 @@
 % srmReserveSpace
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycleToken.s2
 
 && srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnReserveSpace_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY}" >> $ENV{S2_LOG}
@@ -14,11 +15,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnReserveSpace_statusCode}}
 
 || >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-       srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusReserve_statusCode>.*)
-       && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatusReserve_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
-       && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatusReserve_statusCode}}
+   srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusReserve_statusCode>.*)
+   && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatusReserve_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatusReserve_statusCode}}
 
-&& srmPurgeFromSpace $ENV{ENDPOINT} spaceToken=${spaceToken} fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+%%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& FUN PutCycle ${spaceToken} $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& srmPurgeFromSpace $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] spaceToken=${spaceToken} fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: srmPurgeFromSpace, fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPurgeFromSpace, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
 

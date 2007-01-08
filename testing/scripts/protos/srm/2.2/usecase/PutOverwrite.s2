@@ -1,0 +1,31 @@
+% PutGet01: transfer of a file to/from SRM server
+%
+% srmPrepareToGet
+% srmPrepareToPut
+% srmPutDone
+% srmStatusOfGetRequest
+% srmStatusOfPutRequest
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../../include/FileTransPut.s2
+
+&& SYSTEM echo "${srmTest}: Executing first PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken1}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-returnStatus_explanation}" >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: Executing second PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken2>.*) fileStatuses=".*returnStatus.statusCode0=(?P<statusCode2>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime2>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed second PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken2}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-statusCode2}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_FILE_BUSY) ${statusCode2}}
+   SYSTEM echo "${srmTest}: Second PrepareToPut failed as foreseen." >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: OK File level return status = ${-statusCode2}" >> $ENV{SRM2_SUPPORTED}
+
+|| NOP
+   TEST $MATCH{(SRM_SPACE_AVAILABLE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${-statusCode2}}
+      SYSTEM echo "${srmTest}: KO, Second PrepareToPut Succeeded with file level return status = ${-statusCode2}" >> $ENV{S2_LOG} && exit 2
+   || SYSTEM echo "${srmTest}: KO 2 PrepareToPut returnStatus = ${-returnStatus_statusCode}, File level return status = ${-statusCode2}" >> $ENV{SRM2_SUPPORTED} && exit 2
+

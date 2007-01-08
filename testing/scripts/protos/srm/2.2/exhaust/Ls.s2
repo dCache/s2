@@ -14,7 +14,7 @@ DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
                               >0&&$EXPR{2*($I{9}==8)} FUN ExhInt $I{0} offset ${offset} : arg8
                                  >0&&$EXPR{2*($I{10}==9)} FUN ExhInt $I{0} count ${count} : arg9
                                     ASSIGN c $EXPR{${c}+1}
-                                    && ASSIGN script "eval=2 srmLs $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+                                    && ASSIGN script "eval=2 srmLs $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_PARTIAL_SUCCESS)"
                                     && FUN S2 ${script} $PRINTF{%02d ${c}}
                                     % Ignore errors
                                     || NOP

@@ -1,11 +1,12 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
+   #include ../include/PutCycle.s2   
 
 DEFUN srmTest authorizationID requestToken
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
          ASSIGN c $EXPR{${c}+1}
-         && ASSIGN script "eval=2 srmStatusOfChangeSpaceForFilesRequest $ENV{ENDPOINT} ${arg0}${arg1}estimatedProcessingTime=(?P<estimatedProcessingTime>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+         && ASSIGN script "eval=2 srmStatusOfChangeSpaceForFilesRequest $ENV{ENDPOINT} ${arg0}${arg1}estimatedProcessingTime=(?P<estimatedProcessingTime>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
          && FUN S2 ${script} $PRINTF{%02d ${c}}
          % Ignore errors
          || NOP
@@ -13,10 +14,14 @@ DEFUN srmTest authorizationID requestToken
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 
-&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED)
    SYSTEM echo "srmReserveSpace: spaceToken=${spaceToken}" >> $ENV{S2_LOG}
-&& srmChangeSpaceForFiles $ENV{ENDPOINT} spaceToken=${spaceToken} SURL[<TODO>] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& srmChangeSpaceForFiles $ENV{ENDPOINT} spaceToken=${spaceToken} SURL[$ENV{SRM_NEW_FILE0}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && ASSIGN requestToken ${requestToken}
 || ASSIGN requestToken requestToken
 && FUN srmTest $ENV{USER} ${requestToken}
+

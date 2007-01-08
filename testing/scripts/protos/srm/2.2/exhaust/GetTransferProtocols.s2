@@ -4,7 +4,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 DEFUN srmTest authorizationID
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       ASSIGN c $EXPR{${c}+1}
-      && ASSIGN script "eval=2 srmGetTransferProtocols $ENV{ENDPOINT} ${arg0}transferProtocols=(?P<transferProtocols>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)"
+      && ASSIGN script "eval=2 srmGetTransferProtocols $ENV{ENDPOINT} ${arg0}transferProtocols=(?P<transferProtocols>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)"
       && FUN S2 ${script} $PRINTF{%02d ${c}}
       % Ignore errors
       || NOP

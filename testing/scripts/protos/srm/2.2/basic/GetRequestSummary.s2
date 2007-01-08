@@ -8,12 +8,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${putRequestToken}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPrepareToPut_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPrepareToPut_statusCode}}
    srmGetRequestSummary $ENV{ENDPOINT} requestToken[${putRequestToken}] requestSummary=(?P<requestSummary>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    ;; SYSTEM echo "${srmTest}: Executing srmGetRequestSummary, requestToken=${putRequestToken}" >>$ENV{S2_LOG}
    ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode} requestSummary[${-requestSummary}]" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

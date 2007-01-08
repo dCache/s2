@@ -7,7 +7,7 @@ DEFUN srmTest authorizationID requestToken SURL
       >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
          >0&&2 FUN ExhStringArr $I{0} SURL ${SURL} : arg2
             ASSIGN c $EXPR{${c}+1}
-            && ASSIGN script "eval=2 srmStatusOfBringOnlineRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_INPROGRESS)"
+            && ASSIGN script "eval=2 srmStatusOfBringOnlineRequest $ENV{ENDPOINT} ${arg0}${arg1}${arg2}fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
             && FUN S2 ${script} $PRINTF{%02d ${c}}
             % Ignore errors
             || NOP
@@ -16,7 +16,7 @@ DEFUN srmTest authorizationID requestToken SURL
 && ASSIGN c 0
 
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
-&& srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+&& srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
 
 && ASSIGN requestToken ${bolRequestToken}
 && ASSIGN SURL SURL

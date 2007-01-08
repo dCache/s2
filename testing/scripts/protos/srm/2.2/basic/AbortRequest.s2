@@ -18,7 +18,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: srmStatusOfPutRequest returnStatus=${-statusOfPutReturnStatus_statusCode}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmStatusOfPutRequest fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{"(SRM_ABORTED|SRM_FAILURE)" "${statusOfPutReturnStatus_statusCode}"}
+&& TEST $MATCH{"(SRM_ABORTED)" "${statusOfPutReturnStatus_statusCode}"}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

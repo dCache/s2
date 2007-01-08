@@ -5,7 +5,7 @@ DEFUN srmTest authorizationID requestToken
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhString $I{0} requestToken ${requestToken} : arg1
          ASSIGN c $EXPR{${c}+1}
-         && ASSIGN script "eval=2 srmAbortRequest $ENV{ENDPOINT} ${arg0}${arg1}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_ABORTED)"
+         && ASSIGN script "eval=2 srmAbortRequest $ENV{ENDPOINT} ${arg0}${arg1}returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)"
          && FUN S2 ${script} $PRINTF{%02d ${c}}
          % Ignore errors
          || NOP

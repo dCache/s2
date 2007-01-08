@@ -1,0 +1,23 @@
+% srmLs
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+
+&& ASSIGN Dir1 $ENV{SRM_NEW_DIR0}/d1
+
+&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
+
+&& srmMkdir $ENV{ENDPOINT} directoryPath=${Dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
+
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] allLevelRecursive=1 requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   ;; srmRmdir $ENV{ENDPOINT} directoryPath=${Dir1} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
+   ;; srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
+
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+% TODO:
+%   * checks for filtering by storage type, recursive ls, ...

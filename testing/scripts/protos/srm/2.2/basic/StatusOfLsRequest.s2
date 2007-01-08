@@ -2,10 +2,24 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
    SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
-&& srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=<requestToken> offset=0 count=0 pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmStatusOfLsRequest, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
-&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+&& TEST $DEFINED{requestToken}
+   srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} offset=0 count=0 pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "${srmTest}: srmStatusOfLsRequest, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+|| SYSTEM echo "${srmTest} KO: srmLs method is synchronous. srmStatusOfLsRequest not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+;; SYSTEM echo "${srmTest}: Executing srmRmdir of $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+;; srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
+;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${returnRmdirStatus_statusCode}, ${returnRmdirStatus_explanation}" >> $ENV{S2_LOG}
+

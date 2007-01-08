@@ -1,0 +1,68 @@
+% srmReserveSpace
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+&& SYSTEM echo "${srmTest}: Executing srmReserveSpace exercizing retention policy and access latency ..." >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=CUSTODIAL, accessLatency=NEARLINE" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: desiredSizeOfTotalSpace=0, desiredLifetimeOfReservedSpace=0" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
+
+&& NOP
+   srmReserveSpace $ENV{ENDPOINT} retentionPolicy=CUSTODIAL accessLatency=NEARLINE userSpaceTokenDescription=DTEAM_RAW desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=0 transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
+   && SYSTEM echo " " >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      ;; SYSTEM echo "${srmTest}: retentionPolicy=CUSTODIAL, accessLatency=ONLINE. Default values for Size and Lifetime passed." >> $ENV{S2_LOG}
+      ;; SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
+      ;; SYSTEM echo " " >> $ENV{S2_LOG}
+      ;; TEST ! ${-sizeOfTotalReservedSpace}
+         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! ${-lifetimeOfReservedSpace}
+         SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+
+&& SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=CUSTODIAL, accessLatency=ONLINE" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: desiredSizeOfTotalSpace=0, desiredLifetimeOfReservedSpace=0" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
+&& NOP
+   srmReserveSpace $ENV{ENDPOINT} retentionPolicy=CUSTODIAL accessLatency=ONLINE userSpaceTokenDescription=DTEAM_RAW desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=0 transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
+   && SYSTEM echo " " >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      ;; SYSTEM echo "${srmTest}: Default values for Size and Lifetime passed." >> $ENV{S2_LOG}
+      ;; SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
+      ;; SYSTEM echo " " >> $ENV{S2_LOG}
+      ;; TEST ! ${-sizeOfTotalReservedSpace}
+         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! ${-lifetimeOfReservedSpace}
+         SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+
+&& SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=CUSTODIAL, accessLatency=ONLINE" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: desiredSizeOfTotalSpace=0, desiredLifetimeOfReservedSpace=0" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
+&& NOP
+   srmReserveSpace $ENV{ENDPOINT} retentionPolicy=REPLICA accessLatency=ONLINE userSpaceTokenDescription=DTEAM_RAW desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=0 transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
+   && SYSTEM echo " " >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      ;; SYSTEM echo "${srmTest}: Default values for Size and Lifetime passed." >> $ENV{S2_LOG}
+      ;; SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
+      ;; SYSTEM echo " " >> $ENV{S2_LOG}
+      ;; TEST ! ${-sizeOfTotalReservedSpace}
+         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! ${-desiredLifetimeOfReservedSpace}
+         SYSTEM echo "${srmTest}: KO: desiredLifetimeOfReservedSpace is ${-desiredLifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+
+&& SYSTEM echo "${srmTest}: OK: All ReserveSpace actions executed successfully." >> $ENV{SRM2_SUPPORTED}

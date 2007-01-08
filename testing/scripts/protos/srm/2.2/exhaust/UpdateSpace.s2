@@ -11,7 +11,7 @@ DEFUN srmTest authorizationID spaceToken newSizeOfTotalSpaceDesired newSizeOfGua
                      >0&&$EXPR{2*($I{6}==5)} FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg5
                         >0&&$EXPR{2*($I{7}==6)} FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg6
                            ASSIGN c $EXPR{${c}+1}
-                           && ASSIGN script "eval=2 srmUpdateSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)"
+                           && ASSIGN script "eval=2 srmUpdateSpace $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}requestToken=(?P<requestToken>.*) sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_LOW_SPACE_GRANTED)"
                            && FUN S2 ${script} $PRINTF{%02d ${c}}
                            % Ignore errors
                            || NOP
@@ -19,7 +19,7 @@ DEFUN srmTest authorizationID spaceToken newSizeOfTotalSpaceDesired newSizeOfGua
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 
-&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED)
 
 && ASSIGN spaceToken ${spaceToken}
 && ASSIGN newSizeOfTotalSpaceDesired $ENV{RESERVE_SPACE_NEW}
@@ -28,3 +28,4 @@ DEFUN srmTest authorizationID spaceToken newSizeOfTotalSpaceDesired newSizeOfGua
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
 && FUN srmTest $ENV{USER} ${spaceToken} ${newSizeOfTotalSpaceDesired} ${newSizeOfGuaranteedSpaceDesired} ${newLifeTime} ${storageSystemInfo.key} ${storageSystemInfo.value}
+

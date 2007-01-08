@@ -1,4 +1,4 @@
-#!/bin/csh
+#!/bin/tcsh
 #
 # Source the environment
 #
@@ -11,6 +11,8 @@ rehash
 #
 # Set Root dir
 #
+set srm_root = "/home/flavia/testing/scripts/protos/srm"
+set typ = "$1"
 if ( $# <= 0 ) then
  echo "Please specify test directory"
  echo "Possible options are: basic and cross" 
@@ -19,10 +21,24 @@ endif
 #
 switch ( "$1" )
   case "basic":
-     set rootdir = "/home/flavia/testing/scripts/protos/srm/2.2/basic"
+     set rootdir = "${srm_root}/2.2/basic"
+     set sleeptim = "30m"
      breaksw
   case "cross":
-     set rootdir = "/home/flavia/testing/scripts/protos/srm/2.2/cross"
+     set rootdir = "${srm_root}/2.2/cross"
+     set sleeptim = "30m"
+     breaksw
+  case "exhaust":
+     set rootdir = "${srm_root}/2.2/exhaust"
+     set sleeptim = "10m"
+     breaksw
+  case "usecase":
+     set rootdir = "${srm_root}/2.2/usecase"
+     set sleeptim = "3m"
+     breaksw
+  case "avail":
+     set rootdir = "${srm_root}/2.2/avail"
+     set sleeptim = "1m"
      breaksw
   default:
      echo "Test directory option not recognized"
@@ -30,8 +46,8 @@ switch ( "$1" )
      breaksw
 endsw
 #
-#set list = "22DPMCERN 22STORM 22DRMLBNL 22CASTORCERN 22CASTORRAL 22DCACHEFNAL 22SRMVU"
-set list = "22CASTORCERN 22DPMCERN 22STORM 22DRMLBNL 22DCACHEFNAL"
+#set list = "22CASTORCERN 22CASTORDEV 22CASTORRAL 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22SRMVU 22STORM"
+set list = "22DCACHEFNAL 22DPMCERN 22DRMLBNL 22STORM"
 foreach impl (`echo $list`)
    onintr again
    unsetenv S2_TEST_SITE
@@ -39,10 +55,28 @@ foreach impl (`echo $list`)
    setenv S2_TEST_SITE $impl
    setenv S2_LOGS_DIR "./s2_logs/${S2_TEST_SITE}"
    cd ${rootdir}
-   echo "Now processing $impl"
-   make -e test
+   echo "Now processing $impl `date +'%F %k:%M'`"
+   if ( ! -d /home/flavia/logs/${S2_TEST_SITE} ) then
+      mkdir -p /home/flavia/logs/${S2_TEST_SITE}
+   endif
+   make -e test >& /home/flavia/logs/${S2_TEST_SITE}/$1-`date +"%F"`.log &
    echo "Done."
 again: 
+end
+#
+#  Wait for all jobs to finish
+#
+echo "Wait till all tests are done"
+set i = "0"
+while ( "$i" == "0" )
+   set outp = `/bin/ps -u flavia -o ppid,comm | grep "$$ make"` 
+   if ( "$outp" != "" ) then
+      echo "Waiting ${sleeptim} ..."
+      sleep ${sleeptim}
+      set i = "0"
+   else
+      set i = "1"
+   endif
 end
 #
 # Create new index file
@@ -72,5 +106,8 @@ foreach dir (`echo $list`)
  endif 
 end
 #
+#
+#
+${srm_root}/make_tars.csh $typ
 # That's all folks!
 #

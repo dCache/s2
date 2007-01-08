@@ -8,7 +8,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${-putRequestToken}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnPToP_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED) ${returnPToP_statusCode}}
    srmSuspendRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && SYSTEM echo "${srmTest}: Executed SuspendRequest, requestToken: ${-putRequestToken}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmSuspendRequest returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}

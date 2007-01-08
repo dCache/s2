@@ -23,7 +23,7 @@ DEFUN srmTest authorizationID fileRequests.SURL fileRequests.expectedFileSize us
                                                       >0&&$EXPR{2*($I{17}==16)} FUN ExhStringArr $I{0} clientNetworks ${clientNetworks} : arg16
                                                          >0&&$EXPR{2*($I{18}==17)} FUN ExhStringArr $I{0} transferProtocols ${transferProtocols} : arg17
                                                             ASSIGN c $EXPR{${c}+1}
-                                                            && ASSIGN script "eval=2 srmPrepareToPut $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}${arg11}${arg12}${arg13}${arg14}${arg15}${arg16}${arg17}requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
+                                                            && ASSIGN script "eval=2 srmPrepareToPut $ENV{ENDPOINT} ${arg0}${arg1}${arg2}${arg3}${arg4}${arg5}${arg6}${arg7}${arg8}${arg9}${arg10}${arg11}${arg12}${arg13}${arg14}${arg15}${arg16}${arg17}requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)"
                                                             && FUN S2 ${script} $PRINTF{%02d ${c}}
                                                             % Ignore errors
                                                             || NOP

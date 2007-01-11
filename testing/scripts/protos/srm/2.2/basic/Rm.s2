@@ -11,17 +11,17 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../../include/FileTransGet.s2
 
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& SYSTEM echo "Executing Put Cycle for file ${SRM_NEW_FILE0} ..." >> $ENV{S2_LOG}
+&& SYSTEM echo "Executing Put Cycle for file $ENV{SRM_NEW_FILE0} ..." >> $ENV{S2_LOG}
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-&& SYSTEM echo "Executing Rm on file ${SRM_NEW_FILE0} ..." >> $ENV{S2_LOG}
+&& SYSTEM echo "Executing Rm on file $ENV{SRM_NEW_FILE0} ..." >> $ENV{S2_LOG}
 
 && NOP
    srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<filestatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    ;; SYSTEM echo "Executed srmRm, returnStatus=${-returnStatus_statusCode}, Explanation=${-returnStatus_explanation}, filelevelStatus=${-filestatus0}" >> $ENV{S2_LOG}
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-&& SYSTEM echo "Executing PrepareToGet on removed file ${SRM_NEW_FILE0} ..." >> $ENV{S2_LOG}
+&& SYSTEM echo "Executing PrepareToGet on removed file $ENV{SRM_NEW_FILE0} ..." >> $ENV{S2_LOG}
 && NOP 
    srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
       SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}

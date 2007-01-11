@@ -4,9 +4,8 @@
 
     srm.v2.2.wsdl
 
+    Wed Sep 27 08:22:41 PDT 2006
     Mon Jul  3 09:49:53 PDT 2006
-        For TMetaDataPathDetails
-
     Tue Jun 20 07:21:54 PDT 2006  - FINALIZED
     Mon Jun 19 09:45:38 PDT 2006
 
@@ -218,7 +217,7 @@
    </complexType>
    <complexType name="TMetaDataPathDetail">
     <sequence>
-     <element name="surl" type="xsd:anyURI"/>
+     <element name="path" type="xsd:string"/>
      <element name="status" minOccurs="0" maxOccurs="1" nillable="true" type="impl:TReturnStatus"/>
      <element name="size" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:unsignedLong"/>
      <element name="createdAtTime" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:dateTime"/>
@@ -606,7 +605,6 @@
    <complexType name="srmExtendFileLifeTimeInSpaceResponse">
     <sequence>
      <element name="returnStatus" type="impl:TReturnStatus"/>
-     <element name="newTimeExtended" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:int"/>
      <element name="arrayOfFileStatuses" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTSURLLifetimeReturnStatus"/>
     </sequence>
    </complexType>
@@ -689,7 +687,7 @@
    <complexType name="srmMkdirRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="directoryPath" type="xsd:anyURI"/>
+     <element name="SURL" type="xsd:anyURI"/>
 	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
     </sequence>
    </complexType>
@@ -702,7 +700,7 @@
    <complexType name="srmRmdirRequest">
     <sequence>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="directoryPath" type="xsd:anyURI"/>
+     <element name="SURL" type="xsd:anyURI"/>
 	 <element name="storageSystemInfo" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfTExtraInfo"/>
      <element name="recursive" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:boolean"/>
     </sequence>
@@ -941,7 +939,7 @@
     <sequence>
      <element name="requestToken" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
      <element name="authorizationID" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:string"/>
-     <element name="arrayOfSURLs" type="impl:ArrayOfAnyURI"/>
+     <element name="arrayOfSURLs" minOccurs="0" maxOccurs="1" nillable="true" type="impl:ArrayOfAnyURI"/>
      <element name="doRemove" minOccurs="0" maxOccurs="1" nillable="true" type="xsd:boolean"/>
     </sequence>
    </complexType>

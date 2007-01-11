@@ -1325,7 +1325,7 @@ struct srmExtendFileLifeTimeInSpace : public SRM2
   std::string *newLifeTime;
 
   /* response (parser) */
-  std::string *newTimeExtended;
+/*  std::string *newTimeExtended; */
   std::string *fileStatuses;
 
 public:
@@ -1533,7 +1533,7 @@ private:
 struct srmMkdir : public SRM2
 {
   /* request (parser/API) */
-  std::string *directoryPath;
+  std::string *SURL;
   tStorageSystemInfo_ storageSystemInfo;
 
   /* response (parser) */
@@ -1891,7 +1891,7 @@ private:
 struct srmRmdir : public SRM2
 {
   /* request (parser/API) */
-  std::string *directoryPath;
+  std::string *SURL;
   tStorageSystemInfo_ storageSystemInfo;
   std::string *recursive;
 

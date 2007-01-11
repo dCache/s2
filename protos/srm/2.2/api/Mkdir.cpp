@@ -29,7 +29,7 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- * \param directoryPath
+ * \param SURL
  * \param storageSystemInfo
  * \param resp request response
  *
@@ -39,7 +39,7 @@ extern int
 Mkdir(struct soap *soap,
       const char *srm_endpoint,
       const char *authorizationID,
-      const char *directoryPath,
+      const char *SURL,
       const tStorageSystemInfo storageSystemInfo,
       struct srm__srmMkdirResponse_ *resp)
 {
@@ -57,7 +57,7 @@ Mkdir(struct soap *soap,
 #endif
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
-  MV_CSTR2STR(req.directoryPath,directoryPath);
+  MV_CSTR2STR(req.SURL,SURL);
 
   /* Storage system info */
   MV_STORAGE_SYSTEM_INFO(req.storageSystemInfo,storageSystemInfo);

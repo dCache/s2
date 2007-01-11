@@ -4,13 +4,13 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmMkdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnMkdir_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed Mkdir, directoryPath=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnMkdir_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed Mkdir, SURL=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmMkdir returnStatus: ${returnMkdir_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnMkdir_statusCode}}
-   srmRmdir $ENV{ENDPOINT} directoryPath=$ENV{SRM_NEW_DIR0} recursive=1 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   && SYSTEM echo "${srmTest}: Executed Rmdir, directoryPath=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+   srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=1 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && SYSTEM echo "${srmTest}: Executed Rmdir, SURL=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmRmdir returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}

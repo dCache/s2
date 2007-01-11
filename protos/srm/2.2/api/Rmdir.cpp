@@ -29,7 +29,7 @@
  * \param soap
  * \param srm_endpoint
  * \param authorizationID
- * \param directoryPath
+ * \param SURL
  * \param storageSystemInfo
  * \param recursive
  * \param resp request response
@@ -40,7 +40,7 @@ extern int
 Rmdir(struct soap *soap,
       const char *srm_endpoint,
       const char *authorizationID,
-      const char *directoryPath,
+      const char *SURL,
       const tStorageSystemInfo storageSystemInfo,
       bool *recursive,
       struct srm__srmRmdirResponse_ *resp)
@@ -59,7 +59,7 @@ Rmdir(struct soap *soap,
 #endif
 
   MV_CSTR2PSTR(req.authorizationID,authorizationID);
-  MV_CSTR2STR(req.directoryPath,directoryPath);
+  MV_CSTR2STR(req.SURL,SURL);
   MV_PBOOL(req.recursive,recursive);
 
   /* Storage system info */

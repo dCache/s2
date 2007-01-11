@@ -352,7 +352,7 @@ Parser::srmExtendFileLifeTimeInSpaceR(void)
     P_OPL_EQ_PARAM("newLifeTime",r->newLifeTime) else
 
     /* response */
-    P_OPL_EQ_PARAM("newTimeExtended",r->newTimeExtended) else
+/*    P_OPL_EQ_PARAM("newTimeExtended",r->newTimeExtended) else */
     P_OPL_EQ_PARAM("fileStatuses",r->fileStatuses) else
     P_OPL_EQ_PARAM("returnStatus.explanation",r->returnStatus.explanation) else
     P_OPL_EQ_PARAM("returnStatus.statusCode",r->returnStatus.statusCode) else
@@ -589,7 +589,7 @@ Parser::srmMkdirR(void)
 
     /* request */
     P_OPL_EQ_PARAM("authorizationID",r->authorizationID) else
-    P_OPL_EQ_PARAM("directoryPath",r->directoryPath) else
+    P_OPL_EQ_PARAM("SURL",r->SURL) else
     P_OPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
     P_OPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
 
@@ -1108,7 +1108,7 @@ Parser::srmRmdirR(void)
 
     /* request */
     P_OPL_EQ_PARAM("authorizationID",r->authorizationID) else
-    P_OPL_EQ_PARAM("directoryPath",r->directoryPath) else
+    P_OPL_EQ_PARAM("SURL",r->SURL) else
     P_OPL_ARRAY("storageSystemInfo.key",r->storageSystemInfo.key) else
     P_OPL_ARRAY("storageSystemInfo.value",r->storageSystemInfo.value) else
     P_OPL_EQ_PARAM("recursive",r->recursive) else

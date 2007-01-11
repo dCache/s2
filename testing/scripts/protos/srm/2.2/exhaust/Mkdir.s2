@@ -1,9 +1,9 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/Exhaust.s2
 
-DEFUN srmTest authorizationID directoryPath storageSystemInfo.key storageSystemInfo.value
+DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
-      >0&&2 FUN ExhString $I{0} directoryPath ${directoryPath} : arg1
+      >0&&2 FUN ExhString $I{0} SURL ${SURL} : arg1
          >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.key ${storageSystemInfo.key} : arg2
             >0&&2 FUN ExhStringArr $I{0} storageSystemInfo.value ${storageSystemInfo.value} : arg3
                ASSIGN c $EXPR{${c}+1}
@@ -15,7 +15,7 @@ DEFUN srmTest authorizationID directoryPath storageSystemInfo.key storageSystemI
 %%% main() %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && ASSIGN c 0
 
-&& ASSIGN directoryPath $ENV{SRM_NEW_DIR0}
+&& ASSIGN SURL $ENV{SRM_NEW_DIR0}
 && ASSIGN storageSystemInfo.key storageSystemInfo.key
 && ASSIGN storageSystemInfo.value storageSystemInfo.value
-&& FUN srmTest $ENV{USER} ${directoryPath} ${storageSystemInfo.key} ${storageSystemInfo.value}
+&& FUN srmTest $ENV{USER} ${SURL} ${storageSystemInfo.key} ${storageSystemInfo.value}

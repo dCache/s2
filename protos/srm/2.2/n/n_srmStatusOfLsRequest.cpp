@@ -175,7 +175,7 @@ srmStatusOfLsRequest::arrayOfFileStatusToString(Process *proc, BOOL space, BOOL 
   /* the response is exactly the same as in srmLs */
   BOOL print_space = space;
   for(uint u = 0; u < v.size(); u++) {
-    SS_P_VEC_PAR(surl);
+    SS_P_VEC_PAR(path);
     SS_P_VEC_SRM_RETSTAT(status);
     SS_P_VEC_DPAR(size);
     

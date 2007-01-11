@@ -39,7 +39,7 @@ void
 srmRmdir::init()
 {
   /* request (parser/API) */
-  directoryPath = NULL;
+  SURL = NULL;
   recursive = NULL;
 
   /* response (parser) */
@@ -62,7 +62,7 @@ srmRmdir::~srmRmdir()
   DM_DBG_I;
 
   /* request (parser/API) */
-  DELETE(directoryPath);
+  DELETE(SURL);
   DELETE_VEC(storageSystemInfo.key);
   DELETE_VEC(storageSystemInfo.value);
   DELETE(recursive);
@@ -101,7 +101,7 @@ srmRmdir::exec(Process *proc)
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
-    EVAL2CSTR(directoryPath),
+    EVAL2CSTR(SURL),
     storageSystemInfo,
     (bool *)proc->eval2pint(recursive).p,
     resp
@@ -139,7 +139,7 @@ srmRmdir::toString(Process *proc)
   /* request */  
   SS_SRM("srmRmdir");
   SS_P_DQ(authorizationID);
-  SS_P_DQ(directoryPath);
+  SS_P_DQ(SURL);
   SS_VEC_DEL(storageSystemInfo.key);
   SS_VEC_DEL(storageSystemInfo.value);
   SS_P_DQ(recursive);

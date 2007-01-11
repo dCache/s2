@@ -2,12 +2,31 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
+&& NOP
+   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, pathDetails=${pathDetails}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+%&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+%   SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+%&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+
+%&& NOP
+%   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] numOfLevels=1 requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) 
+%      SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
+%      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, pathDetails=${pathDetails}" >> $ENV{S2_LOG}
+
+   && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_PARTIAL_SUCCESS|SRM_INPROGRESS) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      && TEST !$DEFINED{requestToken}
+         SYSTEM echo "${srmTest}: Ls is synchronous" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: Ls is asynchronous" >> $ENV{SRM2_SUPPORTED}
+
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+%;; SYSTEM echo "${srmTest}: Executing srmRmdir of $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+%;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
+%;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> $ENV{S2_LOG}
 
 % TODO:
 %   * checks for filtering by storage type, recursive ls, ...

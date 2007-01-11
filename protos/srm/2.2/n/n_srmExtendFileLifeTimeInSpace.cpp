@@ -43,7 +43,7 @@ srmExtendFileLifeTimeInSpace::init()
   newLifeTime = NULL;
 
   /* response (parser) */
-  newTimeExtended = NULL;
+/*  newTimeExtended = NULL; */
   fileStatuses = NULL;
 }
 
@@ -69,7 +69,7 @@ srmExtendFileLifeTimeInSpace::~srmExtendFileLifeTimeInSpace()
   DELETE(newLifeTime);
 
   /* response (parser) */
-  DELETE(newTimeExtended);
+/*  DELETE(newTimeExtended); */
   DELETE(fileStatuses);
 
   DM_DBG_O;
@@ -119,9 +119,10 @@ srmExtendFileLifeTimeInSpace::exec(Process *proc)
   }
 
   /* newTimeExtended */
-  EAT_MATCH_C(resp->srmExtendFileLifeTimeInSpaceResponse->newTimeExtended,
+/*  EAT_MATCH_C(resp->srmExtendFileLifeTimeInSpaceResponse->newTimeExtended,
               newTimeExtended,
               PI2CSTR(resp->srmExtendFileLifeTimeInSpaceResponse->newTimeExtended));
+*/
 
   /* fileStatuses */
   EAT_MATCH(fileStatuses, arrayOfExtendFileLifeTimeInSpaceResponseToString(proc, FALSE, FALSE).c_str());
@@ -154,7 +155,7 @@ srmExtendFileLifeTimeInSpace::toString(Process *proc)
   SS_P_DQ(newLifeTime);
 
   /* response (parser) */
-  SS_P_DQ(newTimeExtended);
+/*  SS_P_DQ(newTimeExtended); */
   SS_P_DQ(fileStatuses);
   SS_P_DQ(returnStatus.explanation);
   SS_P_DQ(returnStatus.statusCode);
@@ -163,9 +164,10 @@ srmExtendFileLifeTimeInSpace::toString(Process *proc)
   if(!resp || !resp->srmExtendFileLifeTimeInSpaceResponse) RETURN(ss.str());
 
   /* newTimeExtended */
-  SS_P_DQ_C(resp->srmExtendFileLifeTimeInSpaceResponse->newTimeExtended,
+/*  SS_P_DQ_C(resp->srmExtendFileLifeTimeInSpaceResponse->newTimeExtended,
             newTimeExtended,
             PI2CSTR(resp->srmExtendFileLifeTimeInSpaceResponse->newTimeExtended));
+*/
 
   /* fileStatuses */
   ss << arrayOfExtendFileLifeTimeInSpaceResponseToString(proc, TRUE, quote);

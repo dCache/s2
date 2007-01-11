@@ -39,7 +39,7 @@ void
 srmMkdir::init()
 {
   /* request (parser/API) */
-  directoryPath = NULL;
+  SURL = NULL;
 
   /* response (parser) */
 }
@@ -61,7 +61,7 @@ srmMkdir::~srmMkdir()
   DM_DBG_I;
 
   /* request (parser/API) */
-  DELETE(directoryPath);
+  DELETE(SURL);
   DELETE_VEC(storageSystemInfo.key);
   DELETE_VEC(storageSystemInfo.value);
 
@@ -99,7 +99,7 @@ srmMkdir::exec(Process *proc)
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
-    EVAL2CSTR(directoryPath),
+    EVAL2CSTR(SURL),
     storageSystemInfo,
     resp
   );
@@ -136,7 +136,7 @@ srmMkdir::toString(Process *proc)
   /* request */  
   SS_SRM("srmMkdir");
   SS_P_DQ(authorizationID);
-  SS_P_DQ(directoryPath);
+  SS_P_DQ(SURL);
   SS_VEC_DEL(storageSystemInfo.key);
   SS_VEC_DEL(storageSystemInfo.value);
 

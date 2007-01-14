@@ -314,7 +314,7 @@
       NOT_NULL(r = soap_new_srm__TRetentionPolicyInfo(soap, -1));\
       MV_SOAP(RetentionPolicy,r->retentionPolicy,*rp);\
       MV_PSOAP(AccessLatency,r->accessLatency,al);\
-    } {\
+    } else {\
       DM_LOG(DM_N(2), ""#r " == NULL\n");\
       r = NULL;\
     }\

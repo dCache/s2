@@ -46,7 +46,7 @@ DEFUN PutCycle filesToPut sURLs : putRequestToken
          && ASSIGN c $EXPR{${c}+1}
       || TEST "${filesToPut}" == "" && !$DEFINED{transferURL${c}}
 
-   && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses=(?P<pdFileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
+   && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses=(?P<pdFileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
       SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${pdFileStatuses}" >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: Put cycle succeeded" >> $ENV{S2_LOG}
 

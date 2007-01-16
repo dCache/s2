@@ -37,7 +37,7 @@ DEFUN PutCycle filesToPut sURLs : putRequestToken
       srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatPut_statusCode>.*)
          SYSTEM echo "${srmTest}: srmStatusOfPutRequest, returnStatus=${-returnStatPut_statusCode}" >> $ENV{S2_LOG}
          && SYSTEM echo "${srmTest}: srmStatusOfPutRequest, remainingTotalRequestTime=${-remainingTotalRequestTime}" >> $ENV{S2_LOG}
-         && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatPut_statusCode}}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS|SRM_PARTIAL_SUCCESS) ${returnStatPut_statusCode}}
          || SYSTEM echo "${srmTest}: srmStatPutRequest returnStatus=${returnStatPut_statusCode} failed" >> $ENV{S2_LOG} && exit 2
    % The actual physical transfer
    && ASSIGN c 0

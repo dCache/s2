@@ -5,21 +5,25 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPrepareToPut_statusCode>.*)
+&& ASSIGN srmmethod PrepareToPut
+
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${-putRequestToken}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED) ${returnPrepareToPut_statusCode}}
-   srmSuspendRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnSuspend_statusCode>.*)
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+   ASSIGN srmmethod SuspendRequest
+   && srmSuspendRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && SYSTEM echo "${srmTest}: Executed SuspendRequest, requestToken: ${putRequestToken}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmSuspendRequest returnStatus: ${returnSuspend_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmSuspendRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnSuspend_statusCode}}
-   srmResumeRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   ASSIGN srmmethod ResumeRequest
+   && srmResumeRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && SYSTEM echo "${srmTest}: Executed ResumeRequest, requestToken: ${putRequestToken}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmResumeRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO: ${srmmethod} ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

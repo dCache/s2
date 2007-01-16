@@ -10,18 +10,21 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-%%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnBringOnline_statusCode>.*)
+&& ASSIGN srmmethod BringOnline
+&& srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed srmBringOnline, bolRequestToken=${-bolRequestToken}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmBringOnline, returnStatus=${-returnBringOnline_statusCode}" >> $ENV{S2_LOG}
-&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnBringOnline_statusCode}}
-&& >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-   srmStatusOfBringOnlineRequest $ENV{ENDPOINT} requestToken=${bolRequestToken} fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: srmStatusOfBringOnlineRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: srmStatusOfBringOnlineRequest, fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmBringOnline, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   TEST ! $DEFINED{bolRequestToken}
+      SYSTEM echo "${srmTest}: OK: SRM_NOT_SUPPORTED (srmBringOnline synchronous, Status function NOT SUPPORTED)" >> $ENV{SRM2_SUPPORTED} && exit 0
+   || ASSIGN srmmethod StatusOfBringOnline 
+      srmStatusOfBringOnlineRequest $ENV{ENDPOINT} requestToken=${bolRequestToken} fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM echo "${srmTest}: srmStatusOfBringOnlineRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: srmStatusOfBringOnlineRequest, fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+      && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+         SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}: KO: ${srmmethod} ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 % TODO: better checks when some SRM 2.2 server supports it

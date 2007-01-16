@@ -18,9 +18,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatusReserve_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
        && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatusReserve_statusCode}}
 
-&& srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnReserveSpace_statusCode}}
+   srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO: ReserveSpace exit status ${-returnStatusReserve_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

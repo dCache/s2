@@ -78,10 +78,15 @@ do
      s2="$s2_t"
    else
      s2_num=`echo $s2_t |cut -d_ -f1`
-     if test $s2_num -ge 70 -a $delim -eq 1; then
+     if test $s2_num -ge 70 -a $delim -eq 2; then
        echo "<TH BGCOLOR=OLIVE COLSPAN=10 HEIGHT=40>" >> ${Index_File} 
        echo "WLCG non MoU SRM v2.2 methods</TH></TR><TR>" >> ${Index_File}
        delim=0
+     fi
+     if test $s2_num -ge 62 -a $delim -eq 1; then
+       echo "<TH BGCOLOR=ORANGE COLSPAN=10 HEIGHT=40>" >> ${Index_File}
+       echo "WLCG MoU SRM v2.2 methods needed by end of 2007</TH></TR><TR>" >> ${Index_File}
+       delim=2
      fi
    fi
    echo "<TD VALIGN=top ALIGN=left><B>${s2}</B></TD>" >> ${Index_File}

@@ -9,29 +9,13 @@ setenv X509_CERT_DIR /afs/cern.ch/project/gd/LCG-share/certificates
 setenv S2_MULTI_SITE yes
 rehash
 #
-# Do not run if another instance is running
-#
-echo "Wait till other instances of cycle are done"
-set i = "0"
-set sleeptim = "3m"
-while ( "$i" == "0" )
-   set outp = `/bin/ps -u flavia -o ppid,comm | grep "cycle"`
-   if ( "$outp" != "" ) then
-      echo "Waiting ${sleeptim} ..."
-      sleep ${sleeptim}
-      set i = "0"
-   else
-      set i = "1"
-   endif
-end
-#
 # Set Root dir
 #
 set srm_root = "/home/flavia/testing/scripts/protos/srm"
 set typ = "$1"
 if ( $# <= 0 ) then
  echo "Please specify test directory"
- echo "Possible options are: basic and cross" 
+ echo "Possible options are: avail,basic,usecase and cross" 
  exit 1
 endif
 #
@@ -62,6 +46,22 @@ switch ( "$1" )
      breaksw
 endsw
 #
+# Do not run if another instance is running
+#
+echo "Wait till other instances of cycle are done"
+set i = "0"
+set sleeptim = "3m"
+while ( "$i" == "0" )
+   set outp = `/bin/ps -C cycle.csh -o pid,cmd | grep "$1" | grep -v "$$"`
+   if ( "x${outp}" != "x" ) then
+      echo "Waiting ${sleeptim} ..."
+      sleep ${sleeptim}
+      set i = "0"
+   else
+      set i = "1"
+   endif
+end
+#
 #set list = "22CASTORCERN 22CASTORDEV 22CASTORRAL 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22SRMVU 22STORM"
 set list = "22CASTORCERN 22CASTORDEV 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22STORM"
 foreach impl (`echo $list`)
@@ -85,8 +85,8 @@ end
 echo "Wait till all tests are done"
 set i = "0"
 while ( "$i" == "0" )
-   set outp = `/bin/ps -u flavia -o ppid,comm | grep "$$ make"` 
-   if ( "$outp" != "" ) then
+   set outp = `ps -C make -o ppid,cmd | grep "make" | grep "$$"` 
+   if ( "x${outp}" != "x" ) then
       echo "Waiting ${sleeptim} ..."
       sleep ${sleeptim}
       set i = "0"

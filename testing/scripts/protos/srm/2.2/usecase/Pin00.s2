@@ -23,15 +23,15 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: This operation should fail and SRM_INVALID_REQUEST should be returned at file level" >> $ENV{S2_LOG}
 
 && NOP
-   srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] newPinLifeTime=$ENV{PIN_LIFETIME} fileStatuses=".*pinLifetime0=(?P<pinLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnExtendTURL_statusCode>.*)
-      TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnExtendTURL_statusCode}}
+   srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] newPinLifeTime=$ENV{PIN_LIFETIME} fileStatuses=".*statusCode0=(?P<FileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      TEST $MATCH{(SRM_SUCCESS) ${FileStatus0}}
         SYSTEM echo "${srmTest}: KO srmExtendFileLifeTime on TURL succeeded after a PutCycle" >> $ENV{SRM2_SUPPORTED} && exit 1
    || NOP
-      TEST $MATCH{(SRM_FAILURE) ${-returnExtendTURL_statusCode}}
+      TEST $MATCH{(SRM_FAILURE) ${FileStatus0}}
         SYSTEM echo "${srmTest}: srmExtendFileLifeTime has failed as expected" >> $ENV{S2_LOG}
-        && SYSTEM echo "${srmTest}: returnStatus=${returnExtendTURL_statusCode}" >> $ENV{S2_LOG}
-        && SYSTEM echo "${srmTest}: OK srmExtendFileLifeTime has failed as expected" >> $ENV{SRM2_SUPPORTED}
-      || SYSTEM echo "${srmTest}: KO srmExtendFileLifeTime failed, returnStatus=${-returnExtendTURL_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+        && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode} fileStatus0=${FileStatus0}" >> $ENV{S2_LOG}
+        && SYSTEM echo "${srmTest}: OK srmExtendFileLifeTime has failed as expected" >> $ENV{SRM2_SUPPORTED} && exit 0
+      || SYSTEM echo "${srmTest}: KO srmExtendFileLifeTime failed, returnStatus=${-returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 % use srmExtendFileLifeTime to try to extend the file lifetime for the SURL 
 && SYSTEM echo "${srmTest}: Executing ExtendFileLifeTime to extend lifetime of SURL/requestToken must not be specified" >> $ENV{S2_LOG}

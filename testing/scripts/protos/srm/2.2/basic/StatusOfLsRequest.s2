@@ -17,9 +17,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-|| SYSTEM echo "${srmTest} KO: srmLs method is synchronous. srmStatusOfLsRequest not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest} OK: srmLs method is synchronous. srmStatusOfLsRequest not supported" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 ;; SYSTEM echo "${srmTest}: Executing srmRmdir of $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
 ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
-;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${returnRmdirStatus_statusCode}, ${returnRmdirStatus_explanation}" >> $ENV{S2_LOG}
+;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> $ENV{S2_LOG}
 

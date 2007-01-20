@@ -13,7 +13,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, requestToken=${-requestToken}, returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
-|| TEST $MATCH{(SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+|| TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
        srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
        && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}, requestToken=${requestToken}" >> $ENV{S2_LOG}

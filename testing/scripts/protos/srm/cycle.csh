@@ -9,6 +9,22 @@ setenv X509_CERT_DIR /afs/cern.ch/project/gd/LCG-share/certificates
 setenv S2_MULTI_SITE yes
 rehash
 #
+# Do not run if another instance is running
+#
+echo "Wait till other instances of cycle are done"
+set i = "0"
+set sleeptim = "3m"
+while ( "$i" == "0" )
+   set outp = `/bin/ps -u flavia -o ppid,comm | grep "cycle"`
+   if ( "$outp" != "" ) then
+      echo "Waiting ${sleeptim} ..."
+      sleep ${sleeptim}
+      set i = "0"
+   else
+      set i = "1"
+   endif
+end
+#
 # Set Root dir
 #
 set srm_root = "/home/flavia/testing/scripts/protos/srm"
@@ -47,13 +63,13 @@ switch ( "$1" )
 endsw
 #
 #set list = "22CASTORCERN 22CASTORDEV 22CASTORRAL 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22SRMVU 22STORM"
-set list = "22DCACHEFNAL 22DPMCERN 22DRMLBNL 22STORM"
+set list = "22CASTORCERN 22CASTORDEV 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22STORM"
 foreach impl (`echo $list`)
    onintr again
    unsetenv S2_TEST_SITE
    unsetenv S2_LOGS_DIR
    setenv S2_TEST_SITE $impl
-   setenv S2_LOGS_DIR "./s2_logs/${S2_TEST_SITE}"
+   setenv S2_LOGS_DIR "${rootdir}/s2_logs/${S2_TEST_SITE}"
    cd ${rootdir}
    echo "Now processing $impl `date +'%F %k:%M'`"
    if ( ! -d /home/flavia/logs/${S2_TEST_SITE} ) then

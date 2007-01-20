@@ -2,8 +2,12 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& ASSIGN Overwrite ALWAYS
+&& ASSIGN access_latency ONLINE
+&& ASSIGN retention_policy REPLICA 
+
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=${Overwrite} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] retentionPolicy=${retention_policy} accessLatency=${access_latency} requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=${Overwrite}, requestToken: ${-requestToken}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}

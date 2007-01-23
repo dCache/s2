@@ -19,7 +19,7 @@ if ( $# <= 0 ) then
  exit 1
 endif
 #
-switch ( "$1" )
+switch ( "${typ}" )
   case "basic":
      set rootdir = "${srm_root}/2.2/basic"
      set sleeptim = "30m"
@@ -50,12 +50,16 @@ endsw
 #
 echo "Wait till other instances of cycle are done"
 set i = "0"
-set sleeptim = "3m"
+set ssleeptim = "3m"
 while ( "$i" == "0" )
-   set outp = `/bin/ps -C cycle.csh -o pid,cmd | grep "$1" | grep -v "$$"`
-   if ( "x${outp}" != "x" ) then
-      echo "Waiting ${sleeptim} ..."
-      sleep ${sleeptim}
+   @ outp = `/bin/ps -C cycle.csh -o pid,cmd | grep ${typ} | grep -c -v $$`
+   if ( ${outp} >= 2 ) then
+      echo "Too many instances of cycle.csh "$1" running. Exiting ..."
+      exit 0
+   endif
+   if ( ${outp} == 1 ) then
+      echo "Waiting ${ssleeptim} ..."
+      sleep ${ssleeptim}
       set i = "0"
    else
       set i = "1"
@@ -75,7 +79,7 @@ foreach impl (`echo $list`)
    if ( ! -d /home/flavia/logs/${S2_TEST_SITE} ) then
       mkdir -p /home/flavia/logs/${S2_TEST_SITE}
    endif
-   make -e test >& /home/flavia/logs/${S2_TEST_SITE}/$1-`date +"%F"`.log &
+   make -e test >& /home/flavia/logs/${S2_TEST_SITE}/$1-`date +"%F-%k:%M"`.log &
    echo "Done."
 again: 
 end

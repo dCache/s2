@@ -1,0 +1,13 @@
+% Puts a file of length 256 characters into SRM, which should fail.
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+
+&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
+
+&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH256}" : putRequestToken
+
+&& SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit ${!}

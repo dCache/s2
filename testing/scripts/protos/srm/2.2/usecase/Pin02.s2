@@ -22,22 +22,28 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 % use srmExtendFileLifeTime to try to extend the pin time for the TURL
 
 % use srmExtendFileLifeTime to try to extend the file lifetime for the SURL 
+
 && SYSTEM echo "${srmTest}: Executing ExtendFileLifeTime to extend lifetime of SURL/requestToken must not be specified" >> $ENV{S2_LOG}
+
 && SYSTEM echo "${srmTest}: Allow for lifetime negotiation: the returned lifetime can be shorter than the lifetime asked" >> $ENV{S2_LOG}
+
 && srmExtendFileLifeTime $ENV{ENDPOINT} SURL[${sURL}] newFileLifeTime=$ENV{PIN_LIFETIME} fileStatuses=".*fileLifetime0=(?P<fileLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)
-      TEST $ENV{PIN_LIFETIME} >= ${fileLifetime0}
-         SYSTEM echo "${srmTest}: $DATE{}  lifetime extended to ${fileLifetime0}" >> $ENV{S2_LOG}
-      || SYSTEM echo "${srmTest}: $DATE{} file lifetime extended to ${-fileLifetime0}" >> $ENV{S2_LOG} && exit 2
+   TEST $ENV{PIN_LIFETIME} >= ${fileLifetime0}
+      SYSTEM echo "${srmTest}: $DATE{}  lifetime extended to ${fileLifetime0}" >> $ENV{S2_LOG}
+   || SYSTEM echo "${srmTest}: $DATE{} file lifetime extended to ${-fileLifetime0}" >> $ENV{S2_LOG} && exit 2
 
 % use srmReleaseFiles to remove one file
 && SYSTEM echo "${srmTest}: Executing ReleaseFiles to remove one file. This operation is not allowed after a PrepareToPut cycle." >> $ENV{S2_LOG}
 
-&& srmReleaseFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnReleaseStatus_statusCode)
-      TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnReleaseStatus_statusCode}}
-         SYSTEM echo "${srmTest}: KO srmReleaseFiles succeeded after a PutCycle" >> $ENV{SRM2_SUPPORTED} && exit 2
-      || TEST $MATCH{(SRM_INVALID_REQUEST) ${returnReleaseStatus_statusCode}}
-         SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> $ENV{S2_LOG}
-         && SYSTEM echo "${srmTest}: returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{S2_LOG}
-         && SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> $ENV{SRM2_SUPPORTED} && exit 0
-      || SYSTEM echo "${srmTest}: KO srmReleaseFiles failed, returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 2
+&& srmReleaseFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnReleaseStatus_statusCode>.*)
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnReleaseStatus_statusCode}}
+   SYSTEM echo "${srmTest}: KO srmReleaseFiles succeeded after a PutCycle" >> $ENV{SRM2_SUPPORTED} && exit 2
+
+|| TEST $MATCH{(SRM_INVALID_REQUEST) ${returnReleaseStatus_statusCode}}
+   SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> $ENV{SRM2_SUPPORTED} && exit 0
+
+|| SYSTEM echo "${srmTest}: KO srmReleaseFiles failed, returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 2
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

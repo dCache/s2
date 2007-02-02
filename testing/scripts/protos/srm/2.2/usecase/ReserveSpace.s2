@@ -12,7 +12,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && NOP
-   TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE||SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+   TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
      SYSTEM echo "${srmTest}: Space reserved: ${-sizeOfTotalReservedSpace}" >> $ENV{S2_LOG}
      && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 

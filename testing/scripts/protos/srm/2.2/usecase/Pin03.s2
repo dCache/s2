@@ -23,7 +23,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 % use srmReleaseFiles to remove one file
 && SYSTEM echo "${srmTest}: Executing ReleaseFiles with request token to remove TURL for ${sURL}.This operation is allowed after a PrepareToGet cycle." >> $ENV{S2_LOG}
 
-&& srmReleaseFiles $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnReleaseStatus_statusCode)
+&& srmReleaseFiles $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnReleaseStatus_statusCode>.*)
     TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnReleaseStatus_statusCode}}
         SYSTEM echo "${srmTest}: srmReleaseFiles has succeeded after a GetCycle as expected" >> $ENV{S2_LOG}
         && SYSTEM echo "${srmTest}: returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{S2_LOG}

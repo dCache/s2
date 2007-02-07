@@ -6,10 +6,16 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& ASSIGN MYPATH $ENV{SRM_NEW_DIR0}
+>0&&8 SYSTEM echo 'looping to mkdir'
 
->0&&8 SYSTEM echo 'looping'
-  SYSTEM echo Loop $I{0}
+  ASSIGN depth $I{0}
+  && SYSTEM echo Loop ${depth}
+
+  && ASSIGN MYPATH ""
+  && ASSIGN PATHADD $ENV{SRM_NEW_DIR0}
+
+  && >0&&${depth} ASSIGN MYPATH "${MYPATH}${PATHADD}"
+    ASSIGN PATHADD "/x"
 
   && SYSTEM echo "Path is ${MYPATH}"
 
@@ -18,12 +24,21 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
      srmLs $ENV{ENDPOINT} SURL[${MYPATH}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
 
-%
-%     && srmRmdir $ENV{ENDPOINT} SURL=$ENV{MYPATH} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
-%        SYSTEM echo "${srmTest}: Executed Rmdir, SURL=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
-%        && SYSTEM echo "${srmTest}: srmRmdir returnStatus: ${-returnRmdir_statusCode}" >> $ENV{S2_LOG}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-  && ASSIGN MYPATH "${MYPATH}/x"
+&& >8&&0 SYSTEM echo 'looping to rmdir'
+
+  ASSIGN depth $I{0}
+  && SYSTEM echo Loop ${depth}
+
+  && ASSIGN MYPATH ""
+  && ASSIGN PATHADD $ENV{SRM_NEW_DIR0}
+
+  && >0&&${depth} ASSIGN MYPATH "${MYPATH}${PATHADD}"
+    ASSIGN PATHADD "/x"
+
+  && SYSTEM echo "Path is ${MYPATH}"
+  && srmRmdir $ENV{ENDPOINT} SURL=${MYPATH} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 0
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

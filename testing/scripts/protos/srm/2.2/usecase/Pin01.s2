@@ -1,4 +1,4 @@
-% Pin01: Put a file, then increase the pin lifetime using the request token, which must not work
+% Pin01: Put a file, then increase the pin lifetime using the request token and the SURL, which must not work
 %
 % put cycle:
 %   srmPrepareToPut

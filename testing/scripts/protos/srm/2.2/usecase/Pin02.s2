@@ -19,14 +19,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% use srmExtendFileLifeTime to try to extend the pin time for the TURL
-
-% use srmExtendFileLifeTime to try to extend the file lifetime for the SURL 
-
-&& SYSTEM echo "${srmTest}: Executing ExtendFileLifeTime to extend lifetime of SURL/requestToken must not be specified" >> $ENV{S2_LOG}
-
-&& SYSTEM echo "${srmTest}: Allow for lifetime negotiation: the returned lifetime can be shorter than the lifetime asked" >> $ENV{S2_LOG}
-
+% use srmExtendFileLifeTime to try to extend the file lifetime for the SURL
+% Allow for lifetime negotiation: the returned lifetime can be shorter than the lifetime asked 
 && srmExtendFileLifeTime $ENV{ENDPOINT} SURL[${sURL}] newFileLifeTime=$ENV{PIN_LIFETIME} fileStatuses=".*fileLifetime0=(?P<fileLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)
    TEST $ENV{PIN_LIFETIME} >= ${fileLifetime0}
       SYSTEM echo "${srmTest}: $DATE{}  lifetime extended to ${fileLifetime0}" >> $ENV{S2_LOG}

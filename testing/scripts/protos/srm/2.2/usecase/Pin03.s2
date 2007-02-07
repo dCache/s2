@@ -1,4 +1,5 @@
-% Pin03: Puts a file, then releases it. Then tries to increase the pin lifetime using the original request token.
+% Pin03: Puts a file, then releases it. Then tries to increase the pin lifetime using the original request token
+% which should fail
 % 
 % put cycle:
 %   srmPrepareToPut
@@ -32,12 +33,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 % try to extend the pins again (this should result in failure).
 && SYSTEM echo "${srmTest}: Executing ExtendFileLifeTime again on TURL with request token to reset TURL for ${sURL}.This operation should fail." >> $ENV{S2_LOG}
 
-&& srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] newPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} fileStatuses=".*pinLifetime0=(?P<pinLifetime0>\d+)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnExtendTURL_statusCode>.*)
-   TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnExtendTURL_statusCode}}
-      SYSTEM echo "${srmTest}: KO srmExtendFileLifeTime succeeded after a ReleaseFiles" >> $ENV{SRM2_SUPPORTED} && exit 2 
-   || TEST $MATCH{(SRM_FAILURE) ${-returnExtendTURL_statusCode}}
-        SYSTEM echo "${srmTest}: srmExtendFileLifeTime has failed as expected" >> $ENV{S2_LOG}
-        && SYSTEM echo "${srmTest}: returnStatus=${returnExtendTURL_statusCode}" >> $ENV{S2_LOG}
+&& srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] newPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnExtendTURL_statusCode>.*)
+   TEST $MATCH{(SRM_FAILURE) ${returnExtendTURL_statusCode}}
+     SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
    || SYSTEM echo "{srmTest}: KO srmExtendFileLifeTime failed, returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

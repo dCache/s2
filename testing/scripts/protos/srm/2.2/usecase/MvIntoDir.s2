@@ -1,0 +1,30 @@
+% Tests srmMv, moving a file onto a new subdirectory.
+%
+% srmPrepareToPut
+% srmPutDone
+% srmMkdir
+% srmMv
+% srmLs
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+%%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& SYSTEM echo "${srmTest}: srmMv from Source to subdirectory is executed"
+
+&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
+
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+&& SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> $ENV{S2_LOG} && exit 0
+
+|| SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{S2_LOG}
+
+% SRM_FILE_IN_DIR0

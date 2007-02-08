@@ -4,7 +4,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN dir $ENV{SRM_ENDPOINT}/flavia
 
-&& srmLs $ENV{ENDPOINT} SURL[${dir}] requestToken=(?P<requestToken>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmLs $ENV{ENDPOINT} SURL[${dir}] requestToken=(?P<requestToken>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
    && TEST $MATCH{(SRM_INVALID_PATH) ${fileStatus0}}

@@ -8,7 +8,9 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../../include/FileTransPut.s2
 
-&& SYSTEM echo "${srmTest}: Executing first PrepareToPut ..." >> $ENV{S2_LOG}
+&& ASSIGN Status 0
+
+&& SYSTEM echo "${srmTest}: Executing PrepareToPut ..." >> $ENV{S2_LOG}
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${-requestToken1}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
@@ -27,15 +29,53 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${PutfileStatuses}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& SYSTEM echo "${srmTest}: Checking lifetime of SURL for $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking MetaDataPath info for SURL $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
 
-&& NOP
-   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=".*lifetimeLeft0=(?P<Lifetime0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURLLifeTime=${Lifetime0}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> $ENV{SRM2_SUPPORTED}
+      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}
+      SYSTEM echo "${srmTest}: Path is returned: ${Path0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: Path is not reported" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*size0=(?P<Size0>\d+?)(\s.+|$)" ${PathDetails0}}
+      SYSTEM echo "${srmTest}: Size is returned: ${Size0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: Size is not returned" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*type0=(?P<Type0>(FILE|DIRECTORY))(\s.+|$)" ${PathDetails0}}
+      SYSTEM echo "${srmTest}: Type is returned: ${Type0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: Type is not returned" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*lastModificationTime0=(?P<ModificationTime0>\d+?)(\s.+|$)" ${PathDetails0}}
+      SYSTEM echo "${srmTest}: Modification Time is returned: ${ModificationTime0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: Modification Time is not returned" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*(?P<Permissions0>userID0=.*otherPermission0=(NONE|X|W|WX|R|RX|RW|RWX))(\s.+|$)" ${PathDetails0}}
+      SYSTEM echo "${srmTest}: Permissions are returned: ${Permissions0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: Permissions are not returned" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*lifetimeLeft0=(?P<Lifetime0>\d+?)(\s.+|$)" ${PathDetails0}}
+      SYSTEM echo "${srmTest}: lifetimeLeft is returned: ${Lifetime0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: lifetimeLeft is not returned" >> $ENV{SRM2_SUPPORTED}
+   && NOP
+      TEST $MATCH{".*checkSumType0=(?P<CheckSumType0>.+?)(\s.+|$)" ${PathDetails0}}
+         SYSTEM echo "${srmTest}: CheckSumType is returned: ${CheckSumType0}" >> $ENV{S2_LOG}
+      || SYSTEM echo "${srmTest}: Warning!!! CheckSumType is not returned" >> $ENV{SRM2_SUPPORTED} && exit 0
+      && TEST $MATCH{".*checkSumValue0=(?P<CheckSumValue0>.+?)(\s.+|$)" ${PathDetails0}}
+         SYSTEM echo "${srmTest}: CheckSumValue is returned: ${CheckSumValue0}" >> $ENV{S2_LOG}
+      || SYSTEM echo "${srmTest}: Warning !!! CheckSumValue is not returned" >> $ENV{SRM2_SUPPORTED} && exit 0
+
+   && SYSTEM exit ${Status}
+   && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!} 
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-|| SYSTEM echo "${srmTest}: KO Test failed ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+;; ASSIGN Status ${!}
+
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM echo "${srmTest} srmRm returnStatus=${-returnStatus_statusCode}, ${-returnStatus_explanation}" >> $ENV{S2_LOG} && exit ${Status}
+

@@ -1,0 +1,24 @@
+% Creates a new directory and then renames it via srmMv. Checks whether this really worked via srmLs.
+%
+% srmMkdir
+% srmLs
+% srmRmdir
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+&& ASSIGN dir0 "$ENV{SRM_NEW_DIR0}"
+&& ASSIGN dir1 "$ENV{SRM_NEW_DIR0}x"
+
+&& srmMkdir $ENV{ENDPOINT} SURL=${dir0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+
+&& srmMv $ENV{ENDPOINT} fromSURL=${dir0} toSURL=${dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
+
+&& srmLs $ENV{ENDPOINT} SURL[${dir1}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && SYSTEM echo "Directory moved: ${fileStatus0}" >> $ENV{SRM2_LOG}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+&& SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{SRM2_SUPPORTED} && exit 0
+
+|| SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED}

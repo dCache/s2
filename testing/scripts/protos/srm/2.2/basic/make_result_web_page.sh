@@ -10,11 +10,6 @@ else
    Index_File=${S2_LOGS}/index.html
 fi
 #
-# Rename the index file for keeping history
-#
-#if test -e ${Index_File}; then
-#   mv ${Index_File} ${Index_File}_old
-#fi
 #
 # Start building index.html
 #
@@ -56,12 +51,11 @@ do
      *) echo "Unrecognized endpoint - Exiting"; exit 1
      ;;
   esac
-#  if test -e ${S2_LOGS}/${dir}/Ping.log; then
-#     endp=`grep EndPoint ${S2_LOGS}/${dir}/Ping.log | cut -d= -f2`
-#     echo "<TH VALIGN=center ALIGN=center><FONT SIZE=3><A HREF=${endp}>$sitetag</A></FONT></TH>" >> ${Index_File}
-#  else
+  if test -e ${S2_LOGS}/${dir}/scheduled-downtime; then
+     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3>$sitetag<BR>Scheduled downtime</FONT></TH>" >> ${Index_File}
+  else
      echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF=${dir}/index.html>$sitetag</A></FONT></TH>" >> ${Index_File}
-#  fi
+  fi
 done
 echo "</TR>" >> ${Index_File}
 
@@ -94,7 +88,7 @@ do
    for dir in `ls -1 $S2_LOGS | grep -v index.html`;
    do
     if test -e ${S2_LOGS}/${dir}/exit.log; then
-      err=`grep \(${s2_t}\.sh\) ${S2_LOGS}/${dir}/exit.log | cut -d" " -f1`
+      err=`grep "\(${s2_t}\.sh\)" ${S2_LOGS}/${dir}/exit.log | cut -d" " -f1`
       if test "$err" ; then
          if test $err -eq 0 ; then
             color="GREEN"

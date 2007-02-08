@@ -3,7 +3,7 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && NOP
-   timeout=180000000 srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   timeout=180000000 srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] numOfLevels=0 requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, pathDetails=${pathDetails}" >> $ENV{S2_LOG}
 

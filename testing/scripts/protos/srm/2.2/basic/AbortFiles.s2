@@ -15,8 +15,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: fileStatuses=${-fileStatus0}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{"(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)" ${returnStatus_statusCode}}
-   TEST $MATCH{"(SRM_SUCCESS)" ${fileStatus0}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
+   TEST $MATCH{(SRM_SUCCESS) ${fileStatus0}}
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}, file level return code: ${fileStatus0}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}, file level return code: ${fileStatus0}" >> $ENV{SRM2_SUPPORTED} && exit 2
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

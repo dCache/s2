@@ -19,6 +19,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "Directory moved: ${fileStatus0}" >> $ENV{SRM2_LOG}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-&& SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{SRM2_SUPPORTED}
 
 || SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED}

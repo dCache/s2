@@ -21,8 +21,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> $ENV{SRM2_SUPPORTED} && exit 0
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-&& SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> $ENV{SRM2_SUPPORTED} && exit 0
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRm_statusCode>.*)
+;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
 
-|| SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO Test failed:${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

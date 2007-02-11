@@ -43,7 +43,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "Path is ${MYPATH}" >> $ENV{S2_LOG}
    && srmRmdir $ENV{ENDPOINT} SURL=${MYPATH} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
 
-&& exit ${Status}
+&& SYSTEM exit ${Status}
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 0
 

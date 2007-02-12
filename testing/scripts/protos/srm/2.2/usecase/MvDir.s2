@@ -16,7 +16,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmLs $ENV{ENDPOINT} SURL[${dir1}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
-   && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+      SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
    || SYSTEM echo "${srmTest}: srmLs failed: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG} && exit ${!}
 
 ;; ASSIGN Status ${!}

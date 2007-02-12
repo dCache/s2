@@ -56,7 +56,11 @@ do
      ;;
   esac
 
-echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF=${dir}/index.html>$sitetag</A></FONT></TH>" >> ${Index_File}
+  if test -e ${S2_LOGS}/${dir}/scheduled-downtime; then
+     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3>$sitetag<BR>Scheduled downtime</FONT></TH>" >> ${Index_File}
+  else
+     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF=${dir}/index.html>$sitetag</A></FONT></TH>" >> ${Index_File}
+  fi
 done
 
 echo "</TR>" >> ${Index_File}
@@ -86,9 +90,9 @@ do
    fi
   done
 if test "$color" = "GREEN"; then
-   echo "<TD BGCOLOR="$color" VALIGN=center ALIGN=center><B>UP</B></TD>" >> ${Index_File}
+   echo "<TD BGCOLOR=\""$color"\" VALIGN=center ALIGN=center><B>UP</B></TD>" >> ${Index_File}
 else
-   echo "<TD BGCOLOR="$color" VALIGN=center ALIGN=center><B>DOWN</B></TD>" >> ${Index_File}
+   echo "<TD BGCOLOR=\"RED\" VALIGN=center ALIGN=center><B>DOWN</B></TD>" >> ${Index_File}
 fi
 color="NULL"
 done

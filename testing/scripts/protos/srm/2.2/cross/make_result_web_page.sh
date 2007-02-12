@@ -56,8 +56,13 @@ do
      *) echo "Unrecognized endpoint - Exiting"; exit 1
      ;;
   esac
-  echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF=${dir}/index.html>$sitetag</A></FONT></TH>" >> ${Index_File}
+  if test -e ${S2_LOGS}/${dir}/scheduled-downtime; then
+     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3>$sitetag<BR>Scheduled downtime</FONT></TH>" >> ${Index_File}
+  else
+     echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3><A HREF=${dir}/index.html>$sitetag</A></FONT></TH>" >> ${Index_File}
+  fi
 done
+
 echo "</TR>" >> ${Index_File}
 
 echo "<TR><TH BGCOLOR=OLIVE COLSPAN=10 HEIGHT=40>" >> ${Index_File}

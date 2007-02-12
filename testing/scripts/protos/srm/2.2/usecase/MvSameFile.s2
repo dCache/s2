@@ -12,8 +12,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: srmMv from Source to same Destination is executed" >> $ENV{S2_LOG}
 
-&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}}
-   && SYSTEM echo "${srmTest}: OK srmMv returned SRM_FAILURE, saying ${returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
-|| SYSTEM echo "${srmTest}: KO srmMv did not return SRM_FAILURE, but ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && && exit ${!}
+&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<MvStatus>.*)
 
+&& TEST $MATCH{(SRM_FAILURE) ${MvStatus}}
+
+&& SYSTEM echo "${srmTest}: OK srmMv returned SRM_FAILURE, saying ${returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
+
+|| SYSTEM echo "${srmTest}: KO srmMv did not return SRM_FAILURE: return code=${-MvStatus}, explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

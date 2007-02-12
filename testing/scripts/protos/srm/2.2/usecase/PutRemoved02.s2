@@ -1,32 +1,22 @@
-% PutRemoved.s2: Puts 2 files, deletes one again and then tries to put again the two.
+% PutRemoved.s2 Puts a 2 files, deletes one again and then tries to put again the two.
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
 
-&& SYSTEM echo "${srmTest}: Putting 2 files" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0} $ENV{FILE_TO_PUT1}" "$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}" : putRequestToken
 
-&& SYSTEM echo "${srmTest}: Deleting one file again" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Deleting the file again" >> $ENV{S2_LOG}
 
 && srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& SYSTEM echo "${srmTest}: Now putting again the same files" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Now putting again the same file" >> $ENV{S2_LOG}
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnPToP_statusCode}" >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
-   && >0||2 SLEEP 100
-      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
-         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
-         && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatusPut_statusCode}}
-
-&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+&& FUN PutCycle "$ENV{FILE_TO_PUT0} $ENV{FILE_TO_PUT1}" "$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}" : putRequestToken
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} failed" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation} what failed ${whatFailed} what Error: ${whatError}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

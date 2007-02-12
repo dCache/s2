@@ -7,7 +7,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
 
+&& ASSIGN Status 0
 && FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH256}" : putRequestToken
+&& ASSIGN Status 1
+;; SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

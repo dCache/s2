@@ -11,9 +11,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 || SYSTEM echo "${srmTest}: Failed to put even the initial 2 files" >> $ENV{S2_LOG} && exit {!}
 
-&& SYSTEM echo "${srmTest}: Deleting second file again" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Deleting first file again" >> $ENV{S2_LOG}
 
-&& srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && SYSTEM echo "${srmTest}: Now putting again the same two files" >> $ENV{S2_LOG}
 

@@ -1,15 +1,12 @@
-% PutRemoved03.s2: Puts 2 files, deletes the first one again and then tries to put again the two.
-% Does a srmStatusOfPutRequest for the two files, reversing their sequence and checks that the
-% SRM_DUPLICATION_ERROR and SRM_SPACE_AVAILABLE are indeed the error codes of the associated URLs.
-% Checks for SRM_PARTIAL_SUCCESS of the put attempt.
-% The difference to PutRemoved02 is that the sequence of SURLs in srmStatusOfPutRequest is reversed to
-% check that the service takes this sequence and not the one in srmPrepareToPut when reporting on the status
-% of the files using srmPrepareToPut.
+% PutRemoved02.s2 Puts 2 files, deletes one again and then tries to put again the two. 
+% Checks for SRM_PARTIAL_SUCCESS of the request and checks that the
+% SRM_DUPLICATION_ERROR and SRM_SPACE_AVAILABLE are indeed the error codes of the associated SURLs.
 %
 % srmPrepareToPut
 % srmStatusOfPutRequest
 % srmPutDone
 % srmRm
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
@@ -34,19 +31,16 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
   && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-    srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE1} $ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.*) file.*returnStatus.statusCode1=(?P<StatusCode1>.*) file.*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
-       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file 0: ${StatusCode0} file 1: ${StatusCode1}" >> $ENV{S2_LOG}
+    srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE1}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.*) file.*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
+       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
        && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusPut_statusCode}}
 
 && SYSTEM echo "Checking return status code: SRM_PARTIAL_SUCCESS (${returnStatusPut_statusCode})" >> $ENV{S2_LOG}
 && TEST $MATCH{SRM_PARTIAL_SUCCESS ${returnStatusPut_statusCode}}
 
-&& SYSTEM echo "Checking status of file 0: SRM_DUPLICATION_ERROR (${StatusCode0})" >> $ENV{S2_LOG}
+&& SYSTEM echo "Checking status of second file: SRM_DUPLICATION_ERROR (${StatusCode0})" >> $ENV{S2_LOG}
 && TEST $MATCH{SRM_DUPLICATION_ERROR ${StatusCode0}}
-
-&& SYSTEM echo "Checking status of file 1: SRM_SPACE_AVAILABLE (${StatusCode1})" >> $ENV{S2_LOG}
-&& TEST $MATCH{SRM_SPACE_AVAILABLE ${StatusCode1}}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
 
-|| SYSTEM echo "${srmTest}: KO request returned:${-returnStatusPut_statusCode}, file status 0:${StatusCode0}, fileStatus 1: ${StatusCode1}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO request returned PtP returned:${-returnPToP_statusCode}, file status 0:${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

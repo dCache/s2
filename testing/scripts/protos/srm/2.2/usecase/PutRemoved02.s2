@@ -1,4 +1,12 @@
-% PutRemoved02.s2 Puts 2 files, deletes one again and then tries to put again the two. Checks for SRM_PARTIAL_SUCCESS.
+% PutRemoved02.s2 Puts 2 files, deletes one again and then tries to put again the two. 
+% Checks for SRM_PARTIAL_SUCCESS of the request and checks that the
+% SRM_DUPLICATION_ERROR and SRM_SPACE_AVAILABLE are indeed the error codes of the associated SURLs.
+%
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmRm
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

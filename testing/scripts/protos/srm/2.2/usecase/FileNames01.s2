@@ -1,17 +1,27 @@
-% Puts a file of length 256 characters into SRM, which should fail.
+% FileNames01: Puts a file of length 256 characters into SRM, which should in principle fail, but we accept a success, too.
+% Makes a Ping first to make sure that the SRM is there.
+%
+% srmPing
+% srmPtP
+% srmStatusOfPtP
+% srmPutDone
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
 
-&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
+&& SYSTEM echo "Making sure the SRM is there at all: Ping"
+&& srmPing $ENV{ENDPOINT} authorizationID=$ENV{USER} versionInfo=(?P<versionInfo>.*) otherInfo=(?P<otherInfo>.*)
 
-&& ASSIGN Status 0
-&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH256}" : putRequestToken
-&& ASSIGN Status 1
-;; SYSTEM exit ${Status}
+   SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   && ASSIGN Status 0
+   && FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH256}" : putRequestToken
+   && ASSIGN Status 1
+   ;; SYSTEM exit ${Status}
 
-|| SYSTEM echo "${srmTest}: OK (but filenames with 256 characters are supported)" >> $ENV{SRM2_SUPPORTED} && exit 0
+   && SYSTEM echo "${srmTest}: OK (but filenames with 256 characters are supported)" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+   || SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+|| SYSTEM echo "${srmTest}: KO (SRM unavailable?)" >> $ENV{SRM2_SUPPORTED} && exit ${!} 

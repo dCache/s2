@@ -22,5 +22,5 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
     srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*Status.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=SRM_FAILURE
   && TEST $MATCH{SRM_INVALID_PATH ${StatusCode0}}
   && SYSTEM echo "${srmTest}: OK: s2: removed file couldn't be retrieved, file status ${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit 0
-  || SYSTEM echo "${srmTest}: KO (s2: srmStatusOfGetRequest succeeded on a removed file, or status code (was ${-StatusCode0}}) not SRM_INVALID_PATH)" >> $ENV{SRM2_SUPPORTED} && exit 0
-|| SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode} Something strange has happened" >> $ENV{SRM2_SUPPORTED} && exit 1
+  || SYSTEM echo "${srmTest}: KO (s2: srmStatusOfGetRequest succeeded on a removed file, or status code (was ${-StatusCode0}) not SRM_INVALID_PATH)" >> $ENV{SRM2_SUPPORTED} && exit 0
+|| SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode} Something strange has happened" >> $ENV{SRM2_SUPPORTED} && exit 1

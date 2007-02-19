@@ -35,10 +35,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
        && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusPut_statusCode}}
 
-&& SYSTEM echo "Checking return status code: SRM_PARTIAL_SUCCESS (${returnStatusPut_statusCode})" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking return status code: SRM_PARTIAL_SUCCESS (${returnStatusPut_statusCode})" >> $ENV{S2_LOG}
 && TEST $MATCH{SRM_PARTIAL_SUCCESS ${returnStatusPut_statusCode}}
 
-&& SYSTEM echo "Checking status of second file: SRM_DUPLICATION_ERROR (${StatusCode0})" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking status of second file: SRM_DUPLICATION_ERROR (${StatusCode0})" >> $ENV{S2_LOG}
 && TEST $MATCH{SRM_DUPLICATION_ERROR ${StatusCode0}}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0

@@ -1,7 +1,9 @@
-% Tests srmMv: Try to move a file being put.
+% MvBeingPut: Try to move a file being put.
 %
 % srmPrepareToPut
+% srmStatusOfPutRequest
 % srmMv
+% srmPutDone
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

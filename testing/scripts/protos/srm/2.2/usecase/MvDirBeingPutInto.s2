@@ -1,7 +1,11 @@
-% Tests srmMv: Try to move a file being put.
+% MvDirBeingPutInto.s2: Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
 %
+% srmMkdir
 % srmPrepareToPut
+% srmStatusOfPutRequest
 % srmMv
+% srmPutDone
+% srmRmdir
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
@@ -24,10 +28,16 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Put is now positively in progress, trying to move away the directory: srmMv $ENV{SRM_NEW_DIR0} to $ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
 
-&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_DIR0} toSURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
-   && ASSIGN Status 1
-   && SYSTEM echo "${srmTest}: srmMv of put dir succeeds, which is bad: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL="$ENV{SRM_NEW_FILE0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<re
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+   || SYSTEM echo "${srmTest}: srmMv of file failed: ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+
+;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && SYSTEM echo "${srmTest}: KO: srmPutDone of file in moved dir succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 && SYSTEM echo "${srmTest}: Cleaning up srmRmdir SURL=$ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}

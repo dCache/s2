@@ -5,6 +5,8 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
+&& SYSTEM echo "${srmTest}: Preparing to put file" >> $ENV{S2_LOG}
+
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
@@ -13,12 +15,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
        && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusPut_statusCode}}
 
-;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+&& SYSTEM echo "${srmTest}: File has been put and request is ongoing, now moving the file" >> $ENV{S2_LOG}
 
 && srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL="$ENV{SRM_NEW_FILE0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   && ASSIGN Status 1
-   && SYSTEM echo "${srmTest}: KO: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+   && SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+   || SYSTEM echo "${srmTest}: srmMv of file failed: ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+
+;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && SYSTEM echo "${srmTest}: KO: srmPutDone of moved file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 && SYSTEM exit ${Status}

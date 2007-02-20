@@ -1,11 +1,10 @@
-% Tests srmMv, moving a file onto itself. The srmMv call should fail with SRM_FAILURE and a good explanation.
+% Tests srmMv, moving a file onto itself. Like the 
 %
 % srmPrepareToPut
 % srmPutDone
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
 
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
@@ -14,8 +13,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<MvStatus>.*)
 
-&& TEST $MATCH{(SRM_FAILURE) ${MvStatus}}
+&& TEST $MATCH{(SRM_SUCCESS) ${MvStatus}}
 
-&& SYSTEM echo "${srmTest}: OK srmMv returned SRM_FAILURE, saying ${returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& SYSTEM echo "${srmTest}: OK srmMv returned SRM_SUCCESS, saying: ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
 
-|| SYSTEM echo "${srmTest}: KO srmMv did not return SRM_FAILURE: return code=${-MvStatus}, explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO srmMv failed to move to same file: return code=${-MvStatus}, explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

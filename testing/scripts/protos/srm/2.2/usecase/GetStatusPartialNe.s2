@@ -38,4 +38,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
 
-|| SYSTEM echo "${srmTest}: KO request returned PtG returned:${-returnPToG_statusCode}, file status 0:${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO request returned PtG returned:${-returnStatusGet_statusCode}, file status 0:${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

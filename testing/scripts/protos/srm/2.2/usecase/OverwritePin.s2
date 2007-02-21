@@ -1,4 +1,5 @@
-% PutGet01: transfer of a file to/from SRM server
+% % $Id: OverwritePin.s2,v 1.2 2007/02/21 17:40:31 bkoblitz Exp $
+% OverwritePin.s2: Puts a file, then prepares to get it. Then overwrites the file and does a statusOfGet request. The file should be unavailable.
 %
 % srmPrepareToGet
 % srmPrepareToPut

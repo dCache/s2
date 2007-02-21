@@ -1,4 +1,4 @@
-% $Id: MvBeingPut.s2,v 1.5 2007/02/21 12:47:40 bkoblitz Exp $
+% $Id: MvBeingPut.s2,v 1.6 2007/02/21 17:38:55 bkoblitz Exp $
 % MvBeingPut: Try to move a file being put.
 %
 % srmPrepareToPut
@@ -25,12 +25,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
    || SYSTEM echo "${srmTest}: srmMv of file failed: ${-returnStatus_explanation}" >> $ENV{S2_LOG}
 
-;; ASSIGN Status ${!} && SYSTEM exit ${Status}
-
 && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   && SYSTEM echo "${srmTest}: KO: srmPutDone of moved file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
+   && SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
+   || SYSTEM echo "${srmTest}: KO: test failed, PutDone returned ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-&& SYSTEM exit ${Status}
-|| SYSTEM echo "${srmTest}: Test failed:${returnStatus_statusCode}" >> $ENV{S2_LOG} && exit ${Status}
+|| SYSTEM echo "${srmTest}: Test failed:${returnStatus_statusCode}" >> $ENV{S2_LOG} && exit ${!}

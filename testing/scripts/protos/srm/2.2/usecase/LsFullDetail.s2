@@ -55,7 +55,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "${srmTest}: Permissions are returned: ${Permissions0}" >> $ENV{S2_LOG}
    || ASSIGN Status 2
       SYSTEM echo "${srmTest}: Permissions are not returned" >> $ENV{SRM2_SUPPORTED}
-   && TEST $MATCH{".*lifetimeLeft0=(?P<Lifetime0>\d+?)(\s.+|$)" ${PathDetails0}}
+   && TEST $MATCH{".*lifetimeLeft0=(?P<Lifetime0>[-]*\d+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: lifetimeLeft is returned: ${Lifetime0}" >> $ENV{S2_LOG}
    || ASSIGN Status 2
       SYSTEM echo "${srmTest}: lifetimeLeft is not returned" >> $ENV{SRM2_SUPPORTED}

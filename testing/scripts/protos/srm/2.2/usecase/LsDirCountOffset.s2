@@ -24,13 +24,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled,offset=1 and count=1" >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
+|| ASSIGN Status ${-returnStatus_statusCode}
+   SYSTEM exit ${-returnStatus_statusCode}
+
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   NOP
-      NOP
-      && TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
-         SYSTEM echo "${srmTest}: KO Returned 2 entries while only one is asked." >> $ENV{SRM2_SUPPORTED} && exit 2
-      || SYSTEM exit 0   
-   && TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}}
+   TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Path is returned: ${Path0}" >> $ENV{S2_LOG}
    || ASSIGN Status 2
       SYSTEM echo "${srmTest}: Path is not returned" >> $ENV{SRM2_SUPPORTED}
@@ -62,11 +60,22 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   && NOP
+      TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
+         ASSIGN Status 2
+         && SYSTEM echo "${srmTest}: KO Returned 2 entries while only one is asked." >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM exit 0
+
+   && SYSTEM exit ${Status}
+ 
+&& SYSTEM echo "${srmTest}: OK Count and Offset supported" >> $ENV{SRM2_SUPPORTED} && exit ${Status} 
+
+|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
 
 ;; ASSIGN Status ${!}
 
-;; srmRm $ENV{ENDPOINT} SURL[$SPLIT{${sURL}}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$SPLIT{${sURL}}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnRmStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmStatus_statusCode>.*)
+;; SYSTEM echo "${srmTest}: srmRm returnStatus=${-returnRmStatus_statusCode}, ${-returnRmStatus_explanation}" >> $ENV{S2_LOG} && exit ${Status}
 
 ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
 ;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> $ENV{S2_LOG} && exit ${Status}

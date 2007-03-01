@@ -11,7 +11,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/GetCycle.s2
 
 
-&& SYSTEM echo "Making sure the SRM is there at all: Ping"
+&& SYSTEM echo "Making sure the SRM is there at all: Ping"  >> $ENV{S2_LOG}
 && srmPing $ENV{ENDPOINT} authorizationID=$ENV{USER} versionInfo=(?P<versionInfo>.*) otherInfo=(?P<otherInfo>.*)
 
    SYSTEM echo "${srmTest}: Putting file with 256 character name" >> $ENV{S2_LOG}

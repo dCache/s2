@@ -10,30 +10,48 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Executing first PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
 
-&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=".*returnStatus.statusCode0=(?P<Status1Code0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus1_explanation>.*) returnStatus.statusCode=(?P<returnStatus1_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken1}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-returnStatus_explanation}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus1_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-Status1Code0}" >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: Executing second PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
-&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken2>.*) fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>[A-Z_]*)( |$)"  remainingTotalRequestTime=(?P<remainingTotalRequestTime2>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken2>.*) fileStatuses=".*returnStatus.statusCode0=(?P<Status2Code0>.+?)(\s.+|$)"  remainingTotalRequestTime=(?P<remainingTotalRequestTime2>.*) returnStatus.explanation=(?P<returnStatus2_explanation>.*) returnStatus.statusCode=(?P<returnStatus2_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed second PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken2}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-StatusCode0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus2_statusCode}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-Status2Code0}" >> $ENV{S2_LOG}
 
-%&& TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
-%   >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-%      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${requestToken2} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*Status.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-%      && SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
-%      && SYSTEM echo "${srmTest}: srmStatusOfPutRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
-%      && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}
+&& NOP
+   TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus1_statusCode}}
+      >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${requestToken1} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<Status1Code0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus1_explanation>.*) returnStatus.statusCode=(?P<returnStatus1_statusCode>.*)
+         && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE|SRM_NOT_SUPPORTED) ${returnStatus1_statusCode}
+   || SYSTEM exit 0
 
-&& TEST $MATCH{(SRM_FILE_BUSY) ${StatusCode0}}
+&& NOP
+   TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus2_statusCode}}
+      >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${requestToken2} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<Status2Code0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime2>.*) returnStatus.explanation=(?P<returnStatus2_explanation>.*) returnStatus.statusCode=(?P<returnStatus2_statusCode>.*)
+         && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE|SRM_NOT_SUPPORTED) ${returnStatus2_statusCode}
+   || SYSTEM exit 0
+
+&& NOP
+   TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus1_statusCode}} || $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus2_statusCode}}
+      ASSIGN Status 0
+      && SYSTEM echo "${srmTest}: OK, overwrite option not supported" >> $ENV{SRM2_SUPPORTED} && exit 1
+   || SYSTEM exit 0
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatus1_statusCode} || $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatus2_statusCode}
+
+&& TEST $MATCH{(SRM_FILE_BUSY) ${Status1Code0}} || $MATCH{(SRM_FILE_BUSY) ${Status2Code0}} 
    SYSTEM echo "${srmTest}: Second PrepareToPut with overwrite enabled returned SRM_FILE_BUSY as expected." >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: OK File level return status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit 0
+   && SYSTEM echo "${srmTest}: OK File level return status = SRM_FILE_BUSY" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 || NOP
-   TEST $MATCH{(SRM_SPACE_AVAILABLE) ${-StatusCode0}}
-      SYSTEM echo "${srmTest}: OK, Second PrepareToPut Succeeded with file level return status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit 2
+   TEST $MATCH{(SRM_SPACE_AVAILABLE) ${-Status2Code0}} || $MATCH{(SRM_SPACE_AVAILABLE) ${-Status2Code0}}
+      SYSTEM echo "${srmTest}: KO, Second PrepareToPut Succeeded with file level return status = SRM_SPACE_AVAILABLE" >> $ENV{SRM2_SUPPORTED} && exit 2
 
-|| SYSTEM echo "${srmTest}: KO PrepareToPut returnStatus = ${-returnStatus_statusCode}, File level return status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit 2
-
+|| SYSTEM echo "${srmTest}: KO PrepareToPut returnStatus1 = ${-returnStatus1_statusCode} returnStatus2 = ${-returnStatus2_statusCode}, File level return status status1 = ${-Status1Code0}, status2=${-Status2Code0}" >> $ENV{SRM2_SUPPORTED}
+   TEST $DEFINED{Status}
+     SYSTEM exit 0
+   || SYSTEM exit 2

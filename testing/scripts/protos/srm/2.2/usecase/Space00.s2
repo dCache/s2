@@ -45,7 +45,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
          SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
 
-&& SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=CUSTODIAL, accessLatency=ONLINE" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=REPLICA, accessLatency=ONLINE" >> $ENV{S2_LOG}
 && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
 && SYSTEM echo "${srmTest}: desiredSizeOfTotalSpace=0, desiredLifetimeOfReservedSpace=0" >> $ENV{S2_LOG}
 && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}

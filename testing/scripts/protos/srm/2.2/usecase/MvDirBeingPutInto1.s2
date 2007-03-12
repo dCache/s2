@@ -1,0 +1,63 @@
+% MvDirBeingPutInto.s2: Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
+%
+% srmMkdir
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmMv
+% srmPutDone
+% srmRmdir
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../../include/FileTransPut.s2
+
+&& SYSTEM echo "${srmTest}: Making directory srmMkdir $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+
+&& SYSTEM echo "${srmTest}: Starting to put file srmPrepareToPut $ENV{SRM_FILE_IN_DIR0}" >> $ENV{S2_LOG}
+
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
+  SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
+  && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
+  && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+    srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
+       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
+       && TEST $MATCH{(SRM_SUCCESS) ${returnStatusPut_statusCode}}
+
+;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+
+&& SYSTEM echo "${srmTest}: PrepareToPut returned a TURL. Now transferring a file while trying to move away the directory: srmMv $ENV{SRM_NEW_DIR0} to $ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
+
+&& NOP
+   NOP
+      FUN FileTransPut $ENV{BIG_FILE} ${transferURL0}
+   NOP
+      SLEEP 1
+      && srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_DIR0} toSURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) 
+         TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+            SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+         || SYSTEM echo "${srmTest}: srmMv of file failed: ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+
+;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+
+&& SYSTEM echo "${srmTest}: Moving the directory worked, now trying to do putDone, which should fail:" >> $ENV{S2_LOG}
+
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && SYSTEM echo "${srmTest}: KO: srmPutDone of old SURL succeeded: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+      ASSIGN Status 2
+   || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+      ASSIGN Status 0
+      && SYSTEM exit 0
+
+&& SYSTEM echo "${srmTest}: Cleaning up srmRmdir SURL=$ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
+;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
+   SYSTEM echo "${srmTest}: srmRmdir of $ENV{SRM_NEW_DIR0}x returned: ${-returnRmdir_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+;; TEST $MATCH{(SRM_NON_EMPTY_DIRECTORY) ${-returnRmdir_statusCode}}
+   srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_NEWDIR0}] fileStatuses=(?P<filestatus0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   && srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)  
+
+&& SYSTEM exit ${Status}
+
+|| SYSTEM echo "${srmTest}: KO Test failed:${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}

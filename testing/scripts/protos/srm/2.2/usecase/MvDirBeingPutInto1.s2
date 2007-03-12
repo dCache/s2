@@ -1,4 +1,4 @@
-% MvDirBeingPutInto.s2: Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
+% MvDirBeingPutInto.s2: Try to move a directory, into which a file is currently being put. This could fail at the time, PutDone is issued, not before.
 %
 % srmMkdir
 % srmPrepareToPut
@@ -41,12 +41,16 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; ASSIGN Status ${!} && SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}: Moving the directory worked, now trying to do putDone, which should fail:" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Moving the directory worked, now trying to do putDone, which could fail:" >> $ENV{S2_LOG}
 
-&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   && SYSTEM echo "${srmTest}: KO: srmPutDone of old SURL succeeded: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
-      ASSIGN Status 2
+      SYSTEM echo "${srmTest}: OK: srmPutDone of old SURL succeeded: return status = ${-returnStatus_statusCode} ${-returnStatus_explanation}; file level status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED}
+      && ASSIGN Status 0
+   || TEST $MATCH{(SRM_FAILURE) ${-returnStatus_statusCode}} && $MATCH{(SRM_INVALID_PATH) ${-StatusCode0}}
+      SYSTEM echo "${srmTest}: OK: srmPutDone of old SURL failed: ${-returnStatus_statusCode} ${-returnStatus_explanation}; file level status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED} 
+      && ASSIGN Status 0
+      && SYSTEM exit 0
    || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
       ASSIGN Status 0
       && SYSTEM exit 0

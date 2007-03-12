@@ -37,14 +37,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Moving the directory worked, now trying to do putDone, which should fail:" >> $ENV{S2_LOG}
 
-&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    && SYSTEM echo "${srmTest}: KO: srmPutDone of file in moved dir succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 && SYSTEM echo "${srmTest}: Cleaning up srmRmdir SURL=$ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
 ;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmRmdir of $ENV{SRM_NEW_DIR0}x returned: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmRmdir of $ENV{SRM_NEW_DIR0}x returned: ${-returnRmdir_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
    && SYSTEM exit ${Status}
 
 || SYSTEM echo "${srmTest}: KO Test failed:${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}

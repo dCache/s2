@@ -1,4 +1,4 @@
-% % $Id: OverwritePin.s2,v 1.3 2007/03/01 11:01:21 bkoblitz Exp $
+% % $Id: OverwritePin.s2,v 1.4 2007/03/13 16:30:35 flaviadonno Exp $
 % OverwritePin.s2: Puts a file, then prepares to get it. Then overwrites the file and does a statusOfGet request. The file should be unavailable.
 %
 % srmPrepareToGet
@@ -12,46 +12,39 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-&& ASSIGN fileToPut $ENV{FILE_TO_PUT0}
 
-&& SYSTEM echo "${srmTest}: Putting file:" >> $ENV{S2_LOG}
-
-&& ASSIGN sURL $ENV{SRM_NEW_FILE0}
-   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
+&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 && SYSTEM echo "${srmTest}: Now preparing get of the file $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
 
-&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[${sURL}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-   SYSTEM echo "${srmTest}: srmPrepareToGet succeeded: getRequestToken=${getRequestToken} fileStatuses: ${ptgFileStatuses}" >> $ENV{S2_LOG}
+&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+   SYSTEM echo "${srmTest}: srmPrepareToGet on going: getRequestToken=${getRequestToken} fileStatuses: ${ptgFileStatuses}" >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: Using srmPrepareToPut to overwrite the file" >> $ENV{S2_LOG}
 
-%&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[${sURL}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0}] requestToken=(?P<requestToken1>.*) fileStatuses=(?P<fileStatuses1>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] overwriteOption=ALWAYS fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken2>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] overwriteOption=ALWAYS fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken2>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-putRequestToken2}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnPToP_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
 
-   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
-   && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: Waiting until the PtP is really in progress, calling statusOfPutRequest" >> $ENV{S2_LOG}
-      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken2} SURL[${sURL}] fileStatuses=".*returnStatus.statusCode0=(?P<PutStatusCode>\w+) .*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
-         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file: ${PutStatusCode}" >> $ENV{S2_LOG}
-         && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusPut_statusCode}}
+      && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken2} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<PutStatusCode>\w+) .*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file: ${PutStatusCode}" >> $ENV{S2_LOG}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
 
 && SYSTEM echo "${srmTest}: Checking the status of the ongoing get request" >> $ENV{S2_LOG}
 
 && >0&&2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-   srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] fileStatuses=".*Status.statusCode0=(?P<GetStatusCode>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
+   srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*Status.statusCode0=(?P<GetStatusCode>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
       SYSTEM echo "${srmTest}: StatusOfGetRequest returned ${-returnStatusGet_statusCode}" >> $ENV{S2_LOG}
       && TEST $MATCH{(SRM_REQUEST_INPROGRESS|SRM_REQUEST_QUEUED) ${returnStatusGet_statusCode}
 
-&& SYSTEM echo "${srmTest}: Checking status of get request, expecting SRM_FAILURE (${returnStatusGet_statusCode})" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatusGet_statusCode})" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{SRM_FAILURE ${returnStatusGet_statusCode}
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 
-&& SYSTEM echo "${srmTest}: OK, get of an overwritten file failed" >> $ENV{SRM2_SUPPORTED}
-
-|| SYSTEM echo "${srmTest}: KO: Test failed, got overwritten file" >> $ENV{SRM2_SUPPORTED} && exit 2
+|| SYSTEM echo "${srmTest}: KO: Test failed" >> $ENV{SRM2_SUPPORTED}
 

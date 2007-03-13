@@ -1,6 +1,6 @@
 % GetStatusPartialNe.s2 Puts one files, then tries to get it and another non exisiting one.
 % Does statusOfGetRequest on the non-exisiting file only.
-% Checks for SRM_PARTIAL_SUCCESS of the request and checks that the error code for the file is correct.
+% Checks for SRM_PARTIAL_SUCCESS of the request and checks that the error code for the file is SRM_INVALID_PATH.
 %
 % srmPrepareToPut
 % srmStatusOfPutRequest

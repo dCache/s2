@@ -1,5 +1,6 @@
-% GetStatusPartialEx.s2 Puts one files, then tries to get it and another non exisiting one.
-% Checks for SRM_PARTIAL_SUCCESS of the request and checks that the error code for the existing file is OK.
+% GetStatusPartialEx.s2 Puts one file, then tries to retrieve it and another one, which does not exist via a
+% PtG. Then it does a statusOfPtG for the existing file and checks that the request status is SRM_PARTIAL_SUCCESS
+% and that the error code for the existing file is OK.
 %
 % srmPrepareToPut
 % srmStatusOfPutRequest

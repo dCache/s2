@@ -47,6 +47,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "${srmTest}: Type is returned: ${Type0}" >> $ENV{S2_LOG}
    || ASSIGN Status 2
       SYSTEM echo "${srmTest}: Type is not returned" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*fileLocality0=(?P<FileLocality0>(ONLINE|NEARLINE|ONLINE_AND_NEARLINE|LOST|NONE|UNAVAILABLE))(\s.+|$)" ${PathDetails0}}
+      SYSTEM echo "${srmTest}: File Locality is returned: ${FileLocality0}" >> $ENV{S2_LOG}
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: File Locality is not returned" >> $ENV{SRM2_SUPPORTED}
    && TEST $MATCH{".*lastModificationTime0=(?P<ModificationTime0>\d+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Modification Time is returned: ${ModificationTime0}" >> $ENV{S2_LOG}
    || ASSIGN Status 2

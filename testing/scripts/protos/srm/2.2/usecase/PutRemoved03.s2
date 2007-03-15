@@ -43,22 +43,22 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "Checking status of file 0" >> $ENV{S2_LOG}
 && NOP
-   TEST $MATCH{$ENV{SRM_NEW_FILE1} ${SURL0}}
+   TEST $MATCH{"\Q$ENV{SRM_NEW_FILE1}\E" "${SURL0}"}
       SYSTEM echo "${srmTest}: File 0 SURL = ${SURL0}" >> $ENV{S2_LOG} 
       && TEST $MATCH{SRM_DUPLICATION_ERROR ${StatusCode0}}
          SYSTEM echo "${srmTest}: File 0 status should be SRM_DUPLICATION_ERROR. File status returned = ${StatusCode0}" >> $ENV{S2_LOG}
-   || TEST $MATCH{$ENV{SRM_NEW_FILE1} ${SURL1}}
+   || TEST $MATCH{"\Q$ENV{SRM_NEW_FILE1}\E" "${SURL1}"}
       SYSTEM echo "${srmTest}: File 0 SURL = ${SURL1}" >> $ENV{S2_LOG}
       && TEST $MATCH{SRM_DUPLICATION_ERROR ${StatusCode1}}
           SYSTEM echo "${srmTest}: File 0 status should be SRM_DUPLICATION_ERROR. File status returned = ${StatusCode1}" >> $ENV{S2_LOG}
 
 && SYSTEM echo "Checking status of file 1" >> $ENV{S2_LOG}
 && NOP
-   TEST $MATCH{$ENV{SRM_NEW_FILE0} ${SURL0}}
+   TEST $MATCH{"\Q$ENV{SRM_NEW_FILE0}\E" "${SURL0}"}
       SYSTEM echo "${srmTest}: File 1 SURL = ${SURL0}" >> $ENV{S2_LOG}
       && TEST $MATCH{SRM_SPACE_AVAILABLE ${StatusCode0}}
         SYSTEM echo "${srmTest}: File 1 status should be SRM_SPACE_AVAILABLE.  File status returned = ${StatusCode0}" >> $ENV{S2_LOG}
-   || TEST $MATCH{$ENV{SRM_NEW_FILE0} ${SURL1}}
+   || TEST $MATCH{"\Q$ENV{SRM_NEW_FILE0}\E" "${SURL1}"}
       SYSTEM echo "${srmTest}: File 1 SURL = ${SURL1}" >> $ENV{S2_LOG}
       && TEST $MATCH{SRM_SPACE_AVAILABLE ${StatusCode1}}
           SYSTEM echo "${srmTest}: File 1 status should be SRM_SPACE_AVAILABLE. File status returned = ${StatusCode1}" >> $ENV{S2_LOG}

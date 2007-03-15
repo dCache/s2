@@ -30,13 +30,17 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 % Now executing Get Cycle
 && NOP
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-      srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+      ASSIGN PutOK 0
+      && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
          SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
          && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses}}
          && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
             srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
                SYSTEM echo "${srmTest}: srmStatusOfGetRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
                && SYSTEM echo "${srmTest}: srmStatusOfGetRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+      ||  SYSTEM echo "${srmTest}: PrepareToGet failed, returnStatus=${-returnStatus_statusCode}"  >> $ENV{S2_LOG} && exit ${!}
+   || TEST !$DEFINED{PutOK}
+      SYSTEM exit 0
 
-&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

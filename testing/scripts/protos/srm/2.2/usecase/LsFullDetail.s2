@@ -32,8 +32,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: Checking MetaDataPath info for SURL $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
 
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   && TEST $DEFINED{requestLsToken}
+      >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+   || SYSTEM exit 0
+
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}
       SYSTEM echo "${srmTest}: Path is returned: ${Path0}" >> $ENV{S2_LOG}

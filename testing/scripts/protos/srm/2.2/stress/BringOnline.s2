@@ -1,0 +1,66 @@
+% srmBringOnline
+%
+% Try to reserve 1GB of disk space and fill it in with files.
+% Checking that files are migrated to tape and then perform BringOnline
+%
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycleToken.s2
+
+#if $ENV{CERN}
+&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+#else
+
+&& srmReserveSpace $ENV{ENDPOINT} retentionPolicy=CUSTODIAL accessLatency=NEARLINE desiredSizeOfTotalSpace=$ENV{SPACESMALL} desiredSizeOfGuaranteedSpace=$ENV{SPACESMALL} desiredLifetimeOfReservedSpace=$ENV{SPACE_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& NOP
+   TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+      SYSTEM exit 0
+   || TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode} size granted=${sizeOfGuaranteedReservedSpace}" >> $ENV{S2_LOG}
+   || NOP
+      TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+         >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+            srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
+&& NOP
+   TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: srmReserveSpace CUSTODIAL-NEARLINE not supported" >> $ENV{S2_LOG}
+
+   || TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
+      ASSIGN sURL1 $ENV{SRM_ENDPOINT}/$DATE{%Y%m%d-%H%M%S}.1
+      && FUN PutCycle ${spaceToken} $ENV{BIG_FILE} ${sURL1} : putRequestToken
+      && ASSIGN sURL2 $ENV{SRM_ENDPOINT}/$DATE{%Y%m%d-%H%M%S}.2
+      && FUN PutCycle ${spaceToken} $ENV{BIG_FILE} ${sURL2} : putRequestToken
+      && ASSIGN sURL3 $ENV{SRM_ENDPOINT}/$DATE{%Y%m%d-%H%M%S}.3
+      && FUN PutCycle ${spaceToken} $ENV{BIG_FILE} ${sURL3} : putRequestToken
+
+% Check if files are nearline
+      && >1||3 SLEEP $EXPR{30*$I{0}}
+         srmLs $ENV{ENDPOINT} SURL[$EVAL{${sURL$I{0}}}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            TEST $DEFINED{requestLsToken}
+               >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+                  srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+                  && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+            || SYSTEM exit 0
+
+         && TEST $MATCH{".*fileLocality0=(?P<FileLocality0>(NEARLINE))(\s.+|$)"" ${PathDetails0}}
+            ASSIGN SURLFile $EVAL{${sURL$I{0}}}
+
+      && srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[${SURLFile}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         SYSTEM echo "${srmTest}: Executed BringOnline, fileSURL: ${SURLFile}, StorageType: $ENV{STORAGE_TYPE}" >> $ENV{S2_LOG}
+         && SYSTEM echo "${srmTest}: srmBringOnline returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+      && srmLs $ENV{ENDPOINT} SURL[${SURLFile}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         TEST $DEFINED{requestLsToken}
+            >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+               srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+               && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+         || SYSTEM exit 0
+
+      && TEST $MATCH{".*fileLocality0=(?P<FileLocality0>(ONLINE_AND_NEARLINE))(\s.+|$)"" ${PathDetails0}}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+#endif

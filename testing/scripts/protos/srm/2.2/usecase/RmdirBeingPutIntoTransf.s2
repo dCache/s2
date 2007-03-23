@@ -25,6 +25,19 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: PtP succeeded on $ENV{SRM_FILE_IN_DIR0}, now starting transfer" >> $ENV{S2_LOG}
 && FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}
 
+% Check if directory is empty
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   TEST $DEFINED{requestLsToken}
+      >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+   || SYSTEM exit 0
+
+&& NOP
+   TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${PathDetails0}}
+   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{(SRM_FILE_BUSY|SRM_SUCCESS) ${StatusCode0}}
+      SYSTEM echo "${srmTest}: Directory not empty. File $ENV{SRM_NEW_DIR0} exists" >> $ENV{S2_LOG}
+
 && SYSTEM echo "${srmTest}: File transfer started, now removing directory $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG} 
 && srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{SRM_NON_EMPTY_DIRECTORY ${returnStatus_statusCode}}

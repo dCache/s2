@@ -30,7 +30,7 @@ DEFUN GetCycle filesToGet sURLs : getRequestToken
       && SYSTEM echo "${srmTest}: srmPrepareToGet, returnStatus=${-returnPToG_statusCode}" >> $ENV{S2_LOG}
 
    && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToG_statusCode}}
-   && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+   && >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${fileStatuses}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
          SYSTEM echo "${srmTest}: srmStatusOfGetRequest=${returnStatusGet_statusCode}" >> $ENV{S2_LOG}
          && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusGet_statusCode}}

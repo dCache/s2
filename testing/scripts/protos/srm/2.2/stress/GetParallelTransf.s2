@@ -25,6 +25,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
            SYSTEM echo "${srmTest}: (${thread}) srmStatusOfGetRequest ${returnStatusGet_statusCode}, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
            && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusGet_statusCode}}
      && TEST $MATCH{SRM_FILE_PINNED ${StatusCode0}}
+        FUN GetCycle $ENV{FILE_TO_GET0}.$I{0} $ENV{SRM_NEW_FILE0} : getRequestToken
+        && SYSTEM echo "${srmTest}: $I{0} Get transfer succeeded" >> $ENV{S2_LOG}
+        && SYSTEM /bin/rm $ENV{FILE_TO_GET0}.$I{0}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

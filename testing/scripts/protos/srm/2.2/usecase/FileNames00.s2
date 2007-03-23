@@ -7,10 +7,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
 
-&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH255}" : putRequestToken
+&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH190}" : putRequestToken
 
 && NOP
-   srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_LONG_PATH255}] fileStatuses=(?P<FileStatus0>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_LONG_PATH190}] fileStatuses=(?P<FileStatus0>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: Filenames 255 characters-long are not supported" >> $ENV{SRM2_SUPPORTED}
       && ASSIGN Status 0
@@ -28,7 +28,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: Listing file" >> $ENV{S2_LOG}
 
 && NOP
-   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH255}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=".*path0=(?P<Path0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH190}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=".*path0=(?P<Path0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed srmLs..." >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURL=${Path0}" >> $ENV{S2_LOG}
    || SYSTEM echo "${srmTest}: KO, Ls of file not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!}
@@ -39,6 +39,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; SYSTEM echo "${srmTest}: Deleting the file again" >> $ENV{S2_LOG}
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH255}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH190}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;; SYSTEM exit ${Status}

@@ -43,9 +43,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatus1_statusCode} || $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatus2_statusCode}
 
-&& TEST $MATCH{(SRM_FILE_BUSY) ${Status1Code0}} || $MATCH{(SRM_FILE_BUSY) ${Status2Code0}} 
-   SYSTEM echo "${srmTest}: Second PrepareToPut with overwrite enabled returned SRM_FILE_BUSY as expected." >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: OK File level return status = SRM_FILE_BUSY" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& TEST $MATCH{(SRM_FILE_BUSY|SRM_ABORTED) ${Status1Code0}} || $MATCH{(SRM_FILE_BUSY|SRM_ABORTED) ${Status2Code0}} 
+   SYSTEM echo "${srmTest}: Second PrepareToPut with overwrite enabled returned SRM_FILE_BUSY or SRM_ABORTED as expected." >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: OK File level return status = SRM_FILE_BUSY or SRM_ABORTED" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 || NOP
    TEST $MATCH{(SRM_SPACE_AVAILABLE) ${-Status2Code0}} || $MATCH{(SRM_SPACE_AVAILABLE) ${-Status2Code0}}

@@ -27,11 +27,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM exit 0
 
 && NOP
-   TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${PathDetails0}}
-   && TEST $MATCH{(SRM_INVALID_PATH) ${StatusCode0}}
+   TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${PathDetails0}}
+   && TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}} && $MATCH{(SRM_INVALID_PATH) ${StatusCode0}}
       srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) 
          TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}
-   || TEST $MATCH{(SRM_SUCCESS) ${StatusCode0}} 
+   || TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{(SRM_FILE_BUSY|SRM_SUCCESS) ${StatusCode0}} 
       srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          TEST $MATCH{SRM_NON_EMPTY_DIRECTORY ${returnStatus_statusCode}}
 

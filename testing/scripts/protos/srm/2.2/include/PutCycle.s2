@@ -33,7 +33,7 @@ DEFUN PutCycle filesToPut sURLs : putRequestToken
       && SYSTEM echo "${srmTest}: srmPrepareToPut, returnStatus=${-returnPToP_statusCode}" >> $ENV{S2_LOG}
 
    && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
-   && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+   && >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatPut_statusCode>.*)
          SYSTEM echo "${srmTest}: srmStatusOfPutRequest, returnStatus=${-returnStatPut_statusCode}" >> $ENV{S2_LOG}
          && SYSTEM echo "${srmTest}: srmStatusOfPutRequest, remainingTotalRequestTime=${-remainingTotalRequestTime}" >> $ENV{S2_LOG}

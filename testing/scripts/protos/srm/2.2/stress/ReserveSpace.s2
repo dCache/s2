@@ -1,0 +1,35 @@
+% srmReserveSpace
+%
+% Try to reserve 1000GB of disk space
+%
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+#if $ENV{CERN}
+&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+#else
+
+&& ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
+   >0 ${n} SLEEP ${sec} ${nsec}
+      srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{SPACEBIG} desiredSizeOfGuaranteedSpace=$ENV{SPACEBIG} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+      && NOP
+         TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+            SYSTEM echo "${srmTest}: $I{0} returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+         || NOP
+            TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+            && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+               srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+               && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
+            && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE||SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+               SYSTEM echo "${srmTest}: $I{0} returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+            || NOP
+               TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE||SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+                  SYSTEM echo "${srmTest}: $I{0} returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+#endif

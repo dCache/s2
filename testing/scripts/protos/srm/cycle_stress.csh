@@ -18,40 +18,16 @@ if ( ! -e ${lock_dir} ) then
    mkdir -p ${lock_dir}
 endif
 #
-if ( $# <= 0 ) then
- echo "Please specify test directory"
- echo "Possible options are: avail,basic,usecase and cross" 
- exit 1
-endif
+#if ( $# <= 0 ) then
+# echo "Please specify test directory"
+# echo "Possible options are: avail,basic,usecase,cross,stress" 
+# exit 1
+#endif
 #
-set typ = "$1"
+set typ = "stress"
 #
-switch ( "${typ}" )
-  case "basic":
-     set rootdir = "${srm_root}/2.2/basic"
-     set sleeptim = "30m"
-     breaksw
-  case "cross":
-     set rootdir = "${srm_root}/2.2/cross"
-     set sleeptim = "30m"
-     breaksw
-  case "exhaust":
-     set rootdir = "${srm_root}/2.2/exhaust"
-     set sleeptim = "10m"
-     breaksw
-  case "usecase":
-     set rootdir = "${srm_root}/2.2/usecase"
-     set sleeptim = "3m"
-     breaksw
-  case "avail":
-     set rootdir = "${srm_root}/2.2/avail"
-     set sleeptim = "1m"
-     breaksw
-  default:
-     echo "Test directory option not recognized"
-     exit 1 
-     breaksw
-endsw
+set rootdir = "${srm_root}/2.2/stress"
+set sleeptim = "2m"
 #
 # Create lock file
 #
@@ -63,25 +39,34 @@ touch ${lock_fil}
 echo "Wait till other instances of cycle are done"
 set i = "0"
 set ssleeptim = "3m"
+set outfp = ""
 while ( "$i" == "0" )
 #   @ outp = `/bin/ps -C cycle.csh -o pid,cmd | grep ${typ} | grep -c -v $$`
    @ outp = `/bin/ls -C1 ${lock_dir}/${typ}* | grep -c -v "${lock_fil}"`
+   set outf = `/bin/ls -C1 ${lock_dir}/${typ}* | grep -v "${lock_fil}"`
    if ( ${outp} > 1 ) then
-      echo "Too many instances of cycle.csh "$1" running. Exiting ..."
+      echo "Too many instances of cycle_stress.csh running. Exiting ..."
       /bin/rm ${lock_fil}
       exit 0
    endif
    if ( ${outp} == 1 ) then
-      echo "Waiting ${ssleeptim} ..."
-      sleep ${ssleeptim}
-      set i = "0"
+      if ( "x${outfp}" == x ) then
+         set outfp = ${outf}
+      endif
+      if ( ${outf} == ${outfp) ) then
+         echo "Waiting ${ssleeptim} ..."
+         sleep ${ssleeptim}
+         set i = "0"
+      else
+         set i = "1"
+      endif
    else
       set i = "1"
    endif
 end
 #
-#set list = "22CASTORCERN 22CASTORDEV 22CASTORRAL 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22SRMVU 22STORM"
-set list = "22CASTORCERN 22DCACHEFNAL 22DPMCERN 22DRMLBNL 22STORM"
+#set list = "22CASTORSTRESS 22DCACHESTRESS 22DPMCERN 22DRMLBNL 22SRMVU 22STORM"
+set list = "22CASTORSTRESS 22DCACHESTRESS 22DPMCERN 22DRMLBNL 22STORM"
 #
 set f_logs = ""
 foreach impl (`echo $list`)
@@ -95,9 +80,9 @@ foreach impl (`echo $list`)
    if ( ! -d ${logs_dir}/${S2_TEST_SITE} ) then
       mkdir -p ${logs_dir}/${S2_TEST_SITE}
    endif
-   set f_log = ${logs_dir}/${S2_TEST_SITE}/$1-`date +"%F-%R"`.log
+   set f_log = ${logs_dir}/${S2_TEST_SITE}/stress-`date +"%F-%R"`.log
    set f_logs = ( ${f_logs} ${f_log} ) 
-   make -e test >& ${f_log} &
+   make -e test >& ${f_log}
    echo "Done."
 again: 
 end

@@ -28,7 +28,7 @@ DEFUN PutCycle SpaceToken filesToPut sURLs : putRequestToken
    
    && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${sURLs}}] fileRequests.expectedFileSize[$SPLIT{${fileToPutSizes}}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} targetSpaceToken=${SpaceToken} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<ptpFileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
       SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
-      && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      && >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$SPLIT{${sURLs}}] fileStatuses="${transferURLs}" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPrepareToPut_statusCode>.*)
             SYSTEM echo "${srmTest}: srmStatusOfPutRequest=${returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
          && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPrepareToPut_statusCode}}

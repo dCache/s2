@@ -1,0 +1,44 @@
+% PutMany: Does many PtP without before cleaning them up
+%
+% srmPrepareToGet
+% srmPrepareToPut
+% srmPutDone
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+&& ASSIGN Status 0
+
+&& ASSIGN begin $DATE{%s%N}
+
+&& >0&& $ENV{N_OPS} NOP
+  ASSIGN n $I{0}
+
+  && ASSIGN fileName "$ENV{SRM_NEW_FILE0}${n}"
+  && SYSTEM echo "${srmTest}: Putting file ${fileName}" >> $ENV{S2_LOG}
+
+  && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[${fileName}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
+    SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
+    && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
+    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${fileName}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>\w+) .*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
+         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusPut_statusCode}}
+    && ASSIGN ptoken${n} ${putRequestToken}
+    && ASSIGN token $EVAL{${ptoken${n}}}
+    && SYSTEM echo "${srmTest}: srmPrepareToPut ${token}" >> $ENV{S2_LOG}
+
+&&  SYSTEM echo "${srmTest}: Aborting requests" >> $ENV{S2_LOG}
+
+&& >0&& $ENV{N_OPS} NOP
+  ASSIGN token $EVAL{${ptoken$I{0}}}
+  && SYSTEM echo "${srmTest}: Executing srmAbortRequest, requestToken=${token}" >> $ENV{S2_LOG}
+  && srmAbortRequest $ENV{ENDPOINT} requestToken=${token} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+  && SYSTEM echo "${srmTest}: srmAbortRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+&& ASSIGN end $DATE{%s%N}
+&& SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: OK: n=$EXPR{$ENV{N_OPS}+1} time[ms]=$EXPR{(${end}-${begin})/1000000}" >> $ENV{SRM2_STRESS}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_STRESS} && exit ${!}

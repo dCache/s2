@@ -29,19 +29,19 @@ set typ = "$1"
 switch ( "${typ}" )
   case "basic":
      set rootdir = "${srm_root}/2.2/basic"
-     set sleeptim = "30m"
+     set sleeptim = "2m"
      breaksw
   case "cross":
      set rootdir = "${srm_root}/2.2/cross"
-     set sleeptim = "30m"
+     set sleeptim = "2m"
      breaksw
   case "exhaust":
      set rootdir = "${srm_root}/2.2/exhaust"
-     set sleeptim = "10m"
+     set sleeptim = "2m"
      breaksw
   case "usecase":
      set rootdir = "${srm_root}/2.2/usecase"
-     set sleeptim = "3m"
+     set sleeptim = "2m"
      breaksw
   case "avail":
      set rootdir = "${srm_root}/2.2/avail"
@@ -63,18 +63,27 @@ touch ${lock_fil}
 echo "Wait till other instances of cycle are done"
 set i = "0"
 set ssleeptim = "3m"
+set outfp = ""
 while ( "$i" == "0" )
 #   @ outp = `/bin/ps -C cycle.csh -o pid,cmd | grep ${typ} | grep -c -v $$`
    @ outp = `/bin/ls -C1 ${lock_dir}/${typ}* | grep -c -v "${lock_fil}"`
+   set outf = `/bin/ls -C1 ${lock_dir}/${typ}* | grep -v "${lock_fil}"`
    if ( ${outp} > 1 ) then
       echo "Too many instances of cycle.csh "$1" running. Exiting ..."
       /bin/rm ${lock_fil}
       exit 0
    endif
    if ( ${outp} == 1 ) then
-      echo "Waiting ${ssleeptim} ..."
-      sleep ${ssleeptim}
-      set i = "0"
+      if ( "x${outfp}" == x ) then
+	 set outfp = ${outf}
+      endif
+      if ( ${outf} == ${outfp} ) then
+         echo "Waiting ${ssleeptim} ..."
+         sleep ${ssleeptim}
+         set i = "0"
+      else
+         set i = "1"
+      endif  
    else
       set i = "1"
    endif

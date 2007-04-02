@@ -5,7 +5,7 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 #if $ENV{CERN}
-&& ASSIGN SpaceTokenDescription "default"
+&& ASSIGN SpaceTokenDescription "dteam"
 && ASSIGN returnStatus_statusCode SRM_SUCCESS
 #else
 

@@ -3,7 +3,8 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 #if $ENV{CERN}
-&& ASSIGN spaceToken 44dca55c-0000-1000-bec4-a79efb6b0000
+% && ASSIGN spaceToken 44dca55c-0000-1000-bec4-a79efb6b0000
+&& ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
 && ASSIGN returnStatus_statusCode SRM_SUCCESS
 #else
 && NOP

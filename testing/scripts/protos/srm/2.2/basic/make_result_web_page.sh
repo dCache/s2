@@ -44,7 +44,7 @@ do
      ;;
      22STORM) sitetag="STORM"
      ;;
-     22DRMLBNL) sitetag="LBNL<br>DRM"
+     22DRMLBNL) sitetag="LBNL<br>BeStMan"
      ;;
      22SRMVU) sitetag="VU<br>SRM"
      ;;

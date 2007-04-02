@@ -4,6 +4,11 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
+#if $ENV{CERN}
+&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+#else
+
 && srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
@@ -25,4 +30,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 || SYSTEM echo "${srmTest}: KO: ReserveSpace exit status ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+#endif
 

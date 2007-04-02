@@ -40,5 +40,5 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN end $DATE{%s%N}
 && SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
 
-&& SYSTEM echo "${srmTest}: OK: n=$EXPR{$ENV{N_OPS}+1} time[ms]=$EXPR{(${end}-${begin})/1000000}" >> $ENV{SRM2_STRESS}
-|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_STRESS} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK: n=$EXPR{$ENV{N_OPS}+1} time[ms]=$EXPR{(${end}-${begin})/1000000}" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

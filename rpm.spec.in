@@ -26,9 +26,9 @@ BuildArch:	i386
 # Description
 #
 %description
-A simple general-purpose test client with the SRM 2.1 and SRM 2.2
+A simple general-purpose test client with the SRM 2.2
 protocol support.  SRM 2.2 suport according to the definition
-as of 2006-07-03.
+as of 2007-01-22.
 
 
 #
@@ -99,6 +99,9 @@ rmdir %{_docdir} 2>/dev/null
 
 
 %changelog
+* Mon Apr 2 2007 Flavia Donno
+- 0.03 include new tests
+
 * Wed Feb 12 2006 Jiri Mencak
 - 0.02 cleanup
 

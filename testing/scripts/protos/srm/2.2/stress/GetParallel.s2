@@ -10,9 +10,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
-&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Putting file $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_NEW_FILE0}" : putRequestToken
+
+&& ASSIGN begin $DATE{%s%N}
+&& SYSTEM echo "${srmTest}: begin: ${begin}" >> $ENV{S2_LOG}
 
 && ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
    >0 ${n} SLEEP ${sec} ${nsec}
@@ -26,5 +29,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
            && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusGet_statusCode}}
      && TEST $MATCH{SRM_FILE_PINNED ${StatusCode0}}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+&& ASSIGN end $DATE{%s%N}
+&& SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: OK: n=$EXPR{$ENV{N_PARALLEL}+1} time[ms]=$EXPR{(${end}-${begin})/1000000}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

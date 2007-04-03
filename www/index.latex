@@ -3,8 +3,8 @@
 \usepackage{a4wide}
 %\pagestyle{empty}
 
-\input dates.tex
-\input dmanmac.tex
+%\input dates.tex
+%\input dmanmac.tex
 %%% Options for this document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\csname Sitelogo\endcsname % uncomment if you don't want this
 
@@ -136,7 +136,7 @@
 
 %%% TITLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\pagestyle{empty}
-\date{\uktoday}
+\date{\today}
 \title{\articletitle}
 
 %\author{\JM}

@@ -2,7 +2,7 @@
 
 % Language-specific macros
 \def\LastUpdate{Last modification}
-\def\Today{\uktoday}
+\def\Today{\today}
 
 \begin{document}
 %\maketitle
@@ -55,7 +55,7 @@ Every officially released package has an
 \htmladdnormallink{{\tt SHA1} sum}{CHECKSUM.SHA1}
 and {\tt .asc} detached signature using
 DSA key ID {\tt0xFDEDEE4B}.  This key belongs to
-the current developer of this project \JiriMailto.
+the current developers of this project: \JiriMailto  and \FlaviaMailto.
 You can download the {\tt 0xFDEDEE4B} public key from
 \htmladdnormallink{http://www.keyserver.net}{http://www.keyserver.net}.
 
@@ -81,6 +81,7 @@ the latest tagged revision.
 \itemsep 0pt
 \item \htmladdnormallink{SRM working group}{http://sdm.lbl.gov/srm-wg/}
 \item \htmladdnormallink{GridPP}{http://www.gridpp.ac.uk/}
+\item \htmladdnormallink{WLCG}{http://www.cern.ch/lcg}
 \end{itemize}
 
 

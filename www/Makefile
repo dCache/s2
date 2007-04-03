@@ -11,11 +11,13 @@ DOC_LOCALES	= $(LOCALE:=.$(DOCUMENT).$(DOCEXT))
 
 ### (La)TeX 2 HTML software to use ###################################
 L2H             = htlatex
+#L2H		= latex2html
 #SECTIONING	= html,2,sections+
 
 ### WWW specifics ####################################################
 HTMLDIR		= html
 IMAGEDIR	= images
+WEB_USER	= flaviadonno@
 WEB_SERVER	= shell.sourceforge.net
 WEB_PATH	= /home/groups/s/s-/s-2/htdocs
 DIR_INSTALL	= /tmp/$(WEB_PATH)
@@ -59,7 +61,7 @@ $(HTMLDIR)/$(DOCUMENT).html: $(SRCDEP)
 	mkdir -p $(HTMLDIR)
 	for l in $(LOCALE) ;\
 	do \
-	  htlatex $$l.$(DOCUMENT).$(DOCEXT) "$(SECTIONING)" "" -d$(HTMLDIR)/ ;\
+	  $(L2H) $$l.$(DOCUMENT).$(DOCEXT) "$(SECTIONING)" "" -d$(HTMLDIR)/ ;\
 	  cp $(HTMLDIR)/$$l.$(DOCUMENT)ch1.html $(HTMLDIR)/$$l.$(DOCUMENT).html ;\
 	done
 	cp $(HTMLDIR)/$(LOCALE_DEF).$(DOCUMENT)ch1.html $(HTMLDIR)/$(DOCUMENT).html
@@ -69,21 +71,21 @@ $(HTMLDIR)/$(DOCUMENT).html: $(SRCDEP)
 ### Install on web-server using scp ##################################
 
 web www web_install: html web_install_images
-	scp -r $(HTMLDIR)/* $(EXTRA_FILES) $(WEB_SERVER):$(WEB_PATH)
+	scp -r $(HTMLDIR)/* $(EXTRA_FILES) $(WEB_USER)$(WEB_SERVER):$(WEB_PATH)
 
 web_install_images: 
-	ssh $(WEB_SERVER) mkdir -p $(WEB_PATH)/$(IMAGEDIR)
-	-scp `find $(IMAGEDIR) -maxdepth 1 -type f` $(WEB_SERVER):$(WEB_PATH)/$(IMAGEDIR)
+	ssh $(WEB_USER)$(WEB_SERVER) mkdir -p $(WEB_PATH)/$(IMAGEDIR)
+	-scp `find $(IMAGEDIR) -maxdepth 1 -type f` $(WEB_USER)$(WEB_SERVER):$(WEB_PATH)/$(IMAGEDIR)
 
 web_uninstall_images:
 	@for i in `find $(IMAGEDIR) -maxdepth 1 -type f` ;\
 	do \
-	  ssh $(WEB_SERVER) rm -f $(WEB_PATH)/$$i ;\
+	  ssh $(WEB_USER)$(WEB_SERVER) rm -f $(WEB_PATH)/$$i ;\
 	done
-	-ssh $(WEB_SERVER) rmdir $(WEB_PATH)/$(IMAGEDIR)
+	-ssh $(WEB_USER)$(WEB_SERVER) rmdir $(WEB_PATH)/$(IMAGEDIR)
 
 web_uninstall: web_uninstall_images
-	ssh $(WEB_SERVER) rm -f $(WEB_PATH)/*.html $(WEB_PATH)/*.css
+	ssh $(WEB_USER)$(WEB_SERVER) rm -f $(WEB_PATH)/*.html $(WEB_PATH)/*.css
 
 
 ### Install (locally --- rsync) ######################################

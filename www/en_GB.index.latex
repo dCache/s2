@@ -54,9 +54,9 @@ by the SourceForge release infrastructure.
 Every officially released package has an
 \htmladdnormallink{{\tt SHA1} sum}{CHECKSUM.SHA1}
 and {\tt .asc} detached signature using
-DSA key ID {\tt0xFDEDEE4B}.  This key belongs to
-the current developers of this project: \JiriMailto  and \FlaviaMailto.
-You can download the {\tt 0xFDEDEE4B} public key from
+DSA keys with ID {\tt0xFDEDEE4B} and {\tt0xB5902FA9}.  These keys belongs to
+the current developers of this project: {\JiriMailto} and {\FlaviaMailto}.
+You can download the {\tt 0xFDEDEE4B} and {\tt0xB5902FA9} public keys from
 \htmladdnormallink{http://www.keyserver.net}{http://www.keyserver.net}.
 
 \subsection{CVS}

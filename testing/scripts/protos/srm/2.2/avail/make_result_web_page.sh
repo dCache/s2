@@ -46,6 +46,10 @@ do
      ;;
      22DCACHEFNAL) sitetag="FNAL<br>DCACHE"
      ;;
+     22DCACHESTRESS) sitetag="FNAL<br>DCACHE"
+     ;;
+     22DCACHEDESY) sitetag="DESY<br>DCACHE"
+     ;;
      22STORM) sitetag="STORM"
      ;;
      22DRMLBNL) sitetag="LBNL<br>BeStMan"

@@ -31,7 +31,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && NOP
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
       ASSIGN PutOK 0
-      && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
+      && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
          SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
          && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses}}
          && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}

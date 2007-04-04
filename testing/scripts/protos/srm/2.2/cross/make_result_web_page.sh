@@ -28,6 +28,12 @@ cat << EOF >> ${Index_File}
 <CENTER>
 <H3>Summary of S2 SRM v2.2 cross test - $tim</H3>
 </CENTER>
+In these tests the srmCopy function is exercised. This function should
+be implemented by all available Storage System by the end of the 3Q of 2007.
+dCache is required to implement this function as of now.
+Therefore, it is OK to have red columns for all SRM endpoints except for dCache.
+However, it is not OK to have red rows since this means that a file cannot
+be copied between SRMs with simple get and put operations.<BR>
 <TABLE BORDER=2 CELLPADDING=1 CELLSPACING=1> 
 <!-- header --> 
 <TR BGCOLOR="#CCCCCC"> 
@@ -37,9 +43,9 @@ EOF
 for dir in `ls -1 $S2_LOGS | grep -v index.html`;
 do
   case "${dir}" in
-     22DPMCERN) sitetag="CERN<br>DPM"
+     22DPMCERN) sitetag="CERN<br>DPM<br>not needed"
      ;;
-     22CASTORCERN) sitetag="CERN<br>CASTOR"
+     22CASTORCERN) sitetag="CERN<br>CASTOR<br>not needed"
      ;;
      22CASTORDEV) sitetag="CERN<br>CASTORDEV"
      ;;
@@ -47,9 +53,13 @@ do
      ;;
      22DCACHEFNAL) sitetag="FNAL<br>DCACHE"
      ;;
+     22DCACHESTRESS) sitetag="FNAL<br>DCACHE"
+     ;;
+     22DCACHEDESY) sitetag="DESY<br>DCACHE"
+     ;;
      22STORM) sitetag="STORM"
      ;;
-     22DRMLBNL) sitetag="LBNL<br>DRM"
+     22DRMLBNL) sitetag="LBNL<br>BeStMan"
      ;;
      22SRMVU) sitetag="VU<br>SRM"
      ;;

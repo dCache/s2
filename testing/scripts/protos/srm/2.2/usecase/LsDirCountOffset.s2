@@ -10,7 +10,13 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 && SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
-&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+
+|| ASSIGN Status 2
+   SYSTEM exit 2
+
 
 % put two files into the newly created directory
 && SYSTEM echo "${srmTest}: Put two files into the newly created directory, $ENV{SRM_NEW_DIR0}/f0 and $ENV{SRM_NEW_DIR0}/f1" >> $ENV{S2_LOG}

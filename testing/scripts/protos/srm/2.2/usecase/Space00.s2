@@ -63,6 +63,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
          SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
       ;; TEST ! ${-desiredLifetimeOfReservedSpace}
          SYSTEM echo "${srmTest}: KO: desiredLifetimeOfReservedSpace is ${-desiredLifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 2 
 
 && SYSTEM echo "${srmTest}: OK: All ReserveSpace actions executed successfully." >> $ENV{SRM2_SUPPORTED}

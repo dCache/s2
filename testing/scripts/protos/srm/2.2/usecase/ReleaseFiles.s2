@@ -11,13 +11,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
+|| SYSTEM echo "${srmTest}: KO: Put Cycle failed" >> $ENV{SRM2_SUPPORTED} && exit 2
+
 && SYSTEM echo "${srmTest}: Executing srmReleaseFiles">> $ENV{S2_LOG}
 && srmReleaseFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{"(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)" ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode}, Successful ReleaseFiles after a PutDone" >> $ENV{SRM2_SUPPORTED} && exit 1
-|| SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}, ReleaseFiles correctly failed after a Put Cycle" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& NOP
+   TEST $MATCH{"(SRM_NOT_SUPPORTED)" ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ReleaseFiles not supported" >> $ENV{SRM2_SUPPORTED} && exit 0
+   || TEST $MATCH{"(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)" ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode}, Successful ReleaseFiles after a PutDone" >> $ENV{SRM2_SUPPORTED} && exit 1
+      || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}, ReleaseFiles correctly failed after a Put Cycle" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 % TODO: better test

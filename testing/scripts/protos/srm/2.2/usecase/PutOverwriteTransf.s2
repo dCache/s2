@@ -11,16 +11,16 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Executing first PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
 
-&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=".*returnStatus.statusCode0=(?P<Status1Code0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus1_explanation>.*) returnStatus.statusCode=(?P<returnStatus1_statusCode>.*)
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=(?P<fileStatus10>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus1_explanation>.*) returnStatus.statusCode=(?P<returnStatus1_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken1}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus1_statusCode}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-Status1Code0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-fileStatus10}" >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: Executing second PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
-&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken2>.*) fileStatuses=".*returnStatus.statusCode0=(?P<Status2Code0>.+?)(\s.+|$)"  remainingTotalRequestTime=(?P<remainingTotalRequestTime2>.*) returnStatus.explanation=(?P<returnStatus2_explanation>.*) returnStatus.statusCode=(?P<returnStatus2_statusCode>.*)
+&& srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken2>.*) fileStatuses=(?P<fileStatus20>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime2>.*) returnStatus.explanation=(?P<returnStatus2_explanation>.*) returnStatus.statusCode=(?P<returnStatus2_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed second PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-requestToken2}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus2_statusCode}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-Status2Code0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut fileStatus=${-fileStatus20}" >> $ENV{S2_LOG}
 
 && NOP
    TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus1_statusCode}}

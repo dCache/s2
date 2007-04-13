@@ -1,4 +1,4 @@
-% % $Id: OverwritePin.s2,v 1.9 2007/04/13 09:39:03 flaviadonno Exp $
+% % $Id: OverwritePin.s2,v 1.10 2007/04/13 14:29:26 bkoblitz Exp $
 % OverwritePin.s2: Puts a file, then prepares to get it. Then overwrites the file and does a statusOfGet request. The file should be unavailable.
 %
 % srmPrepareToGet
@@ -40,11 +40,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
    srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*Status.statusCode0=(?P<GetStatusCode>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
       SYSTEM echo "${srmTest}: StatusOfGetRequest returned ${-returnStatusGet_statusCode}" >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS) ${returnStatusGet_statusCode}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatusGet_statusCode}}
 
-&& SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatusGet_statusCode})" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatusGet_statusCode}" >> $ENV{S2_LOG}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatusGet_statusCode}} 
+|| TEST $MATCH{SRM_FAILURE ${returnStatusGet_statusCode}} 
+   TEST $MATCH{(SRM_FILE_BUSY) ${GetStatusCode}}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
+
+&& SYSTEM echo "${srmTest}: OK (Get request status ${returnStatusGet_statusCode}, file status ${GetStatusCode})" >> $ENV{SRM2_SUPPORTED}
 
 || SYSTEM echo "${srmTest}: KO: Test failed" >> $ENV{SRM2_SUPPORTED} && exit 2
 

@@ -36,6 +36,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: Checking status of non-existing file: SRM_INVALID_PATH (${StatusCode0})" >> $ENV{S2_LOG}
 && TEST $MATCH{SRM_INVALID_PATH ${StatusCode0}}
 
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
+
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 || SYSTEM echo "${srmTest}: KO request returned PtG returned:${-returnStatusGet_statusCode}, file status 0:${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

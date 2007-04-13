@@ -2,6 +2,11 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
+#if $ENV{CERN}
+&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR" >> $ENV{S2_LOG
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+#else
+
 && SYSTEM echo "${srmTest}: Executing srmReserveSpace exercizing retention policy and access latency ..." >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=CUSTODIAL, accessLatency=NEARLINE" >> $ENV{S2_LOG}
@@ -14,16 +19,24 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
    && SYSTEM echo " " >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+   || >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+      && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
       ;; SYSTEM echo "${srmTest}: retentionPolicy=CUSTODIAL, accessLatency=ONLINE. Default values for Size and Lifetime passed." >> $ENV{S2_LOG}
       ;; SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
       ;; SYSTEM echo " " >> $ENV{S2_LOG}
-      ;; TEST ! ${-sizeOfTotalReservedSpace}
-         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
-      ;; TEST ! ${-lifetimeOfReservedSpace}
-         SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! $DEFINED{sizeOfTotalReservedSpace}
+         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is undefined" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: OK: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! $DEFINED{lifetimeOfReservedSpace}
+         SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is undefined" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: OK: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 2
 
 && SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=CUSTODIAL, accessLatency=ONLINE" >> $ENV{S2_LOG}
 && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
@@ -34,16 +47,25 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
    && SYSTEM echo " " >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+   || >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+      && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
       ;; SYSTEM echo "${srmTest}: Default values for Size and Lifetime passed." >> $ENV{S2_LOG}
       ;; SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
       ;; SYSTEM echo " " >> $ENV{S2_LOG}
-      ;; TEST ! ${-sizeOfTotalReservedSpace}
-         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
-      ;; TEST ! ${-lifetimeOfReservedSpace}
-         SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! $DEFINED{sizeOfTotalReservedSpace}
+         SYSTEM echo "${srmTest}: KO: sizeOfTotalReservedSpace is undefined" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: OK sizeOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED} 
+      ;; TEST ! $DEFINED{lifetimeOfReservedSpace}
+         SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is undefined" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: OK LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 2
 
 && SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=REPLICA, accessLatency=ONLINE" >> $ENV{S2_LOG}
 && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
@@ -54,15 +76,26 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
    && SYSTEM echo " " >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_REQUEST_QUEUED) ${returnStatus_statusCode}}
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+   || >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+      && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
       ;; SYSTEM echo "${srmTest}: Default values for Size and Lifetime passed." >> $ENV{S2_LOG}
       ;; SYSTEM echo "${srmTest}: sizeOfTotalReservedSpace=${-sizeOfTotalReservedSpace}, sizeOfGuaranteedReservedSpace=${-sizeOfGuaranteedReservedSpace}, lifetimeOfReservedSpace=${-lifetimeOfReservedSpace}" >> $ENV{S2_LOG}
       ;; SYSTEM echo " " >> $ENV{S2_LOG}
-      ;; TEST ! ${-sizeOfTotalReservedSpace}
-         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
-      ;; TEST ! ${-desiredLifetimeOfReservedSpace}
-         SYSTEM echo "${srmTest}: KO: desiredLifetimeOfReservedSpace is ${-desiredLifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! $DEFINED{sizeOfTotalReservedSpace}
+         SYSTEM echo "${srmTest}: KO: siteOfTotalReservedSpace is undefined" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: OK: siteOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> $ENV{SRM2_SUPPORTED}
+      ;; TEST ! $DEFINED{desiredLifetimeOfReservedSpace}
+         SYSTEM echo "${srmTest}: KO: desiredLifetimeOfReservedSpace is undefined" >> $ENV{SRM2_SUPPORTED}
+      || SYSTEM echo "${srmTest}: OK: desiredLifetimeOfReservedSpace is ${-desiredLifetimeOfReservedSpace}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 2 
 
 && SYSTEM echo "${srmTest}: OK: All ReserveSpace actions executed successfully." >> $ENV{SRM2_SUPPORTED}
+
+#endif

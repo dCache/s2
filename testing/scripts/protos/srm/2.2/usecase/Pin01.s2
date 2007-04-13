@@ -30,5 +30,13 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] newPinLifeTime=$ENV{PIN_LIFETIME} fileStatuses=".*returnStatus.statusCode0=(?P<FileStatusCode0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnExtendTURL_statusCode>.*)
    TEST $MATCH{(SRM_INVALID_REQUEST|SRM_FAILURE) ${FileStatusCode0}}
-      SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
-   || SYSTEM echo "{srmTest}: KO srmExtendFileLifeTime on TURL succeeded after a PutCycle" >> $ENV{SRM2_SUPPORTED} && exit 2
+      SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+      && ASSIGN Status 0
+   || TEST $MATCH{(SRM_SUCCESS) ${FileStatusCode0}}
+      SYSTEM echo "${srmTest}: KO srmExtendFileLifeTime on TURL succeeded after a PutCycle" >> $ENV{SRM2_SUPPORTED}
+      && ASSIGN Status 2
+
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} 
+
+&& SYSTEM exit ${Status}

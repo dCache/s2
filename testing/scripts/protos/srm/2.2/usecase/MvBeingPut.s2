@@ -1,4 +1,4 @@
-% $Id: MvBeingPut.s2,v 1.11 2007/04/10 17:17:41 flaviadonno Exp $
+% $Id: MvBeingPut.s2,v 1.12 2007/04/13 09:39:03 flaviadonno Exp $
 % MvBeingPut: Try to move a file being put.
 %
 % srmPrepareToPut
@@ -21,8 +21,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: File has been put and request is ongoing, now moving the file" >> $ENV{S2_LOG}
 
 && srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL="$ENV{SRM_NEW_FILE0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   && SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+   TEST $MATCH{(SRM_SUCCESS|SRM_INVALID_PATH) ${returnStatus_statusCode}}
+   && SYSTEM echo "${srmTest}: srmMv of put file succeeds or failed because the transfer of the file has not yet been performed : ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
    || SYSTEM echo "${srmTest}: srmMv of file failed: ${-returnStatus_explanation}" >> $ENV{S2_LOG}
 
 && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

@@ -1,4 +1,4 @@
-% % $Id: OverwritePin.s2,v 1.8 2007/04/10 17:17:41 flaviadonno Exp $
+% % $Id: OverwritePin.s2,v 1.9 2007/04/13 09:39:03 flaviadonno Exp $
 % OverwritePin.s2: Puts a file, then prepares to get it. Then overwrites the file and does a statusOfGet request. The file should be unavailable.
 %
 % srmPrepareToGet
@@ -37,10 +37,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Checking the status of the ongoing get request" >> $ENV{S2_LOG}
 
-&& >0&&2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+&& >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
    srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*Status.statusCode0=(?P<GetStatusCode>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
       SYSTEM echo "${srmTest}: StatusOfGetRequest returned ${-returnStatusGet_statusCode}" >> $ENV{S2_LOG}
-      && TEST $MATCH{(SRM_REQUEST_INPROGRESS|SRM_REQUEST_QUEUED) ${returnStatusGet_statusCode}
+   && TEST $MATCH{(SRM_SUCCESS) ${returnStatusGet_statusCode}
 
 && SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatusGet_statusCode})" >> $ENV{S2_LOG}
 

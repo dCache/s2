@@ -1,3 +1,15 @@
+% FileNames00: test length of filename
+% This test checks if filenames of 190 characters are allowed in Put operations.
+% After putting the file the test lists it and then deletes it again.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmLs
+% srmRm
+
 % Puts a file of length 255 characters into the SRM, then lists it and then deletes it again.
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}

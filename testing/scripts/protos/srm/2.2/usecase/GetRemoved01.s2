@@ -1,4 +1,13 @@
-% PutRemoved01.s2 Puts a file, removes it and then tries to get it (prepareToGet)
+% GetRemoved01: 
+% This test checks if the system allows for retrieval of a removed file.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

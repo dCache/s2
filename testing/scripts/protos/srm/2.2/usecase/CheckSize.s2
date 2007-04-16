@@ -1,5 +1,9 @@
-% Space02: space functions test
+% CheckSize: size test
+% This test checks that sizes are correctly returned by the PrepareToGet and
+% StatusOfGetRequest SRM functions.
 %
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
 % srmStatusOfPutRequest
 % srmPutDone

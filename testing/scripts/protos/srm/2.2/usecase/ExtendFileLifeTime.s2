@@ -1,6 +1,13 @@
-% srmExtendFileLifeTime
+% ExtendFileLifeTime: test
+% This test puts a file (permanent) and asks for an extension of the file
+% lifetime. The expected result is SRM_SUCCESS.
 %
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmExtendFileLifeTime
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
@@ -12,6 +19,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: fileStatuses=${-fileStatuses}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{"(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)" ${returnStatus_statusCode}}
+&& TEST $MATCH{"(SRM_SUCCESS)" ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

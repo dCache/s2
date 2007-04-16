@@ -1,9 +1,20 @@
-% PutGet01: transfer of a file to/from SRM server
+% LsDirCountOffset:
+% This test creates a directory. It puts two files in it.
+% Then it performs an Ls of the directory asking for Offset=1 and Count=1.
+% It makes sure that the full listing of only one file is returned.
+% Then it removes the files and the directory created.
 %
+% SRM calls performed by the test:
+% --------------------------------
+% srmMkdir
 % srmPrepareToPut
-% srmPutDone
 % srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
 % srmLs
+% srmRm
+% srmRmdir
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

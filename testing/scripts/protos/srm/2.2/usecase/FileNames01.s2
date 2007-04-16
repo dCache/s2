@@ -1,10 +1,16 @@
-% FileNames01: Puts a file of length 256 characters into SRM, which should in principle fail, but we accept a success, too.
-% Makes a Ping first to make sure that the SRM is there.
+% FileNames01: test length of filenames
+% This test checks if filenames of 256 characters are allowed in Put operations.
+% This test should not succeed. However the test accepts a success.
+% The test executes a Ping to make sure the endpoint is available
+% After putting the file the test deletes it.
 %
+% SRM calls performed by the test:
+% --------------------------------
 % srmPing
-% srmPtP
-% srmStatusOfPtP
+% srmPrepareToPut
+% srmStatusOfPutRequest
 % srmPutDone
+% srmRm
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

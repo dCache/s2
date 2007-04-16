@@ -1,5 +1,8 @@
-% MvDirBeingPutInto.s2: Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
+% MvDirBeingPutInto.s2:
+% Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
 %
+% SRM calls performed by the test:
+% --------------------------------
 % srmMkdir
 % srmPrepareToPut
 % srmStatusOfPutRequest

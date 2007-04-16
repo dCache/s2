@@ -1,12 +1,15 @@
-% Pin02: Puts a file, then increases the file lifetime (SURL lifetime) using the SURL, no request token is given
-%        The file is then released.
+% Pin02:
+% Puts a file, then increases the file lifetime (SURL lifetime) using the SURL, no request token is given.
+% The file is then released.
 %
-% put cycle:
-%   srmPrepareToPut
-%   srmStatusOfPutRequest
-%   srmPutDone
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
 % srmExtendFileLifeTime
 % srmReleaseFiles
+% srmRm
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

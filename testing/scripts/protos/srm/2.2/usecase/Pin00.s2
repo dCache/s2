@@ -1,5 +1,8 @@
-% Pin01: pinning
-%
+% Pin01:
+% Use srmExtendFileLifeTime to try to extend the pin time for the TURL
+% 
+% SRM calls performed by the test:
+% -------------------------------- 
 % srmPrepareToPut
 % srmStatusOfPutRequest
 % srmPutDone

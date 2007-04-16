@@ -1,12 +1,15 @@
-% Pin03: Puts a file, then releases it. Then tries to increase the pin lifetime using the original request token
-% which should fail
+% Pin03:
+% Puts a file, then releases it. Then tries to increase the pin lifetime using the original request token,
+% which should fail.
 % 
-% put cycle:
-%   srmPrepareToPut
-%   srmStatusOfPutRequest
-%   srmPutDone
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
 % srmReleaseFiles
 % srmExtendFileLifeTime
+% srmRm
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

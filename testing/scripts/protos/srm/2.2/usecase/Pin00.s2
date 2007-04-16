@@ -87,5 +87,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
         && SYSTEM echo "${srmTest}: returnStatus=${returnExtendTURL_statusCode}" >> $ENV{S2_LOG}
       || SYSTEM echo "{srmTest}: KO srmExtendFileLifeTime failed, returnStatus=${returnReleaseStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
 
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

@@ -15,7 +15,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && FUN PutCycle $ENV{STORM} $ENV{FILE_TO_PUT0} $ENV{STORMFILE} : putRequestToken
 
 %%% Copy cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{STORMFILE}] targetSURL[$ENV{SRM_NEW_FILE0}] desiredTargetSURLLifeTime=$ENV{CPSURLLIFETIME} requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{STORMFILE}] targetSURL[$ENV{SRM_NEW_FILE0}] desiredTargetSURLLifeTime=$ENV{CPSURLLIFETIME} targetFileStorageType=$ENV{STORAGE_TYPE} requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
     SYSTEM echo "${srmTest}: Executed Copy" >> $ENV{S2_LOG}
     && SYSTEM echo "${srmTest}: Executed srmCopy source=$ENV{STORMFILE} destination=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
     && SYSTEM echo "${srmTest}: srmCopy returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}

@@ -1,9 +1,19 @@
-% PutGet01: transfer of a file to/from SRM server
+% LsDirFull:
+% This test creates a directory. It puts two files in it.
+% Then it performs an Ls on the directory asking for FullDetailedList=1.
+% It makes sure that the all mandatory return paramenter for full listing 
+% are returned.
+% Then it removes the files and the directory created.
 %
+% SRM calls performed by the test:
+% --------------------------------
+% srmMkdir
 % srmPrepareToPut
-% srmPutDone
 % srmStatusOfPutRequest
+% srmPutDone
 % srmLs
+% srmRm
+% srmRmdir
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

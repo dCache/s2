@@ -1,7 +1,5 @@
 % srmAbortRequest
-%
-% srmPrepareToPut
-% srmStatusOfPutRequest
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 

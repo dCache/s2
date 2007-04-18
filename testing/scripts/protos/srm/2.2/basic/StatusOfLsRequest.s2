@@ -1,5 +1,6 @@
 % srmStatusOfLsRequest
 
+
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

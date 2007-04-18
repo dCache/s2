@@ -3,6 +3,8 @@
 # Useful variables
 #
 S2_LOGS=./s2_logs
+WEB_CONF=../../web_config.conf
+WEBMAP=./webmap/map.txt
 tim=`date +"%A %e %B %Y %I:%M%P %Z"`
 if test $1; then
    Index_File=$1
@@ -29,32 +31,13 @@ cat << EOF >> ${Index_File}
   <TH VALIGN=center ALIGN=center><FONT SIZE=3><B>SRM function</B></FONT></TH> 
   <TH VALIGN=top ALIGN=center>   </TH> 
 EOF
+
 for dir in `ls -1 $S2_LOGS | grep -v index.html`;
 do
-  case "${dir}" in
-     22DPMCERN) sitetag="CERN<br>DPM"
-     ;;
-     22CASTORCERN) sitetag="CERN<br>CASTOR"
-     ;;
-     22CASTORDEV) sitetag="CERN<br>CASTORDEV"
-     ;;
-     22CASTORRAL) sitetag="RAL<br>CASTOR"
-     ;;
-     22DCACHEFNAL) sitetag="FNAL<br>DCACHE"
-     ;;
-     22DCACHESTRESS) sitetag="FNAL<br>DCACHE"
-     ;;
-     22DCACHEDESY) sitetag="DESY<br>DCACHE"
-     ;;
-     22STORM) sitetag="STORM"
-     ;;
-     22DRMLBNL) sitetag="LBNL<br>BeStMan"
-     ;;
-     22SRMVU) sitetag="VU<br>SRM"
-     ;;
-     *) echo "Unrecognized endpoint - Exiting"; exit 1
-     ;;
-  esac
+  sitetag=`awk '/^'${dir}' / {print $2}' ${WEB_CONF}`
+  if test "x${sitetag}" == "x"; then
+     echo "Unrecognized endpoint - Exiting"; exit 1
+  fi
   if test -e ${S2_LOGS}/${dir}/scheduled-downtime; then
      echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3>$sitetag<BR>Scheduled downtime</FONT></TH>" >> ${Index_File}
   else
@@ -63,7 +46,7 @@ do
 done
 echo "</TR>" >> ${Index_File}
 
-echo "<TR><TH BGCOLOR=OLIVE COLSPAN=10 HEIGHT=40>" >> ${Index_File}
+echo "<TR><TH BGCOLOR=OLIVE COLSPAN=20 HEIGHT=40>" >> ${Index_File}
 echo "WLCG MoU SRM v2.2 methods</TH></TR>" >> ${Index_File}
 
 delim=1
@@ -77,17 +60,22 @@ do
    else
      s2_num=`echo $s2_t |cut -d_ -f1`
      if test $s2_num -ge 70 -a $delim -eq 2; then
-       echo "<TH BGCOLOR=OLIVE COLSPAN=10 HEIGHT=40>" >> ${Index_File} 
+       echo "<TH BGCOLOR=OLIVE COLSPAN=20 HEIGHT=40>" >> ${Index_File} 
        echo "WLCG non MoU SRM v2.2 methods</TH></TR><TR>" >> ${Index_File}
        delim=0
      fi
      if test $s2_num -ge 62 -a $delim -eq 1; then
-       echo "<TH BGCOLOR=ORANGE COLSPAN=10 HEIGHT=40>" >> ${Index_File}
+       echo "<TH BGCOLOR=ORANGE COLSPAN=20 HEIGHT=40>" >> ${Index_File}
        echo "WLCG MoU SRM v2.2 methods needed by end of 2007</TH></TR><TR>" >> ${Index_File}
        delim=2
      fi
    fi
-   echo "<TD VALIGN=top ALIGN=left><B>${s2}</B></TD>" >> ${Index_File}
+   if test -e ${WEBMAP}; then
+      s2web=`awk '/^'${s2}' / {print $2}' ${WEBMAP}`
+      echo "<TD VALIGN=top ALIGN=left><A HREF=../${s21}>${s2web}</A></TD>" >> ${Index_File}
+   else
+      echo "<TD VALIGN=top ALIGN=left><B>${s2}</B></TD>" >> ${Index_File}
+   fi
    echo "<TD VALIGN=top ALIGN=left>   </TD>" >> ${Index_File}
    for dir in `ls -1 $S2_LOGS | grep -v index.html`;
    do
@@ -105,7 +93,7 @@ do
     fi
     echo "<TD BGCOLOR=${color} VALIGN=center ALIGN=center>" >> ${Index_File}
     if test -e ${S2_LOGS}/${dir}/${s2_t}.out; then
-      echo "<A HREF=${dir}/${s2_t}.out>StdOut</A>" >> ${Index_File}
+      echo "<A HREF=${dir}/${s2_t}.out>Out</A>" >> ${Index_File}
     fi
     if test -e ${S2_LOGS}/${dir}/${s2_t}.log; then
       echo " <A HREF=${dir}/${s2_t}.log>Log</A>" >> ${Index_File}

@@ -1,5 +1,6 @@
 % srmGetPermission
 
+
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "Executing GetPermission ..." >> $ENV{S2_LOG}

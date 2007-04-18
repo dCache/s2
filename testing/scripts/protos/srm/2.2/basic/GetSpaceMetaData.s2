@@ -1,5 +1,6 @@
 % srmGetSpaceMetaData
 
+
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 #if $ENV{CERN}

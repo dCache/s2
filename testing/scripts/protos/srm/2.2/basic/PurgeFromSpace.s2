@@ -1,6 +1,5 @@
 % srmPurgeFromSpace
-%
-% srmReserveSpace
+ 
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycleToken.s2

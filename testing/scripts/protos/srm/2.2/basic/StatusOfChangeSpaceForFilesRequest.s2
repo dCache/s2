@@ -1,12 +1,5 @@
 % srmStatusOfChangeSpaceForFilesRequest
-%
-% srmPrepareToPut
-% srmStatusOfPutRequest
-% srmPutDone
-% srmReserveSpace
-% srmStatusOfReserveSpace
-% srmReserveSpace
-% srmChangeSpaceForFiles
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

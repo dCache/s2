@@ -25,7 +25,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
         srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{DESYCACHEFILE}] targetSURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
            SYSTEM echo "${srmTest}: StatusOfCopyRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
            && SYSTEM echo "${srmTest}: Executing PrepareToGet on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-           && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+           && TEST $MATCH{(SRM_SUCCESS|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE0} : getRequestToken

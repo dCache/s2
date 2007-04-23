@@ -1,12 +1,15 @@
-% PutMany: Does many PtP without before cleaning them up
+% PutMany:
+% This test performs many PrepareToPut requests in parallel.
+% Then the requests are also aborted in parallel.
 %
-% srmPrepareToGet
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
-% srmPutDone
+% srmStatusOfPutRequest
+% srmAbortRequest
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
 
 && ASSIGN Status 0
 
@@ -33,8 +36,13 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && >0&& $ENV{N_OPS} NOP
   ASSIGN token $EVAL{${ptoken$I{0}}}
+  && ASSIGN n $I{0}
+  && ASSIGN fileName "$ENV{SRM_NEW_FILE0}${n}"
+
   && SYSTEM echo "${srmTest}: Executing srmAbortRequest, requestToken=${token}" >> $ENV{S2_LOG}
   && srmAbortRequest $ENV{ENDPOINT} requestToken=${token} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+  && srmRm $ENV{ENDPOINT} SURL[${fileName}] fileStatuses=".*returnStatus.statusCode0=(?P<filestatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
   && SYSTEM echo "${srmTest}: srmAbortRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
 && ASSIGN end $DATE{%s%N}

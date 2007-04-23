@@ -1,10 +1,16 @@
-% PutGet01: transfer of a file to/from SRM server
+% PutGet01:
+% This test simulates many clients transferring a file to/from SRM space. 
+% The file is then removed.
 %
-% srmPrepareToGet
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
-% srmPutDone
-% srmStatusOfGetRequest
 % srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
+% srmRm
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2

@@ -41,7 +41,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled,offset=1 and count=1" >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-|| ASSIGN Status ${-returnStatus_statusCode}
+|| TEST !$DEFINED{Status}
+   ASSIGN Status ${-returnStatus_statusCode}
    SYSTEM exit ${-returnStatus_statusCode}
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}

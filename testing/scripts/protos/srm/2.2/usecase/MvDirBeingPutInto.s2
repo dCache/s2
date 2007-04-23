@@ -1,8 +1,5 @@
-% MvDirBeingPutInto.s2:
-% Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
+% MvDirBeingPutInto.s2: Try to move a directory, into which a file is currently being put. This should fail at the time, PutDone is issued, not before.
 %
-% SRM calls performed by the test:
-% --------------------------------
 % srmMkdir
 % srmPrepareToPut
 % srmStatusOfPutRequest
@@ -27,7 +24,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
        && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusPut_statusCode}}
 
-;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+;; ASSIGN Status ${!}
+;; SYSTEM exit ${Status}
 
 && SYSTEM echo "${srmTest}: Put is now positively in progress, trying to move away the directory: srmMv $ENV{SRM_NEW_DIR0} to $ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
 
@@ -36,7 +34,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
    || SYSTEM echo "${srmTest}: srmMv of file failed: ${-returnStatus_explanation}" >> $ENV{S2_LOG}
 
-;; ASSIGN Status ${!} && SYSTEM exit ${Status}
+;; ASSIGN Status ${!}
+;; SYSTEM exit ${Status}
 
 && SYSTEM echo "${srmTest}: Moving the directory worked, now trying to do putDone, which should fail:" >> $ENV{S2_LOG}
 

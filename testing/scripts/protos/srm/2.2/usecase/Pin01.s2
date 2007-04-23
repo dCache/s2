@@ -1,13 +1,10 @@
-% Pin01:
-% Put a file, then increase the pin lifetime using both the request token and the SURL, which must not work.
+% Pin01: Put a file, then increase the pin lifetime using the request token and the SURL, which must not work
 %
-% SRM calls performed by the test:
-% -------------------------------- 
-% srmPrepareToPut
-% srmStatusOfPutRequest
-% srmPutDone
+% put cycle:
+%   srmPrepareToPut
+%   srmStatusOfPutRequest
+%   srmPutDone
 % srmExtendFileLifeTime
-% srmRm
 %
 % From the notes on the behaviour of: srmExtendFileLifeTime
 % This method allows to change only one lifetime at a time (either SURL lifetime by the newFileLifetime or pin

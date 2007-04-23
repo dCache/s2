@@ -64,6 +64,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
       && TEST $MATCH{".*fileLocality0=(?P<FileLocality0>(ONLINE_AND_NEARLINE))(\s.+|$)"" ${PathDetails0}}
 
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[${sURL1}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[${sURL2}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[${sURL2}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Status}
+
+
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

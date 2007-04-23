@@ -1,10 +1,17 @@
-% GetParallel: Puts a file into SRM, then gets it with many clients in parallel
+% GetParallel: 
+% This test puts a file in SRM space, then it asks for a Get TURL with 
+% many clients  in parallel.
+% It then cleans up the file  created.
 %
-% srmPrepareToGet
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
-% srmPutDone
-% srmStatusOfGetRequest
 % srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
+% srmRm
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
@@ -17,14 +24,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
    >0 ${n} SLEEP ${sec} ${nsec}
      ASSIGN thread $I{0}
-     && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*)  fileStatuses=(?P<fileStatuses>.*)  remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
+     && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*)  fileStatuses=(?P<fileStatuses>.*)  remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
        SYSTEM echo "${srmTest}: (${thread}) srmPrepareToGet, putRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
-       && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToG_statusCode}}
+       && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
        && >0||100 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-         srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>\w+) .*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
-           SYSTEM echo "${srmTest}: (${thread}) srmStatusOfGetRequest ${returnStatusGet_statusCode}, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
-           && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusGet_statusCode}}
+         srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>\w+) .*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+           SYSTEM echo "${srmTest}: (${thread}) srmStatusOfGetRequest ${returnStatus_statusCode}, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
+           && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
      && TEST $MATCH{SRM_FILE_PINNED ${StatusCode0}}
+
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

@@ -3,6 +3,7 @@
 # Useful variables
 #
 S2_LOGS=./s2_logs
+WEB_CONF=../../web_config.conf
 tim=`date +"%A %e %B %Y %I:%M%P %Z"`
 if test $1; then
    Index_File=$1
@@ -42,30 +43,10 @@ be copied between SRMs with simple get and put operations.<BR>
 EOF
 for dir in `ls -1 $S2_LOGS | grep -v index.html`;
 do
-  case "${dir}" in
-     22DPMCERN) sitetag="CERN<br>DPM<br>not needed"
-     ;;
-     22CASTORCERN) sitetag="CERN<br>CASTOR<br>not needed"
-     ;;
-     22CASTORDEV) sitetag="CERN<br>CASTORDEV"
-     ;;
-     22CASTORRAL) sitetag="RAL<br>CASTOR"
-     ;;
-     22DCACHEFNAL) sitetag="FNAL<br>DCACHE"
-     ;;
-     22DCACHESTRESS) sitetag="FNAL<br>DCACHE"
-     ;;
-     22DCACHEDESY) sitetag="DESY<br>DCACHE"
-     ;;
-     22STORM) sitetag="STORM"
-     ;;
-     22DRMLBNL) sitetag="LBNL<br>BeStMan"
-     ;;
-     22SRMVU) sitetag="VU<br>SRM"
-     ;;
-     *) echo "Unrecognized endpoint - Exiting"; exit 1
-     ;;
-  esac
+  sitetag=`awk '/^'${dir}' / {print $2}' ${WEB_CONF}`
+  if test "x${sitetag}" == "x"; then
+     echo "Unrecognized endpoint - Exiting"; exit 1
+  fi
   if test -e ${S2_LOGS}/${dir}/scheduled-downtime; then
      echo "<TH VALIGN=top ALIGN=center><FONT SIZE=3>$sitetag<BR>Scheduled downtime</FONT></TH>" >> ${Index_File}
   else
@@ -113,7 +94,7 @@ do
     fi
     echo "<TD BGCOLOR=${color} VALIGN=center ALIGN=center>" >> ${Index_File}
     if test -e ${S2_LOGS}/${dir}/${s2_t}.out; then
-      echo "<A HREF=${dir}/${s2_t}.out>StdOut</A>" >> ${Index_File}
+      echo "<A HREF=${dir}/${s2_t}.out>Out</A>" >> ${Index_File}
     fi
     if test -e ${S2_LOGS}/${dir}/${s2_t}.log; then
       echo " <A HREF=${dir}/${s2_t}.log>Log</A>" >> ${Index_File}

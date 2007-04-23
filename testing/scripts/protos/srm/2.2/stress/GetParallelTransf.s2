@@ -1,10 +1,17 @@
-% GetParallel: Puts a file into SRM, then gets it with many clients in parallel
+% GetParallelTransf:
+% This test puts a file in SRM space, then it asks for a Get TURL with 
+% many clients in parallel.
+% Once the TURL is obtained, the file is transferred back by the client.
+% At the end, the test cleans up the file  created.
 %
-% srmPrepareToGet
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
-% srmPutDone
-% srmStatusOfGetRequest
 % srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
+% srmRm
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
@@ -28,6 +35,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
         FUN GetCycle $ENV{FILE_TO_GET0}.$I{0} $ENV{SRM_NEW_FILE0} : getRequestToken
         && SYSTEM echo "${srmTest}: $I{0} Get transfer succeeded" >> $ENV{S2_LOG}
         && SYSTEM /bin/rm $ENV{FILE_TO_GET0}.$I{0}
+
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
 
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}

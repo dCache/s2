@@ -28,7 +28,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM echo "${srmTest}: WARNING !!! FileSize not returned"  >> $ENV{S2_LOG} && exit 0
 
 && NOP
-   TEST ${FileSize0} == $ENV{FILE_TO_PUT0_SIZE}
+   TEST ${FileSize0} == $ENV{FILE_TO_PUT0_SIZE} || ${FileSize0} == 0
    || SYSTEM echo "${srmTest}: WARNING !!! FileSize on put not set correctly: ${-FileSize0} (it should be $ENV{FILE_TO_PUT0_SIZE})"  >> $ENV{S2_LOG} && exit 0
 
 && FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}

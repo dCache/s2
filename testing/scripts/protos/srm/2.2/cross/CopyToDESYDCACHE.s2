@@ -11,27 +11,39 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycleEndpoint.s2 
 
+&& ASSIGN Status 0
+
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 %%% Copy cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{DESYCACHEFILE}] desiredTargetSURLLifeTime=$ENV{CPSURLLIFETIME} targetFileStorageType=$ENV{STORAGE_TYPE} requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmCopy $ENV{ENDPOINT} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{DESYDCACHEFILE}] desiredTargetSURLLifeTime=$ENV{CPSURLLIFETIME} targetFileStorageType=$ENV{STORAGE_TYPE} requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
     SYSTEM echo "${srmTest}: Executed Copy" >> $ENV{S2_LOG}
-    && SYSTEM echo "${srmTest}: Executed srmCopy source=$ENV{SRM_NEW_FILE0} destination=$ENV{DESYCACHEFILE}" >> $ENV{S2_LOG}
+    && SYSTEM echo "${srmTest}: Executed srmCopy source=$ENV{SRM_NEW_FILE0} destination=$ENV{DESYDCACHEFILE}" >> $ENV{S2_LOG}
     && SYSTEM echo "${srmTest}: srmCopy returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
     && SYSTEM echo "${srmTest}: srmCopy fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
 
     && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-        srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{DESYCACHEFILE}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+        srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{DESYDCACHEFILE}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
            SYSTEM echo "${srmTest}: StatusOfCopyRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
-           && SYSTEM echo "${srmTest}: Executing PrepareToGet on $ENV{DESYCACHEFILE}" >> $ENV{S2_LOG}
+           && SYSTEM echo "${srmTest}: Executing PrepareToGet on $ENV{DESYDCACHEFILE}" >> $ENV{S2_LOG}
            && TEST $MATCH{(SRM_SUCCESS|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& FUN GetCycle $ENV{DESYCACHE} $ENV{FILE_TO_GET1} $ENV{DESYCACHEFILE} : getRequestToken
+&& FUN GetCycle $ENV{DESYDCACHE} $ENV{FILE_TO_GET1} $ENV{DESYDCACHEFILE} : getRequestToken
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+
+%
+% Clean up
+%
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; srmRm $ENV{DESYDCACHE} SURL[$ENV{DESYDCACHEFILE}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Status}
 

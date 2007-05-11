@@ -11,6 +11,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycleEndpoint.s2
    #include ../include/GetCycle.s2 
 
+&& ASSIGN Status 0
+
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN PutCycle $ENV{FNALDCACHE} $ENV{FILE_TO_PUT0} $ENV{FNALDCACHEFILE} : putRequestToken
 
@@ -33,5 +35,15 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE0} : getRequestToken
 
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+
+%
+% Clean up
+%
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; srmRm $ENV{FNALDCACHE} SURL[$ENV{FNALDCACHEFILE}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Status}
 

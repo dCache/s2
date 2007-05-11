@@ -1,14 +1,23 @@
-% srmGetRequestTokens
+% Space00:
+% This test invokes srmPrepareToPut and srmGetRequestTokens to verify
+% that User Tokens Descriptions are case sensitive.
 %
+% SRM calls performed by the test:
+% --------------------------------
 % srmPrepareToPut
+% srmGetRequestTokens
+% srmAbortRequest
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] userRequestDescription=$ENV{TOKENDESC} fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPrepareToPut_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed PrepareToPut, userRequestDescription=$ENV{TOKENDESC}, requestToken: ${putRequestToken}" > $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${returnPrepareToPut_statusCode}" >> $ENV{S2_LOG}
+&& ASSIGN Status 0
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPrepareToPut_statusCode}}
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] userRequestDescription=$ENV{TOKENDESC} fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, userRequestDescription=$ENV{TOKENDESC}, requestToken: ${putRequestToken}" > $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    srmGetRequestTokens $ENV{ENDPOINT} userRequestDescription=$ENV{TOKENCDESC} requestTokens=(?P<requestTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    ;; SYSTEM echo "${srmTest}: Executing srmGetRequestTokens for userRequestDescription=$ENV{TOKENCDESC}" >> $ENV{S2_LOG}
    ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, requestTokens[${-requestTokens}]" >> $ENV{S2_LOG}
@@ -20,5 +29,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 || NOP
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: Token is case insensitive"  >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}, Token is case insensitive" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: ReturnStatus=${-returnStatus_statusCode}, Explanation=${returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+      && SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}, Token is case insensitive" >> $ENV{SRM2_SUPPORTED} && exit 2
+
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: KO ReturnStatus=${-returnStatus_statusCode}, Explanation=${returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+
+;; srmAbortRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Status}

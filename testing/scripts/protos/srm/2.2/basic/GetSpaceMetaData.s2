@@ -3,6 +3,8 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
+&& ASSIGN Status 0
+
 #if $ENV{CERN}
 % && ASSIGN spaceToken 44dca55c-0000-1000-bec4-a79efb6b0000
 && ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
@@ -20,12 +22,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       || ASSIGN sExplanation "srmReserveSpace asynchronous: it did not return requestToken"
          SYSTEM echo "${srmTest}: srmReserveSpace, ${sExplanation}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
 
 || >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
        srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
        && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
-       && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
+       && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
 
 #endif
 
@@ -33,8 +35,24 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && SYSTEM echo "${srmTest}: Executing srmGetSpaceMetaData" >> $ENV{S2_LOG}
    && SYSTEM echo -e "${srmTest}: returnStatus=${-returnStatus_statusCode}, spaceDetails=${-spaceDetails}" >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+|| NOP
+   TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ReserveSpace has failed with ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-|| SYSTEM echo "${srmTest}: KO: ReserveSpace exit status ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: KO: ReserveSpace exit status ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+;; NOP
+   TEST $DEFINED{requestToken} && ! $DEFINED{spaceToken}
+      srmAbortRequest $ENV{ENDPOINT} requestToken=${requestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM exit 0
+   || TEST $DEFINED{spaceToken}
+      srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM exit 0
+
+;; SYSTEM exit ${Status}
+

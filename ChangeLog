@@ -1,3 +1,9 @@
+2007-05-14 14:55 Flavia Donno
+	* all: Proper clean-up after script execution + Allow for unsupported storage classes.
+
+2007-04-23 12:42 Flavia Donno
+	* all: Usecase scripts completed for distribution
+
 2006-09-19 11:30  Jiri Mencak
 	* all: Last release from RAL.
 

@@ -26,8 +26,10 @@ env_bernstein() {
     if test -f "$e" && test x"$var_val" = x ; then
       # do not redefine already defined variables from the environment
       var_val=$(cat $e)
+      # evaluate environment variables in var_val; e.g ${HOME} for INCLUDES
       var_val=$(eval echo $var_val)
 
+      # make sure export the environment variable is exported, it may not be!
       eval 'export $var="$var_val"'
     fi
   done

@@ -25,9 +25,19 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN Status 0
 
 #if $ENV{CERN}
+#if $ENV{S2_TEST_SITE} == 22CASTORSTRESS
+&& ASSIGN SpaceTokenDescription "srm2_d0t1"
+#else
 && ASSIGN SpaceTokenDescription "dteam"
-&& ASSIGN returnStatus_statusCode SRM_SUCCESS
-&& ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
+#endif
+%&& ASSIGN returnStatus_statusCode SRM_SUCCESS
+%&& ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
+
+&& srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& TEST $MATCH{".*spaceToken0=(?P<spaceToken0>.+?)(\s.+|$)" ${spaceTokens}}
+&& ASSIGN spaceToken ${spaceToken0}
+
 #else
 
 && ASSIGN Lifetime 1800

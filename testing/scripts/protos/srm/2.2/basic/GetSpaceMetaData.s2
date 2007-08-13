@@ -6,10 +6,21 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN Status 0
 
 #if $ENV{CERN}
-% && ASSIGN spaceToken 44dca55c-0000-1000-bec4-a79efb6b0000
-&& ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
-&& ASSIGN returnStatus_statusCode SRM_SUCCESS
+#if $ENV{S2_TEST_SITE} == 22CASTORSTRESS
+&& ASSIGN SpaceTokenDescription "srm2_d0t1"
 #else
+&& ASSIGN SpaceTokenDescription "dteam"
+#endif
+%&& ASSIGN returnStatus_statusCode SRM_SUCCESS
+%&& ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
+
+&& srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& TEST $MATCH{".*spaceToken0=(?P<spaceToken0>.+?)(\s.+|$)" ${spaceTokens}}
+&& ASSIGN spaceToken ${spaceToken0}
+
+#else
+
 && NOP
    srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY}" >> $ENV{S2_LOG}

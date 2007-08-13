@@ -42,7 +42,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM exit 0
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}
+   TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Path is returned: ${Path0}" >> $ENV{S2_LOG}
    || ASSIGN Status 2
       SYSTEM echo "${srmTest}: Path is not reported" >> $ENV{SRM2_SUPPORTED}

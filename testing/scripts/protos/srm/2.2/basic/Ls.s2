@@ -6,7 +6,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && NOP
    timeout=180000000 srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_ENDPOINT}] numOfLevels=0 requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, pathDetails=${pathDetails}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
    && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_PARTIAL_SUCCESS|SRM_INPROGRESS) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}

@@ -14,7 +14,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && ASSIGN Status 0
 || SYSTEM exit 0
 
-&& TEST $MATCH{(SRM_NOT_SUPPORTED|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+&& TEST $MATCH{(SRM_NOT_SUPPORTED|SRM_EXCEED_ALLOCATION|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: srmPrepareToPut return status=${returnStatus_statusCode}, file level status=${StatusCode0}" >> $ENV{S2_LOG}
    && ASSIGN Status 0
 || SYSTEM exit 0
@@ -24,7 +24,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatus0>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
             SYSTEM echo "${srmTest}: srmStatusOfPutRequest return status=${returnStatus_statusCode}, file status = ${-fileStatus0}" >> $ENV{S2_LOG}
-         && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE|SRM_NOT_SUPPORTED|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE|SRM_NOT_SUPPORTED|SRM_EXCEED_ALLOCATION|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE) ${returnStatus_statusCode}}
 
    && TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${fileStatus0}}
 
@@ -33,7 +33,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && ASSIGN Status 0
    || SYSTEM exit 0
 
-   && TEST $MATCH{(SRM_NOT_SUPPORTED|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+   && TEST $MATCH{(SRM_NOT_SUPPORTED|SRM_EXCEED_ALLOCATION|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: srmPrepareToPut return status=${returnStatus_statusCode}, file level status=${StatusCode0}" >> $ENV{S2_LOG}
       && ASSIGN Status 0
    || SYSTEM exit 0

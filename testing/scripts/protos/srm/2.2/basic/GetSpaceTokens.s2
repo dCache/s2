@@ -6,8 +6,13 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN Status 0
 
 #if $ENV{CERN}
+#if $ENV{S2_TEST_SITE} == 22CASTORSTRESS
+&& ASSIGN SpaceTokenDescription "srm2_d0t1"
+#else
 && ASSIGN SpaceTokenDescription "dteam"
+#endif
 && ASSIGN returnStatus_statusCode SRM_SUCCESS
+
 #else
 
 && ASSIGN SpaceTokenDescription $ENV{SPACE_TOKEN_DESCR}

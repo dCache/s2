@@ -17,7 +17,9 @@ ln:
 	@for s2 in `ls -1 *.$(S2_EXT) 2>/dev/null` ; \
 	do \
 	  s2_sh=`basename $$s2 .$(S2_EXT)`.$(SH_EXT) ; \
-	  ln -sf $(S2_SH) $$s2_sh; \
+	  if test ! -h $$s2_sh ; then \
+	     ln -sf $(S2_SH) $$s2_sh; \
+	  fi; \
 	done; \
 	if test ! -d $(S2_LOGS_DIR) ; then \
 	  mkdir -p $(S2_LOGS_DIR) 2>/dev/null; \
@@ -75,6 +77,6 @@ clean_log:
 	@cd $(S2_LOGS_DIR) 2>/dev/null; rm -f $(S2_LOGS)
 
 clean: clean_log
-	@find . -name \*.sh -type l -exec rm -f {} \;
+	@find . -name \*.sh -type l -maxdepth 0 -exec rm -f {} \;
 
 distclean mclean: clean

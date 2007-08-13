@@ -64,19 +64,20 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM echo "${srmTest}: Check if we can still use the space token..." >> $ENV{S2_LOG}
 
       && srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} targetSpaceToken=${spaceToken} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
-         && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-            srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-               SYSTEM echo "srmStatusOfPutRequest: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
-            && TEST $MATCH{(SRM_SPACE_LIFETIME_EXPIRED) ${returnStatus_statusCode}}
-
-         && TEST $MATCH{(SRM_SPACE_LIFETIME_EXPIRED) ${returnStatus_statusCode}}
-            TEST $MATCH {".*returnStatus.statusCode0=SRM_FAILURE(\s.+|$)" ${fileStatuses}}
-               SYSTEM echo "${srmTest}: OK, the expired space cannot be reused." >> $ENV{SRM2_SUPPORTED} && exit 0
-            || TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-               TEST $MATCH {".*returnStatus.statusCode0=SRM_SPACE_AVAILABLE(\s.+|$)" ${fileStatuses}} 
-                  SYSTEM echo "${srmTest}: KO, the expired space can be reused." >> $ENV{SRM2_SUPPORTED}
-                  && ASSIGN Status 2
+         TEST $DEFINED{putRequestToken}
+            SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
+            && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+               srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+                  SYSTEM echo "srmStatusOfPutRequest: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+               && TEST $MATCH{(SRM_SPACE_LIFETIME_EXPIRED) ${returnStatus_statusCode}}
+         || SYSTEM exit 0
+      && TEST $MATCH{(SRM_SPACE_LIFETIME_EXPIRED) ${returnStatus_statusCode}}
+         TEST $MATCH {".*returnStatus.statusCode0=SRM_FAILURE(\s.+|$)" ${fileStatuses}}
+            SYSTEM echo "${srmTest}: OK, the expired space cannot be reused." >> $ENV{SRM2_SUPPORTED} && exit 0
+         || TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+            TEST $MATCH {".*returnStatus.statusCode0=SRM_SPACE_AVAILABLE(\s.+|$)" ${fileStatuses}} 
+               SYSTEM echo "${srmTest}: KO, the expired space can be reused." >> $ENV{SRM2_SUPPORTED}
+               && ASSIGN Status 2
  
    || TEST $MATCH{(SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: Space expired and recollected by the system" >> $ENV{SRM2_SUPPORTED} && exit 0

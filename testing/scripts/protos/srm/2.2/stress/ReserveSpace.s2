@@ -1,19 +1,16 @@
 % srmReserveSpace:
-% This test simulates many requests in parallel to reserve 1000GB
+% This test simulates many requests in parallel to reserve 1GB
 % of disk space. This test does not apply to CASTOR2.
-% To do: If the reservation is successful, the space is not released
-%        by the test.
+% If the reservation is successful, then the test tries to release
+% the reserved space.
 %
 % SRM calls performed by the test:
 % --------------------------------
-% srmPrepareToPut
-% srmStatusOfPutRequest
-% srmAbortRequest
-
 % srmReserveSpace
+% srmStatusOfReserveSpaceRequest
+% srmReleaseSpace
 %
-% Try to reserve 1000GB of disk space
-%
+
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 #if $ENV{CERN}
@@ -21,27 +18,50 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
 #else
 
+&& ASSIGN begin $DATE{%s.%N}
+&& SYSTEM echo "${srmTest}: begin: ${begin}" >> $ENV{S2_LOG}
+
 && ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
    >0 ${n} SLEEP ${sec} ${nsec}
       srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{SPACEBIG} desiredSizeOfGuaranteedSpace=$ENV{SPACEBIG} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-
       && NOP
          TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
-            SYSTEM echo "${srmTest}: $I{0} returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+            SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+            && TEST $DEFINED{spaceToken}
+               ASSIGN 0stoken$I{0} ${spaceToken}
+            || SYSTEM exit 0
          || NOP
             TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-            && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-               srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-               && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
+               >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+                  srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+                  && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
 
             && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE||SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
-               SYSTEM echo "${srmTest}: $I{0} returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+               SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+               && TEST $DEFINED{spaceToken}
+                  ASSIGN 0stoken$I{0} ${spaceToken}
+               || SYSTEM exit 0
 
             || NOP
                TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE||SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
-                  SYSTEM echo "${srmTest}: $I{0} returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+                  SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+               && TEST $MATCH {(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}} && $DEFINED{spaceToken}
+                  ASSIGN 0stoken$I{0} ${spaceToken}
+               || SYSTEM exit 0
 
+&& >0 ${n} SLEEP ${sec} ${nsec}
+   ASSIGN stoken $EVAL{${0stoken$I{0}}}
+     TEST $DEFINED{stoken}
+     && SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) Executing srmReleaseSpace, SpaceToken=${stoken}" >> $ENV{S2_LOG}
+        srmReleaseSpace $ENV{ENDPOINT} spaceToken=${stoken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+           SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) srmReleaseSpace succeeded, ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+;; ASSIGN GStatus ${!}
+;; ASSIGN end $DATE{%s.%N}
+;; SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+;; SYSTEM exit ${GStatus}
+
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 #endif

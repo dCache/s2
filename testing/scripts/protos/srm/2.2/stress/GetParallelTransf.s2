@@ -17,28 +17,45 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
-&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> $ENV{S2_LOG}
 
-&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_NEW_FILE0}" : putRequestToken
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_STRESS_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& SYSTEM echo "${srmTest}-$DATE{}: Putting file" >> $ENV{S2_LOG}
+
+&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_NEW_STRESS_FILE0}" : putRequestToken
+|| SYSTEM  echo "${srmTest}-$DATE{}: srmPrepareToPut failed" >> $ENV{S2_LOG} && exit 3
+
+&& ASSIGN begin $DATE{%s.%N}
+&& SYSTEM echo "${srmTest}-$DATE{}: begin: ${begin}" >> $ENV{S2_LOG}
 
 && ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
    >0 ${n} SLEEP ${sec} ${nsec}
      ASSIGN thread $I{0}
-     && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*)  fileStatuses=(?P<fileStatuses>.*)  remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
-       SYSTEM echo "${srmTest}: (${thread}) srmPrepareToGet, putRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
-       && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToG_statusCode}}
-       && >0||100 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-         srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>\w+) .*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusGet_statusCode>.*)
-           SYSTEM echo "${srmTest}: (${thread}) srmStatusOfGetRequest ${returnStatusGet_statusCode}, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
-           && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusGet_statusCode}}
-     && TEST $MATCH{SRM_FILE_PINNED ${StatusCode0}}
-        FUN GetCycle $ENV{FILE_TO_GET0}.$I{0} $ENV{SRM_NEW_FILE0} : getRequestToken
-        && SYSTEM echo "${srmTest}: $I{0} Get transfer succeeded" >> $ENV{S2_LOG}
-        && SYSTEM /bin/rm $ENV{FILE_TO_GET0}.$I{0}
+     && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_STRESS_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*)  fileStatuses=(?P<fileStatuses>.*)  remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
+       SYSTEM echo "${srmTest}-$DATE{}: (${thread}) srmPrepareToGet, putRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
+       && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_INTERNAL_ERROR) ${returnPToG_statusCode}}
+          TEST $DEFINED{getRequestToken}
+             >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+               srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_STRESS_FILE0}]  fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
+                 SYSTEM echo "${srmTest}-$DATE{}: (${thread}) requestToken=${getRequestToken}, srmStatusOfGetRequest ${returnPToG_statusCode}, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
+               && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE|SRM_INTERNAL_ERROR) ${returnPToG_statusCode}}
+     ;; TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_INTERNAL_ERROR) ${-returnPToG_statusCode}}
+     || SYSTEM  echo "${srmTest}-$DATE{}: (${thread}) requestToken=${getRequestToken}, srmPrepareToGet failed" >> $ENV{S2_LOG} && exit 2
+     && NOP
+        TEST $MATCH{SRM_FILE_PINNED ${StatusCode0}}
+        && FUN GetCycle $ENV{FILE_TO_GET0}.${thread} $ENV{SRM_NEW_STRESS_FILE0} : getRequestToken
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Get transfer succeeded" >> $ENV{S2_LOG}
+           &&  SYSTEM /bin/rm -f $ENV{FILE_TO_GET0}.$I{0}
+        || SYSTEM /bin/rm -f $ENV{FILE_TO_GET0}.$I{0}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) requestToken=${getRequestToken} Get transfer failed" >> $ENV{S2_LOG} && exit 2
 
 ;; ASSIGN Status ${!}
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; ASSIGN end $DATE{%s.%N}
+;; SYSTEM echo "${srmTest}-$DATE{}: end: ${end}" >> $ENV{S2_LOG}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_STRESS_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

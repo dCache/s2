@@ -1,0 +1,67 @@
+% PutMany01Loop:
+% This test performs many PrepareToPut requests in parallel. It loops many
+% times with StatusOfPutRequest to check if the return code changes over time.
+% Then the SURLs are removed.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmRm
+
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> $ENV{S2_LOG}
+
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_STRESS_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& ASSIGN nt $ENV{N_THREADS}
+
+&& ASSIGN begin $DATE{%s.%N}
+&& SYSTEM echo "${srmTest}: begin: ${begin}" >> $ENV{S2_LOG}
+
+&& >0 ${nt} NOP
+   ASSIGN n $I{0}
+   && ASSIGN Status 0
+   && ASSIGN fileName "$ENV{SRM_NEW_STRESS_FILE0}.${n}"
+   && SYSTEM echo "${srmTest}-$DATE{}: (${n}) Putting file ${fileName}" >> $ENV{S2_LOG}
+
+   && NOP
+      srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[${fileName}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
+         SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
+         && ASSIGN GlobalStatus ${returnPToP_statusCode}
+         && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_INTERNAL_ERROR) ${returnPToP_statusCode}}
+            TEST $DEFINED{putRequestToken}
+               >0;;$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+                  srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${fileName}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
+                     SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmStatusOfPutRequest, requestToken=${putRequestToken}, Status of file 0: ${StatusCode0}" >> $ENV{S2_LOG}
+                  && TEST $EXPR{${returnPToP_statusCode} != ${GlobalStatus}}
+                     SYSTEM echo "${srmTest}-$DATE{}: (${n}) requestToken=${-putRequestToken}, new srmStatusOfPutRequest=${-returnPToP_statusCode}, old srmStatusOfPutRequest=${GlobalStatus}" >> $ENV{S2_LOG}
+                     && ASSIGN GlobalStatus ${returnPToP_statusCode}
+                  || SYSTEM exit 0
+
+%                  && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE|SRM_INTERNAL_ERROR) ${returnPToP_statusCode}}
+
+         && SYSTEM echo "${srmTest}-$DATE{}: srmPrepareToPut (${n}) requestToken=${putRequestToken}" >> $ENV{S2_LOG}
+
+         ;; TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_INTERNAL_ERROR) ${-returnPToP_statusCode}}
+
+         || SYSTEM  echo "${srmTest}-$DATE{}: srmPrepareToPut requestToken=${-putRequestToken} failed" >> $ENV{S2_LOG}
+            ASSIGN Status 2
+
+         ;; srmRm $ENV{ENDPOINT} SURL[${fileName}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmRm returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+         || SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmRm failed" >> $ENV{S2_LOG} 
+            ASSIGN Status 2
+
+         && SYSTEM exit ${Status}
+
+;; ASSIGN GStatus ${!}
+;; ASSIGN end $DATE{%s.%N}
+;; SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+;; SYSTEM exit ${GStatus}
+
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

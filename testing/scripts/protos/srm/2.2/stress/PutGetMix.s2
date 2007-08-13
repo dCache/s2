@@ -1,0 +1,57 @@
+% PutGetMix:
+% This test simulates many clients transferring files to/from SRM space. 
+% The file can be big (oMB) or small (oKB). The file is then removed.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
+% srmRm
+
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> $ENV{S2_LOG}
+
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_STRESS_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& ASSIGN begin $DATE{%s.%N}
+
+&& SYSTEM echo "${srmTest}: begin: ${begin}" >> $ENV{S2_LOG}
+
+&& ASSIGN n $ENV{N_THREADS}
+   >0 ${n} NOP
+      ASSIGN sURL $ENV{SRM_NEW_STRESS_FILE0}.$I{0}
+      && NOP
+         TEST $MATCH{0 $RND{2}}
+            FUN PutCycle $ENV{BIG_FILE} ${sURL} : putRequestToken
+               SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${sURL}, requestToken=${putRequestToken}, Put Cycle for thread $I{0} OK" >> $ENV{S2_LOG}
+            || SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${-sURL}, requestToken=${-putRequestToken}, Put Cycle for thread $I{0} KO" >> $ENV{S2_LOG}
+               srmRm $ENV{ENDPOINT} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+               && SYSTEM exit 2
+         || NOP
+            FUN PutCycle $ENV{FILE_TO_PUT0} ${sURL} : putRequestToken
+               SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${sURL}, requestToken=${putRequestToken},  Put Cycle for thread $I{0} OK" >> $ENV{S2_LOG}
+            || SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${-sURL}, requestToken=${-putRequestToken}, Put Cycle for thread $I{0} KO" >> $ENV{S2_LOG}
+               srmRm $ENV{ENDPOINT} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+               && SYSTEM exit 2
+      && FUN GetCycle $ENV{FILE_TO_GET0}.$I{0} ${sURL} : getRequestToken
+         SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${sURL}, requestToken=${getRequestToken}, Get Cycle for thread $I{0} OK" >> $ENV{S2_LOG}
+         && srmRm $ENV{ENDPOINT} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         && SYSTEM /bin/rm $ENV{FILE_TO_GET0}.$I{0} 
+      || SYSTEM /bin/rm -f $ENV{FILE_TO_GET0}.$I{0}
+         SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${-sURL}, requestToken=${-getRequestToken}, Get Cycle for thread $I{0} KO" >> $ENV{S2_LOG} && exit 2 
+
+;; ASSIGN Status ${!}
+;; ASSIGN end $DATE{%s.%N}
+;; SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+;; SYSTEM exit ${Status}
+
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

@@ -1,0 +1,71 @@
+% GetParallelLoop: 
+% This test puts a file in SRM space, then it asks for a Get TURL with 
+% many clients in parallel.  It performs the srmStatusOfGetRequest many
+% time to see if the status returned changes with time.
+% It then cleans up the file  created.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmPrepareToGet
+% srmStatusOfGetRequest
+% srmRm
+
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+
+&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> $ENV{S2_LOG}
+
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_STRESS_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& SYSTEM echo "${srmTest}-$DATE{}: Putting file" >> $ENV{S2_LOG}
+
+&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_NEW_STRESS_FILE0}" : putRequestToken
+
+|| SYSTEM  echo "${srmTest}-$DATE{}: srmPrepareToPut failed" >> $ENV{S2_LOG} && exit 3
+
+&& ASSIGN begin $DATE{%s.%N}
+&& SYSTEM echo "${srmTest}-$DATE{}: begin: ${begin}" >> $ENV{S2_LOG}
+
+&& ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
+&& >0 ${n} SLEEP ${sec} ${nsec}
+   ASSIGN thread $I{0}
+   && ASSIGN Status 0
+   && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_STRESS_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*)  fileStatuses=(?P<fileStatuses>.*)  remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "${srmTest}-$DATE{}: (${thread}) srmPrepareToGet, getRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
+      && ASSIGN GlobalStatus ${returnStatus_statusCode}
+      && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_INTERNAL_ERROR) ${returnStatus_statusCode}}
+         TEST $DEFINED{getRequestToken}
+            >0;;$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+               srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_STRESS_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+                 SYSTEM echo "${srmTest}-$DATE{}: (${thread}) requestToken=${-getRequestToken}, srmStatusOfGetRequest ${-returnStatus_statusCode}, Status of file 0: ${-StatusCode0}" >> $ENV{S2_LOG}
+               && TEST $EXPR{${returnStatus_statusCode} != ${GlobalStatus}}
+                  SYSTEM echo "${srmTest}-$DATE{}: (${thread}) requestToken=${-getRequestToken}, new srmStatusOfGetRequest=${-returnStatus_statusCode}, old srmStatusOfGetRequest=${GlobalStatus}" >> $ENV{S2_LOG}
+                  && ASSIGN GlobalStatus ${returnStatus_statusCode}
+               || SYSTEM exit 0
+
+%           && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE|SRM_INTERNAL_ERROR) ${returnStatus_statusCode}}
+
+   ;; TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_INTERNAL_ERROR) ${-returnStatus_statusCode}}
+   || SYSTEM  echo "${srmTest}-$DATE{}: (${thread}) requestToken=${getRequestToken}, srmPrepareToGet failed" >> $ENV{S2_LOG}
+      ASSIGN Status 2
+   && NOP
+      TEST $MATCH{SRM_FILE_PINNED ${StatusCode0}}
+         SYSTEM  echo "${srmTest}-$DATE{}: (${thread}) Get successful" >> $ENV{S2_LOG}
+      || SYSTEM  echo "${srmTest}-$DATE{}: (${thread}) srmStatusOfGetRequest failed" >> $ENV{S2_LOG}
+         ASSIGN Status 2
+   && SYSTEM exit ${Status}
+
+;; ASSIGN GStatus ${!}
+;; ASSIGN end $DATE{%s.%N}
+;; SYSTEM echo "${srmTest}-$DATE{}: end: ${end}" >> $ENV{S2_LOG}
+;; SYSTEM echo ${GStatus} >> $ENV{S2_LOG}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_STRESS_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${GStatus}
+
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}

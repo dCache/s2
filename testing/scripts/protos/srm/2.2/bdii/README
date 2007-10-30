@@ -1,0 +1,10 @@
+Release 2.0
+This tarball provides a set of scripts that all take as argument the host name
+of the SRM v2.2 endpoint. The scripts exit with a return code of 0 if 
+the check went OK or >0 if an error occured. In this last case, an explanation
+is printed out.
+The scripts require that the environmental variable LCG_GFAL_INFOSYS is set 
+to point to the BDII to be used by the scripts.
+
+Author: Flavia Donno
+Date: 29 October 2007

@@ -20,3 +20,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{"(SRM_SUCCESS|SRM_PARTIAL_SUCCESS)" ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+;; ASSIGN Status ${!}
+;; srmAbortRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
+

@@ -57,6 +57,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       && SYSTEM exit 0
 
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
 ;; SYSTEM exit ${Status}
 
 

@@ -26,4 +26,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 || SYSTEM echo "${srmTest}: KO: ${srmmethod} ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
+;; ASSIGN Status ${!}
+;; srmAbortRequest $ENV{ENDPOINT} requestToken=${bolRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
+
 % TODO: better checks when some SRM 2.2 server supports it

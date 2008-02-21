@@ -27,3 +27,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: OK: ${returnStatusOfCopy_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatusOfCopy_statusCode} ${-rs_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
+
+;; ASSIGN Status ${!}
+;; srmAbortRequest $ENV{ENDPOINT} requestToken=${getRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
+

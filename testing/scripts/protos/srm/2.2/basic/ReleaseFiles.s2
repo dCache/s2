@@ -9,12 +9,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && FUN GetCycle $ENV{FILE_TO_GET0} $ENV{SRM_NEW_FILE0} : getRequestToken
 
-%&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
-%    SYSTEM echo "${srmTest}: Executed PrepareToGet, fileRequests=SURL[$ENV{SRM_NEW_FILE0}]" >> $ENV{S2_LOG}
-%    && SYSTEM echo "${srmTest}: PrepareToGet, requestToken=${getRequestToken}, returnStatus=${-returnPToG_statusCode}" >> $ENV{S2_LOG}
-
-%&& TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToG_statusCode}}
-
 && SYSTEM echo "${srmTest}: Executing srmReleaseFiles">> $ENV{S2_LOG}
 && srmReleaseFiles $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<fileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
@@ -26,5 +20,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}, file level return code: ${fileStatus0}" >> $ENV{SRM2_SUPPORTED} && exit 1
 
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+;; ASSIGN Status ${!}
+;; srmAbortRequest $ENV{ENDPOINT} requestToken=${getRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
 
 % TODO: better test

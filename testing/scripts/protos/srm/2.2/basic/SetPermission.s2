@@ -16,3 +16,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
+;; ASSIGN Status ${!}
+;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}

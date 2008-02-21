@@ -45,7 +45,8 @@ else
    echo ""
 #
    for t in ${var}; do
-     if test -z `eval echo "$"${t}`; then
+     bla=`eval echo "$"${t}`
+     if test -z "${bla}"; then
        echo "Error: No Glue${t} attribute present"
        echo "Command executed: "
        echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueSE)(GlueSEUniqueID="$hst"))' Glue${t}"

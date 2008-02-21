@@ -239,10 +239,9 @@ main() {
       # Normal S2 run
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
       echo -e "${S2_TEST_FILE}:"
-      time ${S2_BIN}\
+      time DG_DBG=0 ${S2_BIN}\
         --file=${S2_TEST_FILE}\
         --pp-out-file=${S2_P}\
-        --dbg-file=${S2_D}\
         --err-file=${S2_E}\
         --log-file=${S2_L}\
         --warn-file=${S2_W}\

@@ -11,7 +11,7 @@ if test -z ${LCG_GFAL_INFOSYS}; then
   exit 1
 fi
 Stat=0
-VOs=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst'))' GlueSAAccessControlBaseRule | sed -n '/^GlueSAAccessControlBaseRule: / s/^GlueSAAccessControlBaseRule: [VO:]*//gp' | sort -u`
+VOs=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst'))' GlueSAAccessControlBaseRule | sed -n '/^GlueSAAccessControlBaseRule: / s/^GlueSAAccessControlBaseRule: [VO:|VOMS:]*//gp' | sort -u`
 if test -z "${VOs}"; then
   echo ""
   echo "Error: No GlueSA object defined or GlueSAAccessControlBaseRule attribute missing"
@@ -35,43 +35,56 @@ else
   fi
 fi
 #
-for vo in `echo $VOs`; do
-  fil=/tmp/${vo}$$
-  ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueSAAccessControlBaseRule='${vo}')(GlueSAAccessControlBaseRule=VO:'${vo}'))(GlueSALocalID='${vo}'))' GlueSAPath GlueSAPolicyFileLifeTime GlueSAStateAvailableSpace > ${fil}
-  if test ! -s ${fil}; then
-     echo ""
-     echo "Error: No GlueSA object for VO ${vo} defined with GlueSALocalID=${vo}"
-     echo ""
-     /bin/rm ${fil}
-     Stat=2
-  else 
-    echo ""
-    cat ${fil}
-    var="SAPath SAPolicyFileLifeTime SAStateAvailableSpace"
-    SAPath=`cat ${fil} | sed -n '/^GlueSAPath:/ s/GlueSAPath: //gp'`
-    SAPolicyFileLifeTime=`cat ${fil} | sed -n '/^GlueSAPolicyFileLifeTime:/ s/GlueSAPolicyFileLifeTime: //gp'`
-    if test "x${SAPolicyFileLifeTime}" != "xpermanent"; then
-      echo "Error: GlueSAPolicyFileLifeTime value different than permanent for GlueSA with GlueSALocalID=${vo}"
-      Stat=2
-      echo ""
-    fi
-    SAStateAvailableSpace=`cat ${fil} | sed -n '/^GlueSAStateAvailableSpace:/ s/GlueSAStateAvailableSpace: //gp'`
-    /bin/rm ${fil}
-    for t in ${var}; do
-      echo "Glue${t}: "`eval echo "$"${t}`
-    done
-    echo ""
+# Check if this service has only an SRM v2.2 endpoint. In this case
+# the old GlueSA with GlueSAID=<vo> is not needed.
 #
-    for t in ${var}; do
-      if test -z `eval echo "$"${t}`; then
+srm11=1
+ServType=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueService)(GlueServiceUniqueID=httpg://'$hst'*/srm/managerv1)(GlueServiceVersion=1.1.0))' GlueServiceType |  sed -n '/^GlueServiceType: / s/GlueServiceType: //pg'`
+if test -z "${ServType}"; then
+  echo "Warning: This host does not run an SRM v1.1 service"
+  echo ""
+  srm11=0
+fi
+#
+for vo in `echo $VOs`; do
+  if test ${srm11} -gt 0; then 
+    fil=/tmp/${vo}$$
+    ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueSAAccessControlBaseRule='${vo}')(GlueSAAccessControlBaseRule=VO:'${vo}'))(GlueSALocalID='${vo}'))' GlueSAPath GlueSAPolicyFileLifeTime GlueSAStateAvailableSpace > ${fil}
+    if test ! -s ${fil}; then
        echo ""
-       echo "Error: No Glue${t} attribute present for GlueSA with GlueSALocalID=${vo}"
-       echo "Command executed: "
-       echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID="$hst")(GlueSAAccessControlBaseRule=*"$vo")(GlueSALocalID="${vo}"))' Glue${t}"
+       echo "Error: No GlueSA object for VO ${vo} defined with GlueSALocalID=${vo}"
        echo ""
+       /bin/rm ${fil}
        Stat=2
-      fi
-    done
+    else 
+       echo ""
+       cat ${fil}
+       var="SAPath SAPolicyFileLifeTime SAStateAvailableSpace"
+       SAPath=`cat ${fil} | sed -n '/^GlueSAPath:/ s/GlueSAPath: //gp'`
+       SAPolicyFileLifeTime=`cat ${fil} | sed -n '/^GlueSAPolicyFileLifeTime:/ s/GlueSAPolicyFileLifeTime: //gp'`
+       if test "x${SAPolicyFileLifeTime}" != "xpermanent"; then
+         echo "Error: GlueSAPolicyFileLifeTime value different than permanent for GlueSA with GlueSALocalID=${vo}"
+         Stat=2
+         echo ""
+       fi
+       SAStateAvailableSpace=`cat ${fil} | sed -n '/^GlueSAStateAvailableSpace:/ s/GlueSAStateAvailableSpace: //gp'`
+       /bin/rm ${fil}
+       for t in ${var}; do
+         echo "Glue${t}: "`eval echo "$"${t}`
+       done
+       echo ""
+#
+       for t in ${var}; do
+         if test -z `eval echo "$"${t}`; then
+            echo ""
+            echo "Error: No Glue${t} attribute present for GlueSA with GlueSALocalID=${vo}"
+            echo "Command executed: "
+            echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID="$hst")(GlueSAAccessControlBaseRule=*"$vo")(GlueSALocalID="${vo}"))' Glue${t}"
+            echo ""
+            Stat=2
+         fi
+       done
+    fi
   fi
 #
   SAIDs=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueSAAccessControlBaseRule='${vo}')(GlueSAAccessControlBaseRule=VO:'${vo}'))(!(GlueSALocalID='${vo}')))' GlueSALocalID | sed -n '/^GlueSALocalID: / s/^GlueSALocalID: //gp'`
@@ -150,21 +163,21 @@ else
       vo=`echo ${votag} | cut -d: -f1`
       if test "x${vo}" != "x${oldvo}"; then
         oldvo=${vo}
-        VOInfoTags=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueVOInfoAccessControlBaseRule='${vo}')(GlueVOInfoAccessControlBaseRule=VO:'${vo}')))' GlueVOInfoTag | sed -n -e '/^GlueVOInfoTag: / s/GlueVOInfoTag: //pg'`
+        VOInfoTags=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueVOInfoAccessControlBaseRule='${vo}')(GlueVOInfoAccessControlBaseRule=VO:'${vo}')(GlueVOInfoAccessControlBaseRule=VOMS:/'${vo}'*)))' GlueVOInfoTag | sed -n -e '/^GlueVOInfoTag: / s/GlueVOInfoTag: //pg'`
         if test -z "${VOInfoTags}"; then
           echo ""
           echo "Warning: No GlueVOInfo object class or GlueChunkKey/GlueVOInfoAccessControlBaseRule attribute missing"
           echo "Command executed: "
-          echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID="$hst")(|(GlueVOInfoAccessControlBaseRule="$vo")(GlueVOInfoAccessControlBaseRule=VO:"$vo")))'"
+          echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID="$hst")(|(GlueVOInfoAccessControlBaseRule="$vo")(GlueVOInfoAccessControlBaseRule=VO:"$vo")(GlueVOInfoAccessControlBaseRule=VOMS:/"${vo}"*)))'"
           echo ""
         else
           for tag in `echo $VOInfoTags`; do
             voInfofil=/tmp/voInfo$$
-            ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueVOInfoAccessControlBaseRule='${vo}')(GlueVOInfoAccessControlBaseRule=VO:'${vo}'))(GlueVOInfoTag='${tag}'))' GlueVOInfoLocalID GlueVOInfoName GlueVOInfoPath GlueVOInfoTag > ${voInfofil}
+            ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueVOInfoAccessControlBaseRule='${vo}')(GlueVOInfoAccessControlBaseRule=VO:'${vo}')(GlueVOInfoAccessControlBaseRule=VOMS:/'${vo}'*))(GlueVOInfoTag='${tag}'))' GlueVOInfoLocalID GlueVOInfoName GlueVOInfoPath GlueVOInfoTag > ${voInfofil}
             if test ! -s ${voInfofil}; then
                echo ""
                echo "Error: No GlueVOInfo object returned by query"
-               echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID="$hst"')(|(GlueVOInfoAccessControlBaseRule="${vo}")(GlueVOInfoAccessControlBaseRule=VO:"${vo}"))(GlueVOInfoTag="${tag}"))'"
+               echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID="$hst"')(|(GlueVOInfoAccessControlBaseRule="${vo}")(GlueVOInfoAccessControlBaseRule=VO:"${vo}")(GlueVOInfoAccessControlBaseRule=VOMS:/"${vo}"*))(GlueVOInfoTag="${tag}"))'"
                echo ""
                /bin/rm -f ${voInfofil}
                Stat=2

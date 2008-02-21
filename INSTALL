@@ -27,7 +27,8 @@ getting a package of your choice from an RPM package:
 Binary distribution
 ~~~~~~~~~~~~~~~~~~~
 The S2 binary has been compiled on a Scientifix Linux 3.0.5 Fermi, and
-was successfully tested on SL 3.0.5 and SL 4.3 (Fermi).  You will need
+was successfully tested on SL 3.0.5 and SL 4.3 (Fermi).  It has been
+compiled as well on Scientifix Linux 3 and 4 CERN. You will need
 compat-libstdc++-33 to use the binary on SL 4.3.
 
 The <RPM> is installed by 

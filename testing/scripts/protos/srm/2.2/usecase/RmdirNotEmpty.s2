@@ -1,0 +1,66 @@
+% RmdirNotEmpty: Checking removal of non empty directory
+% This test checks for the proper return code of srmRmDir if the directory
+% to be removed is not empty. The directory created is then removed.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmMkdir
+% srmPrepareToPut
+% srmStatusOfPutRequest
+% srmPutDone
+% srmLs
+% srmRmdir
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+
+&& ASSIGN GStatus 0
+&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+
+% Put two files into the newly created directory
+&& SYSTEM echo "${srmTest}: Put two files into the newly created directory, $ENV{SRM_NEW_DIR0}/f0 and $ENV{SRM_NEW_DIR0}/f1" >> $ENV{S2_LOG}
+&& ASSIGN fileToPut "$ENV{FILE_TO_PUT0} $ENV{FILE_TO_PUT1}"
+&& ASSIGN sURL "$ENV{SRM_NEW_DIR0}/f0 $ENV{SRM_NEW_DIR0}/f1"
+   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
+      SYSTEM echo "${srmTest}: Put operation successful"  >> $ENV{S2_LOG}
+   || SYSTEM echo "${srmTest}: Put operation failed"  >> $ENV{S2_LOG}
+
+% Listing the content of the directory
+&& SYSTEM echo "${srmTest}: Listing the content of the directory $ENV{SRM_NEW_DIR0}"  >> $ENV{S2_LOG}
+&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed srmLs, pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${pathDetails}}
+      SYSTEM echo "${srmTest}: First File is returned: ${Path0}" >> $ENV{S2_LOG}
+   || ASSIGN GStatus 2
+      SYSTEM echo "${srmTest}: First File is not returned" >> $ENV{SRM2_SUPPORTED}
+   && TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${pathDetails}}
+      SYSTEM echo "${srmTest}: Second File is returned: ${Path1}" >> $ENV{S2_LOG}
+   || ASSIGN GStatus 2
+      SYSTEM echo "${srmTest}: Second File is not returned" >> $ENV{S2_LOG}
+
+&& SYSTEM exit ${GStatus}
+
+&& SYSTEM echo "${srmTest}: Removing non-empty directory SURL=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+
+&& srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0  returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& NOP
+   TEST $MATCH{(SRM_NON_EMPTY_DIRECTORY) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 0
+   || SYSTEM echo "${srmTest}: srmRmdir returnStatus=${returnStatus_statusCode} - Wrong return code" >> $ENV{S2_LOG} && exit 2
+
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+;; ASSIGN GStatus ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$SPLIT{${sURL}}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed Rm of SURLs ${sURL}"  >> $ENV{S2_LOG}
+
+;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
+   SYSTEM echo "${srmTest}: Executed Rmdir, SURL=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: srmRmdir returnStatus: ${-returnRmdir_statusCode}" >> $ENV{S2_LOG}
+;; SYSTEM exit ${GStatus} 

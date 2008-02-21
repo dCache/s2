@@ -36,8 +36,8 @@ if test -s /tmp/$$_Group_sorted -a -s /tmp/$$_Group_sorted ; then
 else
   echo "Error: No GlueCESEBind or GlueCESEBindGroup object found for ${hst}"
   echo "Commands executed: "
-  echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueCESEBindGroup)((GlueCESEBindGroupSEUniqueID="$hst"))'"
-  echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueCESEBind)((GlueCESEBindSEUniqueID="$hst"))'"
+  echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueCESEBindGroup)(GlueCESEBindGroupSEUniqueID="$hst"))'"
+  echo 'ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid"' "'(&(objectClass=GlueCESEBind)(GlueCESEBindSEUniqueID="$hst"))'"
   excode=2
 fi
 rm /tmp/$$_Group_sorted /tmp/$$_CE_sorted

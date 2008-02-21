@@ -1,3 +1,6 @@
+2007-08-13 15:01 Flavia Donno
+	* all: Improve stress test family
+
 2007-05-14 14:55 Flavia Donno
 	* all: Proper clean-up after script execution + Allow for unsupported storage classes.
 

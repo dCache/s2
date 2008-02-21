@@ -1,5 +1,8 @@
 Copyright (c) 2004--2006, Rutherford Appleton Laboratory, Oxford
 All rights reserved.
+Copyright (c) 2006--2007, CERN, Switzerland
+All rights reserved.
+
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -13,8 +16,8 @@ are met:
     disclaimer in the documentation and/or other materials provided
     with the distribution.
 
-  * Neither the name of the Rutherford Appleton Laboratory nor the
-    names of its contributors may be used to endorse or promote
+  * The name of the Rutherford Appleton Laboratory, CERN or the
+    names of its contributors cannot be used to endorse or promote
     products derived from this software without specific prior
     written permission.
 

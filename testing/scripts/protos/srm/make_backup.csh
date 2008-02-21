@@ -25,6 +25,12 @@ switch ( "$1" )
   case "avail":
      set rootdir = "/home/tests/testing/scripts/protos/srm/2.2/avail"
      breaksw
+  case "bdii":
+     set rootdir = "/home/tests/testing/scripts/protos/srm/2.2/bdii"
+     breaksw
+  case "lcg-utils":
+     set rootdir = "/home/tests/testing/scripts/protos/srm/2.2/lcg-utils"
+     breaksw
   default:
      echo "Test directory option not recognized"
      exit 1

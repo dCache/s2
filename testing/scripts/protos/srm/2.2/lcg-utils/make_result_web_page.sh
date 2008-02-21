@@ -18,10 +18,10 @@ cat << EOF >> ${Index_File}
 <HTML> 
 <BODY BGCOLOR="#FFFFCC">
 <HEAD> 
-  <TITLE>Summary of S2 SRM v2.2 bdii tests</TITLE> 
+  <TITLE>Summary of S2 SRM v2.2 lcg-utils tests</TITLE> 
 </HEAD> 
 <CENTER>
-<H3>Summary of S2 SRM v2.2 bdii test - $tim</H3>
+<H3>Summary of S2 SRM v2.2 lcg-utils test - $tim</H3>
 </CENTER>
 <TABLE BORDER=2 CELLPADDING=1 CELLSPACING=1> 
 <!-- header --> 

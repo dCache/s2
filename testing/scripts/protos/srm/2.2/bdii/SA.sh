@@ -49,13 +49,12 @@ fi
 for vo in `echo $VOs`; do
   if test ${srm11} -gt 0; then 
     fil=/tmp/${vo}$$
-    ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueSAAccessControlBaseRule='${vo}')(GlueSAAccessControlBaseRule=VO:'${vo}'))(GlueSALocalID='${vo}'))' GlueSAPath GlueSAPolicyFileLifeTime GlueSAStateAvailableSpace > ${fil}
+    ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueSAAccessControlBaseRule='${vo}')(GlueSAAccessControlBaseRule=VO:'${vo}')(GlueSAAccessControlBaseRule=VOMS:/'${vo}'/*)(GlueSALocalID='${vo}'))' GlueSAPath GlueSAPolicyFileLifeTime GlueSAStateAvailableSpace > ${fil}
     if test ! -s ${fil}; then
        echo ""
-       echo "Error: No GlueSA object for VO ${vo} defined with GlueSALocalID=${vo}"
+       echo "Warning: No GlueSA object for VO ${vo} defined with GlueSALocalID=${vo}"
        echo ""
        /bin/rm ${fil}
-       Stat=2
     else 
        echo ""
        cat ${fil}
@@ -91,10 +90,13 @@ for vo in `echo $VOs`; do
 #
 #  SAIDs=`echo ${SAID} | sed 's/'${vo}'//gp'`
   if test "x${SAIDs}" = "x" ; then
-     echo ""
-     echo "Error: No GlueSA object for VO ${vo} defined with GlueSALocalID!=${vo}"
-     echo ""
-     Stat=2
+     VOId=`ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueVOInfoAccessControlBaseRule='${vo}')(GlueVOInfoAccessControlBaseRule=VO:'${vo}')(GlueVOInfoAccessControlBaseRule=VOMS:/'${vo}'/*)))' GlueVOInfoLocalID`
+     if test "x${VOId}" != "x"; then
+        echo ""
+        echo "Error: No GlueSA object for VO ${vo} defined with GlueSALocalID!=${vo} while VOInfo object with GlueVOInfoLocalID=${VOId} exists"
+        echo ""
+        Stat=2
+     fi
   fi
 # 
   for sa in `echo ${SAIDs}`; do

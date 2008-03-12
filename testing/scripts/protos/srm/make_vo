@@ -1,0 +1,99 @@
+#!/bin/csh
+#
+# Set the environment
+#
+setenv LCG_GFAL_INFOSYS lcg-bdii.cern.ch:2170
+set envpath = "/home/tests/env"
+set srm_root = "/home/tests/testing/scripts/protos/srm"
+#
+# Check the arguments passed
+#
+if ( $# < 1 ) then
+ echo "Please specify list of vos"
+ echo "$argv[0] <volist between quotes>"
+ exit 1
+else
+ set volist = (`echo "$1"`)
+endif
+#
+set endpointdir = ${S2_LOGS_DIR}
+set hst = `grep " ${S2_TEST_SITE})" ${srm_root}/s2.env | sed -n 's/\(.*\/\/\)\([^ ]*\)\(:.*\)/\2/pg'`
+#
+# Creating log directory if it does not exist
+#
+if ( ! -d ${endpointdir} ) then
+   mkdir -p ${endpointdir}
+else
+   /bin/rm ${endpointdir}/*
+endif
+#
+#
+#set volist = ( "atlas" "cms" "lhcb" )
+foreach vo ( $volist )
+  onintr again
+#
+  set VOInfoFile = ${endpointdir}/VOInfo.txt
+  ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueVOInfo)(GlueChunkKey=GlueSEUniqueID='$hst')(|(GlueVOInfoAccessControlBaseRule='${vo}')(GlueVOInfoAccessControlBaseRule=VO:'${vo}')(GlueVOInfoAccessControlBaseRule=VOMS:/'${vo}'*)))' GlueVOInfoTag GlueVOInfoPath > ${VOInfoFile}
+  if ( ! -s $VOInfoFile ) then
+     /bin/rm ${VOInfoFile}
+     ldapsearch -LLL -h $LCG_GFAL_INFOSYS -x -b "o=grid" '(&(objectClass=GlueSA)(GlueChunkKey=GlueSEUniqueID='$hst')(!(GlueSALocalID='${vo}'))(|(GlueSAAccessControlBaseRule='${vo}')(GlueSAAccessControlBaseRule=VO:'${vo}')(GlueVOInfoAccessControlBaseRule=VOMS:/'${vo}'*)))' GlueSAPath > ${VOInfoFile}
+     if ( ! -s $VOInfoFile ) then
+        /bin/rm ${VOInfoFile}
+        goto again
+     else
+        set vopaths = ( `cat ${VOInfoFile} | sed -n '/^GlueSAPath:/ s/GlueSAPath: //pg'` )
+        set votokens = ()
+     endif
+  else
+     set votokens = ( `cat ${VOInfoFile} | sed -n '/^GlueVOInfoTag:/ s/GlueVOInfoTag: //pg'` )
+     set vopaths = ( `cat ${endpointdir}/VOInfo.txt | sed -n '/^GlueVOInfoPath:/ s/GlueVOInfoPath: //pg'` )
+  endif
+  /bin/rm -f ${VOInfoFile}
+#
+# Logging the VO name
+#
+  echo "Processing vo ${vo} for host $hst ..."
+  echo " "
+#
+# Getting VO proxy
+#
+  unsetenv VO
+  setenv VO ${vo}
+  source ${envpath}/s2_proxy
+#
+# Looping over options and execute tests
+#
+  @ i = 1
+  unsetenv VOPATH VOPATHTAG VOTOKEN VOTOKENTAG
+  while ( $i <= $#vopaths )
+     unsetenv VOPATH VOPATHTAG VOTOKEN VOTOKENTAG
+     setenv VOPATH $vopaths[$i]
+     setenv VOPATHTAG "Path-${i}"
+     if ( $#votokens != 0 ) then
+        setenv VOTOKEN $votokens[$i]
+        setenv VOTOKENTAG ${VOTOKEN}
+     else
+        setenv VOTOKENTAG "NULL"
+     endif
+     make -e test
+#
+#  Move exit.log to exit_vo.log and index.html to index_vo.html
+#
+   
+     /bin/mv ${endpointdir}/exit.log ${endpointdir}/exit_${vo}-${VOTOKENTAG}-${VOPATHTAG}.log
+     /bin/mv ${endpointdir}/index.html ${endpointdir}/index_${vo}-${VOTOKENTAG}-${VOPATHTAG}.html
+     @ i = $i + 1
+  end
+#
+/bin/cat ${endpointdir}/index_${vo}*.html > ${endpointdir}/nindex-${vo}.html
+/bin/mv ${endpointdir}/nindex-${vo}.html ${endpointdir}/index-${vo}.html
+again:
+end
+#
+# Create proper index.html file
+#
+/bin/cat ${endpointdir}/index*.html > ${endpointdir}/nindex.html
+/bin/mv ${endpointdir}/nindex.html ${endpointdir}/index.html
+#
+# The end
+#

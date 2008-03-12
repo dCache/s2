@@ -4,8 +4,9 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
+&& ASSIGN SpaceTokenDescription $ENV{SPACE_TOKEN_DESCR}
 
-&& srmReserveSpace $ENV{ENDPOINT} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmReserveSpace $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executing ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: desiredLifetimeOfReservedSpace=$ENV{LIFETIME}" >> $ENV{S2_LOG}

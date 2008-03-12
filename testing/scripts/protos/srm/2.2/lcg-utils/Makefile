@@ -2,6 +2,8 @@
 
 .PHONY:	test
 
+ln: 
+
 all: test
 
 help:

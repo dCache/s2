@@ -241,13 +241,9 @@ main() {
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 ${S2_BIN}\
         --file=${S2_TEST_FILE}\
-        --pp-out-file=${S2_P}\
         --err-file=${S2_E}\
-        --log-file=${S2_L}\
         --warn-file=${S2_W}\
-        --e0-file=${S2_E0}\
         --e1-file=${S2_E1}\
-        --e2-file=${S2_E2}\
         $@\
         > ${S2_OUT}
       err=$?

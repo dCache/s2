@@ -77,6 +77,6 @@ clean_log:
 	@cd $(S2_LOGS_DIR) 2>/dev/null; rm -f $(S2_LOGS)
 
 clean: clean_log
-	@find . -name \*.sh -type l -maxdepth 0 -exec rm -f {} \;
+	@find . -name \*.sh -type l -maxdepth 1 -exec rm -f {} \;
 
 distclean mclean: clean

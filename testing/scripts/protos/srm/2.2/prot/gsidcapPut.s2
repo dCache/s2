@@ -4,8 +4,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../../include/FileTransPut.s2
 
-&& ASSIGN Status 0
-
 #if $ENV{DCACHE}
 
 && ASSIGN Overwrite NEVER
@@ -13,33 +11,41 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN retention_policy REPLICA
 && ASSIGN transfer_protocol gsidcap
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[${transfer_protocol}]  retentionPolicy=${retention_policy} accessLatency=${access_latency} requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& >0 $ENV{N_THREADS} NOP
+   ASSIGN Status 0
+   && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}$I{0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[${transfer_protocol}]  retentionPolicy=${retention_policy} accessLatency=${access_latency} requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
+   && TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
 
-|| >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-   srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
+   || >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}$I{0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
+   && TEST $MATCH{(SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
 
-|| TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   NOP
-      SYSTEM $ENV{GSIDCAP_PATH}/dccp -o 5 $ENV{FILE_TO_PUT0} ${transferURL0} >> $ENV{S2_LOG} 2>&1
-      && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
-         && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+   || TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      NOP
+         SYSTEM $ENV{GSIDCAP_PATH}/dccp -A -o 5 $ENV{FILE_TO_PUT0} ${transferURL0} >> $ENV{S2_LOG} 2>&1
+         && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}$I{0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+            && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+   && TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   || ASSIGN Status ${!}
+      SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}$I{0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
+;; ASSIGN GStatus ${!}
+;; SYSTEM exit ${GStatus}
+&& SYSTEM echo "${srmTest}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+
+#else
+;; SYSTEM exit 0
 #endif
-
-;; SYSTEM exit ${Status}
-
 

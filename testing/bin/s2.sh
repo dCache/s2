@@ -241,9 +241,13 @@ main() {
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 ${S2_BIN}\
         --file=${S2_TEST_FILE}\
+	--pp-out-file=/dev/null\
         --err-file=${S2_E}\
+        --log-file=/dev/null\
         --warn-file=${S2_W}\
+        --e0-file=/dev/null\
         --e1-file=${S2_E1}\
+        --e2-file=/dev/null\
         $@\
         > ${S2_OUT}
       err=$?

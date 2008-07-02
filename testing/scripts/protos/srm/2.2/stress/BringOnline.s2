@@ -85,6 +85,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 
 ;; ASSIGN Status ${!}
+;; SYSTEM echo "${srmTest}-$DATE{}: srmLs FileLocality=${FileLocality0}" >> $ENV{S2_LOG}
 ;; ASSIGN end $DATE{%s.%N}
 ;; SYSTEM echo "${srmTest}-$DATE{}: end: ${end}" >> $ENV{S2_LOG}
 ;; srmRm $ENV{ENDPOINT} SURL[${sURL1}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

@@ -1,0 +1,66 @@
+% Ping:
+% This test pings the endpoint and then invokes srmReserveSpace 
+% to check if space management has been turned on.
+%
+% SRM calls performed by the test:
+% --------------------------------
+% srmReserveSpace
+% srmStatusOfReserveSpaceRequest
+% srmReleaseSpace
+% srmAbortRequest
+% srmPing
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+&& srmPing $ENV{ENDPOINT} versionInfo=(?P<versionInfo>.*) otherInfo=(?P<otherInfo>.*)
+   SYSTEM echo -e "versionInfo=${versionInfo}\notherInfo=${-otherInfo}" > $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED}
+   ASSIGN Status 2
+   && SYSTEM exit 2
+ 
+#if $ENV{CASTOR}
+#else
+&& ASSIGN Status 0
+&& ASSIGN SpaceTokenDescription $ENV{SPACE_TOKEN_DESCR}
+&& NOP
+   srmReserveSpace $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} retentionPolicy=REPLICA accessLatency=ONLINE desiredSizeOfTotalSpace=50000000 desiredSizeOfGuaranteedSpace=50000000 desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      SYSTEM echo "${srmTest}: Executed ReserveSpace SpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} Lifetime=$ENV{LIFETIME}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] TotalSpace=50MB" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_AUTHORIZATION_FAILURE) ${returnStatus_statusCode}}
+      TEST ! $DEFINED{requestToken}
+         SYSTEM echo "${srmTest}: srmReserveSpace; spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+         && SYSTEM echo "${srmTest}: srmReserveSpace synchronous - Space Management is ON" >> $ENV{SRM2_SUPPORTED} && exit 0
+
+   || TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+      TEST $DEFINED{requestToken}
+          >0||5 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+             srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+               SYSTEM echo "${srmTest}: srmStatusOfReserveSpaceRequest, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+               && SYSTEM echo "${srmTest}: srmStatusOfReserveSpaceRequest, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+             && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_AUTHORIZATION_FAILURE) ${returnStatus_statusCode}}
+
+      || SYSTEM echo "${srmTest}: KO: ReserveSpace asynchronous and requestToken not returned" >> $ENV{SRM2_SUPPORTED}
+         ASSIGN Status 2
+         && SYSTEM exit 2
+
+   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_AUTHORIZATION_FAILURE) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode} - Space Management is turned ON" >> $ENV{SRM2_SUPPORTED}
+
+   || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation} (s2: ${-sExplanation})" >> $ENV{SRM2_SUPPORTED}
+      ASSIGN Status 2
+      && SYSTEM exit 2
+
+;; NOP
+   TEST $DEFINED{requestToken} && ! $DEFINED{spaceToken}
+      srmAbortRequest $ENV{ENDPOINT} requestToken=${requestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM exit 0
+   || TEST $DEFINED{spaceToken}
+      srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM exit 0
+
+;; SYSTEM exit ${Status}
+#endif

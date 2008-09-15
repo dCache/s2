@@ -1,4 +1,4 @@
-% % $Id: OverwritePin.s2,v 1.13 2008/07/02 08:42:24 flaviadonno Exp $
+% % $Id: OverwritePin.s2,v 1.14 2008/09/15 12:55:31 flaviadonno Exp $
 % OverwritePin.s2: Puts a file, then prepares to get it. Then overwrites the file and does a statusOfGet request. The file should be unavailable.
 %
 % srmPrepareToGet

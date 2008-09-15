@@ -80,7 +80,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM exit 0
    || TEST $DEFINED{spaceToken}
       srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) 
+#if $ENV{CERN}
+#else
       && srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+#endif
       && SYSTEM exit 0
 
 ;; SYSTEM exit ${Status}

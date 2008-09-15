@@ -7,6 +7,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& ASSIGN Status 0
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 && SYSTEM echo "${srmTest}: srmMv from Source to same Destination is executed" >> $ENV{S2_LOG}
@@ -17,4 +18,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: OK srmMv returned SRM_SUCCESS, saying: ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
 
-|| SYSTEM echo "${srmTest}: KO srmMv failed to move to same file: return code=${-MvStatus}, explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: KO srmMv failed to move to same file: return code=${-MvStatus}, explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Status}
+

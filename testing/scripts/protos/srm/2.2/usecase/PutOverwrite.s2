@@ -8,6 +8,7 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
+&& ASSIGN Stat2 0
 && SYSTEM echo "${srmTest}: Executing first PrepareToPut with overwrite enabled..." >> $ENV{S2_LOG}
 
 && srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=".*returnStatus.statusCode0=(?P<Status1Code0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus1_explanation>.*) returnStatus.statusCode=(?P<returnStatus1_statusCode>.*)
@@ -54,4 +55,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 || SYSTEM echo "${srmTest}: KO PrepareToPut returnStatus1 = ${-returnStatus1_statusCode} returnStatus2 = ${-returnStatus2_statusCode}, File level return status status1 = ${-Status1Code0}, status2=${-Status2Code0}" >> $ENV{SRM2_SUPPORTED}
    TEST $DEFINED{Status}
      SYSTEM exit 0
-   || SYSTEM exit 2
+   || ASSIGN Stat2 2
+      SYSTEM exit 2
+
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Stat2}
+

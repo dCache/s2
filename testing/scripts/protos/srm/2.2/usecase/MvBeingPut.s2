@@ -1,4 +1,4 @@
-% $Id: MvBeingPut.s2,v 1.20 2008/07/02 08:42:24 flaviadonno Exp $
+% $Id: MvBeingPut.s2,v 1.21 2008/09/15 12:55:31 flaviadonno Exp $
 % MvBeingPut: Try to move a file being put.
 %
 % srmPrepareToPut
@@ -8,6 +8,7 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
+&& ASSIGN Status 0
 && SYSTEM echo "${srmTest}: Preparing to put file" >> $ENV{S2_LOG}
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
@@ -28,6 +29,13 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} || ( $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}} && $MATCH{(SRM_INVALID_PATH) ${StatusCode0}} )
    && SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
-   || SYSTEM echo "${srmTest}: KO: test failed, PutDone returned ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   || ASSIGN Status ${!}
+      SYSTEM echo "${srmTest}: KO: test failed, PutDone returned ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-|| SYSTEM echo "${srmTest}: Test failed:${returnStatus_statusCode}" >> $ENV{S2_LOG} && exit ${!}
+|| ASSIGN Status ${!}
+   SYSTEM echo "${srmTest}: Test failed:${returnStatus_statusCode}" >> $ENV{S2_LOG} && exit ${!}
+
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; SYSTEM exit ${Status}
+

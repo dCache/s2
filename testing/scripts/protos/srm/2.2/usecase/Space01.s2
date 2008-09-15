@@ -122,8 +122,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       srmAbortRequest $ENV{ENDPOINT} requestToken=${SpacerequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       && SYSTEM exit 0
    || TEST $DEFINED{spaceToken}
+#if $ENV{CERN}
+      SYSTEM exit 0
+#else
       srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       && SYSTEM exit 0
+#endif
 
 ;; SYSTEM exit ${Status}
 

@@ -41,5 +41,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; ASSIGN Status ${!}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
 ;; SYSTEM exit ${Status}
 

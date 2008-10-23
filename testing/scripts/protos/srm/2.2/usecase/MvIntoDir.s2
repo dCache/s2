@@ -29,9 +29,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 || ASSIGN Status ${!}
    SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
 
 ;; SYSTEM exit ${Status}
 

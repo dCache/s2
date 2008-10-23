@@ -45,6 +45,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
 
 && SYSTEM echo "${srmTest}: Cleaning up srmRmdir SURL=$ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_NEWDIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
    SYSTEM echo "${srmTest}: srmRmdir of $ENV{SRM_NEW_DIR0}x returned: ${-returnRmdir_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG}
    && SYSTEM exit ${Status}

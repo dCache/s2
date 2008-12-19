@@ -1,0 +1,47 @@
+% Pin03: Puts a file, then releases it. Then tries to increase the pin lifetime using the original request token
+% which should fail
+% 
+% put cycle:
+%   srmPrepareToPut
+%   srmStatusOfPutRequest
+%   srmPutDone
+% srmReleaseFiles
+% srmExtendFileLifeTime
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+   #include ../include/PutCycle.s2
+   #include ../include/GetCycle.s2
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& ASSIGN fileToPut $ENV{FILE_TO_PUT0}
+&& ASSIGN sURL $ENV{SRM_NEW_FILE0}
+   FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
+&& ASSIGN fileToGet $ENV{FILE_TO_GET0}
+   FUN GetCycle ${fileToGet} ${sURL} : getRequestToken
+
+&& ASSIGN Pin 8000
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% try to extend the pins 
+&& SYSTEM echo "${srmTest}: Executing ExtendFileLifeTime again on TURL with request token." >> $ENV{S2_LOG}
+
+&& srmExtendFileLifeTime $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] newPinLifeTime=${Pin} fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnExtendTURL_statusCode>.*)
+   TEST $MATCH{(SRM_SUCCESS) ${returnExtendTURL_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<fileStatus0>(SRM_SUCCESS))(\s.+|$)" ${fileStatuses}}
+     SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+   || SYSTEM echo "{srmTest}: KO srmExtendFileLifeTime failed, returnStatus=${returnReleaseStatus_statusCode}, fileStatus=${fileStatus0}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+
+&& srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   TEST $MATCH{".*remainingPinTime0=(?P<pin1Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses}}
+      TEST ${Pin} <= ${pin1Lifetime0}
+         SYSTEM echo "${srmTest}: Obtained PIN=${pin1Lifetime0} is consistent with requested value ${Pin}" >> $ENV{S2_LOG}
+      || SYSTEM echo "${srmTest}: Obtained PIN=${pin1Lifetime0} is non consistent with requested value ${Pin}" >> $ENV{S2_LOG} && exit 2
+
+;; ASSIGN Status ${!}
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM exit ${Status}
+
+&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}

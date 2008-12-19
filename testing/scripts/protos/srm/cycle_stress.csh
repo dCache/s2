@@ -125,7 +125,8 @@ if ( ! -d ${datdir} ) mkdir -p ${datdir}
 #
 # Copy index file there
 #
-set tim = `date +"%k:%M"`
+#set tim = `date +"%k:%M"`
+set tim = `date +"%R"`
 mkdir -p ${datdir}/${tim}
 /bin/cp ${rootdir}/s2_logs/index.html_new ${datdir}/${tim}/index.html
 /bin/mv ${rootdir}/s2_logs/index.html_new ${rootdir}/s2_logs/index.html

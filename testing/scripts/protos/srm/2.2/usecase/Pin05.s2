@@ -27,7 +27,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Executing Get1 request on $ENV{SRM_NEW_FILE0} with desiredPinLifeTime=$ENV{PIN_LIFETIME}" >> $ENV{S2_LOG}
 
-&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequest1Token>.*) fileStatuses=(?P<fileStatuses1>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequest1Token>.*) fileStatuses=(?P<fileStatuses1>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: srmPrepareToGet, getRequest1Token=${getRequest1Token}" >> $ENV{S2_LOG}
@@ -50,7 +50,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM echo "${srmTest}: $DATE{} PIN1 set to ${pin1Lifetime0}" >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: Executing Get2 request on $ENV{SRM_NEW_FILE0} with desiredPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2}" >> $ENV{S2_LOG}
-&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequest2Token>.*) fileStatuses=(?P<fileStatuses2>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 desiredPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequest2Token>.*) fileStatuses=(?P<fileStatuses2>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: srmPrepareToGet, getRequest2Token=${getRequest2Token}" >> $ENV{S2_LOG}

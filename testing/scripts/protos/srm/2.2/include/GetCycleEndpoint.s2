@@ -26,7 +26,7 @@ DEFUN GetCycle endpoint filesToGet sURLs : getRequestToken
    && ASSIGN fileStatuses "$MAP{DefFileStatuses $SPLIT{${filesToGet}}}"
   
 %   && srmPrepareToGet ${endpoint} fileRequests.SURL[$SPLIT{${sURLs}}] transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) 
-   && srmPrepareToGet ${endpoint} fileRequests.SURL[$SPLIT{${sURLs}}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
+   && srmPrepareToGet ${endpoint} fileRequests.SURL[$SPLIT{${sURLs}}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
       SYSTEM echo "${srmTest}: Executing srmPrepareToGet, getRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: srmPrepareToGet, returnStatus=${-returnPToG_statusCode}" >> $ENV{S2_LOG}
 

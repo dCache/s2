@@ -32,11 +32,34 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${return_statusCode}}
 
 && SYSTEM echo "${srmTest}: PtP succeeded on $ENV{SRM_NEW_FILE0}, now starting transfer" >> $ENV{S2_LOG}
-&& FUN FileTransPut $ENV{GRAND_FILE} ${transferURL0}
-
-|| SYSTEM echo "${srmTest}: Failed to put even the initial file" >> $ENV{S2_LOG} && exit ${!}
+&& NOP
+   FUN FileTransPut $ENV{GRAND_FILE} ${transferURL0}
+   || SYSTEM echo "${srmTest}: Failed to put even the initial file" >> $ENV{S2_LOG} && exit ${!}
 
 % Check if file present
+   SYSTEM echo "${srmTest}: Checking if file $ENV{SRM_NEW_FILE0} exists through srmLs" >> $ENV{S2_LOG}
+
+   && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      TEST $DEFINED{requestLsToken}
+         >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+            srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+      || SYSTEM exit 0
+      && TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${PathDetails0}}
+      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{(SRM_FILE_BUSY|SRM_SUCCESS) ${StatusCode0}}
+         SYSTEM echo "${srmTest}: File $ENV{SRM_NEW_FILE0} exists" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: File transfer started, now abort the transfer on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+
+      && srmAbortFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<fileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         SYSTEM echo "${srmTest}: srmAbortFiles, putRequestToken=${-putRequestToken}, fileStatus=${-fileStatus0}" >> $ENV{S2_LOG}
+
+&& SYSTEM echo "${srmTest}: Execute PutDone on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+
+&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<return_statusCode>.*)
+   SYSTEM echo "srmPutDone: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+
+% Check again if file present
+&& SYSTEM echo "${srmTest}: Check again if File $ENV{SRM_NEW_FILE0} exists via srmLs" >> $ENV{S2_LOG}
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $DEFINED{requestLsToken}
       >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -47,18 +70,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && NOP
    TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${PathDetails0}}
    && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{(SRM_FILE_BUSY|SRM_SUCCESS) ${StatusCode0}}
-      SYSTEM echo "${srmTest}: File $ENV{SRM_NEW_FILE0} exists" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Error - File $ENV{SRM_NEW_FILE0} exists" >> $ENV{S2_LOG}
+      && SYSTEM exit 2
 
-
-&& SYSTEM echo "${srmTest}: File transfer started, now abort the transfer on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-
-&& srmAbortFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<fileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-  SYSTEM echo "${srmTest}: srmAbortFiles, putRequestToken=${-putRequestToken}, fileStatus=${-fileStatus0}" >> $ENV{S2_LOG}
-
-&& SYSTEM echo "${srmTest}: Execute PutDone on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-
-&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<return_statusCode>.*)
-   SYSTEM echo "srmPutDone: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
 
 && SYSTEM echo "${srmTest}: Execute PrepareToGet on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
 
@@ -80,7 +94,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 || SYSTEM echo "${srmTest}: KO request returned:${-returnStatus_statusCode}, file status 0:${StatusCode0}, fileStatus 1: ${StatusCode1}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 ;; ASSIGN Status ${!}
-;; srmAbortFiles $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<fileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmAbortFiles $ENV{ENDPOINT} requestToken=${-getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<fileStatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; SYSTEM exit ${Status}
 

@@ -29,7 +29,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    TEST $DEFINED{requestLsToken}
       >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-         srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
    || SYSTEM exit 0
 

@@ -33,6 +33,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed srmLs, pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
 
+;; TEST $DEFINED{requestLsToken}
+   >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+|| SYSTEM exit 0
+
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${pathDetails}}
       SYSTEM echo "${srmTest}: First File is returned: ${Path0}" >> $ENV{S2_LOG}

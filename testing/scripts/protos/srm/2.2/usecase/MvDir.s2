@@ -15,6 +15,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmMv $ENV{ENDPOINT} fromSURL=${dir0} toSURL=${dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
 
 && srmLs $ENV{ENDPOINT} SURL[${dir1}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+;; TEST $DEFINED{requestLsToken}
+   >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
+|| SYSTEM exit 0
+
+&& NOP
    TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{S2_LOG}
       && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0

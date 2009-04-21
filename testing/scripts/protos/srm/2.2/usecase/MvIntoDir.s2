@@ -20,9 +20,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
 
-&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-;; TEST $DEFINED{requestLsToken}
+;; TEST $DEFINED{requestToken}
    >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}

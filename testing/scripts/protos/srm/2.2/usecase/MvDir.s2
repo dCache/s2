@@ -16,7 +16,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmLs $ENV{ENDPOINT} SURL[${dir1}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-;; TEST $DEFINED{requestLsToken}
+;; TEST $DEFINED{requestToken}
    >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}

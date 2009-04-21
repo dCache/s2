@@ -1,4 +1,4 @@
-% $Id: MvBeingPut.s2,v 1.24 2009/04/20 11:38:40 flaviadonno Exp $
+% $Id: MvBeingPut.s2,v 1.25 2009/04/21 09:44:47 flaviadonno Exp $
 % MvBeingPut: Try to move a file being put.
 %
 % srmPrepareToPut

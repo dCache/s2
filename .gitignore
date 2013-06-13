@@ -1,3 +1,4 @@
+syntax: glob
 .configure
 .cvsignore
 .rpm*
@@ -8,3 +9,5 @@ config.mak
 dbase
 1gnore
 VERSION
+
+syntax: regexp

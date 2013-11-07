@@ -25,6 +25,7 @@
 #include <ctype.h>		/* isspace(), ... */
 #include <math.h>		/* pow(), ... */
 #include <errno.h>		/* errno */
+#include <string.h>
 
 #define IS_HEX_CHAR(c) ((c) >= 'A' && (c) <= 'F')
 

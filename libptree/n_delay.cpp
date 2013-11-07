@@ -23,6 +23,7 @@
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* ostringstream */
+#include <string.h>
 
 using namespace std;
 

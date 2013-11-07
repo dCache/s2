@@ -580,7 +580,7 @@ pcre_match_linesplit(char *pattern, const char *subject, const match_opts match_
   DM_WARN(ERR_WARN, _("not fully implemented (no instantiation of variables and evaluation of expressions)\n"));
   
   do {
-    newline = strchr((const char *)pattern, '\n');
+    newline = strchr(pattern, '\n');
     if(newline) {
       pattern_ptr = newline + 1;
       null_char = *pattern_ptr;

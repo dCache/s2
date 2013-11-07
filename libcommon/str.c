@@ -19,6 +19,7 @@
 #include <ctype.h>      /* isspace() */
 #include <stdlib.h>     /* free() */
 #include <limits.h>	/* (U)INT_MAX/MIN, ... */
+#include <cstdio>
 
 /*
  * Returns pointer to a character `c' in string `s'.

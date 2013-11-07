@@ -34,6 +34,9 @@
 #include <unistd.h>		/* getcwd() on RedHat */
 
 #include <iostream>             /* std::string, cout, endl, ... */
+#include <string.h>
+
+#include <linux/limits.h>       /* FIXME: this is an OS-specific value, so should be discovered through configure */
 
 using namespace std;
 

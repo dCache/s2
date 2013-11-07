@@ -35,6 +35,7 @@
 #include <stdlib.h>		/* exit() */
 #include <sys/types.h>		/* RH getpid() */
 #include <unistd.h>		/* RH getpid() */
+#include <cstring>
 
 /* options */
 struct opts_t opts;

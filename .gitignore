@@ -1,6 +1,6 @@
 syntax: glob
 .configure
-.cvsignore
+.depend
 .rpm*
 *.log
 tests
@@ -9,5 +9,10 @@ config.mak
 dbase
 1gnore
 VERSION
+*.sh
+*.o
+*.a
+include/version.h
+src/s2
 
 syntax: regexp

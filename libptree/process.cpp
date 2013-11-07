@@ -43,6 +43,7 @@
 #include <iostream>		/* std::string, cout, endl, ... */
 #include <sstream>		/* ostringstream */
 #include <fstream>              /* ifstream */
+#include <cstring>
 
 //#define USE_PTHREAD_ATTR	/* SEGVs! */
 

@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <errno.h>		/* errno */
+#include <string.h>
 
 /* simple macros */
 #define EXPECT(s)\

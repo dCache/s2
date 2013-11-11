@@ -5,16 +5,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 
-#if $ENV{CERN}
-&& ASSIGN SpaceTokenDescription "srm2_d0t1"
-
-&& srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-
-&& TEST $MATCH{".*spaceToken0=(?P<spaceToken0>.+?)(\s.+|$)" ${spaceTokens}}
-&& ASSIGN spaceToken ${spaceToken0}
-
-#else
-
 && NOP
    srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY}" >> $ENV{S2_LOG}
@@ -34,7 +24,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
        && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
 
-#endif
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
    srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

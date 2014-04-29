@@ -8,7 +8,6 @@ l_CONFIG_MAK() {
   echo "
 # less standard libraries
 SRM_VERSION	:= ${SRM_VERSION}
-GLOBUS_FLAVOUR	:= gcc32dbgpthr
 LIB_GLOBUS	:= ${LIB_GLOBUS}
 LIB_GSOAP	:= ${LIB_GSOAP}
 LIB_CGSI_PLUGIN	:= ${LIB_CGSI_PLUGIN}" >> ${CONFIG_MAK}
@@ -34,13 +33,13 @@ EOF
 
   if test x${enable_gsoap} = xyes && test x${static_globus} != xyes ; then
   cat >> .rpmreq << EOF
-Requires:	vdt_globus_essentials
+# Requires:	vdt_globus_essentials
 EOF
   fi
 
   if test x${enable_gsoap} = xyes && test x${static_cgsi_plugin} != xyes ; then
   cat >> .rpmreq << EOF
-Requires:	CGSI_gSOAP_2.7 >= 1.1.9
+Requires:	CGSI-gSOAP >= 1.1.9
 EOF
   fi
 
@@ -59,9 +58,9 @@ EOF
 
 #BuildRequires:	vdt_globus_sdk
   cat >> .rpmreq << EOF
-BuildRequires:	vdt_globus_essentials
-BuildRequires:	gsoap = 2.7.2
-BuildRequires:	CGSI_gSOAP_2.7-dev >= 1.1.9
+# BuildRequires:	vdt_globus_essentials
+BuildRequires:	gsoap >= 2.7.2
+BuildRequires:	CGSI-gSOAP-devel >= 1.1.9
 BuildRequires:	pcre-devel >= 4.4
 BuildRequires:	libdiagnose >= 0.3.8
 BuildRequires:	doxygen >= 1.3.0
@@ -107,9 +106,11 @@ EOF
 %doc %{_docdir}/COPYING
 %doc %{_docdir}/FAQ
 %doc %{_docdir}/INSTALL
-%doc %{_docdir}/README
+%doc %{_docdir}/README.md
+%doc %{_docdir}/README.s2
 %doc %{_docdir}/TODO
 %doc %{_docdir}/s2.txt
+%doc %{_mandir}/man1/s2.1.gz
 EOF
 
   if test x${enable_gsoap} = xyes ; then
@@ -217,6 +218,32 @@ int main(int argc, char **argv) {
   struct soap soap;
   return 0;
 }
+
+/* Just to satisfy linker */
+struct Namespace namespaces[0];
+extern "C" {
+void soap_serializeheader(struct soap *soap) {}
+void soap_header(struct soap *soap) {}
+void soap_fault(struct soap *soap) {}
+void soap_serializefault(struct soap *soap) {}
+int soap_putheader(struct soap *soap) {return SOAP_OK;}
+int soap_getheader(struct soap *soap) {return 1;}
+int soap_putfault(struct soap *soap) {return SOAP_OK;}
+int soap_getfault(struct soap *soap) {return 1;}
+int soap_getindependent(struct soap *soap) {return SOAP_OK;}
+int soap_putindependent(struct soap *soap) {return SOAP_OK;}
+int soap_fdelete(struct soap_clist *p) {return SOAP_OK;}
+const char ** soap_faultcode(struct soap *soap) {return NULL;}
+const char ** soap_faultsubcode(struct soap *soap) {return NULL;}
+const char ** soap_faultstring(struct soap *soap) {return NULL;}
+const char ** soap_faultdetail(struct soap *soap) {return NULL;}
+void * soap_instantiate(struct soap *soap, int t, const char *type, const char *arrayType, size_t *n) {return NULL;}
+const char* soap_check_faultdetail(struct soap*soap) {return NULL;}
+const char* soap_check_faultsubcode(struct soap* soap) {return NULL;}
+void * soap_getelement(struct soap *soap, int *type) {return NULL;}
+void soap_markelement(struct soap *soap, const void *ptr, int type) {}
+int soap_putelement(struct soap *soap, const void *ptr, const char *tag, int id, int type) {return SOAP_OK;}
+}
 EOF
   cat $TMPC >> ${CONFIGURE_LOG}
 
@@ -243,8 +270,8 @@ EOF
     if test x$try_gsoapdir != x${_with_gsoapdir} ; then
       _with_gsoapdir=$try_gsoapdir
     fi
-#    INCLUDES="${INCLUDES} -I${_with_gsoapdir}/include"
-#    EXTRALIBS="-I${_with_gsoapdir}/lib ${LIB_GSOAP}"
+    INCLUDES="${INCLUDES} -I${_with_gsoapdir}/include"
+    EXTRALIBS="-I${_with_gsoapdir}/lib ${LIB_GSOAP}"
   fi
 
   contains ${CONFIG_HAVE} gsoap
@@ -259,6 +286,32 @@ have_cgsi_plugin() {
 int main(int argc, char **argv) {
   return 0;
 }
+
+/* Just to satisfy linker */
+struct Namespace namespaces[0];
+extern "C" {
+void soap_serializeheader(struct soap *soap) {}
+void soap_header(struct soap *soap) {}
+void soap_fault(struct soap *soap) {}
+void soap_serializefault(struct soap *soap) {}
+int soap_putheader(struct soap *soap) {return SOAP_OK;}
+int soap_getheader(struct soap *soap) {return 1;}
+int soap_putfault(struct soap *soap) {return SOAP_OK;}
+int soap_getfault(struct soap *soap) {return 1;}
+int soap_getindependent(struct soap *soap) {return SOAP_OK;}
+int soap_putindependent(struct soap *soap) {return SOAP_OK;}
+int soap_fdelete(struct soap_clist *p) {return SOAP_OK;}
+const char ** soap_faultcode(struct soap *soap) {return NULL;}
+const char ** soap_faultsubcode(struct soap *soap) {return NULL;}
+const char ** soap_faultstring(struct soap *soap) {return NULL;}
+const char ** soap_faultdetail(struct soap *soap) {return NULL;}
+void * soap_instantiate(struct soap *soap, int t, const char *type, const char *arrayType, size_t *n) {return NULL;}
+const char* soap_check_faultdetail(struct soap*soap) {return NULL;}
+const char* soap_check_faultsubcode(struct soap* soap) {return NULL;}
+void * soap_getelement(struct soap *soap, int *type) {return NULL;}
+void soap_markelement(struct soap *soap, const void *ptr, int type) {}
+int soap_putelement(struct soap *soap, const void *ptr, const char *tag, int id, int type) {return SOAP_OK;}
+}
 EOF
   cat $TMPC >> ${CONFIGURE_LOG}
 
@@ -267,7 +320,7 @@ EOF
   do
     ${HAVE_SH} \
       $CC $INCLUDES -I${try_cgsi_plugindir}/include \
-      -o $TMPE $TMPC -L${try_cgsi_plugindir}/lib -Wl,-Bstatic ${LIB_CGSI_PLUGIN} -Wl,-Bdynamic ${EXTRALIBS} \
+      -o $TMPE $TMPC -L${try_cgsi_plugindir}/lib ${LIB_CGSI_PLUGIN} ${EXTRALIBS} \
       >>${CONFIGURE_LOG} 2>&1
     if test $? -eq 0 ; then
       run $TMPE && have_cgsi_plugin="yes" && break || have_cgsi_plugin="no"
@@ -339,11 +392,10 @@ l_add_enables() {
 
 l_set_package() {
   SRM_VERSION=${SRM_VERSION:-""}
-  GLOBUS_FLAVOUR=${GLOBUS_FLAVOUR:-gcc32dbgpthr}
-  LIB_GLOBUS=${LIB_GLOBUS:-"-lglobus_gssapi_gsi_$GLOBUS_FLAVOUR -lglobus_gss_assist_$GLOBUS_FLAVOUR"}
+  LIB_GLOBUS=${LIB_GLOBUS:-"-lglobus_gssapi_gsi -lglobus_gss_assist"}
   LIB_GLOBUS_SDK=${LIB_GLOBUS}
-  LIB_GSOAP=${LIB_GSOAP:-"-lgsoap"}
-  LIB_CGSI_PLUGIN=${LIB_CGSI_PLUGIN:-"-lcgsi_plugin_gsoap_2.7"}
+  LIB_GSOAP=${LIB_GSOAP:-"-lgsoapssl++ -lglobus_openssl"}
+  LIB_CGSI_PLUGIN=${LIB_CGSI_PLUGIN:-"-lcgsi_plugin_voms_cpp"}
   l_add_opts
   l_add_withdirs
   l_add_statics

@@ -7,9 +7,9 @@ _CONFIG_MAK	:= $(_CONFIGURE_DIR)/config.mak
 sinclude $(_CONFIG_MAK)
 
 # Makefile variables #################################################
-GSOAP_INCLUDE = -I$(_with_gsoapdir)/include
-SOAPCPP2 = $(_with_gsoapdir)/bin/soapcpp2
-WSDL2H = $(_with_gsoapdir)/bin/wsdl2h
+GSOAP_INCLUDE = -I$(_with_gsoapdir)/import
+SOAPCPP2 = soapcpp2
+WSDL2H = wsdl2h
 SRM_H = srm_22.h
 
 GENERATED_H= \

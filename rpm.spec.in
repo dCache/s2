@@ -7,13 +7,13 @@ Summary:	The s2 test client
 Name:		%{_name}
 Version:	%{_version}
 Release:	%{_release}
-Copyright:	BSD License
+License:	BSD License
 Group:		Development/Languages
 URL:		http://s-2.sourceforge.net
 Source:		%{name}-%{version}.tar.gz
 Prefix:		%{_prefix}
 BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot
-BuildArch:	i386
+#BuildArch:	i386
   
 
 #
@@ -63,7 +63,6 @@ as of 2007-04-02.
 # Build
 #
 %build
-CFLAGS="-mcpu=i386 $CFLAGS"
 %include .configure
 make
 

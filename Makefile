@@ -28,7 +28,8 @@ DOCS		:= \
   COPYING\
   FAQ\
   INSTALL\
-  README\
+  README.md\
+  README.s2\
   TODO\
 
 
@@ -80,7 +81,7 @@ RELEASE		:= $(RPM_PACKAGE)-$(VERSION)
 RPMTOPDIR	:= $(shell rpm --eval '%_topdir')
 BUILDDIR	:= $(shell rpm --eval '%_builddir')
 BUILDROOT	:= $(shell rpm --eval '%_tmppath')/$(RELEASE)-buildroot
-RPMBUILD	:= rpmbuild --sign
+RPMBUILD	:= rpmbuild 
 
 rpm: rpm_build rpm_show
 

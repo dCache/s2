@@ -33,7 +33,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 || NOP
-   TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
+   TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: ReserveSpace has failed with ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
    || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

@@ -15,15 +15,19 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: Executed SuspendRequest, requestToken: ${putRequestToken}" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmSuspendRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   ASSIGN srmmethod ResumeRequest
-   && srmResumeRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   && SYSTEM echo "${srmTest}: Executed ResumeRequest, requestToken: ${putRequestToken}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmResumeRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      ASSIGN srmmethod ResumeRequest
+      && srmResumeRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      && SYSTEM echo "${srmTest}: Executed ResumeRequest, requestToken: ${putRequestToken}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: srmResumeRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${srmmethod} ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+         SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+
+   || TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
+       SYSTEM echo "${srmTest}: OK: SuspendRequest failed with ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+
+|| SYSTEM echo "${srmTest}: KO: ${srmmethod} failed with ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 ;; ASSIGN Status ${!}
 ;; srmAbortRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

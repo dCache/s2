@@ -12,15 +12,15 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
    && SYSTEM echo "${srmTest}: srmReserveSpace spaceToken=${-spaceToken}, returnStatus: ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
 
-|| >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-   srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
-   && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
+;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+   >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+      srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+      ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${requestStatus_statusCode}}
 
-&& TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
-%%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+;; TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
    FUN PutCycle ${spaceToken} $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
    && srmPurgeFromSpace $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] spaceToken=${spaceToken} fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
@@ -28,28 +28,38 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM echo "${srmTest}: srmPurgeFromSpace, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
 
    && TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}}
+      TEST $MATCH{".*returnStatus.statusCode0=(?P<FileStatus0>.+?)(\s.+|$)" ${fileStatuses}}
+         TEST $MATCH{(SRM_LAST_COPY) ${FileStatus0}}
+            SYSTEM echo "${srmTest}: OK: SRM_LAST_COPY returned. Request level status code = ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 
-   && TEST $MATCH{".*returnStatus.statusCode0=(?P<FileStatus0>.+?)(\s.+|$)" ${fileStatuses}}
+         || ASSIGN Status ${!}
+            SYSTEM echo "${srmTest}: KO: PurgeFromSpace returned ${returnStatus_statusCode} but FileStatus ${-FileStatus0}" >> $ENV{SRM2_SUPPORTED}
 
-   && TEST $MATCH{(SRM_LAST_COPY) ${FileStatus0}}
-      SYSTEM echo "${srmTest}: OK: SRM_LAST_COPY returned. Request level status code = ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      || ASSIGN Status ${!}
+         SYSTEM echo "${srmTest}: KO: PurgeFromSpace response has no returnStatus.statusCode0" >> $ENV{SRM2_SUPPORTED}
 
-|| NOP
-   TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION|SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: OK: ReserveSpace has failed with ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   || TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
+      SYSTEM echo "${srmTest}: OK: PurgeFromSpace failed with ${-returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+
+   || ASSIGN Status ${!}
+      SYSTEM echo "${srmTest}: KO: PurgeFromSpace failed with ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+
+|| TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
+   SYSTEM echo "${srmTest}: OK: ReserveSpace failed with ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
 
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: KO: ReserveSpace failed with ${-returnStatus_statusCode} ${-rs_explanation}" >> $ENV{SRM2_SUPPORTED}
+
 
 ;; NOP
    TEST $DEFINED{requestToken} && ! $DEFINED{spaceToken}
-      srmAbortRequest $ENV{ENDPOINT} requestToken=${requestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      srmAbortRequest $ENV{ENDPOINT} requestToken=${requestToken}
       && SYSTEM exit 0
    || TEST $DEFINED{spaceToken}
-      srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+      srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken}
       && SYSTEM exit 0
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}]
 
 ;; SYSTEM exit ${Status}
 

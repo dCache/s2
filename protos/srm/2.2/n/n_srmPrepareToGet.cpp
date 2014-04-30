@@ -136,6 +136,9 @@ srmPrepareToGet::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(PrepareToGet);
 
+  pint_t* desiredTotalRequestTimeInt = proc->eval2pint(desiredTotalRequestTime);
+  pint_t* desiredPinLifeTimeInt = proc->eval2pint(desiredPinLifeTime);
+
   PrepareToGet(
     soap,
     EVAL2CSTR(srm_endpoint),
@@ -144,8 +147,8 @@ srmPrepareToGet::exec(Process *proc)
     EVAL2CSTR(userRequestDescription),
     storageSystemInfo,
     getTFileStorageType(EVAL2CSTR(desiredFileStorageType)),
-    proc->eval2pint(desiredTotalRequestTime).p,
-    proc->eval2pint(desiredPinLifeTime).p,
+    desiredTotalRequestTimeInt->p,
+    desiredPinLifeTimeInt->p,
     EVAL2CSTR(targetSpaceToken),
     getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
     getTAccessLatency(EVAL2CSTR(accessLatency)),
@@ -155,6 +158,9 @@ srmPrepareToGet::exec(Process *proc)
     transferProtocols,
     resp
   );
+
+  free(desiredTotalRequestTimeInt);
+  free(desiredPinLifeTimeInt);
 #endif
 
   DELETE_VEC(fileRequests.SURL);

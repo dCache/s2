@@ -143,6 +143,9 @@ srmCopy::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(Copy);
 
+  pint_t* desiredTotalRequestTimeInt = proc->eval2pint(desiredTotalRequestTime);
+  pint_t* desiredTargetSURLLifeTimeInt = proc->eval2pint(desiredTargetSURLLifeTime);
+
   Copy(
     soap,
     EVAL2CSTR(srm_endpoint),
@@ -154,8 +157,8 @@ srmCopy::exec(Process *proc)
     numOfLevels,
     EVAL2CSTR(userRequestDescription),
     getTOverwriteMode(EVAL2CSTR(overwriteOption)),
-    proc->eval2pint(desiredTotalRequestTime).p,
-    proc->eval2pint(desiredTargetSURLLifeTime).p,
+    desiredTotalRequestTimeInt->p,
+    desiredTargetSURLLifeTimeInt->p,
     getTFileStorageType(EVAL2CSTR(targetFileStorageType)),
     EVAL2CSTR(targetSpaceToken),
     getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
@@ -164,6 +167,9 @@ srmCopy::exec(Process *proc)
     targetStorageSystemInfo,
     resp
   );
+
+  free(desiredTotalRequestTimeInt);
+  free(desiredTargetSURLLifeTimeInt);
 #endif
 
   DELETE_VEC(sourceSURL);

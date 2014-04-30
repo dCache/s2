@@ -136,7 +136,7 @@ public:
   _EVAL2INT(u,32);
   _EVAL2INT(u,64);
 #undef _EVAL2INT
-#define _EVAL2PINT(u,s) p##u##int##s##_t eval2p##u##int##s(const std::string *str)
+#define _EVAL2PINT(u,s) p##u##int##s##_t* eval2p##u##int##s(const std::string *str)
   _EVAL2PINT(,);
   _EVAL2PINT(,32);
   _EVAL2PINT(,64);

@@ -97,15 +97,19 @@ srmReleaseSpace::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(ReleaseSpace);
 
+  pint_t* forceFileReleaseInt = proc->eval2pint(forceFileRelease);
+
   ReleaseSpace(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(spaceToken),
     storageSystemInfo,
-    (bool *)proc->eval2pint(forceFileRelease).p,
+    (bool *)forceFileReleaseInt->p,
     resp
   );
+
+  free(forceFileReleaseInt);
 #endif
 
   DELETE_VEC(storageSystemInfo.key);

@@ -93,15 +93,21 @@ srmStatusOfLsRequest::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(StatusOfLsRequest);
 
+  pint_t* offsetInt = proc->eval2pint(offset);
+  pint_t* countInt = proc->eval2pint(count);
+
   StatusOfLsRequest(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
-    proc->eval2pint(offset).p,
-    proc->eval2pint(count).p,
+    offsetInt->p,
+    countInt->p,
     resp
   );
+
+  free(offsetInt);
+  free(countInt);
 #endif
   
   /* matching */

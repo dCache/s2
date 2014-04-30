@@ -2375,26 +2375,31 @@ _EVAL2INT(u,64);
 #undef _EVAL2INT
 
 #define _EVAL2PINT(u,s)\
-p##u##int##s##_t \
+p##u##int##s##_t * \
 Process::eval2p##u##int##s(const std::string *str)\
 {\
   std::string str_val;\
   char *endptr;\
-  p##u##int##s##_t r;\
+  p##u##int##s##_t *r = (p##u##int##s##_t *) malloc(sizeof(p##u##int##s##_t)); \
+\
+  if(r == NULL) {\
+    DM_ERR(ERR_SYSTEM, _("malloc failed\n"));\
+    return NULL;\
+  }\
 \
   if(str == NULL) goto ret_null;\
   str_val = eval_str(str, this);\
 \
-  r.v = get_##u##int##s(str_val.c_str(), &endptr, TRUE);\
+  r->v = get_##u##int##s(str_val.c_str(), &endptr, TRUE);\
   if(str_val.c_str() == endptr)\
     /* couldn't convert to int */\
     goto ret_null;\
 \
-  r.p = &r.v;\
+  r->p = &r->v;\
   return r;\
 \
 ret_null:\
-  r.p = NULL;\
+  r->p = NULL;\
   return r;\
 }
 _EVAL2PINT(,);
@@ -2485,14 +2490,14 @@ Process::eval_vec_p##u##int##s(const std::vector <std::string *> &v)\
   for(uint c = 0; c < vs.size(); c++) {\
     u##int##s##_t *i = NULL;\
     if(vs[c]) {\
-      p##u##int##s##_t p = eval2p##u##int##s(vs[c]);\
-      if(p.p) {\
+      p##u##int##s##_t* p = eval2p##u##int##s(vs[c]);\
+      if(p && p->p) {\
         i = (u##int##s##_t *)malloc(sizeof(u##int##s##_t));\
         if(!i) {\
           DM_ERR(ERR_SYSTEM, _("malloc failed\n"));\
           RETURN(ev);\
         }\
-        *i = *p.p;\
+        *i = p->v;\
       }\
     }\
     if(i) DM_DBG(DM_N(3), "evaluating[%u] to %"fp"\n", c, *i);\

@@ -135,6 +135,10 @@ srmPrepareToPut::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(PrepareToPut);
 
+  pint_t* desiredTotalRequestTimeInt = proc->eval2pint(desiredTotalRequestTime);
+  pint_t* desiredPinLifeTimeInt = proc->eval2pint(desiredPinLifeTime);
+  pint_t* desiredFileLifeTimeInt = proc->eval2pint(desiredFileLifeTime);
+
   PrepareToPut(
     soap,
     EVAL2CSTR(srm_endpoint),
@@ -143,9 +147,9 @@ srmPrepareToPut::exec(Process *proc)
     EVAL2CSTR(userRequestDescription),
     getTOverwriteMode(EVAL2CSTR(overwriteOption)),
     storageSystemInfo,
-    proc->eval2pint(desiredTotalRequestTime).p,
-    proc->eval2pint(desiredPinLifeTime).p,
-    proc->eval2pint(desiredFileLifeTime).p,
+    desiredTotalRequestTimeInt->p,
+    desiredPinLifeTimeInt->p,
+    desiredFileLifeTimeInt->p,
     getTFileStorageType(EVAL2CSTR(desiredFileStorageType)),
     EVAL2CSTR(targetSpaceToken),
     getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
@@ -156,6 +160,10 @@ srmPrepareToPut::exec(Process *proc)
     transferProtocols,
     resp
   );
+
+  free(desiredTotalRequestTimeInt);
+  free(desiredPinLifeTimeInt);
+  free(desiredFileLifeTimeInt);
 #endif
 
   DELETE_VEC(fileRequests.SURL);

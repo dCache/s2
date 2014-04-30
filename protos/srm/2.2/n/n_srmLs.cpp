@@ -112,6 +112,12 @@ srmLs::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(Ls);
 
+  pint_t* fullDetailedListInt = proc->eval2pint(fullDetailedList);
+  pint_t* allLevelRecursiveInt = proc->eval2pint(allLevelRecursive);
+  pint_t* numOfLevelsInt = proc->eval2pint(numOfLevels);
+  pint_t* offsetInt = proc->eval2pint(offset);
+  pint_t* countInt = proc->eval2pint(count);
+
   Ls(
     soap,
     EVAL2CSTR(srm_endpoint),
@@ -119,13 +125,19 @@ srmLs::exec(Process *proc)
     SURL,
     storageSystemInfo,
     getTFileStorageType(EVAL2CSTR(fileStorageType)),
-    (bool *)proc->eval2pint(fullDetailedList).p,
-    (bool *)proc->eval2pint(allLevelRecursive).p,
-    proc->eval2pint(numOfLevels).p,
-    proc->eval2pint(offset).p,
-    proc->eval2pint(count).p,
+    (bool *)fullDetailedListInt->p,
+    (bool *)allLevelRecursiveInt->p,
+    numOfLevelsInt->p,
+    offsetInt->p,
+    countInt->p,
     resp
   );
+
+  free(fullDetailedListInt);
+  free(allLevelRecursiveInt);
+  free(numOfLevelsInt);
+  free(offsetInt);
+  free(countInt);
 #endif
 
   DELETE_VEC(SURL);

@@ -138,6 +138,10 @@ srmBringOnline::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(BringOnline);
 
+  pint_t* desiredTotalRequestTimeInt =  proc->eval2pint(desiredTotalRequestTime);
+  pint_t* desiredLifeTimeInt =  proc->eval2pint(desiredLifeTime);
+  pint_t* deferredStartTimeInt =  proc->eval2pint(deferredStartTime);
+
   BringOnline(
     soap,
     EVAL2CSTR(srm_endpoint),
@@ -146,8 +150,8 @@ srmBringOnline::exec(Process *proc)
     EVAL2CSTR(userRequestDescription),
     storageSystemInfo,
     getTFileStorageType(EVAL2CSTR(desiredFileStorageType)),
-    proc->eval2pint(desiredTotalRequestTime).p,
-    proc->eval2pint(desiredLifeTime).p,
+    desiredTotalRequestTimeInt->p,
+    desiredLifeTimeInt->p,
     EVAL2CSTR(targetSpaceToken),
     getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
     getTAccessLatency(EVAL2CSTR(accessLatency)),
@@ -155,9 +159,13 @@ srmBringOnline::exec(Process *proc)
     getTConnectionType(EVAL2CSTR(connectionType)),
     clientNetworks,
     transferProtocols,
-    proc->eval2pint(deferredStartTime).p,
+    deferredStartTimeInt->p,
     resp
   );
+
+  free(desiredTotalRequestTimeInt);
+  free(desiredLifeTimeInt);
+  free(deferredStartTimeInt);
 #endif
 
   DELETE_VEC(fileRequests.SURL);

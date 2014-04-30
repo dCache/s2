@@ -109,17 +109,25 @@ srmUpdateSpace::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(UpdateSpace);
 
+  puint64_t* newSizeOfTotalSpaceDesiredInt = proc->eval2puint64(newSizeOfTotalSpaceDesired);
+  puint64_t* newSizeOfGuaranteedSpaceDesiredInt = proc->eval2puint64(newSizeOfGuaranteedSpaceDesired);
+  pint_t* newLifeTimeInt = proc->eval2pint(newLifeTime);
+
   UpdateSpace(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(spaceToken),
-    proc->eval2puint64(newSizeOfTotalSpaceDesired).p,
-    proc->eval2puint64(newSizeOfGuaranteedSpaceDesired).p,
-    proc->eval2pint(newLifeTime).p,
+    newSizeOfTotalSpaceDesiredInt->p,
+    newSizeOfGuaranteedSpaceDesiredInt->p,
+    newLifeTimeInt->p,
     storageSystemInfo,
     resp
   );
+
+  free(newSizeOfTotalSpaceDesiredInt);
+  free(newSizeOfGuaranteedSpaceDesiredInt);
+  free(newLifeTimeInt);
 #endif
 
   DELETE_VEC(storageSystemInfo.key);

@@ -136,6 +136,9 @@ srmReserveSpace::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(ReserveSpace);
 
+  puint64_t* desiredSizeOfTotalSpaceInt = proc->eval2puint64(desiredSizeOfTotalSpace);
+  pint_t* desiredLifetimeOfReservedSpaceInt = proc->eval2pint(desiredLifetimeOfReservedSpace);
+
   ReserveSpace(
     soap,
     EVAL2CSTR(srm_endpoint),
@@ -143,9 +146,9 @@ srmReserveSpace::exec(Process *proc)
     EVAL2CSTR(userSpaceTokenDescription),
     getTRetentionPolicy(EVAL2CSTR(retentionPolicy)),
     getTAccessLatency(EVAL2CSTR(accessLatency)),
-    proc->eval2puint64(desiredSizeOfTotalSpace).p,
+    desiredSizeOfTotalSpaceInt->p,
     proc->eval2uint64(desiredSizeOfGuaranteedSpace),
-    proc->eval2pint(desiredLifetimeOfReservedSpace).p,
+    desiredLifetimeOfReservedSpaceInt->p,
     expectedFileSizes,
     storageSystemInfo,
     getTAccessPattern(EVAL2CSTR(accessPattern)),
@@ -154,6 +157,9 @@ srmReserveSpace::exec(Process *proc)
     transferProtocols,
     resp
   );
+
+  free(desiredSizeOfTotalSpaceInt);
+  free(desiredLifetimeOfReservedSpaceInt);
 #endif
 
   DELETE_VEC(storageSystemInfo.key);

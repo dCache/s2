@@ -97,15 +97,19 @@ srmRmdir::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(Rmdir);
 
+  pint_t* recursiveInt = proc->eval2pint(recursive);
+
   Rmdir(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(SURL),
     storageSystemInfo,
-    (bool *)proc->eval2pint(recursive).p,
+    (bool *)recursiveInt->p,
     resp
   );
+
+  free(recursiveInt);
 #endif
 
   DELETE_VEC(storageSystemInfo.key);

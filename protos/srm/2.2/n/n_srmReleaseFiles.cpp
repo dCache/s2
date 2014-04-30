@@ -94,15 +94,19 @@ srmReleaseFiles::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(ReleaseFiles);
 
+  pint_t* doRemoveInt = proc->eval2pint(doRemove);
+
   ReleaseFiles(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
     SURL,
-    (bool *)proc->eval2pint(doRemove).p,
+    (bool *)doRemoveInt->p,
     resp
   );
+
+  free(doRemoveInt);
 #endif
 
   DELETE_VEC(SURL);

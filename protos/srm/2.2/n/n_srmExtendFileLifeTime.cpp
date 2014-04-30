@@ -96,16 +96,22 @@ srmExtendFileLifeTime::exec(Process *proc)
 #ifdef SRM2_CALL
   NEW_SRM_RET(ExtendFileLifeTime);
 
+  pint_t* newFileLifeTimeInt = proc->eval2pint(newFileLifeTime);
+  pint_t* newPinLifeTimeInt = proc->eval2pint(newPinLifeTime);
+
   ExtendFileLifeTime(
     soap,
     EVAL2CSTR(srm_endpoint),
     EVAL2CSTR(authorizationID),
     EVAL2CSTR(requestToken),
     SURL,
-    proc->eval2pint(newFileLifeTime).p,
-    proc->eval2pint(newPinLifeTime).p,
+    newFileLifeTimeInt->p,
+    newPinLifeTimeInt->p,
     resp
   );
+
+  free(newFileLifeTimeInt);
+  free(newPinLifeTimeInt);
 #endif
 
   DELETE_VEC(SURL);

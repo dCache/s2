@@ -33,7 +33,7 @@ LIBS		= $(LIB) $(SLIB)
 
 # Compiler flags #####################################################
 RFIOFLG		= -DGFAL_ENABLE_RFIO
-CPPFLAGS	+= -g -fPIC -D_LARGEFILE64_SOURCE $(RFIOFLG)
+CPPFLAGS	+= -fPIC -D_LARGEFILE64_SOURCE $(RFIOFLG)
 # set the default linker to CXX
 CC		= $(CXX)
 

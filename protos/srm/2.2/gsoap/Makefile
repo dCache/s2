@@ -39,7 +39,7 @@ $(GENERATED_SRC) $(GENERATED_H): srm.v2.2.wsdl
 	-cat *.nsmap >>srmNsmap.h
 
 %.o: %.cpp 
-	$(CC) -c $(GSOAP_INCLUDE) $< -o $@
+	$(CC) -g -c $(GSOAP_INCLUDE) $< -o $@
 
 objects: soapC.o soapClient.o soapServer.o
 

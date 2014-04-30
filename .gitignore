@@ -14,5 +14,16 @@ VERSION
 *.a
 include/version.h
 src/s2
+protos/srm/2.2/gsoap/srm_22.h
+protos/srm/2.2/gsoap/srmSoapBinding*.xml
+protos/srm/2.2/gsoap/soapC.cpp
+protos/srm/2.2/gsoap/soapClient.cpp
+protos/srm/2.2/gsoap/soapClientLib.cpp
+protos/srm/2.2/gsoap/soapH.h
+protos/srm/2.2/gsoap/soapServer.cpp
+protos/srm/2.2/gsoap/soapServerLib.cpp
+protos/srm/2.2/gsoap/soapStub.h
+protos/srm/2.2/gsoap/srmNsmap.h
+protos/srm/2.2/gsoap/srmSoapBinding.nsmap
 
 syntax: regexp

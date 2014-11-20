@@ -63,7 +63,6 @@ PRJLIBS		:= \
   -L../libexpr \
   -L../libmatch \
   -L../libptree \
-  -ldiagnose \
   -lptree \
   -lexpr \
   -lmatch \

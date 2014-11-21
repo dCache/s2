@@ -1,0 +1,2 @@
+%_topdir        @TARGET@/RPM-BUILD
+%_tmpdir        @TARGET@/RPM-BUILD/tmp

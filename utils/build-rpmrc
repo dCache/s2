@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+#  Try to figure out into which directory the
+#  tar archive containing the source code should
+#  be installed.
+
+
+/bin/echo -ne macrofiles:\\t > "$1"
+existing_macros=$(rpmbuild --showrc | awk "/^macrofiles[^a-zA-Z_]/{print \$3}")
+if [ -n "$existing_macros" ]; then
+    echo -n "${existing_macros}:" >> "$1"
+fi
+echo "`pwd`/rpmmacros" >> "$1"
+

@@ -78,17 +78,34 @@ install-tests: $(TEST_DIR)
 # RPM ################################################################
 RPM_SPECIN	:= rpm.spec.in
 RELEASE		:= $(RPM_PACKAGE)-$(VERSION)
-RPMTOPDIR	:= $(shell rpm --eval '%_topdir')
-BUILDDIR	:= $(shell rpm --eval '%_builddir')
-BUILDROOT	:= $(shell rpm --eval '%_tmppath')/$(RELEASE)-buildroot
-RPMBUILD	:= rpmbuild 
+#RPMTOPDIR	:= $(shell utils/rpm-wrapper rpm --eval '%_topdir')
+#BUILDDIR	:= $(shell utils/rpm-wrapper rpm --eval '%_builddir')
+#BUILDROOT	:= $(shell utils/rpm-wrapper rpm --eval '%_tmppath')/$(RELEASE)-buildroot
+RPMTOPDIR	:= $(shell pwd)/RPM-BUILD
+BUILDDIR	:= $(RPMTOPDIR)/BUILD
+BUILDROOT	:= $(RPMTOPDIR)/TMP/$(RELEASE)-buildroot
+RPMBUILD	:= utils/rpmbuild
 
 rpm: rpm_build rpm_show
 
-rpm_dirs:
-	mkdir -p $(RPMTOPDIR)/{,BUILD,RPMS,SOURCES,SPECS,SRPMS} \
-	         $(RPMTOPDIR)/RPMS/{i386,i586,i686,noarch} \
-		 $(RPMTOPDIR)/tmp
+rpmmacros: rpmmacros.in
+	sed 's,@TARGET@,$(shell pwd),g' $< > $@
+
+rpmrc: rpmmacros
+	utils/build-rpmrc $@
+
+rpm_dirs: rpmrc
+	mkdir -p $(RPMTOPDIR) \
+	         $(RPMTOPDIR)/BUILD \
+	         $(RPMTOPDIR)/RPMS \
+	         $(RPMTOPDIR)/SOURCES \
+	         $(RPMTOPDIR)/SPECS \
+	         $(RPMTOPDIR)/SRPMS \
+	         $(RPMTOPDIR)/TMP \
+	         $(RPMTOPDIR)/RPMS/i386 \
+	         $(RPMTOPDIR)/RPMS/i586 \
+	         $(RPMTOPDIR)/RPMS/i686 \
+	         $(RPMTOPDIR)/RPMS/noarch
 
 dot_configure:
 	touch .configure
@@ -105,7 +122,7 @@ tar: rpm_include rpmclean
 	-rm -rf $(BUILDROOT)
 	-rm -rf $(BUILDDIR)/$(RELEASE)
 	mkdir $(BUILDDIR)/$(RELEASE)
-	cp -r * $(BUILDDIR)/$(RELEASE)
+	cp -r -t $(BUILDDIR)/$(RELEASE) $(shell ls|grep -v RPM-BUILD)
 	cd $(BUILDDIR) ; tar zcvf $(RELEASE).tar.gz\
 	  --exclude=.depend --exclude='$(RELEASE)/*/CVS' --exclude='$(RELEASE)/*/.cvsignore'\
 	  --exclude='*~' --exclude='#*#'\
@@ -113,7 +130,7 @@ tar: rpm_include rpmclean
 	  $(RELEASE)
 	mv $(BUILDDIR)/$(RELEASE).tar.gz $(RPMTOPDIR)/SOURCES
 
-rpm_build: rpm_dirs tar rpm_include
+rpm_build: rpmrc rpm_dirs tar rpm_include
 	$(RPMBUILD) -ta $(RPMTOPDIR)/SOURCES/$(RELEASE).tar.gz
 
 rpm_show: 

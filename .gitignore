@@ -26,4 +26,10 @@ protos/srm/2.2/gsoap/soapStub.h
 protos/srm/2.2/gsoap/srmNsmap.h
 protos/srm/2.2/gsoap/srmSoapBinding.nsmap
 
+RPM-BUILD
+rpmmacros
+rpmrc
+s2.spec
+
+
 syntax: regexp

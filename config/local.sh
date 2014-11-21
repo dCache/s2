@@ -61,7 +61,6 @@ BuildRequires:	globus-openssl-module-devel globus-gssapi-gsi-devel globus-gss-as
 BuildRequires:	gsoap-devel >= 2.7.2
 BuildRequires:	CGSI-gSOAP-devel >= 1.1.9
 BuildRequires:	pcre-devel >= 4.4
-BuildRequires:	pcre-static
 BuildRequires:	doxygen >= 1.3.0
 EOF
 }

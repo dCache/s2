@@ -33,7 +33,7 @@ EOF
 
   if test x${enable_gsoap} = xyes && test x${static_globus} != xyes ; then
   cat >> .rpmreq << EOF
-# Requires:	vdt_globus_essentials
+Requires:	globus-openssl-module globus-gssapi-gsi globus-gss-assist
 EOF
   fi
 
@@ -49,30 +49,21 @@ Requires:	pcre >= 4.4
 EOF
   fi
 
-  if test x${static_dg} != xyes ; then
+  if test x${enable_dg} = xyes && test x${static_dg} != xyes ; then
   cat >> .rpmreq << EOF
 Requires:	diagnose >= 0.3.8
 %endif
 EOF
   fi
 
-#BuildRequires:	vdt_globus_sdk
   cat >> .rpmreq << EOF
-# BuildRequires:	vdt_globus_essentials
-BuildRequires:	gsoap >= 2.7.2
+BuildRequires:	globus-openssl-module-devel globus-gssapi-gsi-devel globus-gss-assist-devel
+BuildRequires:	gsoap-devel >= 2.7.2
 BuildRequires:	CGSI-gSOAP-devel >= 1.1.9
 BuildRequires:	pcre-devel >= 4.4
-BuildRequires:	libdiagnose >= 0.3.8
+BuildRequires:	pcre-static
 BuildRequires:	doxygen >= 1.3.0
 EOF
-
-#Requires:	CGSI_gSOAP_2.7  vdt_globus_essentials  globus-initialization  gpt
-#BuildRequires:	diagnose >= 0.3.8  pcre-devel >= 4.4
-#BuildRequires:	CGSI_gSOAP-devel >= 2.7  vdt_globus_essentials >= VDT1.2.2rh9-1  gpt >= VDT1.2.2rh9-1  globus-initialization >= 2.2.4-5  vdt_globus_sdk >= VDT1.2.2rh9-1
-#glibc-2.3.2-95.33
-#libgcc-3.2.3-49
-#libstdc++-3.2.3-49
-#vdt_globus_essentials-VDT1.2.2rh9-1
 }
 
 l_RPMFILES() {

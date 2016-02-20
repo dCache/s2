@@ -149,7 +149,7 @@ EOF
       _with_globusdir=$try_globusdir
     fi
 #    INCLUDES="${INCLUDES} -I${_with_globusdir}/include"
-#    EXTRALIBS="-I${_with_globusdir}/lib ${LIB_GLOBUS}"
+#    EXTRALIBS="-I${_with_globusdir}/lib ${LIB_GLOBUS} ${EXTRALIBS}"
   fi
 
   contains ${CONFIG_HAVE} globus
@@ -191,7 +191,7 @@ EOF
       _with_globusdir=$try_globusdir
     fi
 #    INCLUDES="${INCLUDES} -I${_with_globusdir}/include"
-#    EXTRALIBS="-I${_with_globusdir}/lib ${LIB_GLOBUS}"
+#    EXTRALIBS="-I${_with_globusdir}/lib ${LIB_GLOBUS} ${EXTRALIBS}"
   fi
 
   contains ${CONFIG_HAVE} globus_sdk
@@ -261,7 +261,7 @@ EOF
       _with_gsoapdir=$try_gsoapdir
     fi
     INCLUDES="${INCLUDES} -I${_with_gsoapdir}/include"
-    EXTRALIBS="-I${_with_gsoapdir}/lib ${LIB_GSOAP}"
+    EXTRALIBS="-I${_with_gsoapdir}/lib ${LIB_GSOAP} ${EXTRALIBS}"
   fi
 
   contains ${CONFIG_HAVE} gsoap

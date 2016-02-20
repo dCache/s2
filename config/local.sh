@@ -372,7 +372,7 @@ l_add_statics() {
 
 l_add_enables() {
   add_enable srm21 'srm21' 'SRM2.1 support' '${enable_srm21:-no}'				# "yes" or "no"
-  add_enable srm22 'srm22' 'SRM2.2 support' '${enable_srm22:-no}'				# "yes" or "no"
+  add_enable srm22 'srm22' 'SRM2.2 support' '${enable_srm22:-yes}'				# "yes" or "no"
   add_enable globus 'globus' 'Globus essentials library' '${enable_globus:-yes}'		# "yes" or "no"
 #  add_enable globus_sdk 'globus_sdk' 'Globus SDK library' '${enable_globus_sdk:-yes}'		# "yes" or "no"
   add_enable gsoap 'gsoap' 'gSOAP library' '${enable_gsoap:-yes}'				# "yes" or "no"

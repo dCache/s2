@@ -84,8 +84,7 @@
   if(v[u] && v[u]->param) {SS_VEC_SPACE; ss << ""#param << u << "=" << getT##t(*(v[u]->param));}
 
 
-typedef struct tSoapCallRet
-{ 
+typedef struct {
   struct soap *soap;	/* gSoap structure */
   void *resp;		/* SRM response */
 } tSoapCallRet;
@@ -145,7 +144,7 @@ typedef struct tSoapCallRet
 
 /* type definitions */
 typedef struct tArrayOfCopyFileRequests_ /* <std::string *> version of tArrayOfCopyFileRequests */
-{ 
+{
   std::vector <std::string *> allLevelRecursive;
   std::vector <std::string *> isSourceADirectory;
   std::vector <std::string *> numOfLevels;
@@ -160,7 +159,7 @@ typedef struct tArrayOfCopyFileRequests_ /* <std::string *> version of tArrayOfC
 } tArrayOfCopyFileRequests_;
 
 typedef struct tArrayOfGetFileRequests_ /* <std::string *> version of tArrayOfGetFileRequests */
-{ 
+{
   std::vector <std::string *> allLevelRecursive;
   std::vector <std::string *> isSourceADirectory;
   std::vector <std::string *> numOfLevels;
@@ -172,7 +171,7 @@ typedef struct tArrayOfGetFileRequests_ /* <std::string *> version of tArrayOfGe
 } tArrayOfGetFileRequests_;
 
 typedef struct tArrayOfPutFileRequests_ /* <std::string *> version of tArrayOfPutFileRequests */
-{ 
+{
   std::vector <std::string *> fileStorageType;
   std::vector <std::string *> knownSizeOfThisFile;
   std::vector <std::string *> lifetime;
@@ -182,13 +181,13 @@ typedef struct tArrayOfPutFileRequests_ /* <std::string *> version of tArrayOfPu
 } tArrayOfPutFileRequests_;
 
 typedef struct tSurlInfoArray_ /* <std::string *> version of tSurlInfoArray */
-{ 
+{
   std::vector <std::string *> SURLOrStFN;
   std::vector <std::string *> storageSystemInfo;
 } tSurlInfoArray_;
 
 typedef struct tPermissionArray_ /* <std::string *> version of tPermissionArray */
-{ 
+{
   std::vector <std::string *> mode;
   std::vector <std::string *> ID;
 } tPermissionArray_;
@@ -302,7 +301,7 @@ struct srmCopy : public SRM2
   std::string *removeSourceFiles;
   std::string *storageSystemInfo;
   std::string *totalRetryTime;
-  
+
   /* response (parser) */
   std::string *requestToken;
   std::string *fileStatuses;
@@ -454,7 +453,7 @@ struct srmChangeFileStorageType : public SRM2
   /* request (parser/API) */
   tSurlInfoArray_ path;
   std::string *desiredStorageType;
-  
+
   /* response (parser) */
   std::string *fileStatuses;
 
@@ -480,7 +479,7 @@ struct srmCheckPermission : public SRM2
   /* request (parser/API) */
   tSurlInfoArray_ path;
   std::string *checkInLocalCacheOnly;
-  
+
   /* response (parser) */
   std::string *permissions;
 
@@ -511,7 +510,7 @@ struct srmLs : public SRM2
   std::string *numOfLevels;
   std::string *offset;
   std::string *count;
-  
+
   /* response (parser) */
   std::string *pathDetails;
 
@@ -592,7 +591,7 @@ struct srmPrepareToGet : public SRM2
   std::string *userRequestDescription;
   std::string *storageSystemInfo;
   std::string *totalRetryTime;
-  
+
   /* response (parser) */
   std::string *requestToken;
   std::string *fileStatuses;
@@ -624,7 +623,7 @@ struct srmPrepareToPut : public SRM2
   std::string *overwriteOption;
   std::string *storageSystemInfo;
   std::string *totalRetryTime;
-  
+
   /* response (parser) */
   std::string *requestToken;
   std::string *fileStatuses;
@@ -836,7 +835,7 @@ struct srmRm : public SRM2
 {
   /* request (parser/API) */
   tSurlInfoArray_ path;
-  
+
   /* response (parser) */
   std::string *fileStatuses;
 
@@ -1066,28 +1065,24 @@ public:
 };
 
 /* type definitions */
-typedef struct tStorageSystemInfo_
-{ 
+typedef struct {
   std::vector <std::string *> key;
   std::vector <std::string *> value;
-};
+} tStorageSystemInfo_;
 
-typedef struct tArrayOfGetFileRequests_
-{ 
+typedef struct {
   std::vector <std::string *> SURL;
   std::vector <std::string *> isSourceADirectory;
   std::vector <std::string *> allLevelRecursive;
   std::vector <std::string *> numOfLevels;
-};
+} tArrayOfGetFileRequests_;
 
-typedef struct tArrayOfPutFileRequests_
-{ 
+typedef struct {
   std::vector <std::string *> SURL;
   std::vector <std::string *> expectedFileSize;
-};
+} tArrayOfPutFileRequests_;
 
-typedef struct tPermissionArray_
-{ 
+typedef struct {
   std::vector <std::string *> ID;
   std::vector <std::string *> mode;
 } tPermissionArray_;
@@ -1160,12 +1155,12 @@ struct srmBringOnline : public SRM2
   std::string *accessLatency;
   std::string *accessPattern;
   std::string *connectionType;
-  
+
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
 
   std::string *deferredStartTime;
-  
+
   /* response (parser) */
   std::string *requestToken;
   std::string *fileStatuses;
@@ -1500,14 +1495,14 @@ struct srmLs : public SRM2
   /* request (parser/API) */
   std::vector <std::string *> SURL;
   tStorageSystemInfo_ storageSystemInfo;
-  
+
   std::string *fileStorageType;
   std::string *fullDetailedList;
   std::string *allLevelRecursive;
   std::string *numOfLevels;
   std::string *offset;
   std::string *count;
-  
+
   /* response (parser) */
   std::string *requestToken;
   std::string *pathDetails;
@@ -1620,10 +1615,10 @@ struct srmPrepareToGet : public SRM2
   std::string *accessLatency;
   std::string *accessPattern;
   std::string *connectionType;
-  
+
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
-  
+
   /* response (parser) */
   std::string *requestToken;
   std::string *fileStatuses;
@@ -1668,7 +1663,7 @@ struct srmPrepareToPut : public SRM2
 
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
- 
+
   /* response (parser) */
   std::string *requestToken;
   std::string *fileStatuses;
@@ -1809,7 +1804,7 @@ struct srmReserveSpace : public SRM2
   tStorageSystemInfo_ storageSystemInfo;
   std::string *accessPattern;
   std::string *connectionType;
-  
+
   std::vector <std::string *> clientNetworks;
   std::vector <std::string *> transferProtocols;
 
@@ -1867,7 +1862,7 @@ struct srmRm : public SRM2
   /* request (parser/API) */
   std::vector <std::string *> SURL;
   tStorageSystemInfo_ storageSystemInfo;
-  
+
   /* response (parser) */
   std::string *fileStatuses;
 

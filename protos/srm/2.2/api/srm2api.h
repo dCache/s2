@@ -8,28 +8,24 @@
 #include "soapH.h"              /* srm__*Response_, srm__TStatusCode, srm__TSpaceType__Volatile, ... */
 
 /* type definitions */
-typedef struct tStorageSystemInfo
-{ 
+typedef struct {
   std::vector <std::string *> key;
   std::vector <std::string *> value;
-};
+} tStorageSystemInfo;
 
-typedef struct tArrayOfGetFileRequests
-{ 
+typedef struct {
   std::vector <std::string *> SURL;
   std::vector <int> isSourceADirectory;
   std::vector <int *> allLevelRecursive;
   std::vector <int *> numOfLevels;
-};
+} tArrayOfGetFileRequests;
 
-typedef struct tArrayOfPutFileRequests
-{ 
+typedef struct {
   std::vector <std::string *> SURL;
   std::vector <uint64_t *> expectedFileSize;
-};
+} tArrayOfPutFileRequests;
 
-typedef struct tPermissionArray
-{ 
+typedef struct {
   std::vector <std::string *> ID;
   std::vector <long int> mode;          /* enum */
 } tPermissionArray;

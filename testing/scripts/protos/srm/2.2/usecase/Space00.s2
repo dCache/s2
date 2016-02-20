@@ -13,11 +13,6 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-#if $ENV{CERN}
-&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR" >> $ENV{S2_LOG
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-#else
-
 && ASSIGN Status 0
 
 && SYSTEM echo "${srmTest}: Executing srmReserveSpace exercizing retention policy and access latency ..." >> $ENV{S2_LOG}
@@ -135,5 +130,3 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM exit 0
 
 ;; SYSTEM exit ${Status}
-
-#endif

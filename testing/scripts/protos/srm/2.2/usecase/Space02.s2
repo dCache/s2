@@ -24,22 +24,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 
-#if $ENV{CERN}
-#if $ENV{S2_TEST_SITE} == 22CASTORSTRESS
-&& ASSIGN SpaceTokenDescription "srm2_d0t1"
-#else
-&& ASSIGN SpaceTokenDescription "dteam"
-#endif
-%&& ASSIGN returnStatus_statusCode SRM_SUCCESS
-%&& ASSIGN spaceToken 2ac27ca1-5d4e-4f05-ae90-91526a4ffbcb
-
-&& srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-
-&& TEST $MATCH{".*spaceToken0=(?P<spaceToken0>.+?)(\s.+|$)" ${spaceTokens}}
-&& ASSIGN spaceToken ${spaceToken0}
-
-#else
-
 && ASSIGN Lifetime 1800
 && ASSIGN SpaceTokenDescription $ENV{SPACE_TOKEN_DESCR}
 
@@ -57,8 +41,6 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
           srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${SpacerequestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
           && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
           && TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
-
-#endif
 
 && srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] targetSpaceToken=${spaceToken} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> $ENV{S2_LOG}
@@ -80,10 +62,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM exit 0
    || TEST $DEFINED{spaceToken}
       srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) 
-#if $ENV{CERN}
-#else
       && srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-#endif
       && SYSTEM exit 0
 
 ;; SYSTEM exit ${Status}

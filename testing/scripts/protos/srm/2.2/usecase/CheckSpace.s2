@@ -15,11 +15,6 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../../include/FileTransPut.s2
 
-#if $ENV{CERN}
-&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> $ENV{S2_LOG}
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
-#else
-
 && ASSIGN Status 0
 
 && ASSIGN SpaceLifeTime 360
@@ -88,6 +83,3 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM exit 0
 
 ;; SYSTEM exit ${Status}
-
-#endif
-

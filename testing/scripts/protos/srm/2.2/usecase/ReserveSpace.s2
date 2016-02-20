@@ -12,11 +12,6 @@
  
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-#if $ENV{CERN}
-&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> $ENV{S2_LOG}
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
-#else
-
 && ASSIGN Status 0
 
 && srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} desiredSizeOfTotalSpace=$ENV{SPACEBIG} desiredSizeOfGuaranteedSpace=$ENV{SPACEBIG} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
@@ -59,5 +54,3 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && SYSTEM exit 0
 
 ;; SYSTEM exit ${Status}
-
-#endif

@@ -46,7 +46,7 @@ RemoveFiles(struct soap *soap,
   DM_DBG_I;
   struct srm__srmRemoveFilesRequest req;
 
-  SOAP_INIT(soap);
+  DO_SOAP_INIT(soap);
   
 #ifdef HAVE_CGSI_PLUGIN
   int flags;

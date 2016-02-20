@@ -7,7 +7,7 @@
 
 #define CSTR(s)		(s)? s->c_str(): (const char *)NULL	/* no SEGVs if s is NULL */
 
-#define SOAP_INIT(soap)\
+#define DO_SOAP_INIT(soap)\
   do {\
     if(!soap) {\
       DM_ERR_ASSERT("soap == NULL\n");\

@@ -48,7 +48,7 @@ Mv(struct soap *soap,
   DM_DBG_I;
   struct srm__srmMvRequest req;
 
-  SOAP_INIT(soap);
+  DO_SOAP_INIT(soap);
 
 #ifdef HAVE_CGSI_PLUGIN
   int flags;

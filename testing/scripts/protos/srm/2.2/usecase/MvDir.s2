@@ -14,21 +14,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmMv $ENV{ENDPOINT} fromSURL=${dir0} toSURL=${dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
 
-&& srmLs $ENV{ENDPOINT} SURL[${dir1}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+&& srmLs $ENV{ENDPOINT} SURL[${dir1}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-;; TEST $DEFINED{requestToken}
-   >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-      srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
-|| SYSTEM exit 0
+   TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+      >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} returnStatus.statusCode=(?P<returnStatus_statusCode>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*)
+            TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
-&& NOP
    TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+      ;; SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
    || SYSTEM echo "${srmTest}: srmLs failed: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG} && exit ${!}
 
 ;; ASSIGN Status ${!}
 ;; srmRmdir $ENV{ENDPOINT} SURL=${dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
-   SYSTEM exit ${Status}
 || SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED} && exit ${Status}

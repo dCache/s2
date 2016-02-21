@@ -31,5 +31,8 @@ rpmmacros
 rpmrc
 s2.spec
 
+/testing/scripts/protos/**/*.e1
+/testing/scripts/protos/**/*.out
+/testing/scripts/protos/**/*.html
 
 syntax: regexp

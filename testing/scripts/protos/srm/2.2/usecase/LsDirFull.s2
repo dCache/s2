@@ -1,7 +1,7 @@
 % LsDirFull:
 % This test creates a directory. It puts two files in it.
 % Then it performs an Ls on the directory asking for FullDetailedList=1.
-% It makes sure that the all mandatory return paramenter for full listing 
+% It makes sure that the all mandatory return paramenter for full listing
 % are returned.
 % Then it removes the files and the directory created.
 %
@@ -32,14 +32,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
-      && TEST $DEFINED{requestLsToken}
-         >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-            srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-            && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
-      || SYSTEM exit 0
+      ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+         >0&&11 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+            srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+
+;; TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Path is returned: ${Path1}" >> $ENV{S2_LOG}
    || ASSIGN Status 2
@@ -70,7 +70,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
    && SYSTEM exit ${Status}
    && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!} 
+   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
 || SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 

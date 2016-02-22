@@ -12,34 +12,33 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; SYSTEM echo "${srmTest}: Making directory srmMkdir $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
 
-;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<code>.*)
+;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${code}}
+&& TEST $MATCH{(SRM_SUCCESS) ${status}}
    SYSTEM echo "${srmTest}: Starting to put file srmPrepareToPut $ENV{SRM_FILE_IN_DIR0}" >> $ENV{S2_LOG}
 
-   ;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<token>.*) returnStatus.statusCode=(?P<code>.*)
+   ;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<token>.*) returnStatus.statusCode=(?P<status>.*)
 
       SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-token}" >> $ENV{S2_LOG}
 
-      ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${code}}
+      ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
          >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-            srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} SURL[$ENV{SRM_FILE_IN_DIR0}] returnStatus.statusCode=(?P<code>.*)
-               TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${code}}
+            srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} SURL[$ENV{SRM_FILE_IN_DIR0}] returnStatus.statusCode=(?P<status>.*)
+               TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
 
-      ;; TEST $MATCH{SRM_SUCCESS ${code}}
+      ;; TEST $MATCH{SRM_SUCCESS ${status}}
          SYSTEM echo "${srmTest}: Put accepted, trying to rename the directory: srmMv $ENV{SRM_NEW_DIR0} to $ENV{SRM_NEW_DIR0}x" >> $ENV{S2_LOG}
 
-         ;; srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_DIR0} toSURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<code>.*)
+         ;; srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_DIR0} toSURL="$ENV{SRM_NEW_DIR0}x" returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-            TEST $MATCH{SRM_SUCCESS ${code}}
-               SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-code} ${-explanation}" >> $ENV{S2_LOG}
+            TEST $MATCH{SRM_SUCCESS ${status}}
+               SYSTEM echo "${srmTest}: srmMv of put file succeeds: ${-status} ${-explanation}" >> $ENV{S2_LOG}
 
-               ;; srmPutDone $ENV{ENDPOINT} requestToken=${token} SURL[$ENV{SRM_FILE_IN_DIR0}] returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<code>.*)
-
-                  TEST $MATCH{SRM_FAILURE ${code}}
-                     SYSTEM echo "${srmTest}: OK: ${-code} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+               ;; srmPutDone $ENV{ENDPOINT} requestToken=${token} SURL[$ENV{SRM_FILE_IN_DIR0}] returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*) fileStatuses=.*returnStatus.statusCode0=(?P<fileStatus>.*)
+                  TEST $MATCH{SRM_FAILURE ${status}} && $MATCH{SRM_INVALID_PATH ${fileStatus}}
+                     SYSTEM echo "${srmTest}: OK: ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
                   || NOP
-                     SYSTEM echo "${srmTest}: KO: srmPutDone of file in moved dir did not fail: ${-code} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+                     SYSTEM echo "${srmTest}: KO: srmPutDone of file in moved dir did not fail: ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
                      ;; ASSIGN Status 1
 
                || NOP
@@ -58,7 +57,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || NOP
 
 || NOP
-   SYSTEM echo "${srmTest}: KO: srmMkdir failed ${-code} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: KO: srmMkdir failed ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
    ;; ASSIGN Status 1
 
 ;; SYSTEM exit ${Status}

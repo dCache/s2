@@ -10,38 +10,50 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
+;; ASSIGN Status 0
+
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& ASSIGN Status 0
-&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+;; FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
-&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-&& SYSTEM echo "${srmTest}: srmMv from Source to subdirectory is executed" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: srmMv from Source to subdirectory is executed" >> $ENV{S2_LOG}
 
-&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
+      ;; srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=SRM_SUCCESS
 
-;; srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<explanation>.*) pathDetails=(.*returnStatus.statusCode0=(?P<fileStatus>.*))? returnStatus.statusCode=(?P<status>.*)
 
-;; TEST $DEFINED{requestToken}
-   >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-      srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=".*returnStatus.statusCode0=(?P<fileStatus0>.*)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
-|| SYSTEM exit 0
+            TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
+               >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+                  srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} pathDetails=(.*returnStatus.statusCode0=(?P<fileStatus>.*))? returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
+                     TEST $MATCH{(SRM_REQUEST_PENDING|SRM_REQUEST_INPROGRESS) ${status}}
 
-&& NOP
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   || SYSTEM echo "${srmTest}: srmLs of file failed ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG} && exit ${!}
+            ;; TEST $MATCH{SRM_SUCCESS ${status}}
+               SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> $ENV{SRM2_SUPPORTED}
+            || NOP
+               SYSTEM echo "${srmTest}: srmLs of file failed ${-fileStatus} ${-status} ${-explanation}" >> $ENV{S2_LOG}
+               ;; ASSIGN Status 1
+                  
+         || NOP
+            SYSTEM echo "${srmTest}: srmLs failed" >> $ENV{S2_LOG}
+            ;; ASSIGN Status 1
+            
+         ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}]
 
-&& SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> $ENV{SRM2_SUPPORTED} && exit 0
-
-|| ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED} && exit ${!}
-
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-
-;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
+      || NOP
+         SYSTEM echo "${srmTest}: srmMv failed ${-fileStatus} ${-status} : ${-explanation}" >> $ENV{S2_LOG}
+         ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}]
+         ;; ASSIGN Status 1
+         
+      ;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}"
+         
+   || NOP
+         SYSTEM echo "${srmTest}: srmMkdir failed ${-status} : ${-explanation}" >> $ENV{S2_LOG}
+         ;; ASSIGN Status 1
+         
+|| NOP   
+      SYSTEM echo "${srmTest}: File upload failed" >> $ENV{S2_LOG}
+      ;; ASSIGN Status 1
 
 ;; SYSTEM exit ${Status}
 

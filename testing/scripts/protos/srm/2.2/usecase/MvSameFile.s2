@@ -1,4 +1,4 @@
-% Tests srmMv, moving a file onto itself. Like the 
+% Tests srmMv, moving a file onto itself. Like the
 %
 % srmPrepareToPut
 % srmPutDone
@@ -6,22 +6,28 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
-%%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& ASSIGN Status 0
-&& FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+;; ASSIGN Status 0
 
-&& SYSTEM echo "${srmTest}: srmMv from Source to same Destination is executed" >> $ENV{S2_LOG}
+;; FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
+   SYSTEM echo "${srmTest}: srmMv from Source to same Destination is executed" >> $ENV{S2_LOG}
 
-&& srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<MvStatus>.*)
+   ;; srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_FILE0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${MvStatus}}
+      TEST $MATCH{SRM_SUCCESS ${status}}
+         SYSTEM echo "${srmTest}: OK srmMv returned SRM_SUCCESS, saying: ${-explanation}" >> $ENV{SRM2_SUPPORTED}
 
-&& SYSTEM echo "${srmTest}: OK srmMv returned SRM_SUCCESS, saying: ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit 0
+      || NOP
+         ASSIGN Status 1
+         ;; SYSTEM echo "${srmTest}: KO srmMv failed to move to same file: return code=${-status}, explanation=${-explanation}" >> $ENV{SRM2_SUPPORTED}
 
-|| ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO srmMv failed to move to same file: return code=${-MvStatus}, explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   || NOP
+      ASSIGN Status 1
+      ;; SYSTEM echo "${srmTest}: KO srmMv failed" >> $ENV{SRM2_SUPPORTED}
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+   ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}]
+
+|| NOP
+   ASSIGN Status 1
+   ;; SYSTEM echo "${srmTest}: KO upload failed" >> $ENV{SRM2_SUPPORTED}
 
 ;; SYSTEM exit ${Status}
-

@@ -1,5 +1,8 @@
-% PutGet0File: Put a 0 length file and retrieve it. The 0 length file is 
+% PutGet0File: Put a 0 length file and retrieve it. The 0 length file is
 %              obtained with a PtP/PutDone with no transfer.
+%
+% REVISIT: is PtP/PutDone a reasonable way to create a zero-length
+%          file?
 %
 % srmPrepareToPut
 % srmStatusOfPutRequest
@@ -9,46 +12,61 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& ASSIGN Status 0
-&& SYSTEM echo "${srmTest}: Preparing to put file" >> $ENV{S2_LOG}
+;; ASSIGN Result 0
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
-  SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
-  && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
-  && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-    srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
-       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
-       && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusPut_statusCode}}
+;; SYSTEM echo "${srmTest}: Preparing to put file" >> $ENV{S2_LOG}
 
-&& TEST $DEFINED{transferURL0}
-   SYSTEM echo "${srmTest}: PrepareToPut has returned a TURL. Executing PutDone" >> $ENV{S2_LOG}
+;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putToken>.*) fileStatuses=".*transferURL0=(?P<turl>.*?)( |$)" returnStatus.statusCode=(?P<status>.*)
+   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putToken}" >> $ENV{S2_LOG}
+   ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
+      >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<turl>.*?)( |$)" returnStatus.statusCode=(?P<status>.*)
+            TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
 
-&& srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} || ( $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}} && $MATCH{(SRM_INVALID_PATH) ${StatusCode0}} )
-   && SYSTEM echo "${srmTest}: OK: return Status = ${-returnStatus_statusCode} ${-returnStatus_explanation}; file level status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED} && exit 0
-   || SYSTEM echo "${srmTest}: KO: test failed, PutDone returned ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   ;; TEST $DEFINED{turl}
+      SYSTEM echo "${srmTest}: PrepareToPut has returned a TURL. Executing PutDone" >> $ENV{S2_LOG}
 
-% Now executing Get Cycle
-&& NOP
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-      ASSIGN PutOK 0
-      && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-         SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
-         && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses}}
-         && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-            srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-               SYSTEM echo "${srmTest}: srmStatusOfGetRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
-               && SYSTEM echo "${srmTest}: srmStatusOfGetRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
-      ||  SYSTEM echo "${srmTest}: PrepareToGet failed, returnStatus=${-returnStatus_statusCode}"  >> $ENV{S2_LOG} && exit ${!}
-   || TEST !$DEFINED{PutOK}
-      SYSTEM exit 0
+      srmPutDone $ENV{ENDPOINT} requestToken=${putToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+         TEST $MATCH{SRM_SUCCESS ${status}}
+            SYSTEM echo "${srmTest}: OK: return Status = ${-status} ${-explanation}; file level status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED}
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            ;; srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.statusCode=(?P<status>.*)
 
-;; SYSTEM exit ${Status}
+               TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
+                  >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+                     srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<turl>.*?)( |$)" returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
+                        SYSTEM echo "${srmTest}: srmStatusOfGetRequest, transferURL0=${-turl}" >> $ENV{S2_LOG}
+                        ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
 
+               ;; TEST $MATCH{SRM_SUCCESS ${status}}
+                  SYSTEM echo "${srmTest}: OK: return Status = ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+
+               || NOP
+                  SYSTEM echo "${srmTest}: KO: prepareToGet return Status = ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+                  ;; ASSIGN Result 1
+
+            || NOP
+               SYSTEM echo "${srmTest}: KO: prepareToGet failed" >> $ENV{SRM2_SUPPORTED}
+               ;; ASSIGN Result 1
+
+         || TEST $MATCH{SRM_FAILURE ${status}} && $MATCH{SRM_INVALID_PATH ${StatusCode0}}
+            SYSTEM echo "${srmTest}: OK: return Status = ${-status} ${-explanation}; file level status = ${StatusCode0}" >> $ENV{SRM2_SUPPORTED}
+
+         || NOP
+            SYSTEM echo "${srmTest}: KO: test failed, PutDone returned ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+            ;; ASSIGN Result 1
+
+      || NOP
+         SYSTEM echo "${srmTest}: KO: test failed, PutDone failed" >> $ENV{SRM2_SUPPORTED}
+         ;; ASSIGN Result 1
+
+   || NOP
+      SYSTEM echo "${srmTest}: KO test failed, no transfer URL" >> $ENV{SRM2_SUPPORTED}
+      ;; ASSIGN Result 1
+
+|| NOP
+   SYSTEM echo "${srmTest}: KO: test failed, srmPrepareToPut failed" >> $ENV{SRM2_SUPPORTED}
+   ;; ASSIGN Result 1
+
+;; NOP ${Result}

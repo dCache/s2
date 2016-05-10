@@ -80,19 +80,21 @@ RPM_SPECIN	:= rpm.spec.in
 RELEASE		:= $(RPM_PACKAGE)-$(VERSION)
 RPMTOPDIR	:= $(shell pwd)/RPM-BUILD
 BUILDDIR	:= $(RPMTOPDIR)/BUILD
-BUILDROOT	:= $(RPMTOPDIR)/TMP/$(RELEASE)-buildroot
+RPMTMPDIR	:= $(RPMTOPDIR)/TMP
+RPMSOURCESDIR	:= $(RPMTOPDIR)/SOURCES
+BUILDROOT	:= $(RPMTMPDIR)/$(RELEASE)-buildroot
 RPMBUILD	:= rpmbuild
 
 rpm: $(_CONFIG_MAK) rpm_build rpm_show
 
 rpm_dirs:
 	mkdir -p $(RPMTOPDIR) \
-	         $(RPMTOPDIR)/BUILD \
+	         $(RPMTMPDIR) \
+	         $(BUILDDIR) \
+	         $(RPMSOURCESDIR) \
 	         $(RPMTOPDIR)/RPMS \
-	         $(RPMTOPDIR)/SOURCES \
 	         $(RPMTOPDIR)/SPECS \
 	         $(RPMTOPDIR)/SRPMS \
-	         $(RPMTOPDIR)/TMP \
 	         $(RPMTOPDIR)/RPMS/i386 \
 	         $(RPMTOPDIR)/RPMS/i586 \
 	         $(RPMTOPDIR)/RPMS/i686 \
@@ -119,10 +121,10 @@ tar: rpm_include rpmclean
 	  --exclude='*~' --exclude='#*#'\
 	  --exclude=1gnore --exclude=./pant/ --exclude=www\
 	  $(RELEASE)
-	mv $(BUILDDIR)/$(RELEASE).tar.gz $(RPMTOPDIR)/SOURCES
+	mv $(BUILDDIR)/$(RELEASE).tar.gz $(RPMSOURCESDIR)
 
 rpm_build: rpm_dirs tar rpm_include
-	$(RPMBUILD) $(RPMBUILD_EXTRA_OPTIONS) -D "_topdir $(RPMTOPDIR)" -D "_tmpdir $(RPMTOPDIR)/TMP" -ta $(RPMTOPDIR)/SOURCES/$(RELEASE).tar.gz
+	$(RPMBUILD) $(RPMBUILD_EXTRA_OPTIONS) -D "_topdir $(RPMTOPDIR)" -D "_tmpdir $(RPMTMPDIR)" -ta $(RPMSOURCESDIR)/$(RELEASE).tar.gz
 
 rpm_show: 
 	@echo "You have now:" ; ls -l $(RPMTOPDIR)/*RPMS/*/*.rpm
@@ -200,4 +202,5 @@ distclean mclean: clean
 	    make -C "$$dir" distclean || exit $$? ;\
 	  fi \
 	done
+	-rm -rf $(RPMTOPDIR)
 	-rm -f $(CONFIG_MAK) $(CONFIG_H) $(VERSION_H) VERSION .configure .rpm* *.spec *.log

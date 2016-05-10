@@ -106,6 +106,7 @@ rpm_dirs:
 	         $(RPMTOPDIR)/RPMS/i386 \
 	         $(RPMTOPDIR)/RPMS/i586 \
 	         $(RPMTOPDIR)/RPMS/i686 \
+	         $(RPMTOPDIR)/RPMS/x86_64 \
 	         $(RPMTOPDIR)/RPMS/noarch
 
 dot_configure:
@@ -133,6 +134,14 @@ tar: rpm_include rpmclean
 
 rpm_build: rpm_dirs tar rpm_include
 	$(RPMBUILD) $(RPMBUILD_EXTRA_OPTIONS) -D "_topdir $(RPMTOPDIR)" -D "_tmpdir $(RPMTMPDIR)" -ta $(RPMSOURCESDIR)/$(RELEASE).tar.gz
+
+# Work-around broken rpmbuild that don't accept -D -- The above command works
+# when building as user root; we move the packages back to where we expect
+# them to be
+	@if test ! -f $(RPMTOPDIR)/*RPMS/*/*.rpm -a -f /usr/src/redhat/RPMS/*/s2-*.rpm; then \
+	  mv /usr/src/redhat/RPMS/*/s2-*.rpm $(RPMTOPDIR)/RPMS/x86_64 ;\
+	  mv /usr/src/redhat/SRPMS/s2-*.src.rpm $(RPMTOPDIR)/SRPMS ;\
+	fi
 
 rpm_show: 
 	@echo "You have now:" ; ls -l $(RPMTOPDIR)/*RPMS/*/*.rpm

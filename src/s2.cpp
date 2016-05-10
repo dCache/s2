@@ -78,6 +78,7 @@ option_item optionlist[] = {
   { '-', "t[#]", "timeout[=#]",		NULL },
   { '-', "V", "version",		_("print version information and exit") },
   { '-', "w<p>", "warn-file=<p>",	NULL },
+  { '-', "S",    "simple-name",         NULL },
 
   { 0, NULL, NULL,			NULL }
 };
@@ -175,6 +176,7 @@ init_s2(void)
   opts.pp_indent = PP_INDENT;		/* pretty-printer indentation value */
   opts.show_defaults = FALSE;		/* show default values (pretty-printer, evaluator) */
   opts.scr_fname = NULL;		/* script filename */
+  opts.simple_name = FALSE;		/* whether ${0} has the simple name */
   opts.progress_bar = TRUE;		/* show progres bar */
   opts.pp_fname = NULL;			/* pretty-printer output filename */
   opts.pp_file = PP_DEFAULT_OUTPUT;	/* pretty-printer output file */
@@ -391,6 +393,10 @@ hlp(int l)
           
         case 'a':
           fprintf(stderr,_("ANSI colors 0/1 (%s)\n"), opts.ansi ? _("on") : _("off"));
+        break;
+
+	case 'S':
+          fprintf(stderr,_("Simple script filename (%s)\n"), opts.simple_name ? _("on") : _("off"));
         break;
         
         case 'b':
@@ -790,6 +796,11 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     return 0;
   }
 
+  if (OPL("-S") || OPL("--simple-name"))
+  {
+    opts.simple_name = TRUE;
+  }
+
   if (OPL("-T") || OPL("--threads"))
   { /* threads in the thread pool */
     if(opt_off > 2 && *(opt + opt_off) == '=')
@@ -942,9 +953,23 @@ s2_run(int argc, char **argv, int i)
       goto cleanup;
     }
 
-    /* write ${0}..${n} variables */        
-    if(opts.scr_fname) proc->WriteVariable("0", opts.scr_fname, TRUE);
-    else proc->WriteVariable("0", "stdin", TRUE);
+    /* write ${0}..${n} variables */
+    if(opts.scr_fname) {
+      char *name = NULL;
+      if (opts.simple_name) {
+	name = strrchr(opts.scr_fname, '/');
+	if (name != NULL) {
+	  name++;
+	}
+      }
+
+      if (name == NULL) {
+	name = opts.scr_fname;
+      }
+      proc->WriteVariable("0", name, TRUE);
+    } else {
+      proc->WriteVariable("0", "stdin", TRUE);
+    }
     for(; i < argc; i++) {
       proc->WriteVariable(i2str(i - i_1 + 1).c_str(), argv[i], TRUE);
     }

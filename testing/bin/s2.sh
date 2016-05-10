@@ -188,6 +188,7 @@ main() {
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
       echo -e "${S2_TEST_FILE}:"
       time DG_DIAGNOSE=0 ${S2_BIN}\
+        --simple-name\
         --file=${S2_TEST_FILE}\
         $@\
         > ${S2_OUT}
@@ -200,6 +201,7 @@ main() {
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 DG_LOG=0 ${S2_BIN}\
+        --simple-name\
         --file=${S2_TEST_FILE}\
         $@\
         > ${S2_OUT}
@@ -222,6 +224,7 @@ main() {
         --suppressions=${S2_SRC_DIR}/valgrind.supp\
         ${S2_BIN}\
         --progress=0\
+        --simple-name\
         --file=${S2_TEST_FILE}\
         --pp-out-file=${S2_P}\
         --dbg-file=${S2_D}\
@@ -240,6 +243,7 @@ main() {
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 ${S2_BIN}\
+        --simple-name\
         --file=${S2_TEST_FILE}\
 	--pp-out-file=/dev/null\
         --err-file=${S2_E}\

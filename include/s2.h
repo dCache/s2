@@ -40,6 +40,7 @@ typedef struct opts_t {
   int verbose;				/* -2: no errors; -1: no warnings; 0: normal; 1: verbose */
   int pp_indent;			/* pretty-printer indentation value */
   BOOL show_defaults;			/* show default values (pretty-printer, evaluator) */
+  BOOL simple_name;			/* truncate ${0} to basename */
   BOOL progress_bar;			/* show progres bar */
   char *scr_fname;			/* script filename */
   char *pp_fname;			/* pretty-printer output filename */

@@ -166,22 +166,26 @@ def print_test_result_xml(suite, results, report_file, extra):
 
 def main():
 
-    opts, args = getopt.getopt(sys.argv[1:], "o:")
+    opts, args = getopt.getopt(sys.argv[1:], "o:d:p:")
     outdir = os.getcwd()
+    testdir = os.getcwd()
+    extra = ""
 
     for o, a in opts:
         if o in ("-o", "--output"):
             outdir = a
+        if o in ("-d"):
+            testdir = a
+        if o in ("-p"):
+            extra = a
         else:
             assert False, "unhandled option"
 
-    cwd = os.getcwd()
-    suite = os.path.basename(cwd)
-    extra = os.environ['TEST_PREFIX']
+    suite = os.path.basename(testdir)
     report_file = '%s/TEST-%s%s.xml' % (outdir, extra, suite)
 
     test_results = {}
-    for test in glob.glob('%s/*.s2' % (cwd)):
+    for test in glob.glob('%s/*.s2' % (testdir)):
         test = os.path.basename(test)
         (base, ext) = os.path.splitext(test)
         test_results[base] = run_test(base)

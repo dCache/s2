@@ -25,14 +25,12 @@ function check_envars()
 
 function run_s2() # $1 - prefix to test names in report XML files
 {
-    export TEST_PREFIX="$1"
     voms-proxy-info -all
 
-    for sute in  avail basic usecase
-    do
-        echo -e "\n== Starting suite: $sute ==\n"
-        cd /usr/local/s2/scripts/protos/srm/2.2/${sute}
-        xrunner.py -o "${WORKSPACE}"
+    for suite in avail basic usecase; do
+        echo -e "\n== Starting suite: $suite ==\n"
+        mkdir ${suite}
+        xrunner.py -o ${suite} -p "$1" -d /usr/share/s2/testing/scripts/protos/srm/2.2/${suite}
     done
 }
 

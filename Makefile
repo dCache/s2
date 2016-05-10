@@ -72,8 +72,8 @@ install-docs: $(DOCS)
 
 install-tests: $(TEST_DIR)
 	@if test -n "$(TEST_DIR)" ; then\
-	  mkdir -p $(prefix)$(_docdir) ;\
-	  cp -R $(TEST_DIR) $(prefix)$(_docdir) ;\
+	  mkdir -p $(prefix)$(_datadir)/s2 ;\
+	  cp -R $(TEST_DIR) $(prefix)$(_datadir)/s2 ;\
 	fi
 
 install-scripts: $(SCRIPTS_DIR)

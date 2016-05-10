@@ -110,7 +110,10 @@ EOF
   fi
 
   cat >> .rpmfiles << EOF
-%doc %{_docdir}/testing/
+%attr(755,-,-) %{_datadir}/s2/testing/bin/s2.sh
+%{_datadir}/s2/testing/Makefile
+%{_datadir}/s2/testing/mk
+%{_datadir}/s2/testing/scripts
 EOF
 }
 

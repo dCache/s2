@@ -2,9 +2,9 @@
 
 ProgramName=$(basename $0)
 ProgramNameEnv=$(basename ${ProgramName} .sh).env
-ProgramDir=$(dirname $0) ; cd ${ProgramDir}
+ProgramDir=$(dirname $0)
 
-S2_TEST_FILE=$(basename ${ProgramName} .sh).s2
+S2_TEST_FILE=${ProgramDir}/$(basename ${ProgramName} .sh).s2
 S2_BIN=s2
 ENV_SH=s2.env
 

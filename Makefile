@@ -138,7 +138,7 @@ rpm_build: rpm_dirs tar rpm_include
 # Work-around broken rpmbuild that don't accept -D -- The above command works
 # when building as user root; we move the packages back to where we expect
 # them to be
-	@if test ! -f $(RPMTOPDIR)/*RPMS/*/*.rpm -a -f /usr/src/redhat/RPMS/*/s2-*.rpm; then \
+	@if test -f /usr/src/redhat/RPMS/*/s2-*.rpm; then \
 	  mv /usr/src/redhat/RPMS/*/s2-*.rpm $(RPMTOPDIR)/RPMS/x86_64 ;\
 	  mv /usr/src/redhat/SRPMS/s2-*.src.rpm $(RPMTOPDIR)/SRPMS ;\
 	fi

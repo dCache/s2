@@ -365,8 +365,8 @@ l_add_withdirs() {
 
 l_add_statics() {
   add_static globus 'globus' 'Globus library' '${static_globus:-no}'				# "yes" or "no"
-  add_static gsoap 'gsoap' 'gSOAP library' '${static_gsoap:-yes}'				# "yes" or "no"
-  add_static cgsi_plugin 'cgsi-plugin' 'CGSI plugin' '${static_cgsi_plugin:-yes}'		# "yes" or "no"
+  add_static gsoap 'gsoap' 'gSOAP library' '${static_gsoap:-no}'				# "yes" or "no"
+  add_static cgsi_plugin 'cgsi-plugin' 'CGSI plugin' '${static_cgsi_plugin:-no}'		# "yes" or "no"
   add_static gfal 'gfal' 'GFAL library' '${static_gfal:-no}'					# "yes" or "no"
 }
 

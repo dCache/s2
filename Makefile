@@ -36,6 +36,8 @@ DOCS		:= \
 # Test cases #########################################################
 TEST_DIR		:= testing
 
+# Scripts to be copied directly ######################################
+SCRIPTS_DIR		:= scripts
 
 # Rules ##############################################################
 .PHONY: Makefile
@@ -54,7 +56,7 @@ $(_CONFIG_MAK):
 
 
 # Install ############################################################
-install: install-subdirs install-docs install-tests
+install: install-subdirs install-docs install-tests install-scripts
 
 install-subdirs: $(SUBDIRS)
 	@for dir in $(SUBDIRS) ;\
@@ -72,6 +74,12 @@ install-tests: $(TEST_DIR)
 	@if test -n "$(TEST_DIR)" ; then\
 	  mkdir -p $(prefix)$(_docdir) ;\
 	  cp -R $(TEST_DIR) $(prefix)$(_docdir) ;\
+	fi
+
+install-scripts: $(SCRIPTS_DIR)
+	@if test -n "$(SCRIPTS_DIR)" ; then\
+	  mkdir -p $(prefix)$(_bindir) ;\
+	  install -m 0755 -t $(prefix)$(_bindir) $(SCRIPTS_DIR)/* ;\
 	fi
 
 

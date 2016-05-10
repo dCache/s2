@@ -412,7 +412,7 @@ add_withdirs() {
 
 add_statics() {
   add_static dg 'diagnose' 'diagnose library' '${static_dg:-yes}'				# "yes" or "no"
-  add_static pcre 'pcre' 'Perl-compatible regular expression library' '${static_pcre:-yes}'	# "yes" or "no"
+  add_static pcre 'pcre' 'Perl-compatible regular expression library' '${static_pcre:-no}'	# "yes" or "no"
   add_static pthread 'pthread' 'POSIX threads library' '${static_pthread:-no}'			# "yes" or "no"
 }
 

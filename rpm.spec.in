@@ -13,7 +13,6 @@ URL:		http://s-2.sourceforge.net
 Source:		%{name}-%{version}.tar.gz
 Prefix:		%{_prefix}
 BuildRoot:	%{_tmppath}/%{name}-%{version}-buildroot
-#BuildArch:	i386
   
 
 #
@@ -104,8 +103,8 @@ rmdir %{_docdir} 2>/dev/null
 * Mon Apr 2 2007 Flavia Donno
 - 0.03 include new tests
 
-* Wed Feb 12 2006 Jiri Mencak
+* Wed Feb 22 2006 Jiri Mencak
 - 0.02 cleanup
 
-* Wed Nov 29 2005 Jiri Mencak
+* Tue Nov 29 2005 Jiri Mencak
 - 0.01

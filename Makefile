@@ -78,23 +78,14 @@ install-tests: $(TEST_DIR)
 # RPM ################################################################
 RPM_SPECIN	:= rpm.spec.in
 RELEASE		:= $(RPM_PACKAGE)-$(VERSION)
-#RPMTOPDIR	:= $(shell utils/rpm-wrapper rpm --eval '%_topdir')
-#BUILDDIR	:= $(shell utils/rpm-wrapper rpm --eval '%_builddir')
-#BUILDROOT	:= $(shell utils/rpm-wrapper rpm --eval '%_tmppath')/$(RELEASE)-buildroot
 RPMTOPDIR	:= $(shell pwd)/RPM-BUILD
 BUILDDIR	:= $(RPMTOPDIR)/BUILD
 BUILDROOT	:= $(RPMTOPDIR)/TMP/$(RELEASE)-buildroot
-RPMBUILD	:= utils/rpmbuild
+RPMBUILD	:= rpmbuild
 
-rpm: rpm_build rpm_show
+rpm: $(_CONFIG_MAK) rpm_build rpm_show
 
-rpmmacros: rpmmacros.in
-	sed 's,@TARGET@,$(shell pwd),g' $< > $@
-
-rpmrc: rpmmacros
-	utils/build-rpmrc $@
-
-rpm_dirs: rpmrc
+rpm_dirs:
 	mkdir -p $(RPMTOPDIR) \
 	         $(RPMTOPDIR)/BUILD \
 	         $(RPMTOPDIR)/RPMS \
@@ -130,8 +121,8 @@ tar: rpm_include rpmclean
 	  $(RELEASE)
 	mv $(BUILDDIR)/$(RELEASE).tar.gz $(RPMTOPDIR)/SOURCES
 
-rpm_build: rpmrc rpm_dirs tar rpm_include
-	$(RPMBUILD) -ta $(RPMTOPDIR)/SOURCES/$(RELEASE).tar.gz
+rpm_build: rpm_dirs tar rpm_include
+	$(RPMBUILD) $(RPMBUILD_EXTRA_OPTIONS) -D "_topdir $(RPMTOPDIR)" -D "_tmpdir $(RPMTOPDIR)/TMP" -ta $(RPMTOPDIR)/SOURCES/$(RELEASE).tar.gz
 
 rpm_show: 
 	@echo "You have now:" ; ls -l $(RPMTOPDIR)/*RPMS/*/*.rpm

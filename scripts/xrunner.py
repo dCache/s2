@@ -51,17 +51,14 @@ def read_file(file_name):
 
     return read_data
 
-def run_test(test):
+def run_test(path, test):
     ' returns True/False, time, out, err'
-    runner = test + '.sh'
-
     base = os.environ['S2_LOGS_DIR'] + '/'
     message = base + test + '.out'
     err = base + test + '.log'
     out = base + test + '.e1'
 
-    #command = './%s > /dev/null 2>&1' % (runner)
-    command = './%s' % (runner)
+    command = '%s/%s.sh' % (path, test)
     start_time = time.time()
     rc = os.system(command)
     stop_time = time.time()
@@ -174,12 +171,12 @@ def main():
     for o, a in opts:
         if o in ("-o", "--output"):
             outdir = a
-        if o in ("-d"):
+        elif o in ("-d"):
             testdir = a
-        if o in ("-p"):
+        elif o in ("-p"):
             extra = a
         else:
-            assert False, "unhandled option"
+            assert False, "unhandled option " + o
 
     suite = os.path.basename(testdir)
     report_file = '%s/TEST-%s%s.xml' % (outdir, extra, suite)
@@ -188,7 +185,7 @@ def main():
     for test in glob.glob('%s/*.s2' % (testdir)):
         test = os.path.basename(test)
         (base, ext) = os.path.splitext(test)
-        test_results[base] = run_test(base)
+        test_results[base] = run_test(testdir, base)
 
     print_test_result_xml(suite, test_results, report_file, extra)
 

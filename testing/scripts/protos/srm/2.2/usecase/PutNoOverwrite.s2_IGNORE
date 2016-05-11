@@ -58,7 +58,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || ASSIGN Stat2 2
       SYSTEM exit 2
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;; SYSTEM exit ${Stat2}
 

@@ -56,7 +56,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 || ASSIGN Status ${!}
    SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_CUSTODIAL_FILE0}}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_CUSTODIAL_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;; SYSTEM exit ${Status}
 

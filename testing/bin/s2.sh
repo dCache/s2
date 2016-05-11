@@ -145,7 +145,7 @@ main() {
       ;;
       -*) Die 1 "invalid option \`$1'"
       ;;
-      *)  break 
+      *)  break
       ;;
     esac
     shift
@@ -182,6 +182,10 @@ main() {
 
   test -r ${ProgramNameEnv} && source ${ProgramNameEnv}
   Source 6 ${ENV_SH} || Die 3 "Couldn't source ${ENV_SH}"
+
+  if test x"${S2_SUPRESS_PROGRESS}" != x; then
+      EXTRA_OPTIONS="--progress=0"
+  fi
 
   case "$S2_RUN" in
     superfast)
@@ -243,6 +247,7 @@ main() {
       rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 ${S2_BIN}\
+        ${EXTRA_OPTIONS}\
         --simple-name\
         --file=${S2_TEST_FILE}\
 	--pp-out-file=/dev/null\

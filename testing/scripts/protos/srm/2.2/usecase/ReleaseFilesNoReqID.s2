@@ -26,6 +26,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; ASSIGN Status ${!}
 ;; srmAbortRequest $ENV{ENDPOINT} requestToken=${getRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+;; SYSTEM rm -f $ENV{FILE_TO_GET0}
 ;; SYSTEM exit ${Status}
 
 % TODO: better test

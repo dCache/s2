@@ -29,10 +29,10 @@ function run_s2() # $1 - prefix to test names in report XML files
 
     for suite in avail basic usecase; do
         echo -e "\n== Starting suite: $suite ==\n"
-        if [ ! -d "${suite}" ]; then
-            mkdir "${suite}"
+        if [ ! -d "$1${suite}" ]; then
+            mkdir "$1${suite}"
         fi
-        export S2_LOGS_DIR=${WORKSPACE}/${suite}
+        export S2_LOGS_DIR=${WORKSPACE}/$1${suite}
         xrunner.py -o "${WORKSPACE}" -p "$1" -d /usr/share/s2/testing/scripts/protos/srm/2.2/${suite}
     done
 }

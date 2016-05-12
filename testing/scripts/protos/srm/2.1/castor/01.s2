@@ -41,21 +41,21 @@ NOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #if $ENV{TEST_SCENARIO_A}
 && srmReserveSpace $ENV{ENDPOINT} userID=$ENV{USER} typeOfSpace=$ENV{STORAGE_TYPE} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} sizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE} sizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE} lifetimeOfSpaceToReserve=$ENV{LIFETIME} typeOfReservedSpace=(?P<typeOfReservedSpace>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) referenceHandleOfReservedSpace=(?P<referenceHandleOfReservedSpace>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
-   SYSTEM echo "$DATE{} SRM2 test A: srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace} sizeOfTotalReservedSpace=${sizeOfTotalReservedSpace} sizeOfGuaranteedReservedSpace=${sizeOfGuaranteedReservedSpace} lifetimeOfReservedSpace=${lifetimeOfReservedSpace} referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test A: srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace} sizeOfTotalReservedSpace=${sizeOfTotalReservedSpace} sizeOfGuaranteedReservedSpace=${sizeOfGuaranteedReservedSpace} lifetimeOfReservedSpace=${lifetimeOfReservedSpace} referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> "$ENV{S2_LOG}"
 && srmGetSpaceToken $ENV{ENDPOINT} userID=$ENV{USER} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} possibleSpaceTokens=${referenceHandleOfReservedSpace} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test A: srmGetSpaceToken: possibleSpaceTokens=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test A: srmGetSpaceToken: possibleSpaceTokens=${referenceHandleOfReservedSpace}" >> "$ENV{S2_LOG}"
 && srmGetSpaceMetaData $ENV{ENDPOINT} userID=$ENV{USER} arrayOfSpaceToken[${referenceHandleOfReservedSpace}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test A: srmGetSpaceMetaData: spaceDetails=${spaceDetails}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test A: srmGetSpaceMetaData: spaceDetails=${spaceDetails}" >> "$ENV{S2_LOG}"
 && srmUpdateSpace $ENV{ENDPOINT} userID=$ENV{USER} spaceToken=${referenceHandleOfReservedSpace} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTimeFromCallingTime=$ENV{LIFETIME_NEW} sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test A: srmUpdateSpace: sizeOfGuaranteedSpace=${sizeOfGuaranteedSpace}, lifetimeGranted=${lifetimeGranted}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test A: srmUpdateSpace: sizeOfGuaranteedSpace=${sizeOfGuaranteedSpace}, lifetimeGranted=${lifetimeGranted}" >> "$ENV{S2_LOG}"
 && srmGetSpaceMetaData $ENV{ENDPOINT} userID=$ENV{USER} arrayOfSpaceToken[${referenceHandleOfReservedSpace}] spaceDetails=".*totalSize0=$ENV{RESERVE_SPACE_NEW} .*" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test A: srmGetSpaceMetaData: new size was really reserved" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test A: srmGetSpaceMetaData: new size was really reserved" >> "$ENV{S2_LOG}"
 #endif ;TEST_SCENARIO_A
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #if $ENV{TEST_SCENARIO_B}
 && srmMkdir $ENV{ENDPOINT} userID=$ENV{USER} SURLOrStFN=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test B: srmMkdir: new directory $ENV{SRM_NEW_DIR0} created" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test B: srmMkdir: new directory $ENV{SRM_NEW_DIR0} created" >> "$ENV{S2_LOG}"
 && ASSIGN sURL0 $ENV{SRM_NEW_DIR0}/f0
 && ASSIGN sURL1 $ENV{SRM_NEW_DIR0}/f1
 && ASSIGN fileToPut0 $ENV{FILE_TO_PUT0}
@@ -73,16 +73,16 @@ NOP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #if $ENV{TEST_SCENARIO_D}
 && srmExtendFileLifeTime $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} siteURL=${sURL0} newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test D: srmExtendFileLifeTime: newTimeExtended=${newTimeExtended}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test D: srmExtendFileLifeTime: newTimeExtended=${newTimeExtended}" >> "$ENV{S2_LOG}"
 && srmReleaseFiles $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} surlArray[${sURL0}] keepFiles=0 fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test D: srmReleaseFiles: success" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test D: srmReleaseFiles: success" >> "$ENV{S2_LOG}"
 #if 1 % srmRemoveFiles not supported by DPM
 && srmRemoveFiles $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} surlArray[${sURL1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} SRM2 test D: srmRemoveFiles: success" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} SRM2 test D: srmRemoveFiles: success" >> "$ENV{S2_LOG}"
 #endif
 && NOP
    srmExtendFileLifeTime $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} siteURL=${sURL0} newLifeTime=$ENV{LIFETIME_NEW} newTimeExtended=(?P<newTimeExtended>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   || SYSTEM echo "$DATE{} SRM2 test D: couldn't extend file lifetime, success." >> $ENV{S2_LOG}
-   && SYSTEM echo "$DATE{} SRM2 test D: could extend file lifetime, failure!" >> $ENV{S2_LOG} && exit 2
+   || SYSTEM echo "$DATE{} SRM2 test D: couldn't extend file lifetime, success." >> "$ENV{S2_LOG}"
+   && SYSTEM echo "$DATE{} SRM2 test D: could extend file lifetime, failure!" >> "$ENV{S2_LOG}" && exit 2
 #endif ;TEST_SCENARIO_D
-|| SYSTEM echo "$DATE{} SRM2 test: failed" >> $ENV{S2_LOG} && exit 2
+|| SYSTEM echo "$DATE{} SRM2 test: failed" >> "$ENV{S2_LOG}" && exit 2

@@ -5,21 +5,21 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/GetCycle.s2
 
 
-&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Putting file" >> "$ENV{S2_LOG}"
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_PATH_EXCLUDED_ESC}" : putRequestToken
 
-&& SYSTEM echo "${srmTest}: Listing file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Listing file" >> "$ENV{S2_LOG}"
 
 && NOP
    srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_PATH_EXCLUDED_ESC}] fullDetailedList=0 requestToken=(?P<requestLsToken>.*) pathDetails=".*lifetimeLeft0=(?P<Lifetime0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: Executed srmLs..." >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURLLifeTime=${Lifetime0}" >> $ENV{S2_LOG}
-   || SYSTEM echo "${srmTest}: KO, Ls of file not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!} 
+      SYSTEM echo "${srmTest}: Executed srmLs..." >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURLLifeTime=${Lifetime0}" >> "$ENV{S2_LOG}"
+   || SYSTEM echo "${srmTest}: KO, Ls of file not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!} 
 
-&& SYSTEM echo "${srmTest}: Deleting the file again" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Deleting the file again" >> "$ENV{S2_LOG}"
 
 && srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_PATH_EXCLUDED_ESC}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

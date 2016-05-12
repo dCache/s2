@@ -22,10 +22,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
             TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
    TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> $ENV{S2_LOG}
-      ;; SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
-   || SYSTEM echo "${srmTest}: srmLs failed: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{S2_LOG} && exit ${!}
+      SYSTEM echo "${srmTest}: OK srmMv renamed directory" >> "$ENV{S2_LOG}"
+      ;; SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}" && exit 0
+   || SYSTEM echo "${srmTest}: srmLs failed: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{S2_LOG}" && exit ${!}
 
 ;; ASSIGN Status ${!}
 ;; srmRmdir $ENV{ENDPOINT} SURL=${dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
-|| SYSTEM echo "${srmTest}: KO Test failed" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+|| SYSTEM echo "${srmTest}: KO Test failed" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}

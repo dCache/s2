@@ -9,19 +9,19 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 % call srmReserveSpace with a unique space token tag and defined size
 && srmReserveSpace $ENV{ENDPOINT} userID=$ENV{USER} typeOfSpace=$ENV{STORAGE_TYPE} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} sizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE} sizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE} lifetimeOfSpaceToReserve=$ENV{LIFETIME} typeOfReservedSpace=(?P<typeOfReservedSpace>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) referenceHandleOfReservedSpace=(?P<referenceHandleOfReservedSpace>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
-   SYSTEM echo "$DATE{} srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace} sizeOfTotalReservedSpace=${sizeOfTotalReservedSpace} sizeOfGuaranteedReservedSpace=${sizeOfGuaranteedReservedSpace} lifetimeOfReservedSpace=${lifetimeOfReservedSpace} referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace} sizeOfTotalReservedSpace=${sizeOfTotalReservedSpace} sizeOfGuaranteedReservedSpace=${sizeOfGuaranteedReservedSpace} lifetimeOfReservedSpace=${lifetimeOfReservedSpace} referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> "$ENV{S2_LOG}"
 % use srmGetSpaceToken to get the space token from the tag
 && srmGetSpaceToken $ENV{ENDPOINT} userID=$ENV{USER} userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} possibleSpaceTokens=${referenceHandleOfReservedSpace} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} srmGetSpaceToken: possibleSpaceTokens=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} srmGetSpaceToken: possibleSpaceTokens=${referenceHandleOfReservedSpace}" >> "$ENV{S2_LOG}"
 % call srmGetSpaceMetadata to make sure the right amount of space was allocated
 && srmGetSpaceMetaData $ENV{ENDPOINT} userID=$ENV{USER} arrayOfSpaceToken[${referenceHandleOfReservedSpace}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} srmGetSpaceMetaData: spaceDetails=${spaceDetails}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} srmGetSpaceMetaData: spaceDetails=${spaceDetails}" >> "$ENV{S2_LOG}"
 % call srmUpdateSpace increasing the lifetime and size
 && srmUpdateSpace $ENV{ENDPOINT} userID=$ENV{USER} spaceToken=${referenceHandleOfReservedSpace} newSizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE_NEW} newSizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE_NEW} newLifeTimeFromCallingTime=$ENV{LIFETIME_NEW} sizeOfTotalSpace=(?P<sizeOfTotalSpace>.*) sizeOfGuaranteedSpace=(?P<sizeOfGuaranteedSpace>.*) lifetimeGranted=(?P<lifetimeGranted>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} srmUpdateSpace: sizeOfGuaranteedSpace=${sizeOfGuaranteedSpace}, lifetimeGranted=${lifetimeGranted}" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} srmUpdateSpace: sizeOfGuaranteedSpace=${sizeOfGuaranteedSpace}, lifetimeGranted=${lifetimeGranted}" >> "$ENV{S2_LOG}"
 % call srmGetSpaceMetadata again to check the update worked
 && srmGetSpaceMetaData $ENV{ENDPOINT} userID=$ENV{USER} arrayOfSpaceToken[${referenceHandleOfReservedSpace}] spaceDetails=".*totalSize0=$ENV{RESERVE_SPACE_NEW} .*" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-   SYSTEM echo "$DATE{} srmGetSpaceMetaData: new size was really reserved" >> $ENV{S2_LOG}
+   SYSTEM echo "$DATE{} srmGetSpaceMetaData: new size was really reserved" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

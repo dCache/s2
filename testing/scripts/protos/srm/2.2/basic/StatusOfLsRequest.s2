@@ -5,38 +5,38 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; ASSIGN Status 0
 
 ;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed srmMkdir ${-statusCode} : ${-explanation}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed srmMkdir ${-statusCode} : ${-explanation}" >> "$ENV{S2_LOG}"
 
    ;; TEST $MATCH{(SRM_SUCCESS) ${statusCode}}
       timeout=180000000 srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] numOfLevels=0 requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
-         SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> $ENV{S2_LOG}
+         SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> "$ENV{S2_LOG}"
 
          ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
             >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
                srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} offset=0 count=0 pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
-                  SYSTEM echo "${srmTest}: srmStatusOfLsRequest, ${-statusCode} :  ${-explanation}" >> $ENV{S2_LOG}
+                  SYSTEM echo "${srmTest}: srmStatusOfLsRequest, ${-statusCode} :  ${-explanation}" >> "$ENV{S2_LOG}"
                   ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
             ;; TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${statusCode}}
-               SYSTEM echo "${srmTest}: OK: srmStatusOfLsRequest called until ${-statusCode}" >> $ENV{SRM2_SUPPORTED}
+               SYSTEM echo "${srmTest}: OK: srmStatusOfLsRequest called until ${-statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
             || ASSIGN Status ${!}
-               SYSTEM echo "${srmTest}: KO: srmStatusOfLsRequest called until ${-statusCode} : ${explanation}" >> $ENV{S2_SUPPORTED}
+               SYSTEM echo "${srmTest}: KO: srmStatusOfLsRequest called until ${-statusCode} : ${explanation}" >> "$ENV{S2_SUPPORTED}"
 
          || TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${statusCode}}
-            SYSTEM echo "${srmTest}: OK: srmLs was synchronous (srmStatusOfLsRequest not tested) but successful" >> $ENV{SRM2_SUPPORTED}
+            SYSTEM echo "${srmTest}: OK: srmLs was synchronous (srmStatusOfLsRequest not tested) but successful" >> "$ENV{SRM2_SUPPORTED}"
 
          || ASSIGN Status ${!}
-            SYSTEM echo "${srmTest}: KO: srmLs was synchronous (srmStatusOfLsRequest not tested) and failed with ${-statusCode} : ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+            SYSTEM echo "${srmTest}: KO: srmLs was synchronous (srmStatusOfLsRequest not tested) and failed with ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
       || ASSIGN Status ${!}
-         SYSTEM echo "${srmTest} OK: srmLs failed" >> $ENV{SRM2_SUPPORTED}
+         SYSTEM echo "${srmTest} OK: srmLs failed" >> "$ENV{SRM2_SUPPORTED}"
 
       ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0
 
    || ASSIGN Status ${!}
-      SYSTEM echo "${srmTest}: KO: srmMkdir failed ${-statusCode} : ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: KO: srmMkdir failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: srmMkdir failed" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: KO: srmMkdir failed" >> "$ENV{SRM2_SUPPORTED}"
 
 ;; NOP ${Status}

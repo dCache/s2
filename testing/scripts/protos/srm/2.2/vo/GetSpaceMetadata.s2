@@ -4,16 +4,16 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=$ENV{VOTOKEN} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmGetSpaceTokens; spaceToken=${-spaceTokens}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmGetSpaceTokens; spaceToken=${-spaceTokens}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{".*spaceToken0=(?P<spaceToken0>.+?)(\s.+|$)" ${spaceTokens}}
    ASSIGN spaceToken ${spaceToken0}
-   && SYSTEM echo "${srmTest}: Space token for description $ENV{VOTOKEN} is ${spaceToken0}" >> $ENV{S2_LOG}
+   && SYSTEM echo "${srmTest}: Space token for description $ENV{VOTOKEN} is ${spaceToken0}" >> "$ENV{S2_LOG}"
 
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmGetSpaceMetaData, Space Details = ${spaceDetails}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmGetSpaceMetaData, Space Details = ${spaceDetails}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: srmGetSpaceMetadata successful, ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: OK: srmGetSpaceMetadata successful, ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
-|| SYSTEM echo "${srmTest}: KO: srmGetSpaceMetadata has failed, ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO: srmGetSpaceMetadata has failed, ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

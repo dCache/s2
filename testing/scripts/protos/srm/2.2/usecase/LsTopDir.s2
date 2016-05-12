@@ -5,8 +5,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; ASSIGN dir $ENV{SRM_ENDPOINT}/
 ;; srmLs $ENV{ENDPOINT} SURL[${dir}] fullDetailedList=0 numOfLevels=0 requestToken=(?P<requestToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) pathDetails="(.*returnStatus.statusCode0=(?P<fileStatus0>[^ ]*).*)?" returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
-   ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed srmLs ..." >> "$ENV{S2_LOG}"
+   ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
    ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
       >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -14,10 +14,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
             TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
 ;; TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: Ls return code ${-returnStatus_statusCode} ${-fileStatus0}" >> $ENV{SRM2_SUPPORTED} && exit 0
+   SYSTEM echo "${srmTest}: OK: Ls return code ${-returnStatus_statusCode} ${-fileStatus0}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
 || TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}}
       TEST $MATCH{(SRM_NOT_SUPPORTED) ${fileStatus0}}
-         SYSTEM echo "${srmTest}: OK: File Status return code ${fileStatus0}, Ls return code ${-returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 0
+         SYSTEM echo "${srmTest}: OK: File Status return code ${fileStatus0}, Ls return code ${-returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

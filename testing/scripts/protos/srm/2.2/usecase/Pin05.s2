@@ -20,17 +20,17 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/GetCycle.s2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
 && ASSIGN fileToPut $ENV{FILE_TO_PUT0}
 && ASSIGN sURL $ENV{SRM_NEW_FILE0}
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
-&& SYSTEM echo "${srmTest}: Executing Get1 request on $ENV{SRM_NEW_FILE0} with desiredPinLifeTime=$ENV{PIN_LIFETIME}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing Get1 request on $ENV{SRM_NEW_FILE0} with desiredPinLifeTime=$ENV{PIN_LIFETIME}" >> "$ENV{S2_LOG}"
 
 && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequest1Token>.*) fileStatuses=(?P<fileStatuses1>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: srmPrepareToGet, getRequest1Token=${getRequest1Token}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmPrepareToGet, getRequest1Token=${getRequest1Token}" >> "$ENV{S2_LOG}"
    && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses1}}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
@@ -40,20 +40,20 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Retrieving the lifetime assigned to the TURL
-&& SYSTEM echo "${srmTest}: Retrieving the lifetime assigned to TURL1." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Retrieving the lifetime assigned to TURL1." >> "$ENV{S2_LOG}"
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*remainingPinTime0=(?P<pin1Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses1}}
       ASSIGN PIN1 ${pin1Lifetime0}
-      && SYSTEM echo "${srmTest}: $DATE{} PIN1 set to ${pin1Lifetime0}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: $DATE{} PIN1 set to ${pin1Lifetime0}" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: Executing Get2 request on $ENV{SRM_NEW_FILE0} with desiredPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing Get2 request on $ENV{SRM_NEW_FILE0} with desiredPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2}" >> "$ENV{S2_LOG}"
 && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 desiredPinLifeTime=$EXPR{$ENV{PIN_LIFETIME}*2} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequest2Token>.*) fileStatuses=(?P<fileStatuses2>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: srmPrepareToGet, getRequest2Token=${getRequest2Token}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmPrepareToGet, getRequest2Token=${getRequest2Token}" >> "$ENV{S2_LOG}"
    && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses2}}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest2Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses2>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
@@ -62,44 +62,44 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{".*transferURL0=(?P<transfer2URL0>.*?)( |$)" ${fileStatuses2}}
 
 % Retrieving the lifetime assigned to TURL2
-&& SYSTEM echo "${srmTest}: Retrieving the lifetime assigned to TURL2." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Retrieving the lifetime assigned to TURL2." >> "$ENV{S2_LOG}"
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest2Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses2>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*remainingPinTime0=(?P<pin2Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses2}}
       ASSIGN PIN2 ${pin2Lifetime0}
-      && SYSTEM echo "${srmTest}: $DATE{} PIN2 set to ${pin2Lifetime0}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}: $DATE{} PIN2 set to ${pin2Lifetime0}" >> "$ENV{S2_LOG}"
 
 % Retrieving the lifetime assigned to TURL1
-&& SYSTEM echo "${srmTest}: Retrieving the pin lifetime assigned to TURL1." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Retrieving the pin lifetime assigned to TURL1." >> "$ENV{S2_LOG}"
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*remainingPinTime0=(?P<pin1Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses1}}
       TEST ${PIN1} >= ${pin1Lifetime0}
-      && SYSTEM echo "${srmTest}: PIN1=${pin1Lifetime0} is still consistent with previous value ${PIN1}" >> $ENV{S2_LOG}
-      || SYSTEM echo "${srmTest}: PIN1=${pin1Lifetime0} is different than previous value ${PIN1}" >> $ENV{S2_LOG} && exit 2
+      && SYSTEM echo "${srmTest}: PIN1=${pin1Lifetime0} is still consistent with previous value ${PIN1}" >> "$ENV{S2_LOG}"
+      || SYSTEM echo "${srmTest}: PIN1=${pin1Lifetime0} is different than previous value ${PIN1}" >> "$ENV{S2_LOG}" && exit 2
 
 % Releasing TURL1
-&& SYSTEM echo "${srmTest}: Releasing TURL1" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Releasing TURL1" >> "$ENV{S2_LOG}"
 
 && srmReleaseFiles $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[${sURL}] fileStatuses=(?P<fileStatuses1>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
     TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-        SYSTEM echo "${srmTest}: srmReleaseFiles of TURL1 has succeeded" >> $ENV{S2_LOG}
-        && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode} fileStatus=${fileStatuses1}" >> $ENV{S2_LOG}
+        SYSTEM echo "${srmTest}: srmReleaseFiles of TURL1 has succeeded" >> "$ENV{S2_LOG}"
+        && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode} fileStatus=${fileStatuses1}" >> "$ENV{S2_LOG}"
 
 % Check pin lifetime of TURL1 and TURL2
 
-&& SYSTEM echo "${srmTest}: Checking pin lifetime of TURL1 and TURL2" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking pin lifetime of TURL1 and TURL2" >> "$ENV{S2_LOG}"
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && NOP
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<fileStatus0>(SRM_RELEASED))(\s.+|$)" ${fileStatuses1}}
-      SYSTEM echo "${srmTest}: OK, TURL1 released, fileStatus=${fileStatuses1}" >> $ENV{S2_LOG} && exit 0
-   || SYSTEM echo "{srmTest}: KO returnStatus=${returnStatus_statusCode}, fileStatus=${fileStatus0}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+      SYSTEM echo "${srmTest}: OK, TURL1 released, fileStatus=${fileStatuses1}" >> "$ENV{S2_LOG}" && exit 0
+   || SYSTEM echo "{srmTest}: KO returnStatus=${returnStatus_statusCode}, fileStatus=${fileStatus0}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest2Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses2>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
@@ -107,11 +107,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    && TEST $MATCH{".*remainingPinTime0=(?P<pin2Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses2}}
       TEST ${PIN2} >= ${pin2Lifetime0}
-         SYSTEM echo "${srmTest}: OK, TURL2 still valid, fileStatus=${fileStatuses2}" >> $ENV{S2_LOG} && exit 0
-   || SYSTEM echo "{srmTest}: KO, problems with TURL2 returnStatus=${-returnStatus_statusCode}, fileStatus=${-fileStatuses2}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+         SYSTEM echo "${srmTest}: OK, TURL2 still valid, fileStatus=${fileStatuses2}" >> "$ENV{S2_LOG}" && exit 0
+   || SYSTEM echo "{srmTest}: KO, problems with TURL2 returnStatus=${-returnStatus_statusCode}, fileStatus=${-fileStatuses2}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; ASSIGN Status ${!}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"

@@ -12,42 +12,42 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
    #include ../include/GetCycle.s2
 
-&& SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
 && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
 
 % put a file into the newly created directory
-&& SYSTEM echo "${srmTest}: Put a file into the newly created directory, $ENV{SRM_NEW_DIR0}/f0" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Put a file into the newly created directory, $ENV{SRM_NEW_DIR0}/f0" >> "$ENV{S2_LOG}"
 && ASSIGN fileToPut $ENV{FILE_TO_PUT0}
 && ASSIGN sURL $ENV{SRM_NEW_DIR0}/f0
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
 % this remove should fail, not a recursive rm
-&& SYSTEM echo "${srmTest}: Remove directory with non-recursive srmRmdir ..." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Remove directory with non-recursive srmRmdir ..." >> "$ENV{S2_LOG}"
 && NOP
    srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: $DATE{} non-recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: $DATE{} non-recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> "$ENV{S2_LOG}"
 
 % try to fetch the file, it should succeed
-&& SYSTEM echo "${srmTest}: Get the file, the operation should succeed..." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Get the file, the operation should succeed..." >> "$ENV{S2_LOG}"
 && ASSIGN fileToGet $ENV{FILE_TO_GET0}
    FUN GetCycle ${fileToGet} ${sURL} : getRequestToken
 
 % this remove should not succeed even if recursive rm is supported by the server
-&& SYSTEM echo "${srmTest}: Remove the created directory with recursive srmRmdir..." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Remove the created directory with recursive srmRmdir..." >> "$ENV{S2_LOG}"
 && NOP
    srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=1 returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: $DATE{} recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: $DATE{} recursive srmRmdir returned ${returnStatus_statusCode}: ${-returnStatus_explanation} " >> "$ENV{S2_LOG}"
 
 % try to fetch the file
-&& SYSTEM echo "${srmTest}: Get the file, the operation should be successful ..." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Get the file, the operation should be successful ..." >> "$ENV{S2_LOG}"
 && NOP
    FUN GetCycle ${fileToGet} ${sURL} : getRequestToken
-      SYSTEM echo "${srmTest}: $DATE{} OK: successfully fetched a file from a directory which should've been removed!" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: $DATE{} OK: successfully fetched a file from a directory which should've been removed!" >> "$ENV{S2_LOG}"
    || TEST !$DEFINED{sExplanation}
-      SYSTEM echo "${srmTest}: $DATE{} KO: couldn't fetch a file from a non empty directory which was recursively removed." >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: $DATE{} KO: couldn't fetch a file from a non empty directory which was recursively removed." >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; ASSIGN Status ${!}
 ;; srmRm $ENV{ENDPOINT} SURL[${sURL}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

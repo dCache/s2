@@ -9,9 +9,9 @@
 DEFUN FileTransGet fileToGet transferURL
    % substring matching
    match=-c TEST $MATCH{"^gsiftp://" ${transferURL}}
-      SYSTEM globus-url-copy ${transferURL} file://${fileToGet} >> $ENV{S2_LOG} 2>&1
+      SYSTEM globus-url-copy ${transferURL} file://${fileToGet} >> "$ENV{S2_LOG}" 2>&1
       % return 2 if globus-url-copy fails, it returns 1 which is just a warning in s2
-      || SYSTEM echo "${srmTest}: globus-url-copy failed ${!}" >> $ENV{S2_LOG} && exit 2
+      || SYSTEM echo "${srmTest}: globus-url-copy failed ${!}" >> "$ENV{S2_LOG}" && exit 2
    || TEST $MATCH{"^rfio://(?P<rfioHost>.*?)/(?P<rfioPath>.*)" ${transferURL}}
       #if $ENV{RFCP_SUDO}
 %      SYSTEM sudo -u dteam001 rfcp ${rfioHost}:${rfioPath} ${fileToGet} 
@@ -20,7 +20,7 @@ DEFUN FileTransGet fileToGet transferURL
 %      SYSTEM rfcp ${rfioHost}:${rfioPath} ${fileToGet}
       SYSTEM rfcp ${rfioPath} ${fileToGet}
       #endif
-      || SYSTEM echo "${srmTest}: rfcp failed ${!}" >> $ENV{S2_LOG} && exit 2
+      || SYSTEM echo "${srmTest}: rfcp failed ${!}" >> "$ENV{S2_LOG}" && exit 2
 
 % _FILE_TRANS_GET_
 #endif

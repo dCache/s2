@@ -5,11 +5,11 @@
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmReserveSpace $ENV{ENDPOINT} userID=$ENV{USER} typeOfSpace=Durable userSpaceTokenDescription=$ENV{SPACE_TOKEN_DESCR} sizeOfTotalSpaceDesired=$ENV{RESERVE_SPACE} sizeOfGuaranteedSpaceDesired=$ENV{RESERVE_SPACE} lifetimeOfSpaceToReserve=$ENV{LIFETIME} typeOfReservedSpace=(?P<typeOfReservedSpace>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) referenceHandleOfReservedSpace=(?P<referenceHandleOfReservedSpace>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE)
-   SYSTEM echo "srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace}; referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> $ENV{S2_LOG}
+   SYSTEM echo "srmReserveSpace: typeOfReservedSpace=${typeOfReservedSpace}; referenceHandleOfReservedSpace=${referenceHandleOfReservedSpace}" >> "$ENV{S2_LOG}"
 && srmGetSpaceMetaData $ENV{ENDPOINT} userID=$ENV{USER} arrayOfSpaceToken[${referenceHandleOfReservedSpace}] spaceDetails=".*totalSize0=(?P<totalSize0>.*) .*" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "srmGetSpaceMetaData: totalSize0=${totalSize0}" >> $ENV{S2_LOG}
+   SYSTEM echo "srmGetSpaceMetaData: totalSize0=${totalSize0}" >> "$ENV{S2_LOG}"
 
 && TEST $ENV{RESERVE_SPACE} == ${totalSize0}
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE|SRM_SPACE_AVAILABLE) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

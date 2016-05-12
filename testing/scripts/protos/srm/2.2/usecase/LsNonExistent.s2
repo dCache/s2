@@ -5,8 +5,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN dir $ENV{SRM_ENDPOINT}/flavia
 
 && srmLs $ENV{ENDPOINT} SURL[${dir}] requestToken=(?P<requestToken>.*) pathDetails=(.*returnStatus.statusCode0=(?P<fileStatus0>[A-Z_]*))? returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed srmLs ..." >> $ENV{S2_LOG}
-   ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed srmLs ..." >> "$ENV{S2_LOG}"
+   ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
    ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
       >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -15,10 +15,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}}
    TEST $MATCH{(SRM_INVALID_PATH) ${fileStatus0}}
-      SYSTEM echo "${srmTest}: OK: File Status return code ${fileStatus0}, Ls return code ${-returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 0
-   || SYSTEM echo "${srmTest}: KO: File Status return code ${fileStatus0}, Ls return code ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 2
+      SYSTEM echo "${srmTest}: OK: File Status return code ${fileStatus0}, Ls return code ${-returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
+   || SYSTEM echo "${srmTest}: KO: File Status return code ${fileStatus0}, Ls return code ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 % TODO:
 %   * checks for filtering by storage type, recursive ls, ...

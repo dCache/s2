@@ -8,10 +8,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 
-&& >0&&8 SYSTEM echo 'Looping to mkdir' >> $ENV{S2_LOG}
+&& >0&&8 SYSTEM echo 'Looping to mkdir' >> "$ENV{S2_LOG}"
 
    ASSIGN depth $I{0}
-   && SYSTEM echo Loop ${depth} >> $ENV{S2_LOG}
+   && SYSTEM echo Loop ${depth} >> "$ENV{S2_LOG}"
 
    && ASSIGN MYPATH ""
    && ASSIGN PATHADD $ENV{SRM_NEW_DIR0}
@@ -19,7 +19,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && >0&&${depth} ASSIGN MYPATH "${MYPATH}${PATHADD}"
       ASSIGN PATHADD "/x"
 
-   && SYSTEM echo "Path is ${MYPATH}" >> $ENV{S2_LOG}
+   && SYSTEM echo "Path is ${MYPATH}" >> "$ENV{S2_LOG}"
 
    && srmMkdir $ENV{ENDPOINT} SURL=${MYPATH} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
@@ -27,9 +27,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       srmLs $ENV{ENDPOINT} SURL[${MYPATH}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
 
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
 
-;; >8&&0 SYSTEM echo 'Looping to rmdir' >> $ENV{S2_LOG}
+;; >8&&0 SYSTEM echo 'Looping to rmdir' >> "$ENV{S2_LOG}"
 
    ASSIGN depth $I{0}
    && SYSTEM echo Loop ${depth}
@@ -40,11 +40,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && >0&&${depth} ASSIGN MYPATH "${MYPATH}${PATHADD}"
       ASSIGN PATHADD "/x"
 
-   && SYSTEM echo "Path is ${MYPATH}" >> $ENV{S2_LOG}
+   && SYSTEM echo "Path is ${MYPATH}" >> "$ENV{S2_LOG}"
    && srmRmdir $ENV{ENDPOINT} SURL=${MYPATH} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
 
 && SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

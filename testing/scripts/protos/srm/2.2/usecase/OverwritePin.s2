@@ -11,39 +11,39 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
 
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-&& SYSTEM echo "${srmTest}: Now preparing get of the file $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Now preparing get of the file $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
 
 && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] desiredTotalRequestTime=2700 requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<ptgFileStatuses>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-   SYSTEM echo "${srmTest}: srmPrepareToGet on going: getRequestToken=${getRequestToken} fileStatuses: ${ptgFileStatuses}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmPrepareToGet on going: getRequestToken=${getRequestToken} fileStatuses: ${ptgFileStatuses}" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: Using srmPrepareToPut to overwrite the file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Using srmPrepareToPut to overwrite the file" >> "$ENV{S2_LOG}"
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] overwriteOption=ALWAYS fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken2>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-putRequestToken2}, fileRequests=$ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed PrepareToPut, overwriteOption=ALWAYS, requestToken: ${-putRequestToken2}, fileRequests=$ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
+   && SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-returnStatus_statusCode}, returnExplanation=${-rs_explanation}" >> "$ENV{S2_LOG}"
 
    && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: Waiting until the PtP is really in progress, calling statusOfPutRequest" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Waiting until the PtP is really in progress, calling statusOfPutRequest" >> "$ENV{S2_LOG}"
       && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken2} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<PutStatusCode>\w+) .*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-            SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file: ${PutStatusCode}" >> $ENV{S2_LOG}
+            SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file: ${PutStatusCode}" >> "$ENV{S2_LOG}"
          && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
 
-&& SYSTEM echo "${srmTest}: Checking the status of the ongoing get request" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking the status of the ongoing get request" >> "$ENV{S2_LOG}"
 
 && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
    srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*Status.statusCode0=(?P<GetStatusCode>.+?)(\s.+|$)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: StatusOfGetRequest returned ${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: StatusOfGetRequest returned ${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
    && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
 
 && NOP
-   SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
    && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}} 
    || TEST $MATCH{SRM_FAILURE ${returnStatus_statusCode}} 
       TEST $MATCH{(SRM_FILE_BUSY) ${GetStatusCode}}
@@ -52,7 +52,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}: OK (Get request status ${returnStatus_statusCode}, file status ${GetStatusCode})" >> $ENV{SRM2_SUPPORTED}
+&& SYSTEM echo "${srmTest}: OK (Get request status ${returnStatus_statusCode}, file status ${GetStatusCode})" >> "$ENV{SRM2_SUPPORTED}"
 
-|| SYSTEM echo "${srmTest}: KO: Test failed" >> $ENV{SRM2_SUPPORTED} && exit 2
+|| SYSTEM echo "${srmTest}: KO: Test failed" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 

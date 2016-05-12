@@ -16,18 +16,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; ASSIGN Result 0
 ;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
-   SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${status}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${status}" >> "$ENV{S2_LOG}"
 
    && TEST $MATCH{SRM_SUCCESS ${status}}
 
       % Put two files into the newly created directory
-      SYSTEM echo "${srmTest}: Put two files into the newly created directory, $ENV{SRM_NEW_DIR0}/f0 and $ENV{SRM_NEW_DIR0}/f1" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Put two files into the newly created directory, $ENV{SRM_NEW_DIR0}/f0 and $ENV{SRM_NEW_DIR0}/f1" >> "$ENV{S2_LOG}"
       ;; ASSIGN fileToPut "$ENV{FILE_TO_PUT0} $ENV{FILE_TO_PUT1}"
       ;; ASSIGN surl "$ENV{SRM_NEW_DIR0}/f0 $ENV{SRM_NEW_DIR0}/f1"
       ;; FUN PutCycle ${fileToPut} ${surl} : putRequestToken
-         SYSTEM echo "${srmTest}: Listing the content of the directory $ENV{SRM_NEW_DIR0}"  >> $ENV{S2_LOG}
+         SYSTEM echo "${srmTest}: Listing the content of the directory $ENV{SRM_NEW_DIR0}"  >> "$ENV{S2_LOG}"
          ;; srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] requestToken=(?P<token>.*) pathDetails=(?P<details>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
-            SYSTEM echo "${srmTest}: Executed srmLs, pathDetails[${details}]" >> $ENV{S2_LOG}
+            SYSTEM echo "${srmTest}: Executed srmLs, pathDetails[${details}]" >> "$ENV{S2_LOG}"
 
             ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${status}}
                >0&&5 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -36,50 +36,50 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
             ;; TEST $MATCH{SRM_SUCCESS ${status}}
                TEST $MATCH{".*path0=(?P<path0>.+?)(\s.+|$)" ${details}}
-                  SYSTEM echo "${srmTest}: First file is returned: ${path0}" >> $ENV{S2_LOG}
+                  SYSTEM echo "${srmTest}: First file is returned: ${path0}" >> "$ENV{S2_LOG}"
 
                   ;; TEST $MATCH{".*path1=(?P<path1>.+?)(\s.+|$)" ${details}}
-                     SYSTEM echo "${srmTest}: Second file is returned: ${path1}" >> $ENV{S2_LOG}
+                     SYSTEM echo "${srmTest}: Second file is returned: ${path1}" >> "$ENV{S2_LOG}"
 
-                     ;; SYSTEM echo "${srmTest}: Attempting to remove non-empty directory SURL=$ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+                     ;; SYSTEM echo "${srmTest}: Attempting to remove non-empty directory SURL=$ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
                      ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0  returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
                         TEST $MATCH{SRM_NON_EMPTY_DIRECTORY ${status}}
-                           SYSTEM echo "${srmTest}: OK: ${status}" >> $ENV{SRM2_SUPPORTED}
+                           SYSTEM echo "${srmTest}: OK: ${status}" >> "$ENV{SRM2_SUPPORTED}"
                         || NOP
-                           SYSTEM echo "${srmTest}: KO: srmRmdir wrong status code ${-status}: ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+                           SYSTEM echo "${srmTest}: KO: srmRmdir wrong status code ${-status}: ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
                            ;; ASSIGN Result 1
 
                      || NOP
-                        SYSTEM echo "${srmTest}: KO: srmRmdir operation failed" >> $ENV{SRM2_SUPPORTED}
+                        SYSTEM echo "${srmTest}: KO: srmRmdir operation failed" >> "$ENV{SRM2_SUPPORTED}"
                         ;; ASSIGN Result 1
 
                   || NOP
-                     SYSTEM echo "${srmTest}: KO: list did not include second file." >> $ENV{SRM2_SUPPORTED}
+                     SYSTEM echo "${srmTest}: KO: list did not include second file." >> "$ENV{SRM2_SUPPORTED}"
                      ;; ASSIGN Result 1
 
                || NOP
-                  SYSTEM echo "${srmTest}: KO: list did not include first file." >> $ENV{SRM2_SUPPORTED}
+                  SYSTEM echo "${srmTest}: KO: list did not include first file." >> "$ENV{SRM2_SUPPORTED}"
                   ;; ASSIGN Result 1
 
             || NOP
-               SYSTEM echo "${srmTest}: KO: failed to list directory" >> $ENV{SRM2_SUPPORTED}
+               SYSTEM echo "${srmTest}: KO: failed to list directory" >> "$ENV{SRM2_SUPPORTED}"
                ;; ASSIGN Result 1
 
             ;; srmRm $ENV{ENDPOINT} SURL[$SPLIT{${surl}}]
 
       || NOP
-         SYSTEM echo "${srmTest}: KO: upload failed: ${-status} ${-explanation}" >> $ENV{SRM2_SUPPORTED}
+         SYSTEM echo "${srmTest}: KO: upload failed: ${-status} ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
          ;; ASSIGN Result 1
 
       ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0}
 
    || NOP
-      SYSTEM echo "${srmTest}: KO: srmMkdir failed: ${status} ${explanation}" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: KO: srmMkdir failed: ${status} ${explanation}" >> "$ENV{SRM2_SUPPORTED}"
       ;; ASSIGN Result 1
 
 || NOP
-   SYSTEM echo "${srmTest}: KO: srmMkdir operation failed" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: KO: srmMkdir operation failed" >> "$ENV{SRM2_SUPPORTED}"
    ;; ASSIGN Result 1
 
 ;; SYSTEM exit ${Result}

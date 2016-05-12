@@ -21,81 +21,81 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN SRM_SNEW_DIR0 $ENV{SRM_NEW_STRESS_DIR0}
 && ASSIGN SRM_SNEW_DIR1 $ENV{SRM_NEW_STRESS_DIR0}/$DATE{}-$ENV{PROC}
 
-&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory ${SRM_SNEW_DIR0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory ${SRM_SNEW_DIR0}" >> "$ENV{S2_LOG}"
 
 && srmMkdir $ENV{ENDPOINT} SURL=${SRM_SNEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}-$DATE{}: Executed srmMkdir ${SRM_SNEW_DIR0}, returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}-$DATE{}: Executed srmMkdir ${SRM_SNEW_DIR0}, returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
 && srmMkdir $ENV{ENDPOINT} SURL=${SRM_SNEW_DIR1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}-$DATE{}: Executed srmMkdir ${SRM_SNEW_DIR1}, returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}-$DATE{}: Executed srmMkdir ${SRM_SNEW_DIR1}, returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
 && ASSIGN file1 ${SRM_SNEW_DIR1}/$DATE{}.txt
 && ASSIGN file2 ${SRM_SNEW_DIR1}/$DATE{}.txt
 && ASSIGN file3 ${SRM_SNEW_DIR1}/$DATE{}.txt
 
-&& SYSTEM echo "${srmTest}-$DATE{}: Putting files ${file1}, ${file2}, ${file3}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}-$DATE{}: Putting files ${file1}, ${file2}, ${file3}" >> "$ENV{S2_LOG}"
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0} $ENV{BIG_FILE} $ENV{FILE_TO_PUT2}" "${file1}, ${file2}, ${file3}" : putRequestToken
-   SYSTEM echo "${srmTest}-$DATE{}: Put Cycle succeeded for ${file1}, ${file2}, ${file3}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}-$DATE{}: Put Cycle succeeded for ${file1}, ${file2}, ${file3}" >> "$ENV{S2_LOG}"
 
-|| SYSTEM  echo "${srmTest}}-$DATE{}: Directory creation or put cycle failed" >> $ENV{S2_LOG} && exit 2
+|| SYSTEM  echo "${srmTest}}-$DATE{}: Directory creation or put cycle failed" >> "$ENV{S2_LOG}" && exit 2
 
 && ASSIGN begin $DATE{%s.%N}
-&& SYSTEM echo "${srmTest}: begin: ${begin}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: begin: ${begin}" >> "$ENV{S2_LOG}"
 
 && ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
    >0 ${n} SLEEP ${sec} ${nsec}
      ASSIGN thread $I{0}
      && ASSIGN Status 0
      && srmLs $ENV{ENDPOINT} SURL[${SRM_SNEW_DIR1}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-        SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Executed srmLs with FullDetailedList enabled returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+        SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Executed srmLs with FullDetailedList enabled returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
         TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Path is returned: ${Path1}" >> $ENV{S2_LOG}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Path is returned: ${Path1}" >> "$ENV{S2_LOG}"
         || ASSIGN Status 2
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Path is not returned" >> $ENV{SRM2_SUPPORTED}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Path is not returned" >> "$ENV{SRM2_SUPPORTED}"
         && TEST $MATCH{".*size1=(?P<Size1>\d+?)(\s.+|$)" ${PathDetails0}}
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Size is returned: ${Size1}" >> $ENV{S2_LOG}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Size is returned: ${Size1}" >> "$ENV{S2_LOG}"
         || ASSIGN Status 2
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Size is not returned" >> $ENV{SRM2_SUPPORTED}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Size is not returned" >> "$ENV{SRM2_SUPPORTED}"
         && TEST $MATCH{".*type1=(?P<Type1>(FILE|DIRECTORY))(\s.+|$)" ${PathDetails0}}
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Type is returned: ${Type1}" >> $ENV{S2_LOG}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Type is returned: ${Type1}" >> "$ENV{S2_LOG}"
         || ASSIGN Status 2
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Type is not returned" >> $ENV{SRM2_SUPPORTED}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Type is not returned" >> "$ENV{SRM2_SUPPORTED}"
         && TEST $MATCH{".*lastModificationTime1=(?P<ModificationTime1>\d+?)(\s.+|$)" ${PathDetails0}}
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Modification Time is returned: ${ModificationTime1}" >> $ENV{S2_LOG}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Modification Time is returned: ${ModificationTime1}" >> "$ENV{S2_LOG}"
         || ASSIGN Status 2
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Modification Time is not returned" >> $ENV{SRM2_SUPPORTED}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Modification Time is not returned" >> "$ENV{SRM2_SUPPORTED}"
         && TEST $MATCH{".*(?P<Permissions1>userID1=.*otherPermission1=(NONE|X|W|WX|R|RX|RW|RWX))(\s.+|$)" ${PathDetails0}}
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Permissions are returned: ${Permissions1}" >> $ENV{S2_LOG}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Permissions are returned: ${Permissions1}" >> "$ENV{S2_LOG}"
         || ASSIGN Status 2
-           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Permissions are not returned" >> $ENV{SRM2_SUPPORTED}
+           SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Permissions are not returned" >> "$ENV{SRM2_SUPPORTED}"
         && NOP
            TEST $MATCH{".*checkSumType1=(?P<CheckSumType1>.+?)(\s.+|$)" ${PathDetails0}}
-              SYSTEM echo "${srmTest}-$DATE{}: (${thread}) CheckSumType is returned: ${CheckSumType1}" >> $ENV{S2_LOG}
-           || SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Warning!!! CheckSumType is not returned" >> $ENV{SRM2_SUPPORTED} && exit 0
+              SYSTEM echo "${srmTest}-$DATE{}: (${thread}) CheckSumType is returned: ${CheckSumType1}" >> "$ENV{S2_LOG}"
+           || SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Warning!!! CheckSumType is not returned" >> "$ENV{SRM2_SUPPORTED}" && exit 0
            && TEST $MATCH{".*checkSumValue1=(?P<CheckSumValue1>.+?)(\s.+|$)" ${PathDetails0}}
-              SYSTEM echo "${srmTest}-$DATE{}: (${thread}) CheckSumValue is returned: ${CheckSumValue1}" >> $ENV{S2_LOG}
-           || SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Warning !!! CheckSumValue is not returned" >> $ENV{SRM2_SUPPORTED} && exit 0
+              SYSTEM echo "${srmTest}-$DATE{}: (${thread}) CheckSumValue is returned: ${CheckSumValue1}" >> "$ENV{S2_LOG}"
+           || SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Warning !!! CheckSumValue is not returned" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
      || ASSIGN Status ${!}
-        SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Ls failed returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+        SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Ls failed returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
      && SYSTEM exit ${Status}
 
 ;; ASSIGN GStatus ${!}
 ;; ASSIGN end $DATE{%s.%N}
-;; SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+;; SYSTEM echo "${srmTest}: end: ${end}" >> "$ENV{S2_LOG}"
 
 
 ;; NOP
    srmRm $ENV{ENDPOINT} SURL[${file1} ${file2} ${file3}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}-$DATE{}: srmRm SURLs=${file1},${file2},${file3}, returnStatus=${-returnStatus_statusCode}, ${-returnStatus_explanation}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}-$DATE{}: srmRm SURLs=${file1},${file2},${file3}, returnStatus=${-returnStatus_statusCode}, ${-returnStatus_explanation}" >> "$ENV{S2_LOG}"
    ;; srmRmdir $ENV{ENDPOINT} SURL=${SRM_SNEW_DIR1} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR1} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR1} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> "$ENV{S2_LOG}"
    ;; srmRmdir $ENV{ENDPOINT} SURL=${SRM_SNEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR0} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> $ENV{S2_LOG} 
+      SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR0} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> "$ENV{S2_LOG}" 
    ;; SYSTEM exit ${GStatus}
 
-&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> "$ENV{SRM2_SUPPORTED}"
 
-|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

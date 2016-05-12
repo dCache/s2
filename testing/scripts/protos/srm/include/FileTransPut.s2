@@ -9,9 +9,9 @@
 DEFUN FileTransPut fileToPut transferURL
    % substring matching
    match=-c TEST $MATCH{"^gsiftp://" ${transferURL}}
-      SYSTEM globus-url-copy file://${fileToPut} ${transferURL} >> $ENV{S2_LOG} 2>&1
+      SYSTEM globus-url-copy file://${fileToPut} ${transferURL} >> "$ENV{S2_LOG}" 2>&1
       % return 2 if globus-url-copy fails, it returns 1 which is just a warning in s2
-      || SYSTEM echo "globus-url-copy failed ${!}" >> $ENV{S2_LOG} && exit 2
+      || SYSTEM echo "globus-url-copy failed ${!}" >> "$ENV{S2_LOG}" && exit 2
    || TEST $MATCH{"^rfio://(?P<rfioHost>.*?)/(?P<rfioPath>.*)" ${transferURL}}
       #if $ENV{RFCP_SUDO}
 %      SYSTEM sudo -u dteam001 rfcp ${fileToPut} ${rfioHost}:${rfioPath}
@@ -20,7 +20,7 @@ DEFUN FileTransPut fileToPut transferURL
 %      SYSTEM rfcp ${fileToPut} ${rfioHost}:${rfioPath}
       SYSTEM rfcp ${fileToPut} ${rfioPath}
       #endif
-      || SYSTEM echo "rfcp failed ${!}" >> $ENV{S2_LOG} && exit 2
+      || SYSTEM echo "rfcp failed ${!}" >> "$ENV{S2_LOG}" && exit 2
 
 % _FILE_TRANS_PUT_
 #endif

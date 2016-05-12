@@ -26,10 +26,10 @@ DEFUN GetCycle filesToGet sURLs : getRequestToken
    && ASSIGN fileStatuses "$MAP{DefFileStatuses $SPLIT{${filesToGet}}}"
    
    && srmPrepareToGet $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.fileStorageType[$SPLIT{${storageTypes}}] arrayOfFileRequests.SURLOrStFN[$SPLIT{${sURLs}}] arrayOfTransferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses="(?P<ptgFileStatuses>.*)" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE|SRM_REQUEST_QUEUED)
-      SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
+      SYSTEM echo "srmPrepareToGet: getRequestToken=${getRequestToken}" >> "$ENV{S2_LOG}"
       && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfGetRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${getRequestToken} surlArray[$SPLIT{${sURLs}}] fileStatuses="${fileStatuses}" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-         || SYSTEM echo "srmStatusOfGetRequest failed" >> $ENV{S2_LOG} && exit 2
+         || SYSTEM echo "srmStatusOfGetRequest failed" >> "$ENV{S2_LOG}" && exit 2
 
       % The actual physical transfer
       && ASSIGN c 0
@@ -38,7 +38,7 @@ DEFUN GetCycle filesToGet sURLs : getRequestToken
             && ASSIGN c $EXPR{${c}+1}
          || TEST "${filesToGet}" == "" && !$DEFINED{transferURL${c}}
 
-   && SYSTEM echo "Get cycle succeeded" >> $ENV{S2_LOG}
+   && SYSTEM echo "Get cycle succeeded" >> "$ENV{S2_LOG}"
 
 % _GET_CYCLE_
 #endif

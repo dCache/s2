@@ -21,16 +21,16 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/GetCycle.s2
 
 
-&& SYSTEM echo "${srmTest}: Putting 2 files" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Putting 2 files" >> "$ENV{S2_LOG}"
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0} $ENV{FILE_TO_PUT1}" "$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}" : putRequestToken
 
-|| SYSTEM echo "${srmTest}: Failed to put even the initial 2 files" >> $ENV{S2_LOG} && exit ${!}
+|| SYSTEM echo "${srmTest}: Failed to put even the initial 2 files" >> "$ENV{S2_LOG}" && exit ${!}
 
 && ASSIGN Status 0
 
 && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredTotalRequestTime=2700 transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*)  fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-  SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${-getRequestToken}" >> $ENV{S2_LOG}
+  SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${-getRequestToken}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
@@ -38,15 +38,15 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && >0||2 SLEEP 10 $EXPR{$ENV{SLEEP_SOR}*$I{0}}
     srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileStatuses=".*SURL0=(?P<SURL0>.+?)\s.*returnStatus.statusCode0=(?P<StatusCode0>.+?)\s.*SURL1=(?P<SURL1>.+?)\s.*returnStatus.statusCode1=(?P<StatusCode1>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file 0: ${StatusCode0} file 1: ${StatusCode1}" >> $ENV{S2_LOG}
+       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of file 0: ${StatusCode0} file 1: ${StatusCode1}" >> "$ENV{S2_LOG}"
     && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
 
-&& SYSTEM echo "Checking return status code: SRM_PARTIAL_SUCCESS or SRM_SUCCESS (${returnStatus_statusCode})" >> $ENV{S2_LOG}
+&& SYSTEM echo "Checking return status code: SRM_PARTIAL_SUCCESS or SRM_SUCCESS (${returnStatus_statusCode})" >> "$ENV{S2_LOG}"
 && TEST $MATCH{(SRM_PARTIAL_SUCCESS|SRM_SUCCESS) ${returnStatus_statusCode}}
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
-|| SYSTEM echo "${srmTest}: KO request returned:${-returnStatus_statusCode}, file status 0:${StatusCode0}, fileStatus 1: ${StatusCode1}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO request returned:${-returnStatus_statusCode}, file status 0:${StatusCode0}, fileStatus 1: ${StatusCode1}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; ASSIGN Status ${!}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0} $ENV{SRM_NEW_FILE1}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

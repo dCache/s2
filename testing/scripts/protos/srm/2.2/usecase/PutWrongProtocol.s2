@@ -9,7 +9,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN Status 0
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[pippo] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
 
@@ -18,10 +18,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
 
 && TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
 
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 

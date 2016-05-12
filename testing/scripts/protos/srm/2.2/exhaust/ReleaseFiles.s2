@@ -18,8 +18,8 @@ DEFUN srmTest authorizationID requestToken SURL doRemove
 && FUN PutCycle $ENV{FILE_TO_PUT0} $ENV{SRM_NEW_FILE0} : putRequestToken
 
 && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredFileStorageType=$ENV{STORAGE_TYPE} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnPToG_statusCode>.*)
-    SYSTEM echo "${srmTest}: Executed PrepareToGet, fileRequests=SURL[$ENV{SRM_NEW_FILE0}]" >> $ENV{S2_LOG}
-    && SYSTEM echo "${srmTest}: PrepareToGet, requestToken=${getRequestToken}, returnStatus=${-returnPToG_statusCode}" >> $ENV{S2_LOG}
+    SYSTEM echo "${srmTest}: Executed PrepareToGet, fileRequests=SURL[$ENV{SRM_NEW_FILE0}]" >> "$ENV{S2_LOG}"
+    && SYSTEM echo "${srmTest}: PrepareToGet, requestToken=${getRequestToken}, returnStatus=${-returnPToG_statusCode}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToG_statusCode}}
 

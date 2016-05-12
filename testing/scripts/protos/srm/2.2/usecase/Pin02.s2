@@ -13,7 +13,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/GetCycle.s2
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
 && ASSIGN fileToPut $ENV{FILE_TO_PUT0}
 && ASSIGN sURL $ENV{SRM_NEW_FILE0}
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
@@ -26,26 +26,26 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*fileLifetime0=(?P<fileLifetime0>[-]*\d+?)(\s.+|$)" ${FileStatuses0}}
       TEST $ENV{PIN_LIFETIME} >= ${fileLifetime0} || ${fileLifetime0} == -1
-         SYSTEM echo "${srmTest}: $DATE{}  lifetime extended to ${fileLifetime0}" >> $ENV{S2_LOG}
-      || SYSTEM echo "${srmTest}: $DATE{} file lifetime extended to ${-fileLifetime0}" >> $ENV{S2_LOG} && exit 2
+         SYSTEM echo "${srmTest}: $DATE{}  lifetime extended to ${fileLifetime0}" >> "$ENV{S2_LOG}"
+      || SYSTEM echo "${srmTest}: $DATE{} file lifetime extended to ${-fileLifetime0}" >> "$ENV{S2_LOG}" && exit 2
 
 % use srmReleaseFiles to remove one file
-&& SYSTEM echo "${srmTest}: Executing ReleaseFiles to remove one file. This operation is not allowed after a PrepareToPut cycle." >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing ReleaseFiles to remove one file. This operation is not allowed after a PrepareToPut cycle." >> "$ENV{S2_LOG}"
 
 && srmReleaseFiles $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && NOP
    TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: KO srmReleaseFiles succeeded after a PutCycle" >> $ENV{SRM2_SUPPORTED} && exit 2
+      SYSTEM echo "${srmTest}: KO srmReleaseFiles succeeded after a PutCycle" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 
    || TEST $MATCH{(SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> $ENV{SRM2_SUPPORTED} && exit 0
+      SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
 ;; ASSIGN Status ${!}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; SYSTEM exit ${Status}
 
-|| SYSTEM echo "${srmTest}: KO returnStatus=${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED} && exit 2
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+|| SYSTEM echo "${srmTest}: KO returnStatus=${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 2
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"

@@ -10,5 +10,5 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmStatusOfPutRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${putRequestToken} surlArray[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*)( |$)" returnStatus.explanation=(?P<statusOfPutReturnStatus_explanation>.*) returnStatus.statusCode=(?P<statusOfPutReturnStatus_statusCode>.*)
 
 && TEST $MATCH{"SRM_ABORTED" "${statusOfPutReturnStatus_statusCode}"}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

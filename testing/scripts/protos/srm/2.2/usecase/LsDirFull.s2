@@ -19,20 +19,20 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
 
 && ASSIGN Status 0
-&& SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
 && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS)
 
 % put two files into the newly created directory
-&& SYSTEM echo "${srmTest}: Put two files into the newly created directory, $ENV{SRM_NEW_DIR0}/f0 and $ENV{SRM_NEW_DIR0}/f1" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Put two files into the newly created directory, $ENV{SRM_NEW_DIR0}/f0 and $ENV{SRM_NEW_DIR0}/f1" >> "$ENV{S2_LOG}"
 && ASSIGN fileToPut "$ENV{FILE_TO_PUT0} $ENV{FILE_TO_PUT1}"
 && ASSIGN sURL "$ENV{SRM_NEW_DIR0}/f0 $ENV{SRM_NEW_DIR0}/f1"
    FUN PutCycle ${fileToPut} ${sURL} : putRequestToken
 
-&& SYSTEM echo "${srmTest}: Checking MetaDataPath info for SURL ${sURL}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Checking MetaDataPath info for SURL ${sURL}" >> "$ENV{S2_LOG}"
 
 && srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> $ENV{S2_LOG}
-      ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Executed srmLs with FullDetailedList enabled ..." >> "$ENV{S2_LOG}"
+      ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
       ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
          >0&&11 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -41,38 +41,38 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
-      SYSTEM echo "${srmTest}: Path is returned: ${Path1}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Path is returned: ${Path1}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: Path is not returned" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: Path is not returned" >> "$ENV{SRM2_SUPPORTED}"
    && TEST $MATCH{".*size1=(?P<Size1>\d+?)(\s.+|$)" ${PathDetails0}}
-      SYSTEM echo "${srmTest}: Size is returned: ${Size1}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Size is returned: ${Size1}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: Size is not returned" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: Size is not returned" >> "$ENV{SRM2_SUPPORTED}"
    && TEST $MATCH{".*type1=(?P<Type1>(FILE|DIRECTORY))(\s.+|$)" ${PathDetails0}}
-      SYSTEM echo "${srmTest}: Type is returned: ${Type1}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Type is returned: ${Type1}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: Type is not returned" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: Type is not returned" >> "$ENV{SRM2_SUPPORTED}"
    && TEST $MATCH{".*lastModificationTime1=(?P<ModificationTime1>\d+?)(\s.+|$)" ${PathDetails0}}
-      SYSTEM echo "${srmTest}: Modification Time is returned: ${ModificationTime1}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Modification Time is returned: ${ModificationTime1}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: Modification Time is not returned" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: Modification Time is not returned" >> "$ENV{SRM2_SUPPORTED}"
    && TEST $MATCH{".*(?P<Permissions1>userID1=.*otherPermission1=(NONE|X|W|WX|R|RX|RW|RWX))(\s.+|$)" ${PathDetails0}}
-      SYSTEM echo "${srmTest}: Permissions are returned: ${Permissions1}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Permissions are returned: ${Permissions1}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: Permissions are not returned" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: Permissions are not returned" >> "$ENV{SRM2_SUPPORTED}"
    && NOP
       TEST $MATCH{".*checkSumType1=(?P<CheckSumType1>.+?)(\s.+|$)" ${PathDetails0}}
-         SYSTEM echo "${srmTest}: CheckSumType is returned: ${CheckSumType1}" >> $ENV{S2_LOG}
-      || SYSTEM echo "${srmTest}: Warning!!! CheckSumType is not returned" >> $ENV{SRM2_SUPPORTED} && exit 0
+         SYSTEM echo "${srmTest}: CheckSumType is returned: ${CheckSumType1}" >> "$ENV{S2_LOG}"
+      || SYSTEM echo "${srmTest}: Warning!!! CheckSumType is not returned" >> "$ENV{SRM2_SUPPORTED}" && exit 0
       && TEST $MATCH{".*checkSumValue1=(?P<CheckSumValue1>.+?)(\s.+|$)" ${PathDetails0}}
-         SYSTEM echo "${srmTest}: CheckSumValue is returned: ${CheckSumValue1}" >> $ENV{S2_LOG}
-      || SYSTEM echo "${srmTest}: Warning !!! CheckSumValue is not returned" >> $ENV{SRM2_SUPPORTED} && exit 0
+         SYSTEM echo "${srmTest}: CheckSumValue is returned: ${CheckSumValue1}" >> "$ENV{S2_LOG}"
+      || SYSTEM echo "${srmTest}: Warning !!! CheckSumValue is not returned" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
    && SYSTEM exit ${Status}
-   && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> $ENV{SRM2_SUPPORTED}
-   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> "$ENV{SRM2_SUPPORTED}"
+   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
-|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; ASSIGN Status ${!}
 
@@ -80,4 +80,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    srmRm $ENV{ENDPOINT} SURL[$SPLIT{${sURL}}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
    ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
-   ;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> $ENV{S2_LOG} && exit ${Status}
+   ;; SYSTEM echo "${srmTest}: srmRmdir returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> "$ENV{S2_LOG}" && exit ${Status}

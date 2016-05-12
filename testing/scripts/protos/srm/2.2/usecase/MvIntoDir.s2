@@ -17,7 +17,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
    srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-      SYSTEM echo "${srmTest}: srmMv from Source to subdirectory is executed" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: srmMv from Source to subdirectory is executed" >> "$ENV{S2_LOG}"
 
       ;; srmMv $ENV{ENDPOINT} fromSURL=$ENV{SRM_NEW_FILE0} toSURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=SRM_SUCCESS
 
@@ -29,30 +29,30 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
                      TEST $MATCH{(SRM_REQUEST_PENDING|SRM_REQUEST_INPROGRESS) ${status}}
 
             ;; TEST $MATCH{SRM_SUCCESS ${status}}
-               SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> $ENV{SRM2_SUPPORTED}
+               SYSTEM echo "${srmTest}: OK srmMv moved file into subdirectory" >> "$ENV{SRM2_SUPPORTED}"
             || NOP
-               SYSTEM echo "${srmTest}: srmLs of file failed ${-fileStatus} ${-status} ${-explanation}" >> $ENV{S2_LOG}
+               SYSTEM echo "${srmTest}: srmLs of file failed ${-fileStatus} ${-status} ${-explanation}" >> "$ENV{S2_LOG}"
                ;; ASSIGN Status 1
                   
          || NOP
-            SYSTEM echo "${srmTest}: srmLs failed" >> $ENV{S2_LOG}
+            SYSTEM echo "${srmTest}: srmLs failed" >> "$ENV{S2_LOG}"
             ;; ASSIGN Status 1
             
          ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}]
 
       || NOP
-         SYSTEM echo "${srmTest}: srmMv failed ${-fileStatus} ${-status} : ${-explanation}" >> $ENV{S2_LOG}
+         SYSTEM echo "${srmTest}: srmMv failed ${-fileStatus} ${-status} : ${-explanation}" >> "$ENV{S2_LOG}"
          ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}]
          ;; ASSIGN Status 1
          
       ;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}"
          
    || NOP
-         SYSTEM echo "${srmTest}: srmMkdir failed ${-status} : ${-explanation}" >> $ENV{S2_LOG}
+         SYSTEM echo "${srmTest}: srmMkdir failed ${-status} : ${-explanation}" >> "$ENV{S2_LOG}"
          ;; ASSIGN Status 1
          
 || NOP   
-      SYSTEM echo "${srmTest}: File upload failed" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: File upload failed" >> "$ENV{S2_LOG}"
       ;; ASSIGN Status 1
 
 ;; SYSTEM exit ${Status}

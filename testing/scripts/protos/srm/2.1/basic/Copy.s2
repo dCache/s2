@@ -18,10 +18,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmCopy $ENV{ENDPOINT} userID=$ENV{USER} arrayOfFileRequests.allLevelRecursive[0] arrayOfFileRequests.isSourceADirectory[0] arrayOfFileRequests.numOfLevels[0] arrayOfFileRequests.fileStorageType[$ENV{STORAGE_TYPE}] arrayOfFileRequests.fromSURLOrStFN[$ENV{SRM_NEW_FILE0}] arrayOfFileRequests.fromStorageSystemInfo[<i0>] arrayOfFileRequests.lifetime[$ENV{LIFETIME}] arrayOfFileRequests.overwriteMode[Always] arrayOfFileRequests.spaceToken[<t0>] arrayOfFileRequests.toSURLOrStFN[$ENV{SRM_NEW_FILE1}] arrayOfFileRequests.toStorageSystemInfo[<i0>] userRequestDescription=<userRequestDescription> overwriteOption=Always removeSourceFiles=0 storageSystemInfo=<storageSystemInfo> totalRetryTime=0 requestToken=(?P<requestToken>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfCopyRequest $ENV{ENDPOINT} userID=$ENV{USER} requestToken=${requestToken} fromSurlArray[$ENV{SRM_NEW_FILE0}] toSurlArray[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_DONE)
-         SYSTEM echo "srmStatusOfCopyRequest: fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
+         SYSTEM echo "srmStatusOfCopyRequest: fileStatuses=${fileStatuses}" >> "$ENV{S2_LOG}"
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE1} : getRequestToken
 
-&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

@@ -22,10 +22,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
   ASSIGN n $I{0}
   && ASSIGN files "${files} $ENV{SRM_NEW_FILE0}${n}"
   && ASSIGN sizes "${sizes} $ENV{FILE_TO_PUT0_SIZE}"
-  && SYSTEM echo "${srmTest}: Putting files ${files}" >> $ENV{S2_LOG}
+  && SYSTEM echo "${srmTest}: Putting files ${files}" >> "$ENV{S2_LOG}"
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$SPLIT{${files}}] fileRequests.expectedFileSize[$SPLIT{${sizes}}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
-  SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> $ENV{S2_LOG}
+  SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> "$ENV{S2_LOG}"
   && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
   && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
     ASSIGN filesOK 0
@@ -33,22 +33,22 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
        ASSIGN n $I{0}
        && ASSIGN file "$ENV{SRM_NEW_FILE0}${n}"
        && srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${file}] fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>\w+) .*" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
-          SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of files 0: ${StatusCode0}, files OK ${filesOK}" >> $ENV{S2_LOG}
+          SYSTEM echo "${srmTest}: srmStatusOfPutRequest, Status of files 0: ${StatusCode0}, files OK ${filesOK}" >> "$ENV{S2_LOG}"
 %          && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_FAILURE) ${returnStatusPut_statusCode}}
           && TEST $MATCH{ (SRM_SPACE_AVAILABLE) ${StatusCode0}}
              ASSIGN filesOK $EXPR{${filesOK} + 1}
           || SYSTEM exit 0
-       && SYSTEM echo "${srmTest}: files completed: ${filesOK}" >> $ENV{S2_LOG}
+       && SYSTEM echo "${srmTest}: files completed: ${filesOK}" >> "$ENV{S2_LOG}"
        && TEST $EXPR{${filesOK} == ${totalFiles}
 
-&&  SYSTEM echo "${srmTest}: Aborting request" >> $ENV{S2_LOG}
+&&  SYSTEM echo "${srmTest}: Aborting request" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: Executing srmAbortRequest, requestToken=${putRequestToken}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Executing srmAbortRequest, requestToken=${putRequestToken}" >> "$ENV{S2_LOG}"
 && srmAbortRequest $ENV{ENDPOINT} requestToken=${putRequestToken} returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-&& SYSTEM echo "${srmTest}: srmAbortRequest returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: srmAbortRequest returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
 && ASSIGN end $DATE{%s%N}
-&& SYSTEM echo "${srmTest}: end: ${end}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: end: ${end}" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: OK: n=$EXPR{$ENV{N_OPS}+1} time[ms]=$EXPR{(${end}-${begin})/1000000}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+&& SYSTEM echo "${srmTest}: OK: n=$EXPR{$ENV{N_OPS}+1} time[ms]=$EXPR{(${end}-${begin})/1000000}" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

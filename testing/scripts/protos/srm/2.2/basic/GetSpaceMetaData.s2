@@ -6,34 +6,34 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN Status 0
 
 && srmReserveSpace $ENV{ENDPOINT} retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY} desiredSizeOfTotalSpace=$ENV{RESERVE_SPACE} desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE} desiredLifetimeOfReservedSpace=$ENV{LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: desiredLifetimeOfReservedSpace=$ENV{LIFETIME}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: srmReserveSpace, requestToken=${-requestToken}; spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: Executed ReserveSpace retentionPolicy=$ENV{RETENTION_POLICY} accessLatency=$ENV{ACCESS_LATENCY}" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: desiredSizeOfGuaranteedSpace=$ENV{RESERVE_SPACE}" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: desiredLifetimeOfReservedSpace=$ENV{LIFETIME}" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: srmReserveSpace, requestToken=${-requestToken}; spaceToken=${-spaceToken}" >> "$ENV{S2_LOG}"
 
 ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
        srmStatusOfReserveSpaceRequest $ENV{ENDPOINT} requestToken=${requestToken} estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-       && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> $ENV{S2_LOG}
+       && SYSTEM echo "${srmTest}: Executing StatusOfReserveSpaceRequest, returnStatus=${-returnStatus_statusCode}, spaceToken=${-spaceToken}" >> "$ENV{S2_LOG}"
        && TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
 ;; TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
    srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo -e "${srmTest}: returnStatus=${-returnStatus_statusCode}, spaceDetails=${-spaceDetails}" >> $ENV{S2_LOG}
+      SYSTEM echo -e "${srmTest}: returnStatus=${-returnStatus_statusCode}, spaceDetails=${-spaceDetails}" >> "$ENV{S2_LOG}"
 
    ;; TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: OK: GetSpaceMetaData returned ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: OK: GetSpaceMetaData returned ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
    || ASSIGN Status ${!}
-      SYSTEM echo "${srmTest}: KO: GetSpaceMetaData failed with ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: KO: GetSpaceMetaData failed with ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
 
 || TEST $MATCH{(SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ReserveSpace failed with ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: OK: ReserveSpace failed with ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: ReserveSpace exit status ${-returnStatus_statusCode} ${-rs_explanation}" >> $ENV{SRM2_SUPPORTED}
+   SYSTEM echo "${srmTest}: KO: ReserveSpace exit status ${-returnStatus_statusCode} ${-rs_explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
 ;; NOP
    TEST $DEFINED{requestToken} && ! $DEFINED{spaceToken}

@@ -7,18 +7,18 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycleToken.s2
 
 #if $ENV{CERN}
-&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> $ENV{S2_LOG}
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED} && exit 0
+&& SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> "$ENV{S2_LOG}"
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 #else
 
-&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> "$ENV{S2_LOG}"
 
 && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_STRESS_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && SETENV overwrite = 1 STORAGE_TYPE PERMANENT
 
 && ASSIGN begin $DATE{%s.%N}
-&& SYSTEM echo "${srmTest}-$DATE{}: begin: ${begin}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}-$DATE{}: begin: ${begin}" >> "$ENV{S2_LOG}"
 
 && srmReserveSpace $ENV{ENDPOINT} retentionPolicy=CUSTODIAL accessLatency=NEARLINE desiredSizeOfTotalSpace=$ENV{SPACESMALL} desiredSizeOfGuaranteedSpace=$ENV{SPACESMALL} desiredLifetimeOfReservedSpace=$ENV{SPACE_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken>.*) estimatedProcessingTime=(?P<estimatedProcessingTime>.*) respRetentionPolicy=(?P<respRetentionPolicy>.*) respAccessLatency=(?P<respAccessLatency>.*) sizeOfTotalReservedSpace=(?P<sizeOfTotalReservedSpace>.*) sizeOfGuaranteedReservedSpace=(?P<sizeOfGuaranteedReservedSpace>.*) lifetimeOfReservedSpace=(?P<lifetimeOfReservedSpace>.*) spaceToken=(?P<spaceToken>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
@@ -26,7 +26,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    TEST $MATCH{(SRM_NOT_SUPPORTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
       SYSTEM exit 0
    || TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}-$DATE{}: returnStatus=${returnStatus_statusCode} size granted=${sizeOfGuaranteedReservedSpace}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}-$DATE{}: returnStatus=${returnStatus_statusCode} size granted=${sizeOfGuaranteedReservedSpace}" >> "$ENV{S2_LOG}"
    || NOP
       TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
          >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -35,10 +35,10 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && NOP
    TEST $MATCH{(SRM_NOT_SUPPORTED|SRM_NO_FREE_SPACE|SRM_NO_USER_SPACE|SRM_EXCEED_ALLOCATION) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}-$DATE{}: srmReserveSpace CUSTODIAL-NEARLINE not supported" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}-$DATE{}: srmReserveSpace CUSTODIAL-NEARLINE not supported" >> "$ENV{S2_LOG}"
 
    || TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}-$DATE{}: srmReserveSpace CUSTODIAL-NEARLINE done" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}-$DATE{}: srmReserveSpace CUSTODIAL-NEARLINE done" >> "$ENV{S2_LOG}"
       && ASSIGN sURL1 $ENV{SRM_NEW_STRESS_DIR0}/$DATE{%Y%m%d-%H%M%S}.1
       && FUN PutCycle ${spaceToken} $ENV{BIG_FILE} ${sURL1} : putRequestToken
       || SYSTEM exit 0
@@ -63,8 +63,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
                ASSIGN SURLFile $EVAL{${sURL$I{0}}}
 
       && srmBringOnline $ENV{ENDPOINT} fileRequests.SURL[${SURLFile}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<bolRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         SYSTEM echo "${srmTest}-$DATE{}: Executed BringOnline, fileSURL: ${SURLFile}, StorageType: $ENV{STORAGE_TYPE}" >> $ENV{S2_LOG}
-         && SYSTEM echo "${srmTest}-$DATE{}: srmBringOnline returnStatus: ${returnStatus_statusCode}" >> $ENV{S2_LOG}
+         SYSTEM echo "${srmTest}-$DATE{}: Executed BringOnline, fileSURL: ${SURLFile}, StorageType: $ENV{STORAGE_TYPE}" >> "$ENV{S2_LOG}"
+         && SYSTEM echo "${srmTest}-$DATE{}: srmBringOnline returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
       && TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
          >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -72,7 +72,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
             && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} 
       || TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
-      && SYSTEM echo "${srmTest}-$DATE{}: Executed BringOnline, fileSURL: ${SURLFile}, StorageType: $ENV{STORAGE_TYPE}" >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}-$DATE{}: Executed BringOnline, fileSURL: ${SURLFile}, StorageType: $ENV{STORAGE_TYPE}" >> "$ENV{S2_LOG}"
       && srmLs $ENV{ENDPOINT} SURL[${SURLFile}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          TEST $DEFINED{requestLsToken}
             >0||$ENV{LOOP} SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
@@ -80,23 +80,23 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
                && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
          || SYSTEM exit 0
 
-      && SYSTEM echo "${srmTest}-$DATE{}: Executed srmLs, pathDetails=${PathDetails0}"  >> $ENV{S2_LOG}
+      && SYSTEM echo "${srmTest}-$DATE{}: Executed srmLs, pathDetails=${PathDetails0}"  >> "$ENV{S2_LOG}"
       && TEST $MATCH{".*fileLocality0=(?P<FileLocality0>(ONLINE_AND_NEARLINE))(\s.+|$)"" ${PathDetails0}}
 
 
 ;; ASSIGN Status ${!}
-;; SYSTEM echo "${srmTest}-$DATE{}: srmLs FileLocality=${FileLocality0}" >> $ENV{S2_LOG}
+;; SYSTEM echo "${srmTest}-$DATE{}: srmLs FileLocality=${FileLocality0}" >> "$ENV{S2_LOG}"
 ;; ASSIGN end $DATE{%s.%N}
-;; SYSTEM echo "${srmTest}-$DATE{}: end: ${end}" >> $ENV{S2_LOG}
+;; SYSTEM echo "${srmTest}-$DATE{}: end: ${end}" >> "$ENV{S2_LOG}"
 ;; srmRm $ENV{ENDPOINT} SURL[${sURL1}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; srmRm $ENV{ENDPOINT} SURL[${sURL2}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 ;; srmRm $ENV{ENDPOINT} SURL[${sURL2}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;; SYSTEM exit ${Status}
 
-&& SYSTEM echo "${srmTest}-$DATE{}: OK: time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED}
+&& SYSTEM echo "${srmTest}-$DATE{}: OK: time[s]=$EXPR{${end}-${begin}}" >> "$ENV{SRM2_SUPPORTED}"
 
-|| SYSTEM echo "${srmTest}-$DATE{}: KO: time[s]=$EXPR{${end}-${begin}}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+|| SYSTEM echo "${srmTest}-$DATE{}: KO: time[s]=$EXPR{${end}-${begin}}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 #endif
 

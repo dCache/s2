@@ -4,8 +4,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 % retentionPolicy is a required parameter which can be NULL!
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo -e "spaceDetails=${spaceDetails}" > $ENV{S2_LOG}
+   SYSTEM echo -e "spaceDetails=${spaceDetails}" > "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_DONE) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

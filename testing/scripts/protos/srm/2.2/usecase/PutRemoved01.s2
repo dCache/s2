@@ -6,21 +6,21 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 
 && ASSIGN Status 0
-&& SYSTEM echo "${srmTest}: Putting file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Putting file" >> "$ENV{S2_LOG}"
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_NEW_FILE0}" : putRequestToken
 
-&& SYSTEM echo "${srmTest}: Deleting the file again" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Deleting the file again" >> "$ENV{S2_LOG}"
 
 && srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& SYSTEM echo "${srmTest}: Now putting again the same file" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: Now putting again the same file" >> "$ENV{S2_LOG}"
 
 && FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_NEW_FILE0}" : putRequestToken
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!}
+   SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 

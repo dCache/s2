@@ -14,15 +14,15 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 && ASSIGN Surl $ENV{SRM_URL}?SFN=$ENV{VOPATH}
-&& SYSTEM echo "${srmTest}: The directory to test is ${Surl}" >> $ENV{S2_LOG}
+&& SYSTEM echo "${srmTest}: The directory to test is ${Surl}" >> "$ENV{S2_LOG}"
 
 && srmLs $ENV{ENDPOINT} SURL[${Surl}] fullDetailedList=1 numOfLevels=0 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: Executed srmLs of directory with FullDetailedList enabled ..." >> $ENV{S2_LOG}
-   && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: Executed srmLs of directory with FullDetailedList enabled ..." >> "$ENV{S2_LOG}"
+   && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
-   SYSTEM echo "${srmTest}: List = ${PathDetails0}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: List = ${PathDetails0}" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: OK" >> $ENV{SRM2_SUPPORTED}
-|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${!} 
+&& SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"
+|| SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!} 
 

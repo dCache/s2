@@ -14,40 +14,40 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN Surl $ENV{SRM_URL}?SFN=$ENV{VOPATH}/$ENV{FILE}
 
 && srmGetSpaceTokens $ENV{ENDPOINT} userSpaceTokenDescription=${SpaceTokenDescription} spaceTokens=(?P<spaceTokens>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo -e "${srmTest}: returnStatus=${-returnStatus_statusCode}, spaceTokens=${-spaceTokens}" >> $ENV{S2_LOG}
+   SYSTEM echo -e "${srmTest}: returnStatus=${-returnStatus_statusCode}, spaceTokens=${-spaceTokens}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{".*spaceToken0=(?P<spaceToken0>.+?)(\s.+|$)" ${spaceTokens}}
 && ASSIGN spaceToken ${spaceToken0}
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[${Surl}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]  targetSpaceToken=${spaceToken} requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+   SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
 && >0||3 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${Surl}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
+         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> "$ENV{S2_LOG}"
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}
    && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[${Surl}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${fileStatuses}" >> $ENV{S2_LOG}
-      && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${fileStatuses}" >> "$ENV{S2_LOG}"
+      && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
    && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    && srmPrepareToGet $ENV{ENDPOINT} fileRequests.SURL[${Surl}] desiredFileStorageType=$ENV{STORAGE_TYPE} targetSpaceToken=${spaceToken} desiredPinLifeTime=$ENV{PIN_LIFETIME} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<getRequestToken>.*) fileStatuses=".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
-      SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${getRequestToken}" >> $ENV{S2_LOG}
+      SYSTEM echo "${srmTest}: srmPrepareToGet, getRequestToken=${getRequestToken}" >> "$ENV{S2_LOG}"
       && >0||5 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[${Surl}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-            SYSTEM echo "${srmTest}: srmStatusOfGetRequest, transferURL0=${-transferURL0}" >> $ENV{S2_LOG}
-            && SYSTEM echo "${srmTest}: srmStatusOfGetRequest, returnStatus=${-returnStatus_statusCode}" >> $ENV{S2_LOG}
+            SYSTEM echo "${srmTest}: srmStatusOfGetRequest, transferURL0=${-transferURL0}" >> "$ENV{S2_LOG}"
+            && SYSTEM echo "${srmTest}: srmStatusOfGetRequest, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
    && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> $ENV{SRM2_SUPPORTED}
+      SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
 || ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> $ENV{SRM2_SUPPORTED} && exit ${Status}
+   SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
 
 ;; srmRm $ENV{ENDPOINT} SURL[${Surl}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 

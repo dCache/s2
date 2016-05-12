@@ -189,38 +189,38 @@ main() {
 
   case "$S2_RUN" in
     superfast)
-      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      rm -f "${S2_P}" "${S2_D}" "${S2_E}" "${S2_L}" "${S2_W}" "${S2_OUT}" "${S2_LOG}" "${S2_E0}" "${S2_E1}" "${S2_E2}"
       echo -e "${S2_TEST_FILE}:"
       time DG_DIAGNOSE=0 ${S2_BIN}\
         --simple-name\
-        --file=${S2_TEST_FILE}\
+        "--file=${S2_TEST_FILE}"\
         $@\
-        > ${S2_OUT}
+        > "${S2_OUT}"
       err=$?
       echo -e "$err\n"
       return $err
     ;;
 
     fast)
-      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      rm -f "${S2_P}" "${S2_D}" "${S2_E}" "${S2_L}" "${S2_W}" "${S2_OUT}" "${S2_LOG}" "${S2_E0}" "${S2_E1}" "${S2_E2}"
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 DG_LOG=0 ${S2_BIN}\
         --simple-name\
-        --file=${S2_TEST_FILE}\
+        "--file=${S2_TEST_FILE}"\
         $@\
-        > ${S2_OUT}
+        > "${S2_OUT}"
       err=$?
       echo -e "$err\n"
       return $err
     ;;
 
     gdb)
-      gdb $@ ${S2_BIN}
+      gdb "$@" ${S2_BIN}
     ;;
 
     valgrind)
       # --gen-suppressions=all
-      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      rm -f "${S2_P}" "${S2_D}" "${S2_E}" "${S2_L}" "${S2_W}" "${S2_OUT}" "${S2_LOG}" "${S2_E0}" "${S2_E1}" "${S2_E2}"
       echo -e "${S2_TEST_FILE}:" >&2
       valgrind\
         --gen-suppressions=all\
@@ -229,36 +229,36 @@ main() {
         ${S2_BIN}\
         --progress=0\
         --simple-name\
-        --file=${S2_TEST_FILE}\
-        --pp-out-file=${S2_P}\
-        --dbg-file=${S2_D}\
-        --err-file=${S2_E}\
-        --log-file=${S2_L}\
-        --warn-file=${S2_W}\
-        --e0-file=${S2_E0}\
-        --e1-file=${S2_E1}\
-        --e2-file=${S2_E2}\
+        "--file=${S2_TEST_FILE}"\
+        "--pp-out-file=${S2_P}"\
+        "--dbg-file=${S2_D}"\
+        "--err-file=${S2_E}"\
+        "--log-file=${S2_L}"\
+        "--warn-file=${S2_W}"\
+        "--e0-file=${S2_E0}"\
+        "--e1-file=${S2_E1}"\
+        "--e2-file=${S2_E2}"\
         $@\
-        >${S2_OUT}
+        >"${S2_OUT}"
     ;;
 
     *)
       # Normal S2 run
-      rm -f ${S2_P} ${S2_D} ${S2_E} ${S2_L} ${S2_W} ${S2_OUT} ${S2_LOG} ${S2_E0} ${S2_E1} ${S2_E2}
+      rm -f "${S2_P}" "${S2_D}" "${S2_E}" "${S2_L}" "${S2_W}" "${S2_OUT}" "${S2_LOG}" "${S2_E0}" "${S2_E1}" "${S2_E2}"
       echo -e "${S2_TEST_FILE}:"
       time DG_DBG=0 ${S2_BIN}\
         ${EXTRA_OPTIONS}\
         --simple-name\
-        --file=${S2_TEST_FILE}\
+        "--file=${S2_TEST_FILE}"\
 	--pp-out-file=/dev/null\
-        --err-file=${S2_E}\
+        "--err-file=${S2_E}"\
         --log-file=/dev/null\
-        --warn-file=${S2_W}\
+        "--warn-file=${S2_W}"\
         --e0-file=/dev/null\
-        --e1-file=${S2_E1}\
+        "--e1-file=${S2_E1}"\
         --e2-file=/dev/null\
         $@\
-        > ${S2_OUT}
+        > "${S2_OUT}"
       err=$?
       echo -e "$err\n"
       return $err

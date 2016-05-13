@@ -1,0 +1,5 @@
+The contents of this directory are intended to test the s2 client's
+SRM implementation, to develop minimal testcase scripts to demonstrate
+some specific problem with the client.
+
+They require an SRM endpoint with which to interact.

@@ -1,0 +1,8 @@
+%% Issue: https://github.com/dCache/s2/issues/1
+%%
+
+%% Attempt to run multiple SRM operations at the same time.  The bug
+%% appears to be triggered more often on machines with multiple cores.
+
+srmPing $ENV{ENDPOINT}
+srmPing $ENV{ENDPOINT}

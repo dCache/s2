@@ -114,6 +114,7 @@ options: --help         this help
          --fast         run with no logging and debugging (only warnings/errors)
          --gdb          run a gdb session
          --valgrind     run with valgrind
+         --show         show the normal S2 command rather than invoking it
 	 --             s2 options separator
 
 e.g.: $ProgramName --valgrind -- --timeout=5000000 --show-defaults
@@ -132,6 +133,8 @@ main() {
       --[Ff][Aa][Ss][Tt]) S2_RUN=fast
       ;;
       --[Gg][Dd][Bb]) S2_RUN=gdb
+      ;;
+      --[Ss][Hh][Oo][Ww]) S2_RUN=show
       ;;
       --[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]) S2_RUN=valgrind
       ;;
@@ -240,6 +243,21 @@ main() {
         "--e2-file=${S2_E2}"\
         $@\
         >"${S2_OUT}"
+    ;;
+
+    show)
+      echo time DG_DBG=0 ${S2_BIN}\
+        ${EXTRA_OPTIONS}\
+        --simple-name\
+        "--file=${S2_TEST_FILE}"\
+	--pp-out-file=/dev/null\
+        "--err-file=${S2_E}"\
+        --log-file=/dev/null\
+        "--warn-file=${S2_W}"\
+        --e0-file=/dev/null\
+        "--e1-file=${S2_E1}"\
+        --e2-file=/dev/null\
+        $@
     ;;
 
     *)

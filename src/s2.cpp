@@ -12,6 +12,10 @@
 #include "diagnose/dg.h"
 #endif
 
+#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
+#include "srm_init.h"
+#endif
+
 #include "s2.h"
 
 #include "constants.h"
@@ -68,7 +72,7 @@ option_item optionlist[] = {
   { '-', "d<p>", "dbg-file=<p>",	NULL },
   { '-', "e<p>", "eval=<p>",		NULL },
   { '-', "f<p>", "file=<p>",		NULL }, /* s2 file */
-  { '-', "g[#]", "progress[=#]",	NULL }, 
+  { '-', "g[#]", "progress[=#]",	NULL },
   { '-', "i[#]", "pp-indent[=#]",	NULL },
   { '-', "l<p>", "log-file=<p>",	NULL },
   { '-', "p<p>", "pp-out-file=<p>",	NULL },
@@ -299,7 +303,7 @@ usage(int ret_val)
 {
   option_item *op;
   const char *PG = PNAME();
- 
+
   fprintf(stderr, _("Usage: %s [-+"), PG);
 
   for (op = optionlist; op->short_name != 0; op++)
@@ -356,13 +360,13 @@ hlp(int l)
     hlp_head(PG);
     fprintf(stderr, "\n");
     fprintf(stderr,_("Options:\n"));
-    
+
     for (op = optionlist; op->sw != 0; op++)
     {
       int n;
       char s[32];
       s[0] = 0;
-      if (op->short_name) 
+      if (op->short_name)
         sprintf(s, "  %c%s%s%n", op->sw, op->short_name, op->long_name? ",": "", &n);
       else n = 0;
       n = 9 - n;                                        /* 9 */
@@ -380,17 +384,17 @@ hlp(int l)
           /* before-execution tree output filename (<p>: path); disabled if not specified */
           fprintf(stderr,_("before-evaluation tree output filename (%s)\n"), opts.e0_fname? opts.e0_fname : "");
         break;
-          
+
         case '1':
           /* after-execution tree output filename (<p>: path); disabled if not specified */
           fprintf(stderr,_("after-execution tree output filename (%s)\n"), opts.e1_fname? opts.e1_fname : "");
         break;
-          
+
         case '2':
           /* after-evaluation tree output filename (<p>: path) */
           fprintf(stderr,_("after-evaluation tree output filename (%s)\n"), opts.e2_fname? opts.e2_fname : "");
         break;
-          
+
         case 'a':
           fprintf(stderr,_("ANSI colors 0/1 (%s)\n"), opts.ansi ? _("on") : _("off"));
         break;
@@ -398,14 +402,14 @@ hlp(int l)
 	case 'S':
           fprintf(stderr,_("Simple script filename (%s)\n"), opts.simple_name ? _("on") : _("off"));
         break;
-        
+
         case 'b':
           fprintf(stderr,_("verbose execution %d..%d (%d)\n"), VERBOSE_MIN, VERBOSE_MAX, opts.verbose);
         break;
 
         case 'd':
           /* debug messages output filename (<p>: path) */
-          fprintf(stderr, _("debug messages output filename (%s)\n"), opts.dbg_fname? opts.dbg_fname: 
+          fprintf(stderr, _("debug messages output filename (%s)\n"), opts.dbg_fname? opts.dbg_fname:
                   DS_DBG_FOUT == stdout? "stdout":
                   DS_DBG_FOUT == stderr? "stderr": "?");
         break;
@@ -418,7 +422,7 @@ hlp(int l)
           /* script filename (<p>: path) */
           fprintf(stderr,_("script filename (%s)\n"), opts.scr_fname? opts.scr_fname : "stdin");
         break;
-          
+
         case 'g':
           fprintf(stderr,_("progress bar 0/1 (%s)\n"), opts.progress_bar ? _("on") : _("off"));
         break;
@@ -429,21 +433,21 @@ hlp(int l)
 
         case 'l':
           /* log messages output filename (<p>: path) */
-          fprintf(stderr, _("log messages output filename (%s)\n"), opts.log_fname? opts.log_fname: 
+          fprintf(stderr, _("log messages output filename (%s)\n"), opts.log_fname? opts.log_fname:
                   DS_LOG_FOUT == stdout? "stdout":
                   DS_LOG_FOUT == stderr? "stderr": "?");
         break;
 
         case 'p':
           /* pretty-printer output filename (<p>: path) */
-          fprintf(stderr,_("pretty-printer output filename (%s)\n"), opts.pp_fname? opts.pp_fname : 
+          fprintf(stderr,_("pretty-printer output filename (%s)\n"), opts.pp_fname? opts.pp_fname :
                          PP_DEFAULT_OUTPUT == stdout? "stdout":
                          PP_DEFAULT_OUTPUT == stderr? "stderr": "?");
         break;
-          
+
         case 'r':
           /* error messages output filename (<p>: path) */
-          fprintf(stderr, _("error messages output filename (%s)\n"), opts.err_fname? opts.err_fname: 
+          fprintf(stderr, _("error messages output filename (%s)\n"), opts.err_fname? opts.err_fname:
                   DS_ERR_FOUT == stdout? "stdout":
                   DS_ERR_FOUT == stderr? "stderr": "?");
         break;
@@ -452,7 +456,7 @@ hlp(int l)
           /* show default values (pretty-printer, evaluator) ON/OFF */
           fprintf(stderr,_("show default values (%s)\n"), opts.show_defaults? "on": "off");
         break;
-            
+
         case 'T':
           fprintf(stderr,_("threads in the thread pool %d..%d (%d)\n"), TP_THREADS_MIN, TP_THREADS_MAX, opts.tp_size);
         break;
@@ -463,7 +467,7 @@ hlp(int l)
 
         case 'w':
           /* warning messages output filename (<p>: path) */
-          fprintf(stderr, _("warning messages output filename (%s)\n"), opts.warn_fname? opts.warn_fname: 
+          fprintf(stderr, _("warning messages output filename (%s)\n"), opts.warn_fname? opts.warn_fname:
                   DS_WARN_FOUT == stdout? "stdout":
                   DS_WARN_FOUT == stderr? "stderr": "?");
         break;
@@ -486,7 +490,7 @@ hlp(int l)
 
 /********************************************************************
  * Handle an option
- * 
+ *
  * Return:
  *   0: if match
  *   1: no match
@@ -533,7 +537,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
   /* Process the options */
 
   /* Parameters */
-  if (!(*opt == '-' || *opt == '+')) 
+  if (!(*opt == '-' || *opt == '+'))
     return -1;
 
   if (OPL("-0") || OPL("--e0-file"))
@@ -541,7 +545,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     f_close(opts.e0_fname, &opts.e0_file);
     opts.e0_fname = opt + opt_off;
 
@@ -558,7 +562,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     f_close(opts.e1_fname, &opts.e1_file);
     opts.e1_fname = opt + opt_off;
 
@@ -575,7 +579,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     f_close(opts.e2_fname, &opts.e2_file);
     opts.e2_fname = opt + opt_off;
 
@@ -626,11 +630,11 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opts.verbose <= -1)
       /* disable warning messages */
       DM_WARN_SET_L(0);
-                   
+
     if(opts.verbose <= -2)
       /* disable error messages */
       DM_ERR_SET_L(0);
-      
+
     return 0;
   }
 
@@ -639,7 +643,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     opts.help = strtol(opt + opt_off, &p_err, 0);
     if (p_err == opt + opt_off || *p_err) {
       /* no option value given || value contains invalid/non-digit char */
@@ -656,7 +660,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     opts.dbg_fname = opt + opt_off;
     DM_DBG_OPEN(opts.dbg_fname);     /* old stream is automatically closed */
 
@@ -682,7 +686,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     opts.scr_fname = opt + opt_off;
 
     if(strcmp(opts.scr_fname, "-") == 0)
@@ -725,8 +729,8 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
       opts.pp_indent = PP_INDENT_MIN;
       vrb_msg = TRUE;
     }
-    
-    if (p_err == opt + opt_off || *p_err || 
+
+    if (p_err == opt + opt_off || *p_err ||
         opts.pp_indent < PP_INDENT_MIN || opts.pp_indent > PP_INDENT_MAX) {
       /* no option value given || value contains invalid/non-digit char */
       opts.pp_indent = PP_INDENT;
@@ -744,7 +748,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     opts.log_fname = opt + opt_off;
     DM_LOG_OPEN(opts.log_fname);     /* old stream is automatically closed */
 
@@ -756,7 +760,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     f_close(opts.pp_fname, &opts.pp_file);
     opts.pp_fname = opt + opt_off;
 
@@ -773,7 +777,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     opts.err_fname = opt + opt_off;
     DM_ERR_OPEN(opts.err_fname);     /* old stream is automatically closed */
 
@@ -782,7 +786,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
 
   if (OPL("-s") || OPL("--show-defaults"))
   { /* show default values (pretty-printer, evaluator) ON/OFF */
-  
+
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
@@ -846,7 +850,7 @@ parse_cmd_opt(char *opt, BOOL cfg_file)
     if(opt_off > 2 && *(opt + opt_off) == '=')
       /* long option, ignore '=' */
       opt_off++;
-      
+
     opts.warn_fname = opt + opt_off;
     DM_WARN_OPEN(opts.warn_fname);   /* old stream is automatically closed */
 
@@ -887,12 +891,12 @@ parse_cmd_opts(int argc, char **argv)
     DM_ERR_ASSERT("argv == NULL\n");
     return 0;
   }
-  
+
   for (i = 1; i < argc; i++)
   {
     char *opt = argv[i];
     int ret_val;
-  
+
     if((ret_val = parse_cmd_opt(opt, FALSE)) == -1)
       /* non -+ option */
       break;
@@ -909,7 +913,7 @@ parse_cmd_opts(int argc, char **argv)
 /********************************************************************
  * Parse command-line arguments (non -+ options)
  *
- * Returns: 
+ * Returns:
  *   ERR_OK: if success
  *   >= ERR_OK: otherwise
  ********************************************************************/
@@ -924,6 +928,10 @@ s2_run(int argc, char **argv, int i)
 
   /* init progress bar */
   Process::progress(-1,proc);
+
+#if defined(HAVE_SRM21) || defined(HAVE_SRM22)
+  srm_init();
+#endif
 
   lval = parse(opts.scr_fname, &root);
   DM_DBG(DM_N(1), "parser return value=%d\n", lval);
@@ -1045,7 +1053,7 @@ tp_handle_request(void *request)
     DM_DBG(DM_N(3), "thread (%d): handled request '%d'\n",
 	   p_request->tp_tid, *((int *)p_request->data));
   }
-  
+
   RETURN(NULL);
 }
 
@@ -1075,7 +1083,7 @@ main(int argc, char *argv[])
   }
 #else
   int a = 1, b = 2, c = 3, d = 4;
-  
+
   sleep(1);
   tp_enqueue(&a, NULL, NULL);
   tp_enqueue(&b, NULL, NULL);

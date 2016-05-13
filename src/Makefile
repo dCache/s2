@@ -91,6 +91,7 @@ PRJLIBS		+= \
   -lsrm2api \
   $(LIB_CGSI_PLUGIN) \
   $(LIB_GLOBUS)
+INCLUDES := $(INCLUDES) -I../protos/srm/include
 endif
 
 EXTRALIBS	 += $(PRJLIBS)

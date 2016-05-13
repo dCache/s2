@@ -385,7 +385,7 @@ l_add_enables() {
 
 l_set_package() {
   SRM_VERSION=${SRM_VERSION:-""}
-  LIB_GLOBUS=${LIB_GLOBUS:-"-lglobus_gssapi_gsi -lglobus_gss_assist"}
+  LIB_GLOBUS=${LIB_GLOBUS:-"-lglobus_gssapi_gsi -lglobus_gss_assist -lglobus_common -lglobus_openssl"}
   LIB_GLOBUS_SDK=${LIB_GLOBUS}
   LIB_GSOAP=${LIB_GSOAP:-"-lgsoap++"}
   LIB_CGSI_PLUGIN=${LIB_CGSI_PLUGIN:-"-lcgsi_plugin_voms_cpp"}

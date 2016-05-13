@@ -7,41 +7,78 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+;; ASSIGN Status 0
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnPToP_statusCode>.*)
-  SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}" >> "$ENV{S2_LOG}"
-  && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnPToP_statusCode}}
-  && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-    srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusPut_statusCode>.*)
-       SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> "$ENV{S2_LOG}"
-       && TEST $MATCH{(SRM_SUCCESS|SRM_REQUEST_INPROGRESS) ${returnStatusPut_statusCode}}
+;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+   TEST $MATCH{SRM_SUCCESS ${statusCode}}
 
-% Check if directory is empty
-&& srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $DEFINED{requestLsToken}
-      >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-         srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         && TEST $MATCH{(SRM_SUCCESS|SRM_FAILURE) ${returnStatus_statusCode}}
-   || SYSTEM exit 0
+      ASSIGN DirectoryExists 1
 
-&& NOP
-   TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${PathDetails0}}
-   && TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}} && $MATCH{(SRM_INVALID_PATH) ${StatusCode0}}
-      srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) 
-         TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}
-   || TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{(SRM_FILE_BUSY|SRM_SUCCESS) ${StatusCode0}} 
-      srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         TEST $MATCH{SRM_NON_EMPTY_DIRECTORY ${returnStatus_statusCode}}
+      ;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<token>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+         SYSTEM echo "${srmTest}: srmPrepareToPut, token=${-token}" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
+         ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
+            >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+               srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} SURL[$ENV{SRM_FILE_IN_DIR0}] returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+                  SYSTEM echo "${srmTest}: srmStatusOfPutRequest ${-statusCode} : ${-explanation}" >> "$ENV{S2_LOG}"
+                  ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
 
-|| SYSTEM echo "${srmTest}: KO Test failed:${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
+         ;; TEST $MATCH{SRM_SUCCESS ${statusCode}}
 
-;; ASSIGN Status ${!}
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+            % Check if directory is empty
+            srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}] fullDetailedList=1 requestToken=(?P<token>.*) pathDetails=(?P<PathDetails>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
 
-;; SYSTEM exit ${Status}
+               TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
+                  >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
+                     srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${token} pathDetails=(?P<PathDetails>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+                        TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
 
+            ;; TEST $MATCH{".*returnStatus.statusCode0=(?P<FileStatusCode>.+?)(\s.+|$)" ${PathDetails}}
+               TEST $MATCH{SRM_FAILURE ${statusCode}} && $MATCH{SRM_INVALID_PATH ${FileStatusCode}}
+                  srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+                     TEST $MATCH{SRM_SUCCESS ${statusCode}
+                        SYSTEM echo "${srmTest}: OK srmRmdir succeeded as expected ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+                        ;; ASSIGN DirectoryExists 0
+                     || ASSIGN Status 2
+                        SYSTEM echo "${srmTest}: KO srmRmdir failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+                  || ASSIGN Status 2
+                     SYSTEM echo "${srmTest}: KO srmRmdir failed" >> "$ENV{SRM2_SUPPORTED}"
+
+               || TEST $MATCH{SRM_SUCCESS ${statusCode}} && $MATCH{(SRM_FILE_BUSY|SRM_SUCCESS) ${FileStatusCode}}
+                  srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+                     TEST $MATCH{SRM_NON_EMPTY_DIRECTORY ${statusCode}}
+                        SYSTEM echo "${srmTest}: OK srmRmdir failed as expected ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+                     || TEST $MATCH(SRM_SUCCESS ${statusCode}}
+                        SYSTEM echo "${srmTest}: KO srmRmdir succeeded unexpectedly" >> "$ENV{SRM2_SUPPORTED}"
+                        ;; ASSIGN Status 2
+                     || ASSIGN Status 2
+                        SYSTEM echo "${srmTest}: KO srmRmdir failed unexpectedly ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+                  || ASSIGN Status 2
+                     SYSTEM echo "${srmTest}: KO srmRmdir operation failed" >> "$ENV{SRM2_SUPPORTED}"
+
+               || ASSIGN Status 2
+                  SYSTEM echo "${srmTest}: KO unexpected srmLs response ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+            || ASSIGN Status 2
+               SYSTEM echo "${srmTest}: KO srmLs without Path Detail" >> "$ENV{SRM2_SUPPORTED}"
+
+            ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}]
+            ;; NOP
+
+         || ASSIGN Status 2
+            SYSTEM echo "${srmTest}: KO srmPrepareToPut failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+
+      || ASSIGN Status 2
+         SYSTEM echo "${srmTest}: KO srmPrepareToPut operation failed" >> "$ENV{SRM2_SUPPORTED}"
+
+      ;; TEST $MATCH{1 ${DirectoryExists}}
+         srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0}
+            ASSIGN DirectoryExists 0
+         ;; NOP
+
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: KO srmMkdir failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+
+|| ASSIGN Status 2
+   SYSTEM echo "${srmTest}: KO srmMkdir operation failed" >> "$ENV{SRM2_SUPPORTED}"
+
+;; NOP ${Status}

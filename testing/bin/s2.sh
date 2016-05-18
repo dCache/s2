@@ -7,6 +7,7 @@ ProgramDir=$(dirname $0)
 S2_TEST_FILE=${ProgramDir}/$(basename ${ProgramName} .sh).s2
 S2_BIN=s2
 ENV_SH=s2.env
+NO_REDIR=0
 
 ### Functions ########################################################
 Fail() {
@@ -138,6 +139,8 @@ main() {
       ;;
       --[Vv][Aa][Ll][Gg][Rr][Ii][Nn][Dd]) S2_RUN=valgrind
       ;;
+      --[Nn][Oo][Rr][Ee][Dd][Ii][Rr]) NO_REDIR=1
+      ;;
       --[Ss][2]-[Bb][Ii][Nn])
         Which_s2
         S2_BIN=`which ${S2_BIN} 2>/dev/null` || S2_BIN="false"
@@ -264,19 +267,24 @@ main() {
       # Normal S2 run
       rm -f "${S2_P}" "${S2_D}" "${S2_E}" "${S2_L}" "${S2_W}" "${S2_OUT}" "${S2_LOG}" "${S2_E0}" "${S2_E1}" "${S2_E2}"
       echo -e "${S2_TEST_FILE}:"
-      time DG_DBG=0 ${S2_BIN}\
+      cmd="time DG_DBG=0 ${S2_BIN}\
         ${EXTRA_OPTIONS}\
         --simple-name\
-        "--file=${S2_TEST_FILE}"\
+        \"--file=${S2_TEST_FILE}\"\
 	--pp-out-file=/dev/null\
-        "--err-file=${S2_E}"\
+        \"--err-file=${S2_E}\"\
         --log-file=/dev/null\
-        "--warn-file=${S2_W}"\
+        \"--warn-file=${S2_W}\"\
         --e0-file=/dev/null\
-        "--e1-file=${S2_E1}"\
+        \"--e1-file=${S2_E1}\"\
         --e2-file=/dev/null\
-        $@\
-        > "${S2_OUT}"
+        $@"
+
+      if [ $NO_REDIR -eq 1 ]; then
+        eval $cmd
+      else
+        eval $cmd > "${S2_OUT}"
+      fi
       err=$?
       echo -e "$err\n"
       return $err

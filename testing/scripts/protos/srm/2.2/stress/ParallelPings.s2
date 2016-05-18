@@ -1,0 +1,14 @@
+%%  Test to benchmark how client/server behaves with various threads.
+%%
+%%  Some 6,000 ping operations are split over n threads, each thread
+%%  will ping the server as fast as possible.  The number of threads
+%%  is the argument to this script.
+
+ASSIGN nThreads ${1}
+;; ASSIGN nPings $INT{$EXPR{6000 / ${nThreads}}}
+;; SYSTEM echo "Starting ${nThreads} threads, each making ${nPings} pings"
+;; >1 ${nThreads} SYSTEM echo "T$I{0}: starting to ping server"
+   >1;;${nPings} srmPing $ENV{ENDPOINT}
+   ;; SYSTEM echo "T$I{0}: finished pinging"
+
+;; SYSTEM echo "Done"

@@ -81,30 +81,30 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
                         || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> "$ENV{SRM2_SUPPORTED}"
 
                      || ASSIGN Status 2
-                        SYSTEM echo "${srmTest}: KO, srmLs failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM_SUPPORTED}"
+                        SYSTEM echo "${srmTest}: KO, srmLs failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
                   || ASSIGN Status 2
-                     SYSTEM echo "${srmTest}: KO, srmLs operation failed" >> "$ENV{SRM_SUPPORTED}"
+                     SYSTEM echo "${srmTest}: KO, srmLs operation failed" >> "$ENV{SRM2_SUPPORTED}"
 
                || ASSIGN Status 2
-                  SYSTEM echo "${srmTest}: KO, srmPutDone failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM_SUPPORTED}"
+                  SYSTEM echo "${srmTest}: KO, srmPutDone failed ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
             || ASSIGN Status 2
-               SYSTEM echo "${srmTest}: KO, srmPutDone operation failed" >> "$ENV{SRM_SUPPORTED}"
+               SYSTEM echo "${srmTest}: KO, srmPutDone operation failed" >> "$ENV{SRM2_SUPPORTED}"
 
          || ASSIGN Status 2
-            SYSTEM echo "${srmTest}: KO, file upload failed" >> "$ENV{SRM_SUPPORTED}"
+            SYSTEM echo "${srmTest}: KO, file upload failed" >> "$ENV{SRM2_SUPPORTED}"
 
       || ASSIGN Status 2
-         SYSTEM echo "${srmTest}: KO, failed to extract TURL" >> "$ENV{SRM_SUPPORTED}"
+         SYSTEM echo "${srmTest}: KO, failed to extract TURL" >> "$ENV{SRM2_SUPPORTED}"
 
       ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}]
       || NOP
 
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: KO, srmPrepareToPut returned ${-statusCode} : ${-explanation}" >> "$ENV{SRM_SUPPORTED}"
+      SYSTEM echo "${srmTest}: KO, srmPrepareToPut returned ${-statusCode} : ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
 
 || ASSIGN Status 2
-   SYSTEM echo "${srmTest}: KO, srmPrepareToPut operation failed" >> "$ENV{SRM_SUPPORTED}"
+   SYSTEM echo "${srmTest}: KO, srmPrepareToPut operation failed" >> "$ENV{SRM2_SUPPORTED}"
 
 ;; NOP ${Status}

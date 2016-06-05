@@ -49,7 +49,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{".*returnStatus.statusCode0=(?P<Status1Code0>.+?)(\s.+|$)" ${fileStatus10}}
 && TEST $MATCH{".*returnStatus.statusCode0=(?P<Status2Code0>.+?)(\s.+|$)" ${fileStatus20}}
 
-&& TEST $MATCH{(SRM_FILE_BUSY|SRM_ABORTED) ${Status1Code0}} || $MATCH{(SRM_FILE_BUSY|SRM_ABORTED) ${Status2Code0}} 
+&& TEST $MATCH{(SRM_FILE_BUSY|SRM_ABORTED) ${Status1Code0}} || $MATCH{(SRM_FILE_BUSY|SRM_ABORTED) ${Status2Code0}}
    SYSTEM echo "${srmTest}: Second PrepareToPut with overwrite enabled returned SRM_FILE_BUSY or SRM_ABORTED as expected." >> "$ENV{S2_LOG}"
    && SYSTEM echo "${srmTest}: OK File level return status = SRM_FILE_BUSY or SRM_ABORTED" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
@@ -59,17 +59,17 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && TEST $MATCH{".*transferURL0=(?P<transfer1URL0>.*?)( |$)" ${fileStatus10}}
       && TEST $MATCH{".*transferURL0=(?P<transfer2URL0>.*?)( |$)" ${fileStatus20}}
          NOP
-           FUN FileTransPut $ENV{FILE_NON_EMPTY} ${transfer1URL0} 
-           ;; ASSIGN Stat1 ${!} 
-           FUN FileTransPut $ENV{FILE_NON_EMPTY} ${transfer2URL0} 
+           FUN FileTransPut $ENV{FILE_NON_EMPTY} ${transfer1URL0}
+           ;; ASSIGN Stat1 ${!}
+           ;; FUN FileTransPut $ENV{FILE_NON_EMPTY} ${transfer2URL0}
            ;; ASSIGN Stat2 ${!}
 
          && TEST ${Stat1} == 0 && ${Stat2} == 0
-            ASSIGN TestPass 1 
-            && SYSTEM echo "${srmTest}: KO, Both PrepareToPut succeeded with file level return status = SRM_SPACE_AVAILABLE and file transfer OK" >> "$ENV{SRM2_SUPPORTED}" && exit 2
-         || TEST ${Stat1} != 0 && ${Stat2} != 0 
             ASSIGN TestPass 1
-            SYSTEM echo "${srmTest}: KO, Both PrepareToPut succeeded with file level return status = SRM_SPACE_AVAILABLE. Both file transfers KO"  >> "$ENV{SRM2_SUPPORTED}" && exit 2  
+            && SYSTEM echo "${srmTest}: KO, Both PrepareToPut succeeded with file level return status = SRM_SPACE_AVAILABLE and file transfer OK" >> "$ENV{SRM2_SUPPORTED}" && exit 2
+         || TEST ${Stat1} != 0 && ${Stat2} != 0
+            ASSIGN TestPass 1
+            ;; SYSTEM echo "${srmTest}: KO, Both PrepareToPut succeeded with file level return status = SRM_SPACE_AVAILABLE. Both file transfers KO"  >> "$ENV{SRM2_SUPPORTED}" && exit 2
          || TEST ${TestPass} == 0
             SYSTEM echo "${srmTest}: OK, Both PrepareToPut Succeeded with file level return status = SRM_SPACE_AVAILABLE. One file transfer KO" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
@@ -82,4 +82,3 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 ;; SYSTEM exit ${Stat2}
-

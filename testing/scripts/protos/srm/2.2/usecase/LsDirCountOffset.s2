@@ -43,7 +43,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 || TEST !$DEFINED{Status}
    ASSIGN Status ${-returnStatus_statusCode}
-   SYSTEM exit ${-returnStatus_statusCode}
+   ;; SYSTEM exit ${-returnStatus_statusCode}
 
 && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
    TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}}

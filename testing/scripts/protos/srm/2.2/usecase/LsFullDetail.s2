@@ -16,7 +16,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: Executed PrepareToPut, requestToken: ${-token}, fileRequests=$ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
    ;; SYSTEM echo "${srmTest}: srmPrepareToPut returnStatus: ${-statusCode}, returnExplanation=${-explanation}" >> "$ENV{S2_LOG}"
 
-   TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
+   ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
       >0&&2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
             SYSTEM echo "${srmTest}: srmStatusOfPutRequest, returnStatus=${-statusCode}" >> "$ENV{S2_LOG}"

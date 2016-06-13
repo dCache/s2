@@ -44,7 +44,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "Checking status of file 0" >> "$ENV{S2_LOG}"
 && NOP
    TEST $MATCH{"\Q$ENV{SRM_NEW_FILE1}\E" "${SURL0}"}
-      SYSTEM echo "${srmTest}: File 0 SURL = ${SURL0}" >> "$ENV{S2_LOG}" 
+      SYSTEM echo "${srmTest}: File 0 SURL = ${SURL0}" >> "$ENV{S2_LOG}"
       && TEST $MATCH{SRM_DUPLICATION_ERROR ${StatusCode0}}
          SYSTEM echo "${srmTest}: File 0 status should be SRM_DUPLICATION_ERROR. File status returned = ${StatusCode0}" >> "$ENV{S2_LOG}"
    || TEST $MATCH{"\Q$ENV{SRM_NEW_FILE1}\E" "${SURL1}"}

@@ -1,5 +1,5 @@
 % Space00:
-% This test invokes srmReserveSpace exercising the Retention Policy 
+% This test invokes srmReserveSpace exercising the Retention Policy
 % and AccessLatency. It then checks the
 % response of the system.
 %
@@ -70,7 +70,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       ;; SYSTEM echo " " >> "$ENV{S2_LOG}"
       ;; TEST ! $DEFINED{sizeOfTotalReservedSpace}
          SYSTEM echo "${srmTest}: KO: sizeOfTotalReservedSpace is undefined" >> "$ENV{SRM2_SUPPORTED}"
-      || SYSTEM echo "${srmTest}: OK sizeOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> "$ENV{SRM2_SUPPORTED}" 
+      || SYSTEM echo "${srmTest}: OK sizeOfTotalReservedSpace is ${-sizeOfTotalReservedSpace}" >> "$ENV{SRM2_SUPPORTED}"
       ;; TEST ! $DEFINED{lifetimeOfReservedSpace}
          SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is undefined" >> "$ENV{SRM2_SUPPORTED}"
       || SYSTEM echo "${srmTest}: OK LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> "$ENV{SRM2_SUPPORTED}"
@@ -105,7 +105,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
          SYSTEM echo "${srmTest}: KO: LifetimeOfReservedSpace is undefined" >> "$ENV{SRM2_SUPPORTED}"
       || SYSTEM echo "${srmTest}: OK: LifetimeOfReservedSpace is ${-lifetimeOfReservedSpace}" >> "$ENV{SRM2_SUPPORTED}"
    || ASSIGN Status 2
-      SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit 2 
+      SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 
 && SYSTEM echo "${srmTest}: OK: All ReserveSpace actions executed successfully." >> "$ENV{SRM2_SUPPORTED}"
 

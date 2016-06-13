@@ -1,5 +1,5 @@
 % GetParallelTransf:
-% This test puts a file in SRM space, then it asks for a Get TURL with 
+% This test puts a file in SRM space, then it asks for a Get TURL with
 % many clients in parallel.
 % Once the TURL is obtained, the file is transferred back by the client.
 % At the end, the test cleans up the file  created.

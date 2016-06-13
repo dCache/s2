@@ -1,10 +1,10 @@
 % PutGetAbort.s2:
-% This tests executes a cycle of Put storing 2 files. 
+% This tests executes a cycle of Put storing 2 files.
 % Then it executes a PrepareToGet requests.
 % Then it aborts one of the files using srmAbortFiles
 % It checks that further StatusOfGet requests have not changed the request level
-% status. 
-% The StatusOfGet requests should always return SRM_PARTIAL_SUCCESS 
+% status.
+% The StatusOfGet requests should always return SRM_PARTIAL_SUCCESS
 % or SRM_SUCCESS.
 %
 % srmPrepareToPut

@@ -22,12 +22,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    ;; SYSTEM echo "${srmTest}: Executing srmGetRequestTokens for userRequestDescription=$ENV{TOKENCDESC}" >> "$ENV{S2_LOG}"
    ;; SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, requestTokens[${-requestTokens}]" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_INVALID_REQUEST ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: Invalid request returned, as expected." >> "$ENV{S2_LOG}"
    && SYSTEM echo "${srmTest}: ReturnStatus=${-returnStatus_statusCode}, Explanation=${returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
 || NOP
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: Token is case insensitive"  >> "$ENV{S2_LOG}"
       && SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}, Token is case insensitive" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 

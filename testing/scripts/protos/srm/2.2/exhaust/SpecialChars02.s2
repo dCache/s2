@@ -15,7 +15,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_PATH_RESERVED_ESC}] fullDetailedList=0 requestToken=(?P<requestLsToken>.*) pathDetails=".*lifetimeLeft0=(?P<Lifetime0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
       SYSTEM echo "${srmTest}: Executed srmLs..." >> "$ENV{S2_LOG}"
       && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURLLifeTime=${Lifetime0}" >> "$ENV{S2_LOG}"
-   || SYSTEM echo "${srmTest}: KO, Ls of file not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!} 
+   || SYSTEM echo "${srmTest}: KO, Ls of file not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 && SYSTEM echo "${srmTest}: Deleting the file again" >> "$ENV{S2_LOG}"
 

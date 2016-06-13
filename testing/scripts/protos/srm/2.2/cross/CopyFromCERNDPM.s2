@@ -9,7 +9,7 @@
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycleEndpoint.s2
-   #include ../include/GetCycle.s2 
+   #include ../include/GetCycle.s2
 
 && ASSIGN Status 0
 
@@ -29,7 +29,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
            && SYSTEM echo "${srmTest}: Executing PrepareToGet on $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"
            && TEST $MATCH{(SRM_SUCCESS|SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE0} : getRequestToken

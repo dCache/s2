@@ -33,25 +33,25 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
             || NOP
                SYSTEM echo "${srmTest}: srmLs of file failed ${-fileStatus} ${-status} ${-explanation}" >> "$ENV{S2_LOG}"
                ;; ASSIGN Status 1
-                  
+
          || NOP
             SYSTEM echo "${srmTest}: srmLs failed" >> "$ENV{S2_LOG}"
             ;; ASSIGN Status 1
-            
+
          ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_FILE_IN_DIR0}]
 
       || NOP
          SYSTEM echo "${srmTest}: srmMv failed ${-fileStatus} ${-status} : ${-explanation}" >> "$ENV{S2_LOG}"
          ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}]
          ;; ASSIGN Status 1
-         
+
       ;; srmRmdir $ENV{ENDPOINT} SURL="$ENV{SRM_NEW_DIR0}"
-         
+
    || NOP
          SYSTEM echo "${srmTest}: srmMkdir failed ${-status} : ${-explanation}" >> "$ENV{S2_LOG}"
          ;; ASSIGN Status 1
-         
-|| NOP   
+
+|| NOP
       SYSTEM echo "${srmTest}: File upload failed" >> "$ENV{S2_LOG}"
       ;; ASSIGN Status 1
 

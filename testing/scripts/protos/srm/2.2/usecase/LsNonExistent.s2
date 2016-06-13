@@ -13,8 +13,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
          srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestToken} returnStatus.statusCode=(?P<returnStatus_statusCode>.*) pathDetails=(.*returnStatus.statusCode0=(?P<fileStatus0>[A-Z_]*))? returnStatus.explanation=(?P<returnStatus_explanation>.*)
          ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
-;; TEST $MATCH{(SRM_FAILURE) ${returnStatus_statusCode}}
-   TEST $MATCH{(SRM_INVALID_PATH) ${fileStatus0}}
+;; TEST $MATCH{SRM_FAILURE ${returnStatus_statusCode}}
+   TEST $MATCH{SRM_INVALID_PATH ${fileStatus0}}
       SYSTEM echo "${srmTest}: OK: File Status return code ${fileStatus0}, Ls return code ${-returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
    || SYSTEM echo "${srmTest}: KO: File Status return code ${fileStatus0}, Ls return code ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 

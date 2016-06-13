@@ -7,7 +7,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
    SYSTEM echo "${srmTest}: Executed srmMkdir ${-statusCode} : ${-explanation}" >> "$ENV{S2_LOG}"
 
-   ;; TEST $MATCH{(SRM_SUCCESS) ${statusCode}}
+   ;; TEST $MATCH{SRM_SUCCESS ${statusCode}}
       timeout=180000000 srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] numOfLevels=0 requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
          SYSTEM echo "${srmTest}: pathDetails[${pathDetails}]" >> "$ENV{S2_LOG}"
 

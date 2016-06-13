@@ -22,7 +22,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && TEST $MATCH{"(SRM_SUCCESS)" ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
-|| ASSIGN Status ${!} 
+|| ASSIGN Status ${!}
    SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

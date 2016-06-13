@@ -1,4 +1,4 @@
-% GetRemoved01: 
+% GetRemoved01:
 % This test checks if the system allows for retrieval of a removed file.
 %
 % SRM calls performed by the test:

@@ -1,5 +1,5 @@
-% GetParallel: 
-% This test puts a file in SRM space, then it asks for a Get TURL with 
+% GetParallel:
+% This test puts a file in SRM space, then it asks for a Get TURL with
 % many clients  in parallel.
 % It then cleans up the file  created.
 %

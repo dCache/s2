@@ -13,12 +13,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_DIR0}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
    && SYSTEM echo "${srmTest}: Executed srmLs, pathDetails[${pathDetails}]" >> "$ENV{S2_LOG}"
    && SYSTEM echo "${srmTest}: Executing srmMkdir of SURL=$ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
    && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   && TEST $MATCH{(SRM_DUPLICATION_ERROR) ${returnStatus_statusCode}}
+   && TEST $MATCH{SRM_DUPLICATION_ERROR ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
    || SYSTEM echo "${srmTest}: srmMkdir returnStatus=${returnStatus_statusCode} - Wrong return code" >> "$ENV{S2_LOG}" && exit 2
 
@@ -28,4 +28,4 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; srmRmdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdir_statusCode>.*)
    SYSTEM echo "${srmTest}: Executed Rmdir, SURL=$ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
    && SYSTEM echo "${srmTest}: srmRmdir returnStatus: ${-returnRmdir_statusCode}" >> "$ENV{S2_LOG}"
-;; SYSTEM exit ${GStatus} 
+;; SYSTEM exit ${GStatus}

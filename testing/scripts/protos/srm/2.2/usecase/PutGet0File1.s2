@@ -1,4 +1,4 @@
-% PutGet0File: Put a 0 length file and retrieve it. The 0 length file is 
+% PutGet0File: Put a 0 length file and retrieve it. The 0 length file is
 %              obtained with a PtP/PutDone with the transfer of a 0-length file.
 %
 % srmPrepareToPut
@@ -30,7 +30,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    FUN FileTransPut $ENV{FILE_TO_PUT} ${transferURL0}
 
 && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    && SYSTEM echo "${srmTest}: OK: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit 0
    || SYSTEM echo "${srmTest}: KO: test failed, PutDone returned ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
@@ -46,7 +46,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
    ASSIGN Status 0
 
-|| ASSIGN Status ${!} 
+|| ASSIGN Status ${!}
    SYSTEM echo "${srmTest}: KO: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
 
 ;; SYSTEM /bin/rm $ENV{FILE_TO_PUT}

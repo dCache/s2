@@ -39,11 +39,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       ;; srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${space}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<code>.*)
          SYSTEM echo -e "${srmTest}: GetSpaceMetaData returnStatus=${-code}, spaceDetails=${-spaceDetails}" >> "$ENV{S2_LOG}"
 
-         ;; TEST $MATCH{(SRM_SUCCESS) ${code}}
+         ;; TEST $MATCH{SRM_SUCCESS ${code}}
             TEST $MATCH{".*lifetimeLeft0=(?P<smdLifetime>[-]*\d+?)(\s.+|$)" ${spaceDetails}}
                TEST $MATCH{".*spaceToken0=(?P<smdSpace>.+?)(\s.+|$)" ${spaceDetails}}
                   TEST $MATCH{".*returnStatus.statusCode0=(?P<smdCode>.+?)(\s.+|$)" ${spaceDetails}}
-                     TEST "${space}" == "${smdSpace}" && ${smdLifetime} == 0 && $MATCH{(SRM_SPACE_LIFETIME_EXPIRED) ${smdCode}}
+                     TEST "${space}" == "${smdSpace}" && ${smdLifetime} == 0 && $MATCH{SRM_SPACE_LIFETIME_EXPIRED ${smdCode}}
                         SYSTEM echo "${srmTest}: OK Space expired but not yet recollected by the system" >> "$ENV{SRM2_SUPPORTED}"
                      || ASSIGN Status ${!}
                         SYSTEM echo "${srmTest}: KO, either lifetime or space level status not correct: LifetimeLeft=${-smdLifetime}, statusCode=${-smdCode}" >> "$ENV{SRM2_SUPPORTED}"
@@ -58,7 +58,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
                      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${request} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<code>.*)
                         TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${code}}
 
-               ;; TEST $MATCH{(SRM_SPACE_LIFETIME_EXPIRED) ${code}}
+               ;; TEST $MATCH{SRM_SPACE_LIFETIME_EXPIRED ${code}}
                   TEST $MATCH {".*returnStatus.statusCode0=SRM_FAILURE(\s.+|$)" ${fileStatuses}}
                      SYSTEM echo "${srmTest}: OK, failed to upload file into expired space." >> "$ENV{SRM2_SUPPORTED}"
                || ASSIGN Status ${!}
@@ -67,7 +67,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
             ;; NOP
 
-         || TEST $MATCH{(SRM_FAILURE) ${code}}
+         || TEST $MATCH{SRM_FAILURE ${code}}
             TEST $MATCH{".*returnStatus.statusCode0=(?P<Status0>.+?)(\s.+|$)" ${spaceDetails}}
                TEST $MATCH(SRM_INVALID_REQUEST) ${Status0}}
                   SYSTEM echo "${srmTest}: KO Space expired and recollected by the system" >> "$ENV{SRM2_SUPPORTED}"

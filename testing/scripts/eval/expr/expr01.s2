@@ -1,6 +1,6 @@
 % Expression evaluation test
 
-NOP 
+NOP
 && SYSTEM out=1 echo -n $EXPR{ 1 || 1 && 0 }
 && SYSTEM out=1 echo -n $EXPR{ 1 && 2 | 4 }
 && SYSTEM out=1 echo -n $EXPR{ 1 | 4 & 2 }

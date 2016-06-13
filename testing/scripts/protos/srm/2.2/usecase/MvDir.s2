@@ -10,7 +10,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && ASSIGN dir1 "$ENV{SRM_NEW_DIR0}x"
 
 && srmMkdir $ENV{ENDPOINT} SURL=${dir0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 && srmMv $ENV{ENDPOINT} fromSURL=${dir0} toSURL=${dir1} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=SRM_SUCCESS
 

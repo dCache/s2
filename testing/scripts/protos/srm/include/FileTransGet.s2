@@ -14,7 +14,7 @@ DEFUN FileTransGet fileToGet transferURL
       || SYSTEM echo "${srmTest}: globus-url-copy failed ${!}" >> "$ENV{S2_LOG}" && exit 2
    || TEST $MATCH{"^rfio://(?P<rfioHost>.*?)/(?P<rfioPath>.*)" ${transferURL}}
       #if $ENV{RFCP_SUDO}
-      SYSTEM sudo -u dteam001 rfcp ${rfioPath} ${fileToGet} 
+      SYSTEM sudo -u dteam001 rfcp ${rfioPath} ${fileToGet}
       #else
       SYSTEM rfcp ${rfioPath} ${fileToGet}
       #endif

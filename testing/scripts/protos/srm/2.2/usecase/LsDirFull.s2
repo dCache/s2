@@ -39,7 +39,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
             srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
             ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
-;; TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+;; TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Path is returned: ${Path1}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2

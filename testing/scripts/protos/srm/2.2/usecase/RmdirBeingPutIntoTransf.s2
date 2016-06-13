@@ -14,7 +14,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
    TEST $MATCH{SRM_SUCCESS ${statusCode}}
       ASSIGN haveDirectory 1
-      
+
       ;; SYSTEM echo "${srmTest}: Now doing a PtP on $ENV{SRM_FILE_IN_DIR0}" >> "$ENV{S2_LOG}"
       ;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<token>.*) fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
 

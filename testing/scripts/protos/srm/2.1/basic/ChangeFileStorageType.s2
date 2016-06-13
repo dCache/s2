@@ -13,5 +13,5 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 % TODO
 % ~~~~
-% a proper check for the changed storage type when some 
+% a proper check for the changed storage type when some
 % SRMv2 server supports it

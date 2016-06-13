@@ -39,7 +39,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM exit 0
 
 && NOP
-   TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus1_statusCode}} || $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus2_statusCode}}
+   TEST $MATCH{SRM_NOT_SUPPORTED ${returnStatus1_statusCode}} || $MATCH{SRM_NOT_SUPPORTED ${returnStatus2_statusCode}}
       ASSIGN Status 0
       && SYSTEM echo "${srmTest}: OK, overwrite option not supported" >> "$ENV{SRM2_SUPPORTED}" && exit 1
    || SYSTEM exit 0
@@ -54,7 +54,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && SYSTEM echo "${srmTest}: OK File level return status = SRM_FILE_BUSY or SRM_ABORTED" >> "$ENV{SRM2_SUPPORTED}" && exit 0
 
 || NOP
-   TEST $MATCH{(SRM_SPACE_AVAILABLE) ${-Status1Code0}} && $MATCH{(SRM_SPACE_AVAILABLE) ${-Status2Code0}}
+   TEST $MATCH{SRM_SPACE_AVAILABLE ${-Status1Code0}} && $MATCH{SRM_SPACE_AVAILABLE ${-Status2Code0}}
       SYSTEM echo "${srmTest}: Both PrepareToPut with overwrite enabled returned SRM_SPACE_AVAILABLE." >> "$ENV{S2_LOG}"
       && TEST $MATCH{".*transferURL0=(?P<transfer1URL0>.*?)( |$)" ${fileStatus10}}
       && TEST $MATCH{".*transferURL0=(?P<transfer2URL0>.*?)( |$)" ${fileStatus20}}

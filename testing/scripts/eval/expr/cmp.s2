@@ -15,7 +15,7 @@ NOP 0
    SYSTEM echo LT2
 && TEST 1 > 0
    SYSTEM echo GT1
-&& TEST dcba > abcd 
+&& TEST dcba > abcd
    SYSTEM echo GT2
 && TEST 0 <= 1
    SYSTEM echo LE1
@@ -23,5 +23,5 @@ NOP 0
    SYSTEM echo LE2
 && TEST 1 >= 0
    SYSTEM echo GE1
-&& TEST dcba >= abcd 
+&& TEST dcba >= abcd
    SYSTEM echo GE2

@@ -20,7 +20,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % use srmExtendFileLifeTime to try to extend the file lifetime for the SURL
-% Allow for lifetime negotiation: the returned lifetime can be shorter than the lifetime asked 
+% Allow for lifetime negotiation: the returned lifetime can be shorter than the lifetime asked
 && srmExtendFileLifeTime $ENV{ENDPOINT} SURL[${sURL}] newFileLifeTime=$ENV{PIN_LIFETIME} fileStatuses=(?P<FileStatuses0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
@@ -38,7 +38,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS) ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: KO srmReleaseFiles succeeded after a PutCycle" >> "$ENV{SRM2_SUPPORTED}" && exit 2
 
-   || TEST $MATCH{(SRM_INVALID_REQUEST) ${returnStatus_statusCode}}
+   || TEST $MATCH{SRM_INVALID_REQUEST ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> "$ENV{S2_LOG}"
       && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
       && SYSTEM echo "${srmTest}: srmReleaseFiles has failed as expected" >> "$ENV{SRM2_SUPPORTED}" && exit 0

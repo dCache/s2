@@ -23,7 +23,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
    && srmMkdir $ENV{ENDPOINT} SURL=${MYPATH} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
       srmLs $ENV{ENDPOINT} SURL[${MYPATH}] requestToken=(?P<requestToken>.*) pathDetails=(?P<pathDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatusLs_statusCode>.*)
 
 || ASSIGN Status ${!}

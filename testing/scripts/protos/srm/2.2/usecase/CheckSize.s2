@@ -20,7 +20,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}]  fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          SYSTEM echo "srmStatusOfPutRequest: SRM_SUCCESS" >> "$ENV{S2_LOG}"
-      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 && TEST $MATCH{".*transferURL0=(?P<transferURL0>.*?)( |$)" ${fileStatuses}}
 
@@ -44,7 +44,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses}}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 && TEST $MATCH{".*transferURL0=(?P<transferURL0>.*?)( |$)" ${fileStatuses}}
 && TEST $MATCH{".*fileSize0=(?P<FileSize0>\d+?)(\s.+|$)" ${fileStatuses}}
@@ -53,7 +53,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    || SYSTEM echo "${srmTest}: FileSize on get not set correctly: ${-FileSize0} (it should be $ENV{FILE_TO_PUT0_SIZE})"  >> "$ENV{S2_LOG}" && exit 2
 
 && SYSTEM echo "${srmTest}: OK" >> "$ENV{SRM2_SUPPORTED}"
-|| ASSIGN Status ${!} 
+|| ASSIGN Status ${!}
    SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

@@ -1,5 +1,5 @@
 % PutGetMix:
-% This test simulates many clients transferring files to/from SRM space. 
+% This test simulates many clients transferring files to/from SRM space.
 % The file can be big (oMB) or small (oKB). The file is then removed.
 %
 % SRM calls performed by the test:
@@ -43,9 +43,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && FUN GetCycle $ENV{FILE_TO_GET0}.$I{0} ${sURL} : getRequestToken
          SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${sURL}, requestToken=${getRequestToken}, Get Cycle for thread $I{0} OK" >> "$ENV{S2_LOG}"
          && srmRm $ENV{ENDPOINT} SURL[${sURL}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-         && SYSTEM /bin/rm $ENV{FILE_TO_GET0}.$I{0} 
+         && SYSTEM /bin/rm $ENV{FILE_TO_GET0}.$I{0}
       || SYSTEM /bin/rm -f $ENV{FILE_TO_GET0}.$I{0}
-         SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${-sURL}, requestToken=${-getRequestToken}, Get Cycle for thread $I{0} KO" >> "$ENV{S2_LOG}" && exit 2 
+         SYSTEM echo "${srmTest}-$DATE{}: ($I{0}) SURL=${-sURL}, requestToken=${-getRequestToken}, Get Cycle for thread $I{0} KO" >> "$ENV{S2_LOG}" && exit 2
 
 ;; ASSIGN Status ${!}
 ;; ASSIGN end $DATE{%s.%N}

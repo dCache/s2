@@ -19,7 +19,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
         && timeout=1800000000 srmStatusOfCopyRequest $ENV{ENDPOINT} requestToken=${requestToken} sourceSURL[$ENV{SRM_NEW_FILE0}] targetSURL[$ENV{SRM_NEW_FILE1}] fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatusOfCopy_statusCode>.*)
         && SYSTEM echo "${srmTest}: returnStatus=${returnStatusOfCopy_statusCode}" >> "$ENV{S2_LOG}"
         && SYSTEM echo "${srmTest}: StatusOfCopyRequest: fileStatuses=${fileStatuses}" >> "$ENV{S2_LOG}"
-        && TEST $MATCH{(SRM_SUCCESS) ${returnStatusOfCopy_statusCode}}
+        && TEST $MATCH{SRM_SUCCESS ${returnStatusOfCopy_statusCode}}
 
 %%% Get cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN GetCycle $ENV{FILE_TO_GET1} $ENV{SRM_NEW_FILE1} : getRequestToken

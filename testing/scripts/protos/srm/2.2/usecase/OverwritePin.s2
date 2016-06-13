@@ -44,9 +44,9 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && NOP
    SYSTEM echo "${srmTest}: Checking status of get request = ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
-   && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}} 
-   || TEST $MATCH{SRM_FAILURE ${returnStatus_statusCode}} 
-      TEST $MATCH{(SRM_FILE_BUSY) ${GetStatusCode}}
+   && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
+   || TEST $MATCH{SRM_FAILURE ${returnStatus_statusCode}}
+      TEST $MATCH{SRM_FILE_BUSY ${GetStatusCode}}
 
 ;; ASSIGN Status ${!}
 ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<filestatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)

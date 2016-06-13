@@ -4,7 +4,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Overwrite NEVER
 && ASSIGN access_latency ONLINE
-&& ASSIGN retention_policy REPLICA 
+&& ASSIGN retention_policy REPLICA
 
 && ASSIGN Status 0
 

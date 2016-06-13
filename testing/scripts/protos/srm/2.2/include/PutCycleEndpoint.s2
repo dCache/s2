@@ -26,7 +26,7 @@ DEFUN PutCycle endpointv filesToPut sURLs : putRequestToken
    ASSIGN fileToPutSizes $MAP{FileSize $SPLIT{${filesToPut}}}
    && ASSIGN c 0 transferURLs ""
    && ASSIGN transferURLs "$MAP{DefTransferURLs $SPLIT{${filesToPut}}}"
-   
+
    && srmPrepareToPut ${endpointv} fileRequests.SURL[$SPLIT{${sURLs}}] fileRequests.expectedFileSize[$SPLIT{${fileToPutSizes}}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<ptpFileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS)
       SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${putRequestToken}" >> "$ENV{S2_LOG}"
       && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}

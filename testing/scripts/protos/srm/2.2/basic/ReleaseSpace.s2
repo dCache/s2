@@ -1,5 +1,5 @@
 % srmReleaseSpace
- 
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
@@ -23,7 +23,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; TEST $MATCH{(SRM_SUCCESS|SRM_LOWER_SPACE_GRANTED) ${returnStatus_statusCode}}
    srmReleaseSpace $ENV{ENDPOINT} spaceToken=${spaceToken} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
       SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
    || ASSIGN Status ${!}

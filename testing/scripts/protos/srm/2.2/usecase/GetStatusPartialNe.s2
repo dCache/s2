@@ -2,8 +2,8 @@
 % This test performs a full put cycle of one file. Then it tries to retrieve
 % this file and another one which does not exist. The retrieval is performed
 % using srmPrepareToGet. Then it performs a StatusOfGetRequest on the file
-% that does not exists only and checks that the request status is 
-% SRM_PARTIAL_SUCCESS and that the status code at file level is 
+% that does not exists only and checks that the request status is
+% SRM_PARTIAL_SUCCESS and that the status code at file level is
 % SRM_INVALID_PATH.
 % Then a cleanup of created files is performed.
 %

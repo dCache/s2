@@ -1,5 +1,5 @@
 % Ping:
-% This test pings the endpoint and then invokes srmReserveSpace 
+% This test pings the endpoint and then invokes srmReserveSpace
 % to check if space management has been turned on.
 %
 % SRM calls performed by the test:
@@ -19,7 +19,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 || SYSTEM echo "${srmTest}: KO" >> "$ENV{SRM2_SUPPORTED}"
    ASSIGN Status 2
    && SYSTEM exit 2
- 
+
 #if $ENV{CASTOR}
 #else
 && ASSIGN Status 0

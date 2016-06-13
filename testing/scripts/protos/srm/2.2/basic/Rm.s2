@@ -1,5 +1,5 @@
 % srmRm
- 
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    #include ../include/PutCycle.s2
@@ -14,7 +14,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && NOP
    srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*returnStatus.statusCode0=(?P<filestatus0>.*?)( |$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    ;; SYSTEM echo "Executed srmRm, returnStatus=${-returnStatus_statusCode}, Explanation=${-returnStatus_explanation}, filelevelStatus=${-filestatus0}" >> "$ENV{S2_LOG}"
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 

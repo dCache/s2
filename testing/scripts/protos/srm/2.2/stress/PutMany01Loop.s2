@@ -52,7 +52,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
          ;; srmRm $ENV{ENDPOINT} SURL[${fileName}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
             SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmRm returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
-         || SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmRm failed" >> "$ENV{S2_LOG}" 
+         || SYSTEM echo "${srmTest}-$DATE{}: (${n}) srmRm failed" >> "$ENV{S2_LOG}"
             ASSIGN Status 2
 
          && SYSTEM exit ${Status}

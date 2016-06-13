@@ -17,7 +17,7 @@
 
 ;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${status}}
+&& TEST $MATCH{SRM_SUCCESS ${status}}
    SYSTEM echo "${srmTest}: Starting to put file srmPrepareToPut $ENV{SRM_FILE_IN_DIR0}" >> "$ENV{S2_LOG}"
 
    ;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_FILE_IN_DIR0}] fileRequests.expectedFileSize[$ENV{BIG_FILE_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<token>.*) returnStatus.statusCode=(?P<status>.*) fileStatuses="(.*transferURL0=(?P<turl>[^ ]*).*)?"

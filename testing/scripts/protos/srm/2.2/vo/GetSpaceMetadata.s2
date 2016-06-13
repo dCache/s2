@@ -13,7 +13,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmGetSpaceMetaData $ENV{ENDPOINT} spaceTokens[${spaceToken}] spaceDetails=(?P<spaceDetails>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: srmGetSpaceMetaData, Space Details = ${spaceDetails}" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: srmGetSpaceMetadata successful, ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 
 || SYSTEM echo "${srmTest}: KO: srmGetSpaceMetadata has failed, ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}

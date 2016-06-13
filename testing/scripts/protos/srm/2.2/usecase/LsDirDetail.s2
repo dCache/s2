@@ -30,7 +30,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
               srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
               ;; TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
 
-;; TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+;; TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Path is returned: ${Path0}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
@@ -61,7 +61,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
    && SYSTEM exit ${Status}
    && SYSTEM echo "${srmTest}: OK, Full Detail supported" >> "$ENV{SRM2_SUPPORTED}"
-   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!} 
+   || SYSTEM echo "${srmTest}: KO, Full Detail not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 || SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 

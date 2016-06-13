@@ -1,5 +1,5 @@
 % srmSetPermission
- 
+
 
 TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
@@ -7,12 +7,12 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    SYSTEM echo "${srmTest}: Executed Mkdir, SURL=$ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
    && SYSTEM echo "${srmTest}: srmMkdir returnStatus: ${returnMkdir_statusCode}" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_SUCCESS) ${-returnMkdir_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${-returnMkdir_statusCode}}
    srmSetPermission $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} permissionType=ADD ownerPermission=RWX otherPermission=RWX returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    && SYSTEM echo "${srmTest}: Executed SetPermission, SURL=$ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
    && SYSTEM echo "${srmTest}: srmSetPermission returnStatus: ${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 || SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 

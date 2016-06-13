@@ -6,7 +6,7 @@ ASSIGN ScriptName "fun03"
          NOP
             DEFUN Foo str code : a not_def c
                SYSTEM echo "${ScriptName}: ${str}: ${code}"
-               && ASSIGN a "two words" c 1 % don't assign to 
+               && ASSIGN a "two words" c 1 % don't assign to
                && NOP ${code}
 
 && eval=1 FUN Foo "Testing a function call" 1 : a_byref not_def_byref c_byref

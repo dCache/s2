@@ -1,5 +1,5 @@
-% GetParallelLoop: 
-% This test puts a file in SRM space, then it asks for a Get TURL with 
+% GetParallelLoop:
+% This test puts a file in SRM space, then it asks for a Get TURL with
 % many clients in parallel.  It performs the srmStatusOfGetRequest many
 % time to see if the status returned changes with time.
 % It then cleans up the file  created.

@@ -1,4 +1,4 @@
-% PutRemoved02.s2 Puts 2 files, deletes one again and then tries to put again the two. 
+% PutRemoved02.s2 Puts 2 files, deletes one again and then tries to put again the two.
 % Checks for SRM_PARTIAL_SUCCESS of the request and checks that the
 % SRM_DUPLICATION_ERROR and SRM_SPACE_AVAILABLE are indeed the error codes of the associated SURLs.
 %
@@ -50,7 +50,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       && TEST $MATCH{SRM_SPACE_AVAILABLE ${StatusCode1}}
           SYSTEM echo "${srmTest}: File 0 status should be SRM_SPACE_AVAILABLE. File status returned = ${StatusCode1}" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "Checking status of file 1: SRM_DUPLICATION_ERROR (${StatusCode1})" >> "$ENV{S2_LOG}" 
+&& SYSTEM echo "Checking status of file 1: SRM_DUPLICATION_ERROR (${StatusCode1})" >> "$ENV{S2_LOG}"
 && NOP
    TEST $MATCH{"\Q$ENV{SRM_NEW_FILE1}\E" "${SURL0}"}
       SYSTEM echo "${srmTest}: File 1 SURL = ${SURL0}" >> "$ENV{S2_LOG}"

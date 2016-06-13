@@ -4,7 +4,7 @@
 % with PIN1 TURL pin time. The second issues a PrepareToGet request with
 % 2*PIN1 pin time. Then the first TURL is released. The test checks that
 % the first TURL is still valid with pin time <= 2*PIN1.
-% 
+%
 % SRM calls performed by the test:
 % --------------------------------
 % srmPrepareToPut
@@ -34,7 +34,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses1}}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 && TEST $MATCH{".*transferURL0=(?P<transfer1URL0>.*?)( |$)" ${fileStatuses1}}
 
@@ -44,7 +44,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    TEST $MATCH{".*remainingPinTime0=(?P<pin1Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses1}}
       ASSIGN PIN1 ${pin1Lifetime0}
       && SYSTEM echo "${srmTest}: $DATE{} PIN1 set to ${pin1Lifetime0}" >> "$ENV{S2_LOG}"
@@ -57,7 +57,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    && TEST $MATCH{".*returnStatus.statusCode0=(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS|SRM_FILE_PINNED).*" ${fileStatuses2}}
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
       srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest2Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses2>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+      && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 && TEST $MATCH{".*transferURL0=(?P<transfer2URL0>.*?)( |$)" ${fileStatuses2}}
 
@@ -66,7 +66,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest2Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses2>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    TEST $MATCH{".*remainingPinTime0=(?P<pin2Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses2}}
       ASSIGN PIN2 ${pin2Lifetime0}
       && SYSTEM echo "${srmTest}: $DATE{} PIN2 set to ${pin2Lifetime0}" >> "$ENV{S2_LOG}"
@@ -76,7 +76,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    TEST $MATCH{".*remainingPinTime0=(?P<pin1Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses1}}
       TEST ${PIN1} >= ${pin1Lifetime0}
       && SYSTEM echo "${srmTest}: PIN1=${pin1Lifetime0} is still consistent with previous value ${PIN1}" >> "$ENV{S2_LOG}"
@@ -87,11 +87,11 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && NOP
    srmReleaseFiles $ENV{ENDPOINT} SURL[${sURL}] fileStatuses=(?P<fileStatuses1>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+   && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
         SYSTEM echo "${srmTest}: srmReleaseFiles of SURL has succeeded" >> "$ENV{S2_LOG}"
         && SYSTEM echo "${srmTest}: returnStatus=${returnStatus_statusCode} fileStatus=${fileStatuses1}" >> "$ENV{S2_LOG}"
    || NOP
-      TEST $MATCH{(SRM_NOT_SUPPORTED) ${returnStatus_statusCode}}
+      TEST $MATCH{SRM_NOT_SUPPORTED ${returnStatus_statusCode}}
          ASSIGN NotSupported 1
          && SYSTEM echo "${srmTest}: WARNING srmReleaseFiles of SURL is not supported" >> "$ENV{S2_LOG}" && exit 2
 
@@ -102,14 +102,14 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest1Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses1>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && NOP
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<fileStatus0>(SRM_RELEASED))(\s.+|$)" ${fileStatuses1}}
+   TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<fileStatus0>(SRM_RELEASED))(\s.+|$)" ${fileStatuses1}}
       SYSTEM echo "${srmTest}: OK, TURL1 released, fileStatus=${fileStatuses1}" >> "$ENV{S2_LOG}" && exit 0
    || SYSTEM echo "{srmTest}: KO returnStatus=${returnStatus_statusCode}, fileStatus=${fileStatus0}" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
 
 && srmStatusOfGetRequest $ENV{ENDPOINT} requestToken=${getRequest2Token} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses2>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
 && NOP
-   TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<fileStatus0>(SRM_RELEASED))(\s.+|$)" ${fileStatuses2}} 
+   TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=(?P<fileStatus0>(SRM_RELEASED))(\s.+|$)" ${fileStatuses2}}
    && TEST $MATCH{".*remainingPinTime0=(?P<pin2Lifetime0>[-]*\d+?)(\s.+|$)" ${fileStatuses2}}
       TEST ${pin2Lifetime0} == 0
          SYSTEM echo "${srmTest}: OK, TURL2 released, fileStatus=${fileStatuses2}" >> "$ENV{S2_LOG}" && exit 0

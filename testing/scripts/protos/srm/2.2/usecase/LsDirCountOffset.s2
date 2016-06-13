@@ -23,7 +23,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"
 && srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
 
 || ASSIGN Status 2
    SYSTEM exit 2
@@ -45,7 +45,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    ASSIGN Status ${-returnStatus_statusCode}
    ;; SYSTEM exit ${-returnStatus_statusCode}
 
-&& TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+&& TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    TEST $MATCH{".*path0=(?P<Path0>.+?)(\s.+|$)" ${PathDetails0}}
       SYSTEM echo "${srmTest}: Path is returned: ${Path0}" >> "$ENV{S2_LOG}"
    || ASSIGN Status 2
@@ -85,8 +85,8 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
       || SYSTEM exit 0
 
    && SYSTEM exit ${Status}
- 
-&& SYSTEM echo "${srmTest}: OK Count and Offset supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status} 
+
+&& SYSTEM echo "${srmTest}: OK Count and Offset supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
 
 || SYSTEM echo "${srmTest}: KO Test failed. Explanation=${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
 

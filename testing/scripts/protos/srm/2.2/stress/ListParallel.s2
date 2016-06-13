@@ -1,5 +1,5 @@
-% ListParallel: 
-% This test creates a directory and puts 3 files in there. Then it starts 
+% ListParallel:
+% This test creates a directory and puts 3 files in there. Then it starts
 % many clients in parallel to list the content of the directory.
 % It then cleans up the file and directories created.
 %
@@ -49,7 +49,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
      && ASSIGN Status 0
      && srmLs $ENV{ENDPOINT} SURL[${SRM_SNEW_DIR1}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=(?P<PathDetails0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
         SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Executed srmLs with FullDetailedList enabled returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
-     && TEST $MATCH{(SRM_SUCCESS) ${returnStatus_statusCode}}
+     && TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
         TEST $MATCH{".*path1=(?P<Path1>.+?)(\s.+|$)" ${PathDetails0}}
            SYSTEM echo "${srmTest}-$DATE{}: (${thread}) Path is returned: ${Path1}" >> "$ENV{S2_LOG}"
         || ASSIGN Status 2
@@ -93,7 +93,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
    ;; srmRmdir $ENV{ENDPOINT} SURL=${SRM_SNEW_DIR1} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
       SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR1} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> "$ENV{S2_LOG}"
    ;; srmRmdir $ENV{ENDPOINT} SURL=${SRM_SNEW_DIR0} recursive=0 returnStatus.explanation=(?P<returnRmdirStatus_explanation>.*) returnStatus.statusCode=(?P<returnRmdirStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR0} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> "$ENV{S2_LOG}" 
+      SYSTEM echo "${srmTest}-$DATE{}: srmRmdir SURL=${SRM_SNEW_DIR0} returnStatus=${-returnRmdirStatus_statusCode}, ${-returnRmdirStatus_explanation}" >> "$ENV{S2_LOG}"
    ;; SYSTEM exit ${GStatus}
 
 && SYSTEM echo "${srmTest}-$DATE{}: OK: number of threads=$EXPR{$ENV{N_THREADS}+1} time[s]=$EXPR{${end}-${begin}}" >> "$ENV{SRM2_SUPPORTED}"

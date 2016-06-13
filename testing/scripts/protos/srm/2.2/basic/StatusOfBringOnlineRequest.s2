@@ -14,7 +14,7 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 && TEST $MATCH{(SRM_SUCCESS|SRM_PARTIAL_SUCCESS|SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
    TEST ! $DEFINED{bolRequestToken}
       SYSTEM echo "${srmTest}: OK: SRM_NOT_SUPPORTED (srmBringOnline synchronous, Status function NOT SUPPORTED)" >> "$ENV{SRM2_SUPPORTED}" && exit 0
-   || ASSIGN srmmethod StatusOfBringOnline 
+   || ASSIGN srmmethod StatusOfBringOnline
       >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
          srmStatusOfBringOnlineRequest $ENV{ENDPOINT} requestToken=${bolRequestToken} fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) remainingDeferredStartTime=(?P<remainingDeferredStartTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          && SYSTEM echo "${srmTest}: srmStatusOfBringOnlineRequest, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"

@@ -12,11 +12,11 @@
 %
 % B: Data transfer test 1
 % ~~~~~~~~~~~~~~~~~~~~~~~
-% Call srmMkdir to make a unique directory.  Use srmPrepareToPut to 
+% Call srmMkdir to make a unique directory.  Use srmPrepareToPut to
 % try to put 2 files into this directory, use srmStatusOfPutRequest to
-% find out when ready, then use the SURL to do an rfcp to the SURL 
+% find out when ready, then use the SURL to do an rfcp to the SURL
 % location, then issue an srmPutDone.  Use nsls to check the status
-% of the files.  You could also include the space token from test A 
+% of the files.  You could also include the space token from test A
 % and check the space metadata again to show that some space has then
 % been used.
 %

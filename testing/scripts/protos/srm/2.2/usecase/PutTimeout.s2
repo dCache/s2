@@ -1,0 +1,53 @@
+% PutTimeout: prepare to put that then times out
+%
+% srmPrepareToPut
+
+TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+
+;; ASSIGN Status 0
+
+% Value in seconds
+;; ASSIGN DesiredLifetime 10
+
+% We assume that the storage system checks for expired requests periodically.
+% For dCache, the expired requests are expired every 509 seconds.
+;; ASSIGN CheckExpiredPeriod 509
+
+% We add a few seconds to try to loose any race
+;; ASSIGN SleepUntilExpired $EXPR{${CheckExpiredPeriod} + 2}
+
+
+;; srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] desiredTotalRequestTime=${DesiredLifetime} fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<token>.*) fileStatuses=(?P<statuses>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+
+   TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
+      >0&&10 SLEEP 1
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+            TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${statusCode}}
+            
+   ;; TEST $MATCH{SRM_SUCCESS ${statusCode}}
+      >0&&${DesiredLifetime} SLEEP 1
+         srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+            TEST $MATCH{SRM_SUCCESS ${statusCode}}
+
+      ;; TEST $MATCH{SRM_SUCCESS ${statusCode}}
+         >0&&${SleepUntilExpired} SLEEP 1
+            srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${token} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<statusCode>.*)
+               TEST $MATCH{SRM_SUCCESS ${statusCode}}
+
+         ;; TEST $MATCH{(SRM_REQUEST_TIMED_OUT|SRM_INVALID_REQUEST) ${statusCode}}
+            SYSTEM echo "${srmTest}: OK request timed out as expected" >> "$ENV{SRM2_SUPPORTED}"
+         
+         || ASSIGN Status 2
+            SYSTEM echo "${srmTest}: KO srmStatusOfPutRequest did not time out: ${-statusCode} ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+
+      || ASSIGN Status 2
+         SYSTEM echo "${srmTest}: KO srmStatusOfPutRequest failed during desiredTotalRequestTime: ${-statusCode} ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+         
+   || ASSIGN Status 2
+      SYSTEM echo "${srmTest}: KO srmPrepareToPut failed: ${-statusCode} ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
+                  
+|| ASSIGN Status 2
+   SYSTEM echo "${srmTest}: KO srmPrepareToPut failed" >> "$ENV{SRM2_SUPPORTED}"
+
+;; SYSTEM exit ${Status}
+

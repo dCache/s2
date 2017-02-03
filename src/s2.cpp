@@ -910,6 +910,64 @@ parse_cmd_opts(int argc, char **argv)
   return i;
 }
 
+static const char *
+cmd_label()
+{
+  char *name;
+
+  if (!opts.scr_fname) {
+    return "stdin";
+  }
+
+  if (opts.simple_name) {
+    name = strrchr(opts.scr_fname, '/');
+    if (name == NULL) {
+      name = opts.scr_fname;
+    } else {
+      name++;
+    }
+  } else {
+    name = opts.scr_fname;
+  }
+
+  return name;
+}
+
+static char *
+remove_ext(const char *label, const char *ext)
+{
+  char *result = NULL;
+  const char *first = strrchr(label, ext[0]);
+  if (first && !strcmp(first, ext)) {
+    result = strdup(label);
+    *(strrchr(result, ext[0])) = '\0';
+  }
+
+  return result;
+}
+
+static char *
+build_client_info(const char *name)
+{
+  char *short_name = remove_ext(name, ".s2");
+  const char *label = short_name ? short_name : name;
+
+  char *old_info = getenv("CLIENT_INFO");
+  int len = strlen(label) + 5 + 5 + 5 + 1;  // 5 for "test=", 5 for ";pid=", 5 assuming pid max is "32768"
+  if (old_info) {
+    len += strlen(old_info)+1; // +1 for ';'
+  }
+  char *info = (char*)malloc(len);
+  if (old_info) {
+    snprintf(info, len, "%s;test=%s;pid=%u", old_info, label, getpid());
+  } else {
+    snprintf(info, len, "test=%s;pid=%u", label, getpid());
+  }
+  info [len-1] = '\0';
+  free(short_name);
+  return info;
+}
+
 /********************************************************************
  * Parse command-line arguments (non -+ options)
  *
@@ -962,25 +1020,13 @@ s2_run(int argc, char **argv, int i)
     }
 
     /* write ${0}..${n} variables */
-    if(opts.scr_fname) {
-      char *name = NULL;
-      if (opts.simple_name) {
-	name = strrchr(opts.scr_fname, '/');
-	if (name != NULL) {
-	  name++;
-	}
-      }
-
-      if (name == NULL) {
-	name = opts.scr_fname;
-      }
-      proc->WriteVariable("0", name, TRUE);
-    } else {
-      proc->WriteVariable("0", "stdin", TRUE);
-    }
+    const char *name = cmd_label();
+    proc->WriteVariable("0", name, TRUE);
     for(; i < argc; i++) {
       proc->WriteVariable(i2str(i - i_1 + 1).c_str(), argv[i], TRUE);
     }
+
+    setenv("CLIENT_INFO", build_client_info(name), 1);
 
     lval = proc->eval();
     Process::threads_destroy();

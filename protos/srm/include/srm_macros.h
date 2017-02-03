@@ -1,6 +1,8 @@
 #ifndef _SRM_MACROS_H
 #define _SRM_MACROS_H
 
+void wrap_fposthdr(struct soap *);
+
 #ifndef RETURN
 #define RETURN(...) do {DM_DBG_O; return __VA_ARGS__;} while(0)
 #endif
@@ -12,7 +14,10 @@
     if(!soap) {\
       DM_ERR_ASSERT("soap == NULL\n");\
       RETURN(EXIT_FAILURE);\
-    } else soap_init(soap);\
+    } else {					\
+      soap_init(soap);				\
+      wrap_fposthdr(soap);			\
+    }						\
   } while(0)
 
 #define SOAP_CALL_SRM(func) \
@@ -29,7 +34,7 @@
      RETURN(EXIT_FAILURE);\
   };\
   DM_DBG(DM_N(1),"soap call: srm"#func "() --->\n");
-  
+
 #define NOT_NULL(par)\
   do {\
     if((par) == NULL) {\

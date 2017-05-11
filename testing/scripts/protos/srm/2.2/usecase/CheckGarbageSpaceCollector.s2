@@ -58,9 +58,13 @@ TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
                      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${request} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<code>.*)
                         TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${code}}
 
-               ;; TEST $MATCH{SRM_SPACE_LIFETIME_EXPIRED ${code}}
-                  TEST $MATCH {".*returnStatus.statusCode0=SRM_FAILURE(\s.+|$)" ${fileStatuses}}
-                     SYSTEM echo "${srmTest}: OK, failed to upload file into expired space." >> "$ENV{SRM2_SUPPORTED}"
+               ;; TEST $MATCH{".*returnStatus.statusCode0=(?P<fileStatus>[^ ]+?)(\s.+|$)" ${fileStatuses}}
+                  TEST $MATCH{SRM_SPACE_LIFETIME_EXPIRED ${code}}
+                     TEST $MATCH{SRM_FAILURE ${fileStatus}}
+                        SYSTEM echo "${srmTest}: OK, failed to upload file into expired space." >> "$ENV{SRM2_SUPPORTED}"
+                  || TEST $MATCH{SRM_FAILURE ${code}}
+                     TEST $MATCH{SRM_INVALID_REQUEST ${fileStatus}}
+                        SYSTEM echo "${srmTest}: OK, failed to upload file as space no longer exists." >> "$ENV{SRM2_SUPPORTED}"
                || ASSIGN Status ${!}
                   SYSTEM echo "${srmTest}: KO PrepareToPut returned ${-code}: ${-explanation}" >> "$ENV{SRM2_SUPPORTED}"
                   ;; srmAbortRequest $ENV{ENDPOINT} requestToken=${request}

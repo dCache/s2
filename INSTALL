@@ -1,7 +1,7 @@
 Prerequisites
 ~~~~~~~~~~~~~
 First of all, it is recommended that you install the
-vdt_globus_essentials package if you are planning to use
+globus packages listed under <Source distribution> if you are planning to use
 globus-url-copy command to do the actual file transfers, and that
 your /etc/grid-security/certificates contains valid certificates
 (ca_* packages).
@@ -9,8 +9,7 @@ your /etc/grid-security/certificates contains valid certificates
 
 RPM-haters section
 ~~~~~~~~~~~~~~~~~~
-Due to the pressure from my work colleagues, I've decided to distribute
-RPM packages.  As far as I know, there are at least two ways of
+This guide shows how to build RPM packages. There are at least two ways of
 getting a package of your choice from an RPM package:
 
 1) You can use `alien' to convert the package between several major
@@ -26,10 +25,6 @@ getting a package of your choice from an RPM package:
 
 Binary distribution
 ~~~~~~~~~~~~~~~~~~~
-The S2 binary has been compiled on a Scientifix Linux 3.0.5 Fermi, and
-was successfully tested on SL 3.0.5 and SL 4.3 (Fermi).  It has been
-compiled as well on Scientifix Linux 3 and 4 CERN. You will need
-compat-libstdc++-33 to use the binary on SL 4.3.
 
 The <RPM> is installed by 
 # rpm -ivh <RPM>
@@ -37,29 +32,33 @@ The <RPM> is installed by
 
 Source distribution
 ~~~~~~~~~~~~~~~~~~~
+
+This has been tested on CentOS 7.3 and all required packages were installed from the EPEL repository (Extra Packages for Enterprise Linux 7 - x86_64). 
+
 You'll need:
 
 * PCRE (Perl Compatible Regular Expressions) library >= 4.4
-  http://www.pcre.org/
-* diagnose library >= 0.3.8 (optional in principal, but 
-  you are strongly advised to use it)
+  http://www.pcre.org/ (used pcre-8.32)
+* diagnose library >= 0.3.8 (used 0.3.12.3) (optional in principal, but 
+  you are strongly advised to use it.)
   http://libdiagnose.sourceforge.net
 
 If you require SRM 2.2 protocol support, you'll also need:
 
-* vdt_globus_essentials (I used the one that comes with SL 3.0.5,
-  i.e.: VDT1.2.2rh9-1)
-* vdt_globus_sdk if you want to build globus libraries statically
-  (I used the one that comes with SL 3.0.5, i.e.: VDT1.2.2rh9-1)
-* gSOAP 2.7.2 (precisely this version)
-  http://www.cs.fsu.edu/~engelen/soap.html
-  e.g.:
-  http://heanet.dl.sourceforge.net/sourceforge/gsoap2/gsoap_2.7.2.tar.gz
-  or use the source RPM which is being released with this project
-  on SourceForge.
-* CGSI_gSOAP_2.7 plugin (I used CGSI_gSOAP_2.7-1.1.9)
-  http://cern.ch/castor/DIST/CERN/savannah/CGSI_gSOAP.pkg
+* globus libraries: globus-common, globus-gss-assist, globus-gssapi-gsi, globus-open-ssl and globus libraries to satisfy dependencies of these packages
+* gSOAP (used 2.8.16)
+* CGSI_gSOAP (used 1.3.10)
 
+To build the RPM file you need:
+
+* The devel files for the globus, gSOAP and CGSI-gSOAP libraries
+* doxygen
+* rpm-build 
+
+Note that in the case that the globus libraries are already present on your system as part of the condor-external-libs package, you may encounter linker errors after installing the devel files from the EPEL reopsitory. Export LD_LIBRARY_PATH=/usr/lib64 (or where the globus libs are located) both - at compile and runtime - to avoid linking to the incompatible libraries in your condor installation. 
+
+To build the binaries use:
+ 
 $ ./configure --help
 $ ./configure --enable-srm22 && make
 $ make install [prefix=your_prefix]
@@ -73,5 +72,5 @@ Testing directory
 ~~~~~~~~~~~~~~~~~
 A simple test framework was created in the testing directory.
 The framework generates all kinds of diagnostics files, therefore
-it is recommended to copy/move it to a directory when users have
+it is recommended to copy/move it to a directory where users have
 read-write permissions.

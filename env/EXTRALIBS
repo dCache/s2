@@ -1,1 +1,1 @@
--L${HOME}/usr/local/lib -L/usr/local/lib -L./
+-L${HOME}/usr/local/lib -L/usr/local/lib  -L./ 

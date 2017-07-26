@@ -22,6 +22,7 @@
 
 #include <iostream>             /* std::string, cout, endl, ... */
 #include <sstream>              /* ostringstream */
+#include <cstring>		/* for strerror */
 
 using namespace std;
 

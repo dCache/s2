@@ -132,7 +132,7 @@ EOF
   do
     ${HAVE_SH} \
       $CC $INCLUDES -I${try_globusdir}/include \
-      -o $TMPE $TMPC -L${try_globusdir}/lib ${LIB_GLOBUS} ${EXTRALIBS} \
+      -o $TMPE $TMPC -L${try_globusdir}/lib64 ${LIB_GLOBUS} ${EXTRALIBS} \
       >>${CONFIGURE_LOG} 2>&1
     if test $? -eq 0 ; then
       run $TMPE && have_globus="yes" && break || have_globus="no"

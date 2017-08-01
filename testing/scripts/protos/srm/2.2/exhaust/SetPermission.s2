@@ -1,7 +1,7 @@
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/Exhaust.s2
+#include ../include/Exhaust.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission.ID userPermission.mode groupPermission.ID groupPermission.mode otherPermission storageSystemInfo.key storageSystemInfo.value
+;; DEFUN srmTest authorizationID SURL permissionType ownerPermission userPermission.ID userPermission.mode groupPermission.ID groupPermission.mode otherPermission storageSystemInfo.key storageSystemInfo.value
    >0&&10 NOP
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
          >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} SURL ${SURL} : arg1

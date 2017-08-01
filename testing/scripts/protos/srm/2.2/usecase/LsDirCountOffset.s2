@@ -16,8 +16,8 @@
 % srmRm
 % srmRmdir
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 && SYSTEM echo "${srmTest}: Create directory $ENV{SRM_NEW_DIR0}" >> "$ENV{S2_LOG}"

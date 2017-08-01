@@ -12,9 +12,9 @@
 % on SURLs that resulted from the successful srmCopy or srmPrepareToPut followed by srmPutDone, and pin
 % lifetimes are on TURLs or file copies that resulted from srmPrepareToGet, srmPrepareToPut or srmBringOnline.
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"

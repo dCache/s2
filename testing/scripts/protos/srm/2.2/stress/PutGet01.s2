@@ -11,10 +11,9 @@
 % srmStatusOfGetRequest
 % srmRm
 
-
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN n $ENV{N_THREADS} sec 0 nsec 0
    >0 ${n} SLEEP ${sec} ${nsec}

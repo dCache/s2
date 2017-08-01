@@ -1,8 +1,8 @@
 % Checks whether escaped special characters ;?:@&=+$,[] work as a filename
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 
 && SYSTEM echo "${srmTest}: Putting file" >> "$ENV{S2_LOG}"

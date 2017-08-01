@@ -6,11 +6,11 @@
 % srmStatusOfGetRequest
 % srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+;; ASSIGN TestPass 0
+;; ASSIGN Stat2 0
 
-&& ASSIGN TestPass 0
-&& ASSIGN Stat2 0
 && SYSTEM echo "${srmTest}: Executing first PrepareToPut with overwrite enabled..." >> "$ENV{S2_LOG}"
 
 && srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileLifeTime=$ENV{FILE_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<requestToken1>.*) fileStatuses=(?P<fileStatus10>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime1>.*) returnStatus.explanation=(?P<returnStatus1_explanation>.*) returnStatus.statusCode=(?P<returnStatus1_statusCode>.*)

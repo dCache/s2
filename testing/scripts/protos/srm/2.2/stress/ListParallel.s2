@@ -14,9 +14,8 @@
 % srmRm
 % srmRmdir
 
-
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN SRM_SNEW_DIR0 $ENV{SRM_NEW_STRESS_DIR0}
 && ASSIGN SRM_SNEW_DIR1 $ENV{SRM_NEW_STRESS_DIR0}/$DATE{}-$ENV{PROC}

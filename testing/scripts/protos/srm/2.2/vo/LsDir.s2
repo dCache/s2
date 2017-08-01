@@ -9,10 +9,10 @@
 % --------------------------------
 % srmLs
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+;; ASSIGN Status 0
 
-&& ASSIGN Status 0
 && ASSIGN Surl $ENV{SRM_URL}?SFN=$ENV{VOPATH}
 && SYSTEM echo "${srmTest}: The directory to test is ${Surl}" >> "$ENV{S2_LOG}"
 

@@ -12,9 +12,8 @@
 % srmStatusOfGetRequest
 % srmRm
 
-
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}-$DATE{}: Creating directory $ENV{SRM_NEW_STRESS_DIR0}" >> "$ENV{S2_LOG}"
 

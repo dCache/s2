@@ -1,9 +1,8 @@
 % srmCopy
 
-
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN SpaceTokenDescription "srm2_d1t0"
 

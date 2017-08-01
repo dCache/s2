@@ -6,11 +6,10 @@
 % srmStatusOfGetRequest
 % srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
-
-&& ASSIGN TestPass 0
-&& ASSIGN Stat2 0
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+;; ASSIGN TestPass 0
+;; ASSIGN Stat2 0
 
 && NOP
    SYSTEM echo "${srmTest}: Executing first PrepareToPut with overwrite enabled..." >> "$ENV{S2_LOG}"

@@ -7,8 +7,8 @@
 % srmStatusOfGetRequest
 % srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && SYSTEM echo "${srmTest}: Executing Put cycle on $ENV{SRM_NEW_FILE0}" >> "$ENV{S2_LOG}"

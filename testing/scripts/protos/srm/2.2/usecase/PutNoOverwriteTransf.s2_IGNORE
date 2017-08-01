@@ -3,8 +3,8 @@
 % srmPrepareToPut
 % srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Starting to put file srmPrepareToPut $ENV{SRM_NEW_FILE0}" >> $ENV{S2_LOG}
 

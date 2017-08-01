@@ -15,11 +15,10 @@
 % srmAbortFiles
 % srmRm
 
-
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
-   #include ../../include/FileTransPut.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && SYSTEM echo "${srmTest}: Putting 1 files" >> $ENV{S2_LOG}
 

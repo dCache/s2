@@ -3,8 +3,8 @@
 % srmPrepareToPut
 % srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_CUSTODIAL_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] retentionPolicy=$ENV{CUSTODIAL} accessLatency=$ENV{NEARLINE} requestToken=(?P<putRequestToken>.*) fileStatuses=".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"

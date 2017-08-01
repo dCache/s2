@@ -5,9 +5,8 @@
 % srmStatusOfPutRequest
 % srmLs
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
-
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; ASSIGN Status 0
 
 ;; SYSTEM echo "${srmTest}: Executing PrepareToPut ..." >> "$ENV{S2_LOG}"

@@ -10,11 +10,11 @@
 % srmPrepareToGet
 % srmStatusOfGetRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
-   #include ../include/GetCycle.s2
+#include ../../include/FileTransPut.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+;; ASSIGN Status 0
 
-&& ASSIGN Status 0
 && srmPrepareToPut $ENV{ENDPOINT} overwriteOption=ALWAYS fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}] requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
    SYSTEM echo "srmPrepareToPut: putRequestToken=${putRequestToken}" >> "$ENV{S2_LOG}"
    && >0||2 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}

@@ -3,8 +3,8 @@
 % srmPrepareToPut
 % srmPutDone
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 ;; ASSIGN Status 0
 

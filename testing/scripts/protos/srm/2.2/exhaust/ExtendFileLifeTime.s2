@@ -1,7 +1,7 @@
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/Exhaust.s2
+#include ../include/Exhaust.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-DEFUN srmTest authorizationID requestToken SURL newFileLifeTime newPinLifeTime
+;; DEFUN srmTest authorizationID requestToken SURL newFileLifeTime newPinLifeTime
    >0&&4 NOP
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
          >0&&$EXPR{2*($I{2}==1)} FUN ExhString $I{0} requestToken ${requestToken} : arg1

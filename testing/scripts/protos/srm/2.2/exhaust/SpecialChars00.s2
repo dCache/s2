@@ -1,8 +1,8 @@
 % Puts a file of length 255 characters into the SRM, then lists it and then deletes it again.
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-   #include ../include/GetCycle.s2
+#include ../include/PutCycle.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 
 && SYSTEM echo "${srmTest}: Putting file" >> "$ENV{S2_LOG}"

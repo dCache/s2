@@ -17,10 +17,9 @@
 % srmReleaseSpace
 % srmAbortRequest
 
-
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
-   #include ../include/GetCycle.s2
+#include ../../include/FileTransPut.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Status 0
 

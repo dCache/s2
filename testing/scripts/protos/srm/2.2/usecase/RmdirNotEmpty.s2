@@ -11,10 +11,10 @@
 % srmLs
 % srmRmdir
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycle.s2
-
+#include ../include/PutCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 ;; ASSIGN Result 0
+
 ;; srmMkdir $ENV{ENDPOINT} SURL=$ENV{SRM_NEW_DIR0} returnStatus.explanation=(?P<explanation>.*) returnStatus.statusCode=(?P<status>.*)
    SYSTEM echo "${srmTest}: Executed srmMkdir, returnStatus: ${status}" >> "$ENV{S2_LOG}"
 

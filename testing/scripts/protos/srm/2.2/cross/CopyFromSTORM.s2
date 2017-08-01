@@ -7,11 +7,10 @@
 % srmStatusOfGetRequest
 % srmStatusOfPutRequest
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycleEndpoint.s2
-   #include ../include/GetCycle.s2
-
-&& ASSIGN Status 0
+#include ../include/PutCycleEndpoint.s2
+#include ../include/GetCycle.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+;; ASSIGN Status 0
 
 %%% Put cycle %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 && FUN PutCycle $ENV{STORM} $ENV{FILE_TO_PUT0} $ENV{STORMFILE} : putRequestToken

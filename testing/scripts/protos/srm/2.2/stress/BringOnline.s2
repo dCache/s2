@@ -3,8 +3,9 @@
 % Try to reserve 1GB of disk space and fill it in with files.
 % Checking that files are migrated to tape and then perform BringOnline
 %
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/PutCycleToken.s2
+
+#include ../include/PutCycleToken.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 #if $ENV{CERN}
 && SYSTEM echo "${srmTest}: This test does not apply to CASTOR!" >> "$ENV{S2_LOG}"

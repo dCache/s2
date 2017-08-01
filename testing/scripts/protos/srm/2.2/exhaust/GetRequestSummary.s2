@@ -1,7 +1,7 @@
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/Exhaust.s2
+#include ../include/Exhaust.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-DEFUN srmTest authorizationID requestToken
+;; DEFUN srmTest authorizationID requestToken
    >0&&2 FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
       >0&&2 FUN ExhStringArr $I{0} requestToken ${requestToken} : arg1
          ASSIGN c $EXPR{${c}+1}

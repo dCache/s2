@@ -1,10 +1,9 @@
 % srmPutDone
 
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
-
-&& ASSIGN Status 0
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
+;; ASSIGN Status 0
 
 #if $ENV{VOTOKENFLAG}
 && ASSIGN Overwrite NEVER

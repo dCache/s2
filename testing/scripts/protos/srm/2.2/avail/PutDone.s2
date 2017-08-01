@@ -1,8 +1,8 @@
 % srmPutDone
 
 
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../../include/FileTransPut.s2
+#include ../../include/FileTransPut.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
 && ASSIGN Overwrite NEVER
 && ASSIGN access_latency ONLINE

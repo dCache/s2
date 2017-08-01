@@ -1,7 +1,7 @@
-TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
-   #include ../include/Exhaust.s2
+#include ../include/Exhaust.s2
+;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value fileStorageType fullDetailedList allLevelRecursive numOfLevels offset count
+;; DEFUN srmTest authorizationID SURL storageSystemInfo.key storageSystemInfo.value fileStorageType fullDetailedList allLevelRecursive numOfLevels offset count
    >0&&9 NOP
       >0&&$EXPR{2*($I{1}==0)} FUN ExhString $I{0} authorizationID ${authorizationID} : arg0
          >0&&$EXPR{2*($I{2}==1)} FUN ExhStringArr $I{0} SURL ${SURL} : arg1

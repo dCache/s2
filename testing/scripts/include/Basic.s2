@@ -3,21 +3,23 @@
 #ifndef _BASIC_FUN_
 #define _BASIC_FUN_
 
+#include FirstNode.s2
+
 % String manipulation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DEFUN RemoveTrailing s : r
+;; DEFUN RemoveTrailing s : r
    TEST $MATCH{"(?P<r>.*?)[\t ]*$" ${s}}
 
-DEFUN RemoveLeading s : r
+;; DEFUN RemoveLeading s : r
    TEST $MATCH{"^[\t ]*(?P<r>.*)" ${s}}
 
-DEFUN car list : car cdr
+;; DEFUN car list : car cdr
    TEST $MATCH{"(?P<car>[^ ]+)([ ]+|$)(?P<cdr>.*)" ${list}}
 
 % File manipulation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DEFUN FileSize f : r
+;; DEFUN FileSize f : r
    match=-c SYSTEM out="^([^ ]+[ ]+){4,4}(?P<r>.*? )" ls -l ${f}
 
-DEFUN DiskUsage f : r
+;; DEFUN DiskUsage f : r
    match=-c SYSTEM out="^(?P<r>[0-9]+)" du -b ${f}
 
 #endif	% _BASIC_FUN_

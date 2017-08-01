@@ -6,7 +6,9 @@
 #ifndef _FILE_TRANS_GET_
 #define _FILE_TRANS_GET_
 
-DEFUN FileTransGet fileToGet transferURL
+#include ../../../include/FirstNode.s2
+
+;; DEFUN FileTransGet fileToGet transferURL
    % substring matching
    match=-c TEST $MATCH{"^gsiftp://" ${transferURL}}
       SYSTEM globus-url-copy ${transferURL} file://${fileToGet} >> "$ENV{S2_LOG}" 2>&1

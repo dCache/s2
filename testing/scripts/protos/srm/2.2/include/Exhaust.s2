@@ -1,53 +1,58 @@
-DEFUN ExhString i var val : var_r
+#ifndef _EXHAUST_
+#define _EXHAUST_
+
+#include ../../../../include/FirstNode.s2
+
+;; DEFUN ExhString i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhStringArr i var val : var_r
+;; DEFUN ExhStringArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhInt i var val : var_r
+;; DEFUN ExhInt i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=0 "
    || ASSIGN var_r ""
 
-DEFUN ExhIntArr i var val : var_r
+;; DEFUN ExhIntArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[0] "
    || ASSIGN var_r ""
 
-DEFUN ExhBool i var val : var_r
+;; DEFUN ExhBool i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=0 "
    || ASSIGN var_r ""
 
-DEFUN ExhBoolArr i var val : var_r
+;; DEFUN ExhBoolArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[0] "
    || ASSIGN var_r ""
 
-DEFUN ExhTime i var val : var_r
+;; DEFUN ExhTime i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhTimeArr i var val : var_r
+;; DEFUN ExhTimeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
@@ -55,154 +60,154 @@ DEFUN ExhTimeArr i var val : var_r
    || ASSIGN var_r ""
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DEFUN ExhAccessLatency i var val : var_r
+;; DEFUN ExhAccessLatency i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhAccessLatencyArr i var val : var_r
+;; DEFUN ExhAccessLatencyArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhAccessPattern i var val : var_r
+;; DEFUN ExhAccessPattern i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhAccessPatternArr i var val : var_r
+;; DEFUN ExhAccessPatternArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhConnectionType i var val : var_r
+;; DEFUN ExhConnectionType i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhConnectionTypeArr i var val : var_r
+;; DEFUN ExhConnectionTypeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhFileLocality i var val : var_r
+;; DEFUN ExhFileLocality i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhFileLocalityArr i var val : var_r
+;; DEFUN ExhFileLocalityArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhFileStorageType i var val : var_r
+;; DEFUN ExhFileStorageType i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhFileStorageTypeArr i var val : var_r
+;; DEFUN ExhFileStorageTypeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhFileType i var val : var_r
+;; DEFUN ExhFileType i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhFileTypeArr i var val : var_r
+;; DEFUN ExhFileTypeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhOverwriteMode i var val : var_r
+;; DEFUN ExhOverwriteMode i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhOverwriteModeArr i var val : var_r
+;; DEFUN ExhOverwriteModeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhPermissionMode i var val : var_r
+;; DEFUN ExhPermissionMode i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhPermissionModeArr i var val : var_r
+;; DEFUN ExhPermissionModeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhPermissionType i var val : var_r
+;; DEFUN ExhPermissionType i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhPermissionTypeArr i var val : var_r
+;; DEFUN ExhPermissionTypeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhRequestType i var val : var_r
+;; DEFUN ExhRequestType i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhRequestTypeArr i var val : var_r
+;; DEFUN ExhRequestTypeArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
       ASSIGN var_r "${var}[] "
    || ASSIGN var_r ""
 
-DEFUN ExhRetentionPolicy i var val : var_r
+;; DEFUN ExhRetentionPolicy i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}=${val} "
    || TEST ${i} == 1
       ASSIGN var_r "${var}=\"\" "
    || ASSIGN var_r ""
 
-DEFUN ExhRetentionPolicyArr i var val : var_r
+;; DEFUN ExhRetentionPolicyArr i var val : var_r
    TEST ${i} == 0
       ASSIGN var_r "${var}[${val}] "
    || TEST ${i} == 1
@@ -210,10 +215,12 @@ DEFUN ExhRetentionPolicyArr i var val : var_r
    || ASSIGN var_r ""
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DEFUN S2 script i
+;; DEFUN S2 script i
    ASSIGN S2_S2 ${i}$ENV{S2_P} S2_P ${i}$ENV{S2_P} S2_D ${i}$ENV{S2_D} S2_E ${i}$ENV{S2_E} S2_L ${i}$ENV{S2_L} S2_W ${i}$ENV{S2_W} S2_E0 ${i}$ENV{S2_E0} S2_E1 ${i}$ENV{S2_E1} S2_E2 ${i}$ENV{S2_E2}
 #if 1
    && SYSTEM echo '${script}' | s2 --pp-out-file=${S2_P} --dbg-file=${S2_D} --err-file=${S2_E} --log-file=${S2_L} --warn-file=${S2_W} --e0-file=${S2_E0} --e1-file=${S2_E1} --e2-file=${S2_E2} --progress=0
 #else
    && SYSTEM echo '${script}'
+#endif
+
 #endif

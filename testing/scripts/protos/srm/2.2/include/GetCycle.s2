@@ -9,17 +9,19 @@
 #ifndef _GET_CYCLE_
 #define _GET_CYCLE_
 
+#include ../../../../include/FirstNode.s2
+
 % Generic functions
 #include ../../../../include/Basic.s2
 % SRM functions
 #include ../../include/Basic.s2
 #include ../../include/FileTransGet.s2
 
-DEFUN DefFileStatuses f : t
+;; DEFUN DefFileStatuses f : t
    ASSIGN t ".*returnStatus.statusCode${1c}=(SRM_SUCCESS|SRM_FILE_IN_CACHE|SRM_FILE_PINNED) .*transferURL${1c}=(?P<transferURL${1c}>.*?)( |$)"
    && ASSIGN 1c $EXPR{${1c}+1}
 
-DEFUN GetCycle filesToGet sURLs : getRequestToken
+;; DEFUN GetCycle filesToGet sURLs : getRequestToken
    % Define local variables
    ASSIGN c 0
    && ASSIGN fileStatuses "$MAP{DefFileStatuses $SPLIT{${filesToGet}}}"

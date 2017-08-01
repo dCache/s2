@@ -3,10 +3,12 @@
 #ifndef _BASIC_SRM_FUNC_
 #define _BASIC_SRM_FUNC_
 
-DEFUN StorageTypes f : r
+#include ../../../include/FirstNode.s2
+
+;; DEFUN StorageTypes f : r
    ASSIGN r "$ENV{STORAGE_TYPE} "
 
-DEFUN Lifetimes f : r
+;; DEFUN Lifetimes f : r
    ASSIGN r "$ENV{LIFETIME} "
 
 % _BASIC_SRM_FUNC_

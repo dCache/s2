@@ -10,25 +10,28 @@
 
 && ASSIGN Status 0
 
-&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]  retentionPolicy=${retention_policy} accessLatency=${access_latency} requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)"
+;; ASSIGN t ".*returnStatus.statusCode0=SRM_(((SUCCESS|FILE_IN_CACHE|SPACE_AVAILABLE).*transferURL0=(?P<transferURL0>.+?))|(REQUEST_QUEUED|REQUEST_INPROGRESS))(\s.*|$)"
+
+&& srmPrepareToPut $ENV{ENDPOINT} fileRequests.SURL[$ENV{SRM_NEW_FILE0}] fileRequests.expectedFileSize[$ENV{FILE_TO_PUT0_SIZE}] desiredPinLifeTime=$ENV{PIN_LIFETIME} desiredFileStorageType=$ENV{STORAGE_TYPE} transferProtocols[$ENV{TRANS_PROT0} $ENV{TRANS_PROT1}]  retentionPolicy=${retention_policy} accessLatency=${access_latency} requestToken=(?P<putRequestToken>.*) fileStatuses=(?P<fileStatuses>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) fileStatuses="${t}"
    SYSTEM echo "${srmTest}: srmPrepareToPut, putRequestToken=${-putRequestToken}, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
 
-|| >0||3 SLEEP $EXPR{$ENV{SLEEP_SOR}*$I{0}}
-   srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=".*transferURL0=(?P<transferURL0>.*?)( |$)" remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> "$ENV{S2_LOG}"
+&& TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+   ASSIGN deadline $EXPR{$DATE{%s} + $ENV{TIMEOUT_SOR}}
+   && WHILE TEST $EXPR{$DATE{%s} < ${deadline}}
+      srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<rs_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*) fileStatuses="${t}"
+         SYSTEM echo "${srmTest}: srmStatusOfPutRequest, transferURL0=${-transferURL0}" >> "$ENV{S2_LOG}"
+         && TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+         && SLEEP $ENV{SLEEP_SOR}
 
-&& TEST $MATCH{SRM_INVALID_REQUEST ${returnStatus_statusCode}}
-
-|| TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
+;; TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
    NOP
       FUN FileTransPut $ENV{FILE_TO_PUT0} ${transferURL0}
       && srmPutDone $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_NEW_FILE0}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
          SYSTEM echo "${srmTest}: srmPutDone, fileStatuses=${fileStatuses}" >> "$ENV{S2_LOG}"
          && SYSTEM echo "${srmTest}: srmPutDone, returnStatus=${returnStatus_statusCode}" >> "$ENV{S2_LOG}"
 
-&& TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
+;; TEST $MATCH{(SRM_INVALID_REQUEST|SRM_SUCCESS) ${returnStatus_statusCode}}
    SYSTEM echo "${srmTest}: OK: ${returnStatus_statusCode}" >> "$ENV{SRM2_SUPPORTED}"
 || ASSIGN Status ${!}
    SYSTEM echo "${srmTest}: KO: ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}

@@ -16,40 +16,55 @@
 #include ../include/GetCycle.s2
 ;; TEST $MATCH{(?P<srmTest>.*).s2$ ${0}}
 
-&& SYSTEM echo "${srmTest}: Putting file" >> "$ENV{S2_LOG}"
+;; SYSTEM echo "${srmTest}: Putting file" >> "$ENV{S2_LOG}"
 
-&& FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH190}" : putRequestToken
+;; ASSIGN rc 0
 
-&& NOP
-   srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_LONG_PATH190}] fileStatuses=(?P<FileStatus0>.*) remainingTotalRequestTime=(?P<remainingTotalRequestTime>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-   && TEST $MATCH{SRM_NOT_SUPPORTED ${returnStatus_statusCode}}
-      SYSTEM echo "${srmTest}: Filenames 255 characters-long are not supported" >> "$ENV{SRM2_SUPPORTED}"
-      && ASSIGN Status 0
-   || SYSTEM exit 0
-   && TEST $MATCH{".*returnStatus.statusCode0=(?P<StatusCode0>.+?)(\s.+|$)" ${FileStatus0}}
-      TEST $MATCH{SRM_FAILURE ${returnStatus_statusCode}} && TEST $MATCH{SRM_INVALID_PATH ${StatusCode0}}
-         SYSTEM echo "${srmTest}: Filenames 255 characters-long are not supported" >> "$ENV{SRM2_SUPPORTED}"
-         && ASSIGN Status 0
-   || NOP
-      TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
-         ASSIGN Status 0
-      || TEST $DEFINED{Status}
-         SYSTEM exit 0
+;; FUN PutCycle "$ENV{FILE_TO_PUT0}" "$ENV{SRM_LONG_PATH190}" : putRequestToken
+   SYSTEM echo "${srmTest}: File uploaded OK" >> "$ENV{S2_LOG}"
 
-&& SYSTEM echo "${srmTest}: Listing file" >> "$ENV{S2_LOG}"
+   ;; srmStatusOfPutRequest $ENV{ENDPOINT} requestToken=${putRequestToken} SURL[$ENV{SRM_LONG_PATH190}] fileStatuses=(?P<FileStatus0>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
 
-&& NOP
-   srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH190}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails=".*path0=(?P<Path0>.+?)(\s.+|$)" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
-      SYSTEM echo "${srmTest}: Executed srmLs..." >> "$ENV{S2_LOG}"
-      && SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURL=${Path0}" >> "$ENV{S2_LOG}"
-   || SYSTEM echo "${srmTest}: KO, Ls of file not supported" >> "$ENV{SRM2_SUPPORTED}" && exit ${!}
+      TEST $MATCH{SRM_NOT_SUPPORTED ${returnStatus_statusCode}}
+         SYSTEM echo "${srmTest}: OK, Filenames 255 characters-long are not supported" >> "$ENV{SRM2_SUPPORTED}"
 
-&& SYSTEM echo "${srmTest}: OK, Filenames with 255 characters are supported" >> "$ENV{SRM2_SUPPORTED}"
-|| ASSIGN Status ${!}
-   SYSTEM echo "${srmTest}: KO ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}" && exit ${Status}
+      || TEST $MATCH{SRM_FAILURE ${returnStatus_statusCode}} && $MATCH{".*returnStatus.statusCode0=SRM_INVALID_PATH(\s.*|$)" ${FileStatus0}}
+         SYSTEM echo "${srmTest}: OK, Filenames 255 characters-long are not supported" >> "$ENV{SRM2_SUPPORTED}"
 
-;; SYSTEM echo "${srmTest}: Deleting the file again" >> "$ENV{S2_LOG}"
+      || TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
+         SYSTEM echo "${srmTest}: Listing file" >> "$ENV{S2_LOG}"
 
-;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH190}] fileStatuses=(?P<fileStatuses>.*) returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+         ;; ASSIGN Path0Capture ".*(path0=(?P<Path0>.+?))?(\s.+|$)"
 
-;; SYSTEM exit ${Status}
+         ;; srmLs $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH190}] fullDetailedList=1 requestToken=(?P<requestLsToken>.*) pathDetails="${Path0Capture}" returnStatus.explanation=(?P<returnStatus_explanation>.*) returnStatus.statusCode=(?P<returnStatus_statusCode>.*)
+
+            TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+               ASSIGN deadline $EXPR{$DATE{%s} + $ENV{TIMEOUT_SOR}}
+               && WHILE TEST $EXPR{$DATE{%s} < ${deadline}}
+                  srmStatusOfLsRequest $ENV{ENDPOINT} requestToken=${requestLsToken} returnStatus.statusCode=(?P<returnStatus_statusCode>.*) pathDetails="${Path0Capture}" 
+                     SYSTEM echo "${srmTest}: srmStatusOfPutRequest, returnStatus=${-returnStatus_statusCode}" >> "$ENV{S2_LOG}"
+                     && TEST $MATCH{(SRM_REQUEST_QUEUED|SRM_REQUEST_INPROGRESS) ${returnStatus_statusCode}}
+                        SLEEP $ENV{SLEEP_SOR}
+
+            ;; TEST $MATCH{SRM_SUCCESS ${returnStatus_statusCode}}
+               SYSTEM echo "${srmTest}: returnStatus=${-returnStatus_statusCode}, SURL=${Path0}" >> "$ENV{S2_LOG}"
+               ;; SYSTEM echo "${srmTest}: OK, Filenames with 255 characters are supported" >> "$ENV{SRM2_SUPPORTED}"
+
+            || ASSIGN rc 1
+               SYSTEM echo "${srmTest}: KO, srmLs or srmStatusOfLsRequest failed with ${-returnStatus_statusCode} ${-returnStatus_explanation}" >> "$ENV{SRM2_SUPPORTED}"
+
+         || ASSIGN rc 1
+            SYSTEM echo "${srmTest}: KO, srmLs failed" >> "$ENV{SRM2_SUPPORTED}"
+
+      || ASSIGN rc 1
+         SYSTEM echo "${srmTest}: KO, srmStatusOfPutRequest ${-returnStatus_statusCode} ${-returnStatus_explanation} ${-FileStatus0}" >> "$ENV{SRM2_SUPPORTED}"
+
+   || ASSIGN rc 1
+      SYSTEM echo "${srmTest}: srmStatusOfPutRequest failed" >> "$ENV{SRM2_SUPPORTED}"
+
+   ;; srmRm $ENV{ENDPOINT} SURL[$ENV{SRM_LONG_PATH190}]
+
+|| ASSIGN rc 1
+   SYSTEM echo "${srmTest}: KO, failed to upload file" >> "$ENV{SRM2_SUPPORTED}"
+
+;; NOP ${rc}

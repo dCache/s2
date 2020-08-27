@@ -43,7 +43,7 @@ which s2
 check_envars WORKSPACE SRM_HOST SRM_PORT SRM_PATH NODE_NAME
 
 # SLEEP_SOR is the sleep-time when polling an SRM GetStatusOf...Request
-export SLEEP_SOR=4
+export SLEEP_SOR=1
 export S2_SUPRESS_PROGRESS=1
 
 export SRM_ENDPOINT="srm://${SRM_HOST}:${SRM_PORT}/srm/managerv2?SFN=${SRM_PATH}/${NODE_NAME}"
